@@ -1,0 +1,50 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+const title = `Page not found — ${SITE_TITLE}`;
+const description = "The page you're looking for doesn't exist.";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} />
+    <meta name="robots" content="noindex" />
+    <style>
+      main { min-height: 70vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
+      .wrap { text-align:center; max-width: 720px; }
+      .code { font-size: 4rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: .5rem; }
+      .headline { font-size: 1.5rem; margin: 0 0 1rem 0; }
+      .links { display:flex; gap:.75rem; flex-wrap:wrap; justify-content:center; margin-top: 1rem; }
+      .btn { padding:.6rem 1rem; border-radius:.6rem; border:1px solid #ddd; text-decoration:none; }
+      .btn:hover { border-color: var(--accent, #6b5cff); }
+      form { margin-top:1rem; }
+      input[type="text"] { padding:.6rem .8rem; border-radius:.5rem; border:1px solid #ddd; width:min(420px, 90vw); }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <div class="wrap">
+        <div class="code">404</div>
+        <p class="headline"><strong>Oops.</strong> We couldn't find that page.</p>
+        <p>Try one of these instead:</p>
+        <div class="links">
+          <a class="btn" href="/">Home</a>
+          <a class="btn" href="/blog">Blog</a>
+          <a class="btn" href="/templates">Templates</a>
+          <a class="btn" href="/projects">Projects</a>
+          <a class="btn" href="/about">About</a>
+        </div>
+
+        <!-- Optional: simple client-side search query link to your blog page -->
+        <form action="/blog">
+          <input type="text" name="q" placeholder="Search posts (type and press Enter)" />
+        </form>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>
