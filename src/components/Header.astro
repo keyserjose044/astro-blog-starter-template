@@ -5,76 +5,51 @@ import { SITE_TITLE } from '../consts';
 
 <header>
 	<nav>
-		<h2>
-			<a href="/" class="logo-link">
-				<img 
-					src="/images/LifeLoggerz-logo.png" 
-					alt={SITE_TITLE} 
-					class="logo"
-				/>
-			</a>
-		</h2>
+		<a href="/" class="logo">
+			<img src="/images/logo.png" alt="LifeLoggerz Logo" />
+		</a>
 		<div class="internal-links">
 			<HeaderLink href="/">Home</HeaderLink>
 			<HeaderLink href="/blog">Blog</HeaderLink>
-			<HeaderLink href="/templates">Templates</HeaderLink>
-			<HeaderLink href="/projects">Projects</HeaderLink>
+		    <HeaderLink href="/templates">Templates</HeaderLink>
+		    <HeaderLink href="/projects">Projects</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
-		</div>
-		<div class="social-links">
-			<a href="https://m.webtoo.ls/@astro" target="_blank">
-				<span class="sr-only">Follow Astro on Mastodon</span>
-				<!-- Mastodon SVG -->
-			</a>
-			<a href="https://twitter.com/astrodotbuild" target="_blank">
-				<span class="sr-only">Follow Astro on Twitter</span>
-				<!-- Twitter SVG -->
-			</a>
-			<a href="https://github.com/withastro/astro" target="_blank">
-				<span class="sr-only">Go to Astro's GitHub repo</span>
-				<!-- GitHub SVG -->
-			</a>
 		</div>
 	</nav>
 </header>
 
 <style>
-	header {
-		margin: 0;
-		padding: 0 1em;
-		background: white;
-		box-shadow: 0 2px 8px rgba(var(--black), 5%);
-	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-	}
-	.logo {
-		height: 40px;
-		width: auto;
-		display: block;
-	}
+	/* General nav layout */
 	nav {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		padding: 1rem 2rem;
 	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
-		text-decoration: none;
+
+	/* Logo styling */
+	.logo img {
+		height: 60px;     /* adjust size as needed */
+		width: auto;      /* keeps proportions */
+		display: block;   /* removes extra bottom spacing */
 	}
-	nav a.active {
-		border-bottom-color: var(--accent);
-	}
-	.social-links,
-	.social-links a {
+
+	/* Navigation links */
+	.internal-links {
 		display: flex;
+		gap: 1.5rem;
+		font-size: 1rem;
+		font-weight: 500;
 	}
-	@media (max-width: 720px) {
-		.social-links {
-			display: none;
-		}
+
+	/* Optional: hover effect for links */
+	.internal-links a {
+		text-decoration: none;
+		color: inherit;
+		transition: color 0.2s ease;
+	}
+
+	.internal-links a:hover {
+		color: #0070f3; /* Astro blue hover */
 	}
 </style>
