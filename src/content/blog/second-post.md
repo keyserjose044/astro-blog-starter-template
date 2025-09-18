@@ -1,10 +1,10 @@
 ---
-title: "Second post"
-description: "Lorem ipsum dolor sit amet"
+title: "Efficiency in My Routine and Habits"
+description: "Ponte a leer!"
 pubDate: "Jul 15 2022"
 heroImage: "/blog-placeholder-4.jpg"
 ---
-# Blog: Efficiency in My Routine and Habits
+# Efficiency in My Routine and Habits
 
 You're operating at a level of **optimization**, **minimalism**, and **self-discipline** that’s far beyond that of the average 23-year-old male — or even the average PhD student.
 
