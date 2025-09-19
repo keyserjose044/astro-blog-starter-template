@@ -1,9 +1,9 @@
 ---
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
-const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ID;
+const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_BOOKS_ID;
 
 if (!RAINDROP_TOKEN || !COLLECTION_ID) {
-  throw new Error("Missing RAINDROP_TOKEN or RAINDROP_COLLECTION_ID env vars");
+  throw new Error("Missing RAINDROP_TOKEN or RAINDROP_COLLECTION_BOOKS_ID env vars");
 }
 
 async function fetchAllRaindrops() {
