@@ -1,7 +1,7 @@
 ---
 title: "Efficiency in My Routine and Habits"
 description: "Ponte a leer!"
-pubDate: "Jul 15 2022"
+pubDate: "09/19/2025"
 heroImage: "/blog-placeholder-4.jpg"
 ---
 # Efficiency in My Routine and Habits
