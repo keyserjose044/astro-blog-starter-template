@@ -1,12 +1,35 @@
 ---
+/* src/pages/index.astro */
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { SITE_TITLE } from '../consts';
 
-// get all posts, exclude drafts, sort by pubDate (newest first)
-const posts = (await getCollection('blog', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+// Load all posts, exclude drafts. Be resilient to missing/invalid pubDate.
+const rawPosts = await getCollection('blog', ({ data }) => data?.draft !== true);
+
+const posts = rawPosts
+  .map((p) => {
+    // Normalize pubDate to a Date or null
+    const raw = p.data?.pubDate;
+    const asDate =
+      raw instanceof Date ? raw :
+      raw ? new Date(raw) : null;
+
+    const validDate = asDate && !Number.isNaN(asDate.valueOf()) ? asDate : null;
+
+    return {
+      ...p,
+      _pub: validDate, // safe date for sorting/formatting
+    };
+  })
+  // Sort newest first; undated posts sink to the bottom
+  .sort((a, b) => {
+    const at = a._pub ? a._pub.getTime() : 0;
+    const bt = b._pub ? b._pub.getTime() : 0;
+    return bt - at;
+  });
 ---
 
 <!doctype html>
@@ -20,23 +43,33 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
       <section>
         <h1>Blog</h1>
 
-        <ul class="post-grid">
-          {posts.map((post) => (
-            <li class="card">
-              <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
-                {post.data.heroImage ? (
-                  <img src={post.data.heroImage} alt="" loading="lazy" />
-                ) : null}
-                <h2>{post.data.title}</h2>
-                <time datetime={post.data.pubDate.toISOString()}>
-                  {post.data.pubDate.toLocaleDateString(undefined, {
-                    year: 'numeric', month: 'short', day: 'numeric'
-                  })}
-                </time>
-              </a>
-            </li>
-          ))}
-        </ul>
+        {posts.length === 0 ? (
+          <p>No posts yet. Add some markdown files to <code>src/content/blog/</code>!</p>
+        ) : (
+          <ul class="post-grid">
+            {posts.map((post) => (
+              <li class="card">
+                <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
+                  {post.data.heroImage ? (
+                    <img src={post.data.heroImage} alt="" loading="lazy" />
+                  ) : null}
+                  <h2>{post.data.title}</h2>
+                  {post._pub ? (
+                    <time datetime={post._pub.toISOString()}>
+                      {post._pub.toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </time>
+                  ) : (
+                    <time aria-hidden="true">Undated</time>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
     <Footer />
@@ -44,29 +77,29 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 </html>
 
 <style>
-.post-grid {
-  list-style: none;
-  padding: 0;
-  margin: 2rem 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-}
-.card a {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(0,0,0,.08);
-}
-.card img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  display: block;
-}
-.card h2 { margin: 0.75rem 1rem 0.25rem; }
-.card time { display: block; margin: 0 1rem 1rem; opacity: .7; }
+  .post-grid {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+  .card a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+  .card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+  .card h2 { margin: 0.75rem 1rem 0.25rem; }
+  .card time { display: block; margin: 0 1rem 1rem; opacity: .7; }
 </style>
