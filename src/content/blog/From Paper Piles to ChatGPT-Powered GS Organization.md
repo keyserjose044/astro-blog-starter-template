@@ -1,17 +1,11 @@
 ---
-title: "From Paper Piles to ChatGPT‑Powered Google Sheets — Welcome to LifeLoggerz"
-date: 2025-09-18
-description: "How I turned scattered notes and whiteboards into LifeLoggerz — an automated Google Sheets system for tracking research, habits, music, and more. Templates, scripts, and ChatGPT prompts included."
-tags:
-  - LifeLoggerz
-  - Google Sheets
-  - Productivity
-  - Automation
-  - ChatGPT
-author: "Jose"
-featuredImage: "/images/lifeloggerz-evolution-collage.jpg"
-draft: false
+title: From Paper Piles to ChatGPT-Powered Google Sheets Life Loggerz
+description: …
+pubDate: 2025-09-18
+updatedDate: 2025-09-18
+heroImage: /images/your-image.jpg
 ---
+
 
 # From Paper Piles to ChatGPT‑Powered Google Sheets — Welcome to LifeLoggerz 📊✨
 
