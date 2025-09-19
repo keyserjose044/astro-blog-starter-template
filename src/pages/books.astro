@@ -5,38 +5,45 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 
-/* Prefer env vars in production:
+/* Recommended for production (env/secrets):
    const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
    const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_BOOKS_ID ?? '54514877';
-   For now, keeping your inline values:
 */
 const RAINDROP_TOKEN = "2df3b611-fa2c-4794-a359-1bf08efdd67f";
 const COLLECTION_ID = "54514877";
 
-/** Fetch every item in the collection (pagination starts at 1 on Raindrop). */
+/** Fetch every item in the collection (Raindrop page size ≈ 50). */
 async function fetchAllRaindrops() {
-  const perPage = 200; // Raindrop max per page
-  let page = 0;
-  let items = [];
+  const perPage = 50;              // ← Raindrop’s practical cap
+  let page = 0;                    // ← Raindrop pages are 0-based
+  const items = [];
 
   while (true) {
-    page++; // IMPORTANT: Raindrop pages are 1-based
     const res = await fetch(
       `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
       { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
     );
-
     if (!res.ok) {
       const t = await res.text();
       throw new Error(`Raindrop fetch failed (${res.status}): ${t}`);
     }
-
     const json = await res.json();
     const batch = json?.items ?? [];
-    items = items.concat(batch);
+    if (batch.length === 0) break;
 
-    if (batch.length < perPage) break; // last page reached
+    items.push(...batch);
+
+    // stop if last page (returned fewer than perPage)
+    if (batch.length < perPage) break;
+    page += 1;
   }
+
+  // newest first (fallback guards if fields are missing)
+  items.sort((a, b) => {
+    const ad = new Date(a.created || a.lastUpdate || 0).getTime();
+    const bd = new Date(b.created || b.lastUpdate || 0).getTime();
+    return bd - ad;
+  });
 
   return items.map((it) => ({
     id: it._id,
@@ -55,19 +62,34 @@ const books = await fetchAllRaindrops();
   <head>
     <BaseHead title={`${SITE_TITLE} — Books`} />
     <style>
-      :root { --gap: 16px; --max: 1200px; --ink: #0e121b; --muted: #5e6573; --card: #ffffff; --bg: #f6f8fb; --border: #e6e9ef; }
+      :root {
+        --gap: 16px;
+        --max: 1400px; /* wider to allow 6–8 cards per row on desktop */
+        --ink: #0e121b;
+        --muted: #5e6573;
+        --card: #ffffff;
+        --bg: #f6f8fb;
+        --border: #e6e9ef;
+      }
       * { box-sizing: border-box; }
       body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--ink); }
       .wrap { max-width: var(--max); margin: 0 auto; padding: 24px; }
       h1 { margin: 0 0 12px; font-weight: 800; letter-spacing: -0.02em; display: flex; gap: .6rem; align-items: center; }
       h1 .emoji { font-size: 1.35em; }
       .hint { color: var(--muted); margin: 6px 0 20px; }
+      .toolbar { display: flex; align-items: center; gap: 12px; margin: 6px 0 24px; }
+      .count { color: var(--muted); font-size: 0.9rem; }
+
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* ← tighter min makes more columns */
         gap: var(--gap);
         align-items: start;
       }
+      @media (min-width: 1600px) {
+        .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+      }
+
       .card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; }
       .thumb {
         width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px;
@@ -79,11 +101,8 @@ const books = await fetchAllRaindrops();
       input[type="search"] {
         width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 12px;
         border: 1px solid var(--border); background: #fff; color: var(--ink);
-        font-size: 0.95rem;
-        box-shadow: 0 1px 2px rgba(0,0,0,.03);
+        font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,.03);
       }
-      .toolbar { display: flex; align-items: center; gap: 12px; margin: 6px 0 24px; }
-      .count { color: var(--muted); font-size: 0.9rem; }
       main.wrap { padding-top: 32px; padding-bottom: 48px; }
     </style>
   </head>
@@ -104,7 +123,7 @@ const books = await fetchAllRaindrops();
           <a class="card" href={b.href} target="_blank" rel="noopener noreferrer"
              title={b.title}
              data-title={b.title.toLowerCase()}
-             data-tags={b.tags.join(" ").toLowerCase()}>
+             data-tags={(b.tags || []).join(" ").toLowerCase()}>
             <img class="thumb" src={b.cover} alt={b.title} loading="lazy" />
             <div class="title">{b.title}</div>
             {b.tags?.length ? <div class="tags">#{b.tags.slice(0,3).join('  #')}</div> : null}
