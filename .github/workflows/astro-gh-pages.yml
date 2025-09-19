@@ -19,6 +19,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:                    # <— add this block
+      RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
+      RAINDROP_COLLECTION_BOOKS_ID: ${{ secrets.RAINDROP_COLLECTION_BOOKS_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,10 +35,12 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: 🔎 Debug env presence
+        run: |
+          if [ -z "${RAINDROP_TOKEN}" ]; then echo "❌ RAINDROP_TOKEN missing"; exit 1; else echo "✅ RAINDROP_TOKEN present"; fi
+          if [ -z "${RAINDROP_COLLECTION_BOOKS_ID}" ]; then echo "❌ RAINDROP_COLLECTION_BOOKS_ID missing"; exit 1; else echo "✅ RAINDROP_COLLECTION_BOOKS_ID present"; fi
+
       - name: Build
-        env:
-          RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
-          RAINDROP_COLLECTION_ID: ${{ secrets.RAINDROP_COLLECTION_BOOKS_ID }}
         run: npm run build
 
       - name: Upload artifact
