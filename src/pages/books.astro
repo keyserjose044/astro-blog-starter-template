@@ -1,14 +1,9 @@
 ---
-/* server-side env: passed from GitHub Actions */
-const RAINDROP_TOKEN = process.env.RAINDROP_TOKEN;
-const COLLECTION_ID = process.env.RAINDROP_COLLECTION_BOOKS_ID;
-
-if (!RAINDROP_TOKEN || !COLLECTION_ID) {
-  throw new Error("Missing RAINDROP_TOKEN or RAINDROP_COLLECTION_BOOKS_ID env vars");
-}
+const RAINDROP_TOKEN = "2df3b611-fa2c-4794-a359-1bf08efdd67f";   // your token
+const COLLECTION_ID = "54514877";   // Books collection ID
 
 async function fetchAllRaindrops() {
-  const perPage = 200;
+  const perPage = 200; // Raindrop supports ~200/page
   let page = 0;
   let items = [];
   while (true) {
