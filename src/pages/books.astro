@@ -1,6 +1,8 @@
 ---
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
 const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_BOOKS_ID;
++const RAINDROP_TOKEN = process.env.RAINDROP_TOKEN;
++const COLLECTION_ID = process.env.RAINDROP_COLLECTION_BOOKS_ID;
 
 if (!RAINDROP_TOKEN || !COLLECTION_ID) {
   throw new Error("Missing RAINDROP_TOKEN or RAINDROP_COLLECTION_BOOKS_ID env vars");
