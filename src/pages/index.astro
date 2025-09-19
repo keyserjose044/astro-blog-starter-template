@@ -6,42 +6,44 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 
-// Load all posts, exclude drafts. Be resilient to missing/invalid pubDate.
+// Load non-draft posts and sort newest → oldest (robust to missing pubDate)
 const rawPosts = await getCollection('blog', ({ data }) => data?.draft !== true);
 
 const posts = rawPosts
   .map((p) => {
-    // Normalize pubDate to a Date or null
     const raw = p.data?.pubDate;
-    const asDate =
-      raw instanceof Date ? raw :
-      raw ? new Date(raw) : null;
-
+    const asDate = raw instanceof Date ? raw : raw ? new Date(raw) : null;
     const validDate = asDate && !Number.isNaN(asDate.valueOf()) ? asDate : null;
-
-    return {
-      ...p,
-      _pub: validDate, // safe date for sorting/formatting
-    };
+    return { ...p, _pub: validDate };
   })
-  // Sort newest first; undated posts sink to the bottom
-  .sort((a, b) => {
-    const at = a._pub ? a._pub.getTime() : 0;
-    const bt = b._pub ? b._pub.getTime() : 0;
-    return bt - at;
-  });
+  .sort((a, b) => (b._pub?.getTime?.() ?? 0) - (a._pub?.getTime?.() ?? 0))
+  .slice(0, 3); // ⟵ only show 3 on Home
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={`${SITE_TITLE} — Blog`} />
+    <BaseHead title={SITE_TITLE} /> {/* ⟵ remove “— Blog” */}
   </head>
   <body>
     <Header />
     <main>
+      <!-- Hero -->
+      <section style="text-align:center; margin: 3rem 0 2rem;">
+        <h1 style="font-size:clamp(2rem,4vw,3rem); margin:0 0 .5rem;">
+          LifeLoggerz
+        </h1>
+        <p style="opacity:.8; font-size:1.125rem;">
+          Systems, templates, and experiments in hyper-efficient living.
+        </p>
+      </section>
+
+      <!-- Latest posts teaser -->
       <section>
-        <h1>Blog</h1>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem;">
+          <h2 style="margin:0;">Latest from the Blog</h2>
+          <a href="/blog" style="font-weight:700; text-decoration:underline; text-underline-offset:3px;">See all →</a>
+        </div>
 
         {posts.length === 0 ? (
           <p>No posts yet. Add some markdown files to <code>src/content/blog/</code>!</p>
@@ -53,7 +55,7 @@ const posts = rawPosts
                   {post.data.heroImage ? (
                     <img src={post.data.heroImage} alt="" loading="lazy" />
                   ) : null}
-                  <h2>{post.data.title}</h2>
+                  <h3>{post.data.title}</h3>
                   {post._pub ? (
                     <time datetime={post._pub.toISOString()}>
                       {post._pub.toLocaleDateString(undefined, {
@@ -80,7 +82,7 @@ const posts = rawPosts
   .post-grid {
     list-style: none;
     padding: 0;
-    margin: 2rem 0;
+    margin: 1.25rem 0 2.5rem;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
@@ -100,6 +102,6 @@ const posts = rawPosts
     object-fit: cover;
     display: block;
   }
-  .card h2 { margin: 0.75rem 1rem 0.25rem; }
+  .card h3 { margin: 0.75rem 1rem 0.25rem; font-size:1.25rem; }
   .card time { display: block; margin: 0 1rem 1rem; opacity: .7; }
 </style>
