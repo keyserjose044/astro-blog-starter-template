@@ -1,7 +1,7 @@
 ---
 title: "From Paper Piles to ChatGPT‑Powered Google Sheets — Welcome to LifeLoggerz 📊✨"
 description: "How I turned scattered notes into an automated habit-tracking, lab-logging, life-analyzing Google Sheets system — and how you can, too"
-pubDate: "Jul 22 2022"
+pubDate: "2025-09-19"
 heroImage: "/blog-placeholder-2.jpg"
 ---
 
