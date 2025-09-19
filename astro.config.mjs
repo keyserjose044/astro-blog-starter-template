@@ -3,15 +3,10 @@ import { defineConfig } from "astro/config";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 
-import cloudflare from "@astrojs/cloudflare";
-
-// https://astro.build/config
+// No adapter needed for GitHub Pages (static output)
 export default defineConfig({
   site: "https://lifeloggerz.com",
+  base: "/",                 // root domain
+  output: "static",          // default, but explicit is fine
   integrations: [mdx(), sitemap()],
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true,
-    },
-  }),
 });
