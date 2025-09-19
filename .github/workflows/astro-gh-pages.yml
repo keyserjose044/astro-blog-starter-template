@@ -35,7 +35,7 @@ jobs:
       - name: Build
         env:
           RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
-          RAINDROP_COLLECTION_ID: ${{ secrets.RAINDROP_COLLECTION_ID }}
+          RAINDROP_COLLECTION_ID: ${{ secrets.RAINDROP_COLLECTION_BOOKS_ID }}
         run: npm run build
 
       - name: Upload artifact
