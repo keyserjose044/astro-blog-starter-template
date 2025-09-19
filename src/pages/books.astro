@@ -14,8 +14,8 @@ const COLLECTION_ID = "54514877";
 
 /** Fetch every item in the collection (Raindrop page size ≈ 50). */
 async function fetchAllRaindrops() {
-  const perPage = 50;              // ← Raindrop’s practical cap
-  let page = 0;                    // ← Raindrop pages are 0-based
+  const perPage = 50;
+  let page = 0;
   const items = [];
 
   while (true) {
@@ -32,13 +32,11 @@ async function fetchAllRaindrops() {
     if (batch.length === 0) break;
 
     items.push(...batch);
-
-    // stop if last page (returned fewer than perPage)
     if (batch.length < perPage) break;
     page += 1;
   }
 
-  // newest first (fallback guards if fields are missing)
+  // newest first
   items.sort((a, b) => {
     const ad = new Date(a.created || a.lastUpdate || 0).getTime();
     const bd = new Date(b.created || b.lastUpdate || 0).getTime();
@@ -64,7 +62,7 @@ const books = await fetchAllRaindrops();
     <style>
       :root {
         --gap: 16px;
-        --max: 1400px; /* wider to allow 6–8 cards per row on desktop */
+        --max: 1400px;
         --ink: #0e121b;
         --muted: #5e6573;
         --card: #ffffff;
@@ -80,14 +78,27 @@ const books = await fetchAllRaindrops();
       .toolbar { display: flex; align-items: center; gap: 12px; margin: 6px 0 24px; }
       .count { color: var(--muted); font-size: 0.9rem; }
 
+      /* 🔥 Fixed 6 per row with responsive fallbacks */
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* ← tighter min makes more columns */
+        grid-template-columns: repeat(6, 1fr);
         gap: var(--gap);
         align-items: start;
       }
-      @media (min-width: 1600px) {
-        .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+      @media (max-width: 1400px) {
+        .grid { grid-template-columns: repeat(5, 1fr); }
+      }
+      @media (max-width: 1200px) {
+        .grid { grid-template-columns: repeat(4, 1fr); }
+      }
+      @media (max-width: 900px) {
+        .grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      @media (max-width: 600px) {
+        .grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 400px) {
+        .grid { grid-template-columns: 1fr; }
       }
 
       .card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; }
@@ -95,8 +106,8 @@ const books = await fetchAllRaindrops();
         width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px;
         box-shadow: 0 10px 24px rgba(0,0,0,.12); background: #f0f2f7; border: 1px solid var(--border);
       }
-      .title { font-weight: 700; font-size: 0.98rem; line-height: 1.3; }
-      .tags { color: var(--muted); font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .title { font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
+      .tags { color: var(--muted); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .card:focus-visible { outline: 2px solid #405cf5; outline-offset: 4px; border-radius: 12px; }
       input[type="search"] {
         width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 12px;
