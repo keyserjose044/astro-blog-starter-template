@@ -6,7 +6,6 @@ updatedDate: 2025-09-18
 heroImage: /images/your-image.jpg
 ---
 
-
 # From Paper Piles to ChatGPT‑Powered Google Sheets — Welcome to LifeLoggerz 📊✨
 
 **Subtitle:** How I turned scattered notes into an automated habit-tracking, lab-logging, life-analyzing Google Sheets system — and how you can, too.
