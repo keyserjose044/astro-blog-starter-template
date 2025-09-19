@@ -1,33 +1,73 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+import { getCollection } from 'astro:content';
+
+// get all posts, exclude drafts, sort by pubDate (newest first)
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <BaseHead title={`${SITE_TITLE} — Blog`} />
   </head>
   <body>
     <Header />
     <main>
-      <section class="hero">
-        <h1>Welcome to LifeLoggerz 🚀</h1>
-        <p>
-          I build <strong>Google Sheets systems</strong>, <strong>Python tools for the lab</strong>, and share 
-          insights on <strong>data-driven self-improvement</strong>.  
-        </p>
-        <p>
-          This blog is where I document the experiments, scripts, and habits that make research and life more efficient.
-        </p>
-        <p>
-          👉 Explore my <a href="/blog">blog posts</a>, check out <a href="/templates">GS templates</a>, 
-          or see the <a href="/projects">Python projects</a> I’m working on.
-        </p>
+      <section>
+        <h1>Blog</h1>
+
+        <ul class="post-grid">
+          {posts.map((post) => (
+            <li class="card">
+              <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
+                {post.data.heroImage ? (
+                  <img src={post.data.heroImage} alt="" loading="lazy" />
+                ) : null}
+                <h2>{post.data.title}</h2>
+                <time datetime={post.data.pubDate.toISOString()}>
+                  {post.data.pubDate.toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                  })}
+                </time>
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
     <Footer />
   </body>
 </html>
+
+<style>
+.post-grid {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+.card a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+.card h2 { margin: 0.75rem 1rem 0.25rem; }
+.card time { display: block; margin: 0 1rem 1rem; opacity: .7; }
+</style>
