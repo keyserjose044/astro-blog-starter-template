@@ -80,15 +80,21 @@ const albums = await fetchAllRaindrops();
         color: var(--ink);
       }
 
-      /* Full-bleed wrapper with responsive side padding */
+      /* Section wrapper */
       .wrap {
         margin: 0 auto;
-        padding-inline: clamp(16px, 3vw, 48px);
         padding-block: 28px 48px;
+        padding-inline: clamp(16px, 3vw, 48px);
         max-width: 100%;
       }
+      /* ⬅️ Make the entire section full-bleed across the viewport */
+      .wrap--wide {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+      }
 
-      /* Wide but centered intro band */
+      /* Header band stays nicely centered (but can be wide) */
       .intro {
         max-width: 1400px;
         margin: 0 auto 24px;
@@ -123,7 +129,7 @@ const albums = await fetchAllRaindrops();
         box-shadow: 0 1px 2px rgba(0,0,0,.03);
       }
 
-      /* Auto-fit grid: as many columns as fit; cards get wider on large screens */
+      /* Grid */
       .grid {
         display: grid;
         gap: var(--gap);
@@ -135,11 +141,11 @@ const albums = await fetchAllRaindrops();
         .grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
       }
 
-      /* NEW: make the grid itself full-bleed, ignoring parent max-widths */
+      /* ⬅️ Make the grid itself full-bleed (robust, no transform) */
       .fullbleed {
         width: 100vw;
-        margin-left: 50%;
-        transform: translateX(-50%);
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
         padding-inline: clamp(16px, 3vw, 48px);
       }
 
@@ -185,7 +191,8 @@ const albums = await fetchAllRaindrops();
   <body>
     <Header />
 
-    <main class="wrap">
+    <!-- ⬅️ Apply the wide class here -->
+    <main class="wrap wrap--wide">
       <div class="intro" role="region" aria-label="Albums header">
         <h1>🎵 Albums</h1>
         <p class="hint">Powered by Raindrop. Start typing to filter.</p>
@@ -198,7 +205,7 @@ const albums = await fetchAllRaindrops();
       {albums.length === 0 ? (
         <div class="empty">No albums found in this collection.</div>
       ) : (
-        /* CHANGE #1: add fullbleed to the grid container */
+        <!-- Grid breaks out full-bleed as well -->
         <div class="grid fullbleed" id="grid" role="list">
           {albums.map(a => (
             <a
@@ -217,7 +224,7 @@ const albums = await fetchAllRaindrops();
                 alt={a.title}
                 loading="lazy"
                 decoding="async"
-                sizes="(min-width: 1400px) 300px, (min-width: 900px) 25vw, 50vw"
+                sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw"
               />
               <div class="title">{a.title}</div>
               {a.tags?.length ? <div class="tags">#{a.tags.slice(0,3).join('  #')}</div> : null}
