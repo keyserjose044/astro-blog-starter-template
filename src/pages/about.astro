@@ -2,19 +2,12 @@
 import Layout from '../layouts/BlogPost.astro';
 ---
 
-// 👇 Place the style block right after the frontmatter (before <Layout>)
-<style is:global>
-  /* widen the blog post container for this page only */
-  .post-wrap {
-    max-width: 110ch; /* adjust as needed */
-  }
-</style>
-
 <Layout
   title="About Me"
   description="Civil engineering PhD, systems builder, and data-driven life logger."
   pubDate="2025-09-18"
   heroImage="/images/about-lifeloggerz.png"
+  wide
 >
   <p>
     Hi! I’m <strong>John</strong> — a Civil Engineering PhD student at UTA and the human behind
