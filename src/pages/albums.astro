@@ -135,6 +135,14 @@ const albums = await fetchAllRaindrops();
         .grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
       }
 
+      /* NEW: make the grid itself full-bleed, ignoring parent max-widths */
+      .fullbleed {
+        width: 100vw;
+        margin-left: 50%;
+        transform: translateX(-50%);
+        padding-inline: clamp(16px, 3vw, 48px);
+      }
+
       .card {
         display: flex;
         flex-direction: column;
@@ -190,7 +198,8 @@ const albums = await fetchAllRaindrops();
       {albums.length === 0 ? (
         <div class="empty">No albums found in this collection.</div>
       ) : (
-        <div class="grid" id="grid" role="list">
+        /* CHANGE #1: add fullbleed to the grid container */
+        <div class="grid fullbleed" id="grid" role="list">
           {albums.map(a => (
             <a
               class="card"
