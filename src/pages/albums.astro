@@ -5,23 +5,39 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 
-/* Prefer env secrets in prod
-   const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
-   const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? 'YOUR_ALBUMS_COLLECTION_ID';
-*/
-const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
-const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? "54514878";
+/** ✅ Use env vars only (no hardcoded secrets).
+ *  Put these in your .env or deploy secrets:
+ *  RAINDROP_TOKEN=xxxxxxxx
+ *  RAINDROP_COLLECTION_ALBUMS_ID=54514878
+ *
+ *  NOTE: This fetch runs at build time (server-side), so
+ *  the token is NOT shipped to the browser as long as you
+ *  DO NOT prefix it with PUBLIC_ and you only use it here.
+ */
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
+const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID;
+
+/** Small helper to assert required env. */
+function assertEnv(name: string, val: unknown): string {
+  if (!val || typeof val !== 'string') {
+    throw new Error(`Missing required env var: ${name}`);
+  }
+  return val;
+}
+
+const token = assertEnv('RAINDROP_TOKEN', RAINDROP_TOKEN);
+const collectionId = assertEnv('RAINDROP_COLLECTION_ALBUMS_ID', COLLECTION_ID);
 
 /** Fetch every item (Raindrop pagination ≈ 50/page, 0-based). */
 async function fetchAllRaindrops() {
   const perPage = 50;
   let page = 0;
-  const items = [];
+  const items: any[] = [];
 
   while (true) {
     const res = await fetch(
-      `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
-      { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
+      `https://api.raindrop.io/rest/v1/raindrops/${collectionId}?perpage=${perPage}&page=${page}`,
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     if (!res.ok) {
       const t = await res.text();
@@ -42,13 +58,20 @@ async function fetchAllRaindrops() {
     return bd - ad;
   });
 
-  return items.map((it) => ({
-    id: it._id,
-    title: it.title ?? "Untitled",
-    href: it.link ?? "#",
-    cover: it.cover || (it.media?.[0]?.link ?? ""),
-    tags: it.tags ?? [],
-  }));
+  const placeholder =
+    '/images/album-placeholder.png'; // optional: add a square placeholder to public/images
+
+  return items.map((it) => {
+    const mediaLink = it.media?.[0]?.link ?? '';
+    const cover = it.cover || mediaLink || placeholder;
+    return {
+      id: it._id,
+      title: it.title ?? 'Untitled',
+      href: it.link ?? '#',
+      cover,
+      tags: it.tags ?? [],
+    };
+  });
 }
 
 const albums = await fetchAllRaindrops();
@@ -57,42 +80,89 @@ const albums = await fetchAllRaindrops();
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={`${SITE_TITLE} — Albums`} />
+    <BaseHead title={`${SITE_TITLE} — Albums`} description="Albums gallery powered by Raindrop — auto-updated from my collection." />
     <style>
-      :root { --gap: 22px; --ink: #0e121b; --muted: #5e6573; --border: #e6e9ef; }
+      :root {
+        --gap: 22px;
+        --ink: #0e121b;
+        --muted: #5e6573;
+        --border: #e6e9ef;
+        --surface: #ffffff;
+      }
       * { box-sizing: border-box; }
-      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f6f8fb; color: var(--ink); }
-
-      .wrap { margin: 0 auto; padding: 28px 40px 48px; max-width: none; }
-      .intro { max-width: 1200px; margin: 0 auto 24px; }
-      h1 { margin: 0 0 12px; font-weight: 800; letter-spacing: -0.02em; display: flex; gap: .6rem; align-items: center; }
-      .hint { color: var(--muted); margin: 6px 0 20px; }
-      .toolbar { display: flex; align-items: center; gap: 12px; margin: 6px 0 24px; }
-      .count { color: var(--muted); font-size: 0.9rem; }
-      input[type="search"] {
-        width: 100%; max-width: 520px; padding: 12px 14px; border-radius: 12px;
-        border: 1px solid var(--border); background: #fff; color: var(--ink);
-        font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #f6f8fb;
+        color: var(--ink);
       }
 
-      /* full-bleed grid like Books */
+      /* Full-bleed wrapper with responsive side padding */
+      .wrap {
+        margin: 0 auto;
+        padding-inline: clamp(16px, 3vw, 48px);
+        padding-block: 28px 48px;
+        max-width: 100%;
+      }
+
+      /* Keep the intro bar reasonably wide but centered */
+      .intro {
+        max-width: 1400px;
+        margin: 0 auto 24px;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        display: flex;
+        gap: .6rem;
+        align-items: center;
+      }
+      .hint { color: var(--muted); margin: 6px 0 20px; }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 6px 0 24px;
+      }
+      .count { color: var(--muted); font-size: 0.9rem; }
+      .toolbar input[type="search"] {
+        width: 100%;
+        max-width: 520px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 0.95rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,.03);
+      }
+
+      /* Auto-fit grid: cards expand to fill available width */
       .grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
         gap: var(--gap);
         align-items: start;
-        max-width: none;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        max-width: 100%;
       }
-      @media (max-width: 1600px) { .grid { grid-template-columns: repeat(5, 1fr); } }
-      @media (max-width: 1320px) { .grid { grid-template-columns: repeat(4, 1fr); } }
-      @media (max-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-      @media (max-width: 720px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
-      @media (max-width: 420px)  { .grid { grid-template-columns: 1fr; } }
+      @media (min-width: 1800px) {
+        .grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+      }
 
-      .card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; }
+      .card {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 12px;
+      }
       .thumb {
         width: 100%;
-        aspect-ratio: 1/1; /* album art square */
+        aspect-ratio: 1 / 1;   /* square album art */
         object-fit: cover;
         border-radius: 12px;
         box-shadow: 0 10px 24px rgba(0,0,0,.12);
@@ -100,56 +170,97 @@ const albums = await fetchAllRaindrops();
         border: 1px solid var(--border);
       }
       .title { font-weight: 700; font-size: 0.98rem; line-height: 1.3; }
-      .tags { color: var(--muted); font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .card:focus-visible { outline: 2px solid #405cf5; outline-offset: 4px; border-radius: 12px; }
+      .tags {
+        color: var(--muted);
+        font-size: .82rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card:focus-visible {
+        outline: 2px solid #405cf5;
+        outline-offset: 4px;
+        border-radius: 12px;
+      }
+
+      /* Empty state */
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 40px 0 24px;
+      }
     </style>
   </head>
   <body>
     <Header />
 
     <main class="wrap">
-      <div class="intro">
+      <div class="intro" role="region" aria-label="Albums header">
         <h1>🎵 Albums</h1>
         <p class="hint">Powered by Raindrop. Start typing to filter.</p>
         <div class="toolbar">
           <input id="q" type="search" placeholder="Search by title or tag…" aria-label="Filter albums" />
-          <span id="count" class="count"></span>
+          <span id="count" class="count" aria-live="polite"></span>
         </div>
       </div>
 
-      <div class="grid" id="grid">
-        {albums.map(a => (
-          <a class="card" href={a.href} target="_blank" rel="noopener noreferrer"
-             title={a.title}
-             data-title={a.title.toLowerCase()}
-             data-tags={(a.tags || []).join(" ").toLowerCase()}>
-            <img class="thumb" src={a.cover} alt={a.title} loading="lazy" />
-            <div class="title">{a.title}</div>
-            {a.tags?.length ? <div class="tags">#{a.tags.slice(0,3).join('  #')}</div> : null}
-          </a>
-        ))}
-      </div>
+      {albums.length === 0 ? (
+        <div class="empty">No albums found in this collection.</div>
+      ) : (
+        <div class="grid" id="grid" role="list">
+          {albums.map(a => (
+            <a
+              class="card"
+              role="listitem"
+              href={a.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={a.title}
+              data-title={a.title.toLowerCase()}
+              data-tags={(a.tags || []).join(" ").toLowerCase()}
+            >
+              <img
+                class="thumb"
+                src={a.cover}
+                alt={a.title}
+                loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1400px) 300px, (min-width: 900px) 25vw, 50vw"
+              />
+              <div class="title">{a.title}</div>
+              {a.tags?.length ? <div class="tags">#{a.tags.slice(0,3).join('  #')}</div> : null}
+            </a>
+          ))}
+        </div>
+      )}
     </main>
 
     <Footer />
 
     <script>
+      // Simple debounce for search input
+      function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
+
       const q = document.getElementById('q');
       const cards = [...document.querySelectorAll('.card')];
       const count = document.getElementById('count');
+
       function updateCount() {
         const visible = cards.filter(c => c.style.display !== 'none').length;
         count.textContent = `${visible} of ${cards.length}`;
       }
-      q.addEventListener('input', () => {
-        const s = q.value.toLowerCase();
+
+      const doFilter = debounce(() => {
+        const s = (q.value || '').toLowerCase().trim();
         cards.forEach(c => {
           const t = c.dataset.title || '';
           const tags = c.dataset.tags || '';
-          c.style.display = (t.includes(s) || tags.includes(s)) ? '' : 'none';
+          c.style.display = (s === '' || t.includes(s) || tags.includes(s)) ? '' : 'none';
         });
         updateCount();
-      });
+      }, 80);
+
+      q.addEventListener('input', doFilter);
       updateCount();
     </script>
   </body>
