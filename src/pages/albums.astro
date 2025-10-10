@@ -5,28 +5,12 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 
-/** ✅ Use env vars only (no hardcoded secrets).
- *  Put these in your .env or deploy secrets:
- *  RAINDROP_TOKEN=xxxxxxxx
- *  RAINDROP_COLLECTION_ALBUMS_ID=54514878
- *
- *  NOTE: This fetch runs at build time (server-side), so
- *  the token is NOT shipped to the browser as long as you
- *  DO NOT prefix it with PUBLIC_ and you only use it here.
- */
-const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
-const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID;
-
-/** Small helper to assert required env. */
-function assertEnv(name: string, val: unknown): string {
-  if (!val || typeof val !== 'string') {
-    throw new Error(`Missing required env var: ${name}`);
-  }
-  return val;
-}
-
-const token = assertEnv('RAINDROP_TOKEN', RAINDROP_TOKEN);
-const collectionId = assertEnv('RAINDROP_COLLECTION_ALBUMS_ID', COLLECTION_ID);
+/* Prefer env secrets in prod
+   const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
+   const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? 'YOUR_ALBUMS_COLLECTION_ID';
+*/
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
+const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? "54514878";
 
 /** Fetch every item (Raindrop pagination ≈ 50/page, 0-based). */
 async function fetchAllRaindrops() {
@@ -36,8 +20,8 @@ async function fetchAllRaindrops() {
 
   while (true) {
     const res = await fetch(
-      `https://api.raindrop.io/rest/v1/raindrops/${collectionId}?perpage=${perPage}&page=${page}`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
+      { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
     );
     if (!res.ok) {
       const t = await res.text();
@@ -58,8 +42,7 @@ async function fetchAllRaindrops() {
     return bd - ad;
   });
 
-  const placeholder =
-    '/images/album-placeholder.png'; // optional: add a square placeholder to public/images
+  const placeholder = '/images/album-placeholder.png'; // optional: add to public/images
 
   return items.map((it) => {
     const mediaLink = it.media?.[0]?.link ?? '';
@@ -105,7 +88,7 @@ const albums = await fetchAllRaindrops();
         max-width: 100%;
       }
 
-      /* Keep the intro bar reasonably wide but centered */
+      /* Wide but centered intro band */
       .intro {
         max-width: 1400px;
         margin: 0 auto 24px;
@@ -140,7 +123,7 @@ const albums = await fetchAllRaindrops();
         box-shadow: 0 1px 2px rgba(0,0,0,.03);
       }
 
-      /* Auto-fit grid: cards expand to fill available width */
+      /* Auto-fit grid: as many columns as fit; cards get wider on large screens */
       .grid {
         display: grid;
         gap: var(--gap);
@@ -162,7 +145,7 @@ const albums = await fetchAllRaindrops();
       }
       .thumb {
         width: 100%;
-        aspect-ratio: 1 / 1;   /* square album art */
+        aspect-ratio: 1 / 1;   /* square artwork */
         object-fit: cover;
         border-radius: 12px;
         box-shadow: 0 10px 24px rgba(0,0,0,.12);
@@ -238,7 +221,7 @@ const albums = await fetchAllRaindrops();
     <Footer />
 
     <script>
-      // Simple debounce for search input
+      // Debounced search filter + live count
       function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
       const q = document.getElementById('q');
