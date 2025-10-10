@@ -1,8 +1,11 @@
 ---
 title: "LifeLoggerz Q&A — Tracking Life, One Cell at a Time"
-date: 2025-10-09
+pubDate: "2025-10-09"
 description: "Common questions about how I track my life daily using Google Sheets, why I do it, and what I’ve learned from years of logging data."
 tags: ["LifeLoggerz", "Google Sheets", "Data Tracking", "Self-Improvement"]
+updatedDate: "2025-10-09"   # optional
+heroImage: "/images/gs-organization-hero.jpg"  # optional
+draft: false                 # optional
 ---
 
 # 🧠 LifeLoggerz Q&A — Tracking Life, One Cell at a Time
