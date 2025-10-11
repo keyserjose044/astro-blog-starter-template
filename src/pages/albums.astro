@@ -89,9 +89,10 @@ const albums = await fetchAllRaindrops();
       }
       /* ⬅️ Make the entire section full-bleed across the viewport */
       .wrap--wide {
-        width: 100vw;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
+        width: 100dvw;
+        margin-left: calc(50% - 50dvw);
+        margin-right: calc(50% - 50dvw);
+        padding-inline: 0;              /* <-- important */
       }
 
       /* Header band stays nicely centered (but can be wide) */
@@ -141,11 +142,10 @@ const albums = await fetchAllRaindrops();
         .grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
       }
 
-      /* ⬅️ Make the grid itself full-bleed (robust, no transform) */
+      /* Let the grid handle its own comfortable gutters */
       .fullbleed {
-        width: 100dvw;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
+        width: 100%;
+        margin: 0;                      /* <-- no centering calc here */
         padding-inline: clamp(16px, 3vw, 48px);
       }
 
