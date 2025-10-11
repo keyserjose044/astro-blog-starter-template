@@ -1,0 +1,74 @@
+---
+{images.map((img, i) => (
+<a href={img.src} class="tile" data-index={i}>
+<img src={img.src} alt={img.alt || ''} loading="lazy" decoding="async" />
+</a>
+))}
+</div>
+
+
+<dialog class="lightbox" id="gallery-lightbox">
+<img alt="" />
+<button class="close" aria-label="Close">×</button>
+</dialog>
+
+
+<script>
+const root = document.currentScript?.previousElementSibling as HTMLElement; // .gallery
+const dialog = document.getElementById('gallery-lightbox') as HTMLDialogElement;
+const img = dialog?.querySelector('img') as HTMLImageElement;
+const closeBtn = dialog?.querySelector('.close') as HTMLButtonElement;
+
+
+function open(src: string, alt: string) {
+if (!dialog) return;
+img.src = src; img.alt = alt || '';
+dialog.showModal();
+}
+
+
+root?.addEventListener('click', (e) => {
+const a = (e.target as HTMLElement).closest('a');
+if (!a) return;
+e.preventDefault();
+const i = a.getAttribute('data-index') || '0';
+const src = a.getAttribute('href')!;
+const alt = (a.querySelector('img') as HTMLImageElement)?.alt || '';
+open(src, alt);
+});
+
+
+closeBtn?.addEventListener('click', () => dialog?.close());
+dialog?.addEventListener('click', (e) => { if ((e.target as HTMLElement).tagName === 'DIALOG') dialog.close(); });
+window?.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dialog?.open) dialog.close(); });
+</script>
+
+
+<style>
+.gallery {
+display: grid;
+grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+gap: 0.75rem;
+margin: 1rem 0 2rem;
+}
+.tile { display: block; border-radius: 1rem; overflow: hidden; background: #f5f5f5; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s ease; }
+.tile:hover img { transform: scale(1.02); }
+
+
+@media (max-width: 1200px) { .gallery { --cols: 3; } }
+@media (max-width: 900px) { .gallery { --cols: 2; } }
+@media (max-width: 600px) { .gallery { --cols: 1; } }
+
+
+.lightbox {
+padding: 0; border: 0; background: transparent; width: 90vw; max-width: 1100px;
+}
+.lightbox::backdrop { background: rgba(0,0,0,.6); }
+.lightbox img { width: 100%; height: auto; border-radius: 1rem; display: block; }
+.lightbox .close {
+position: absolute; top: .5rem; right: .75rem;
+background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: .75rem;
+font-size: 1.5rem; line-height: 1; padding: .4rem .7rem; cursor: pointer;
+}
+</style>
