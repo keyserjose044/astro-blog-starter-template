@@ -1,0 +1,38 @@
+---
+interface Props {
+src: string; // e.g. "/videos/myclip.mp4"
+poster?: string; // e.g. "/images/myclip-poster.jpg"
+captions?: string; // e.g. "/captions/myclip.en.vtt"
+width?: number | string; // optional: CSS or px
+maxWidth?: string; // e.g. "900px" (defaults below)
+class?: string; // extra classes
+}
+
+
+const {
+src,
+poster,
+captions,
+width = "100%",
+maxWidth = "900px",
+class: className = "",
+} = Astro.props;
+---
+<div style={`width:${width};max-width:${maxWidth};margin:1rem auto;`} class={`video-wrapper ${className}`}>
+<video
+controls
+preload="metadata"
+playsinline
+poster={poster}
+style="width:100%;height:auto;border-radius:1rem;box-shadow:0 8px 24px rgba(0,0,0,.08);"
+>
+<source src={src} type="video/mp4" />
+{captions && <track kind="captions" srcLang="en" src={captions} default />}
+Your browser does not support the video tag.
+</video>
+</div>
+
+
+<style>
+.video-wrapper:focus-within video { outline: 2px solid currentColor; }
+</style>
