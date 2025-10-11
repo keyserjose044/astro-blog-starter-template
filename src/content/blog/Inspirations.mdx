@@ -1,0 +1,165 @@
+---
+title: "LifeLoggerz Inspirations"
+description: "The people, projects, and ideas that sparked my obsession with tracking life and optimizing every hour."
+pubDate: 2025-10-10
+heroImage: "/images/inspirations-hero.jpg"
+---
+
+import Video from "../../components/Video.astro";
+import YouTubeLite from "../../components/YouTubeLite.astro";
+import Gallery from "../../components/Gallery.astro";
+
+{/* ======= AT A GLANCE (Thumbnail Summary) ======= */}
+<section class="glance">
+  <a href="#efficiency" class="card">
+    <img src="/images/inspirations/efficiency-thumb.jpg" alt="Efficiency Is Everything" loading="lazy" />
+    <span>Efficiency Is Everything</span>
+  </a>
+  <a href="#phil" class="card">
+    <img src="/images/inspirations/phil-thumb.jpg" alt="Phil Von Stade video" loading="lazy" />
+    <span>Phil Von Stade</span>
+  </a>
+  <a href="#phelps" class="card">
+    <img src="/images/inspirations/phelps-thumb.jpg" alt="Michael Phelps journaling" loading="lazy" />
+    <span>Michael Phelps</span>
+  </a>
+  <a href="#perfice" class="card">
+    <img src="/images/inspirations/perfice-thumb.jpg" alt="Perfice app" loading="lazy" />
+    <span>Perfice App</span>
+  </a>
+  <a href="#feltron" class="card">
+    <img src="/images/inspirations/feltron-thumb.jpg" alt="Feltron 2013 report" loading="lazy" />
+    <span>Feltron 2013</span>
+  </a>
+  <a href="#raptitude" class="card">
+    <img src="/images/inspirations/raptitude-thumb.jpg" alt="Raptitude blog" loading="lazy" />
+    <span>Raptitude</span>
+  </a>
+  <a href="#qs" class="card">
+    <img src="/images/inspirations/qs-thumb.jpg" alt="Quantified Self" loading="lazy" />
+    <span>Quantified Self</span>
+  </a>
+</section>
+
+<style>
+  .glance {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: .75rem;
+    margin: 1rem 0 2rem;
+  }
+  @media (max-width: 1400px) { .glance { grid-template-columns: repeat(5, 1fr); } }
+  @media (max-width: 1000px) { .glance { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px)  { .glance { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    display: grid;
+    grid-template-rows: auto 42px;
+    align-items: center;
+    text-decoration: none;
+    background: #fafafa;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,.08); background: #fff; }
+  .card img { width: 100%; height: 140px; object-fit: cover; display: block; }
+  .card span { display: block; text-align: center; padding: .5rem .6rem; color: inherit; font-weight: 600; }
+</style>
+
+---
+
+## ⚡ Efficiency Is Everything {#efficiency}
+
+[Efficiency Is Everything](https://efficiencyiseverything.com) was one of the first blogs that changed how I thought about time and optimization.  
+The guy tells you the cheapest foods per calorie, how much time you lose on simple tasks, and much more.  
+This mindset **kindled my rush to save time**, since we all only have 24 hours a day.
+
+<Gallery
+  images={[
+    { src: "/images/inspirations/efficiency-foods.jpg", alt: "Cheapest foods per calorie" },
+    { src: "/images/inspirations/efficiency-time.jpg", alt: "Time lost on daily tasks chart" },
+  ]}
+  cols={2}
+/>
+
+---
+
+## 🎥 Phil Von Stade — The Original Life Logger {#phil}
+
+I thought I invented life-logging until I found this guy.  
+Here’s a [Phil Von Stade video](https://www.youtube.com/watch?v=DPwZ-5M6XKw) from over 16 years ago — he tracked his life before it was cool.
+
+<YouTubeLite id="DPwZ-5M6XKw" title="Phil Von Stade Life Tracking" />
+
+---
+
+## 🏊 Michael Phelps and Journaling {#phelps}
+
+Even athletes do it.  
+I read an [article about Michael Phelps](https://www.inc.com/jeff-haden/michael-phelps-journaling-habits.html) and realized he’s been journaling for years.  
+
+You know what the Google Sheet system has over plain journaling?  
+- You can **Ctrl+F** for specific things.  
+- You can **see the data over time**.  
+- A year can be analyzed in minutes — and you still have your logs.
+
+---
+
+## 📱 Perfice — Track Your Life in an App {#perfice}
+
+[Perfice](https://www.perfice.com) is a neat life-tracking app. I could build something like this, but for now I enjoy the **interactivity of my Google Sheets systems**.  
+You see your data face-first — not hidden behind tabs or UI layers.
+
+<Video src="/videos/lifeloggerz-sheets-demo.mp4" poster="/images/inspirations/sheets-poster.jpg" />
+
+---
+
+## 🎨 Feltron’s 2013 Annual Report {#feltron}
+
+Nicholas Felton’s [2013 Life Report](https://feltron.com/FAR13.html) blew my mind.  
+The graphic design presentation of his data is beautiful — minimal, statistical, poetic.  
+
+Feel free to improve my systems in the **aesthetics department**.  
+I haven’t delved into Looker Studio or Power BI yet, but that’s coming.
+
+<Gallery
+  images={[
+    { src: "/images/inspirations/feltron1.jpg", alt: "Feltron 2013 life report layout" },
+    { src: "/images/inspirations/feltron2.jpg", alt: "Feltron data visualization" },
+  ]}
+  cols={2}
+/>
+
+---
+
+## 🌱 Raptitude — Experiments in Living Better {#raptitude}
+
+[Raptitude](https://www.raptitude.com) inspired me to test self-improvement like experiments.  
+My blog isn’t just about data — it’s about **improving workflows, free time, and ultimately, life**.
+
+---
+
+## 📊 Quantified Self Movement {#qs}
+
+The [Quantified Self](https://quantifiedself.com) community shows what’s possible when people track everything.  
+It’s not just numbers; it’s **awareness turned into action**.
+
+---
+
+## 💬 Final Thoughts
+
+You think you can do better?  
+Try using **Looker Studio**, **Power BI**, or tools I haven’t even touched yet.  
+I avoid biometrics for now — there’s still plenty to optimize manually.
+
+When I was younger, I kept stacks of notes and whiteboards trying to organize ideas.  
+It was chaos.  
+In **January 2023**, I began logging stats in Google Sheets.  
+By **July 2023**, I realized I could **organize my entire mind in Excel** —  
+and from that moment, LifeLoggerz began.
+
+---
+
+*Thanks to every creator who pushed me to quantify life itself.*
