@@ -243,7 +243,6 @@ const albums = await fetchAllRaindrops();
     </main>
 
     <Footer />
-
     <script>
      // Debounce helper
      function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
@@ -251,44 +250,48 @@ const albums = await fetchAllRaindrops();
      // Normalize to lower-case, accent/diacritic-insensitive text
      const norm = s => (s || "")
        .toLowerCase()
-       .normalize('NFD')          // split accents
-       .replace(/[\u0300-\u036f]/g, ''); // remove accents
+       .normalize('NFD')
+       .replace(/[\u0300-\u036f]/g, '');
    
-     const q = document.getElementById('q');
-     const grid = document.getElementById('grid');
-     if (!q || !grid) return;
+     // Run after DOM is ready (your script is already at the bottom, but this is safe)
+     (function initAlbumsFilter(){
+       const q = document.getElementById('q');
+       const grid = document.getElementById('grid');
    
-     const cards = Array.from(grid.querySelectorAll('.card'));
+       // If either element is missing, just stop (inside a function, so return is allowed)
+       if (!q || !grid) { return; }
    
-     // Precompute searchable haystacks once
-     const haystacks = new Map(cards.map(c => {
-       const hay = norm((c.dataset.title || '') + ' ' + (c.dataset.tags || ''));
-       return [c, hay];
-     }));
+       const cards = Array.from(grid.querySelectorAll('.card'));
    
-     function filterNow() {
-       const s = norm(q.value.trim());
-       if (!s) { cards.forEach(c => c.style.display = ''); return; }
-       const words = s.split(/\s+/);
-       cards.forEach(c => {
-         const hay = haystacks.get(c);
-         const match = words.every(w => hay.includes(w));
-         c.style.display = match ? '' : 'none';
+       // Precompute searchable haystacks once
+       const haystacks = new Map(cards.map(c => {
+         const hay = norm((c.dataset.title || '') + ' ' + (c.dataset.tags || ''));
+         return [c, hay];
+       }));
+   
+       function filterNow() {
+         const s = norm(q.value.trim());
+         if (!s) { cards.forEach(c => c.style.display = ''); return; }
+         const words = s.split(/\s+/);
+         cards.forEach(c => {
+           const hay = haystacks.get(c);
+           const match = words.every(w => hay.includes(w));
+           c.style.display = match ? '' : 'none';
+         });
+       }
+   
+       const onInput = debounce(filterNow, 80);
+       q.addEventListener('input', onInput);
+   
+       // QoL: ESC clears; '/' focuses search (unless typing in an input)
+       window.addEventListener('keydown', (e) => {
+         if (e.key === 'Escape') { q.value = ''; filterNow(); q.focus(); }
+         else if (e.key === '/' && e.target === document.body) { e.preventDefault(); q.focus(); }
        });
-     }
    
-     const onInput = debounce(filterNow, 80);
-     q.addEventListener('input', onInput);
-   
-     // QoL: ESC clears; '/' focuses search (unless typing in an input)
-     window.addEventListener('keydown', (e) => {
-       if (e.key === 'Escape') { q.value = ''; filterNow(); q.focus(); }
-       else if (e.key === '/' && e.target === document.body) { e.preventDefault(); q.focus(); }
-     });
-   
-     // Initial
-     filterNow();
-
+       // Initial run
+       filterNow();
+     })();
     </script>
   </body>
 </html>
