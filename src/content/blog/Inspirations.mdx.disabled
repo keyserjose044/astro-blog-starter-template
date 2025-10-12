@@ -1,117 +1,97 @@
 ---
 title: "LifeLoggerz Inspirations"
 description: "The people, projects, and ideas that sparked my obsession with tracking life and optimizing every hour."
-pubDate: 2025-10-10
+pubDate: "2025-10-10"
 heroImage: "/images/inspirations-hero.jpg"
+tags: ["LifeLoggerz", "Inspiration", "Self-Improvement", "Data Tracking"]
+draft: false
 ---
 
-import Video from "../../components/Video.astro";
-import YouTubeLite from "../../components/YouTubeLite.astro";
-import Gallery from "../../components/Gallery.astro";
-import Glance from "../../components/Glance.astro";
+# 🌟 LifeLoggerz Inspirations
 
+The point of *LifeLoggerz* isn’t just to show what I track — it’s to show **why** I started doing it in the first place.  
+Here are the people, projects, and philosophies that pushed me down this rabbit hole of data and discipline.
 
-<Glance
-  items={[
-    { href: "#efficiency", src: "/images/inspirations/efficiency-thumb.jpg", label: "Efficiency Is Everything" },
-    { href: "#phil",       src: "/images/inspirations/phil-thumb.jpg",        label: "Phil Von Stade" },
-    { href: "#phelps",     src: "/images/inspirations/phelps-thumb.jpg",      label: "Michael Phelps" },
-    { href: "#perfice",    src: "/images/inspirations/perfice-thumb.jpg",     label: "Perfice App" },
-    { href: "#feltron",    src: "/images/inspirations/feltron-thumb.jpg",     label: "Feltron 2013" },
-    { href: "#raptitude",  src: "/images/inspirations/raptitude-thumb.jpg",   label: "Raptitude" },
-    { href: "#qs",         src: "/images/inspirations/qs-thumb.jpg",          label: "Quantified Self" },
-  ]}
-/>
+---
 
-<h2 id="efficiency">⚡ Efficiency Is Everything</h2>
+## ⚡ Efficiency Is Everything
 
 [Efficiency Is Everything](https://efficiencyiseverything.com) was one of the first blogs that changed how I thought about time and optimization.  
-The guy tells you the cheapest foods per calorie, how much time you lose on simple tasks, and much more.  
+The creator breaks down things like the **cheapest foods per calorie**, and how much time you lose on daily tasks.  
+
 This mindset **kindled my rush to save time**, since we all only have 24 hours a day.
 
-<Gallery
-  images={[
-    { src: "/images/inspirations/efficiency-foods.jpg", alt: "Cheapest foods per calorie" },
-    { src: "/images/inspirations/efficiency-time.jpg", alt: "Time lost on daily tasks chart" },
-  ]}
-  cols={2}
-/>
+---
+
+## 🎥 Phil Von Stade — The Original Life Logger
+
+I thought I invented life-logging until I found [Phil Von Stade’s video](https://www.youtube.com/watch?v=DPwZ-5M6XKw) from over 16 years ago.  
+He was tracking his entire life long before spreadsheets went viral — a pioneer of quantified living before it even had a name.
 
 ---
 
-<h2 id="phil">🎥 Phil Von Stade — The Original Life Logger</h2>
+## 🏊 Michael Phelps and Journaling
 
-I thought I invented life-logging until I found this guy.  
-Here’s a [Phil Von Stade video](https://www.youtube.com/watch?v=DPwZ-5M6XKw) from over 16 years ago — he tracked his life before it was cool.
+Even world-class athletes do it.  
+After reading [this article about Michael Phelps](https://www.inc.com/jeff-haden/michael-phelps-journaling-habits.html), I realized he’s been journaling for years.
 
-<YouTubeLite id="DPwZ-5M6XKw" title="Phil Von Stade Life Tracking" />
+You know what Google Sheets has over journaling?
 
----
+- You can **Ctrl + F** for specific thoughts or entries.  
+- You can **see the data evolve** over time.  
+- A full year can be analyzed in minutes — and you still have every log.
 
-<h2 id="phelps">🏊 Michael Phelps and Journaling</h2>
-
-Even athletes do it.  
-I read an [article about Michael Phelps](https://www.inc.com/jeff-haden/michael-phelps-journaling-habits.html) and realized he’s been journaling for years.  
-
-You know what the Google Sheet system has over plain journaling?  
-- You can **Ctrl+F** for specific things.  
-- You can **see the data over time**.  
-- A year can be analyzed in minutes — and you still have your logs.
+That’s when I knew structured journaling could become something bigger.
 
 ---
 
-<h2 id="perfice">📱 Perfice — Track Your Life in an App</h2>
+## 📱 Perfice — Tracking Life as an App
 
-[Perfice](https://www.perfice.com) is a neat life-tracking app. I could build something like this, but for now I enjoy the **interactivity of my Google Sheets systems**.  
-You see your data face-first — not hidden behind tabs or UI layers.
-
-<Video src="/videos/lifeloggerz-sheets-demo.mp4" poster="/images/inspirations/sheets-poster.jpg" />
+[Perfice](https://www.perfice.com) is a clean, minimal life-tracking app.  
+I could build something similar one day — but for now, I enjoy the **interactivity and transparency** of my Google Sheets systems.  
+You see your data face-first — not buried in menus or dashboards.
 
 ---
 
-<h2 id="feltron">🎨 Feltron’s 2013 Annual Report</h2>
+## 🎨 Feltron’s 2013 Annual Report
 
 Nicholas Felton’s [2013 Life Report](https://feltron.com/FAR13.html) blew my mind.  
-The graphic design presentation of his data is beautiful — minimal, statistical, poetic.  
+The design, typography, and storytelling made raw data feel **alive**.  
 
-Feel free to improve my systems in the **aesthetics department**.  
-I haven’t delved into Looker Studio or Power BI yet, but that’s coming.
-
-<Gallery
-  images={[
-    { src: "/images/inspirations/feltron1.jpg", alt: "Feltron 2013 life report layout" },
-    { src: "/images/inspirations/feltron2.jpg", alt: "Feltron data visualization" },
-  ]}
-  cols={2}
-/>
+Feel free to improve on my systems in the **aesthetics department**.  
+I haven’t explored Looker Studio or Power BI yet, but visual storytelling is high on my list for future upgrades.
 
 ---
 
-<h2 id="raptitude">🌱 Raptitude — Experiments in Living Better</h2>
+## 🌱 Raptitude — Experiments in Living Better
 
-[Raptitude](https://www.raptitude.com) inspired me to test self-improvement like experiments.  
-My blog isn’t just about data — it’s about **improving workflows, free time, and ultimately, life**.
+[Raptitude](https://www.raptitude.com) inspired me to view self-improvement as a series of **experiments**.  
+It’s not about perfection; it’s about iteration.  
+
+My blog isn’t just about tracking — it’s about **improving workflows, free time, and ultimately life**.
 
 ---
 
-<h2 id="qs">📊 Quantified Self Movement</h2>
+## 📊 The Quantified Self Movement
 
-The [Quantified Self](https://quantifiedself.com) community shows what’s possible when people track everything.  
-It’s not just numbers; it’s **awareness turned into action**.
+The [Quantified Self](https://quantifiedself.com) community taught me what’s possible when people turn **awareness into numbers**.  
+They showed that life-logging isn’t obsessive — it’s **reflective**.  
+It’s not about collecting data for data’s sake, but using it to make better decisions.
 
 ---
 
 ## 💬 Final Thoughts
 
 You think you can do better?  
-Try using **Looker Studio**, **Power BI**, or tools I haven’t even touched yet.  
-I avoid biometrics for now — there’s still plenty to optimize manually.
+Try Looker Studio, Power BI, or any tool I haven’t explored yet.  
+I avoid deep biometrics for now — there’s still plenty to optimize manually.
 
-When I was younger, I kept stacks of notes and whiteboards trying to organize ideas.  
+When I was younger, I kept **stacks of notes** and filled whiteboards trying to organize ideas.  
 It was chaos.  
-In **January 2023**, I began logging stats in Google Sheets.  
+
+In **January 2023**, I began logging simple stats in Google Sheets.  
 By **July 2023**, I realized I could **organize my entire mind in Excel** —  
-and from that moment, LifeLoggerz began.
+and that’s when *LifeLoggerz* truly began.
 
 ---
 
