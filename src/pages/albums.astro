@@ -245,9 +245,32 @@ const albums = await fetchAllRaindrops();
     <Footer />
 
     <script>
-      // Debounced search filter + live count
-      function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
-
+     // Simple debouncer so filtering doesn't fire on every keystroke
+     function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
+   
+     const q = document.getElementById('q');
+     const cards = Array.from(document.querySelectorAll('#grid .card'));
+   
+     function filterNow() {
+       const s = (q.value || '').toLowerCase().trim();
+       if (!s) { 
+         cards.forEach(c => { c.style.display = ''; });
+         return;
+       }
+       // allow multi-word search; all words must match somewhere in title or tags
+       const words = s.split(/\s+/);
+       cards.forEach(c => {
+         const hay = ((c.dataset.title || '') + ' ' + (c.dataset.tags || ''));
+         const match = words.every(w => hay.includes(w));
+         c.style.display = match ? '' : 'none';
+       });
+     }
+   
+     const onInput = debounce(filterNow, 80);
+     q.addEventListener('input', onInput);
+   
+     // Run once on load
+     filterNow();
     </script>
   </body>
 </html>
