@@ -245,22 +245,33 @@ const albums = await fetchAllRaindrops();
     <Footer />
 
     <script>
-     // Simple debouncer so filtering doesn't fire on every keystroke
+     // Debounce helper
      function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
    
+     // Normalize to lower-case, accent/diacritic-insensitive text
+     const norm = s => (s || "")
+       .toLowerCase()
+       .normalize('NFD')          // split accents
+       .replace(/[\u0300-\u036f]/g, ''); // remove accents
+   
      const q = document.getElementById('q');
-     const cards = Array.from(document.querySelectorAll('#grid .card'));
+     const grid = document.getElementById('grid');
+     if (!q || !grid) return;
+   
+     const cards = Array.from(grid.querySelectorAll('.card'));
+   
+     // Precompute searchable haystacks once
+     const haystacks = new Map(cards.map(c => {
+       const hay = norm((c.dataset.title || '') + ' ' + (c.dataset.tags || ''));
+       return [c, hay];
+     }));
    
      function filterNow() {
-       const s = (q.value || '').toLowerCase().trim();
-       if (!s) { 
-         cards.forEach(c => { c.style.display = ''; });
-         return;
-       }
-       // allow multi-word search; all words must match somewhere in title or tags
+       const s = norm(q.value.trim());
+       if (!s) { cards.forEach(c => c.style.display = ''); return; }
        const words = s.split(/\s+/);
        cards.forEach(c => {
-         const hay = ((c.dataset.title || '') + ' ' + (c.dataset.tags || ''));
+         const hay = haystacks.get(c);
          const match = words.every(w => hay.includes(w));
          c.style.display = match ? '' : 'none';
        });
@@ -269,8 +280,15 @@ const albums = await fetchAllRaindrops();
      const onInput = debounce(filterNow, 80);
      q.addEventListener('input', onInput);
    
-     // Run once on load
+     // QoL: ESC clears; '/' focuses search (unless typing in an input)
+     window.addEventListener('keydown', (e) => {
+       if (e.key === 'Escape') { q.value = ''; filterNow(); q.focus(); }
+       else if (e.key === '/' && e.target === document.body) { e.preventDefault(); q.focus(); }
+     });
+   
+     // Initial
      filterNow();
+
     </script>
   </body>
 </html>
