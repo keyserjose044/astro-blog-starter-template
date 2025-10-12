@@ -188,7 +188,7 @@ const albums = await fetchAllRaindrops();
         position: absolute;
         left: 50%;
         top: -10px;
-        transform: translate(-50%, -100%);
+        transform: translate(-50%, -100%) translateY(-4px);
         width: max-content; 
         max-width: min(600px, 90vw);
         white-space: normal; 
@@ -206,6 +206,8 @@ const albums = await fetchAllRaindrops();
         transition: opacity .15s ease, visibility .15s ease;
         text-align: left; 
         text-wrap: pretty;
+        hyphens: auto;
+        word-break: break-word;
       }
       .note-bubble::after {
         content: "";
