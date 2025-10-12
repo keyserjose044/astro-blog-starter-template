@@ -126,11 +126,6 @@ const albums = await fetchAllRaindrops();
         margin: 6px 0 24px;
       }
       
-      .count {
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-      
       .toolbar input[type="search"] {
         width: 100%;
         max-width: 520px;
@@ -212,7 +207,6 @@ const albums = await fetchAllRaindrops();
         <p class="hint">Powered by Raindrop. Start typing to filter.</p>
         <div class="toolbar">
           <input id="q" type="search" placeholder="Search by title or tag…" aria-label="Filter albums" />
-          <span id="count" class="count" aria-live="polite"></span>
         </div>
       </div>
 
@@ -254,27 +248,6 @@ const albums = await fetchAllRaindrops();
       // Debounced search filter + live count
       function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
-      const q = document.getElementById('q');
-      const cards = [...document.querySelectorAll('.card')];
-      const count = document.getElementById('count');
-
-      function updateCount() {
-        const visible = cards.filter(c => c.style.display !== 'none').length;
-        count.textContent = `${visible} of ${cards.length}`;
-      }
-
-      const doFilter = debounce(() => {
-        const s = (q.value || '').toLowerCase().trim();
-        cards.forEach(c => {
-          const t = c.dataset.title || '';
-          const tags = c.dataset.tags || '';
-          c.style.display = (s === '' || t.includes(s) || tags.includes(s)) ? '' : 'none';
-        });
-        updateCount();
-      }, 80);
-
-      q.addEventListener('input', doFilter);
-      updateCount();
     </script>
   </body>
 </html>
