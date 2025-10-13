@@ -188,7 +188,7 @@ const albums = await fetchAllRaindrops();
         position: absolute;
         left: 50%;
         top: -10px;
-        transform: translate(-50%, -100%) translateY(-4px);
+        transform: translate(calc(-50% + var(--shift, 0px)), -100%); /* NEW */
         width: max-content; 
         max-width: min(600px, 90vw);
         white-space: normal; 
@@ -228,7 +228,7 @@ const albums = await fetchAllRaindrops();
         .note-bubble {
           top: auto;
           bottom: -10px;
-          transform: translate(-50%, 100%);
+          transform: translate(calc(-50% + var(--shift, 0px)), 100%); /* keep var here too */
         }
         .note-bubble::after {
           top: auto;
@@ -369,5 +369,58 @@ const albums = await fetchAllRaindrops();
         });
       })();
     </script>
+   <script>
+     (function keepTooltipsOnScreen(){
+       const grid = document.getElementById('grid');
+       if (!grid) return;
+   
+       function adjust(bubble){
+         if (!bubble) return;
+         // reset any previous shift first
+         bubble.style.setProperty('--shift', '0px');
+   
+         const rect = bubble.getBoundingClientRect();
+         const margin = 8; // keep a little breathing room from edges
+   
+         let shift = 0;
+         if (rect.left < margin) {
+           shift = margin - rect.left;                // nudge right
+         } else if (rect.right > window.innerWidth - margin) {
+           shift = (window.innerWidth - margin) - rect.right; // nudge left (negative)
+         }
+         if (shift !== 0) bubble.style.setProperty('--shift', `${shift}px`);
+       }
+   
+       // Recalculate when a card is hovered/focused and when window resizes
+       grid.addEventListener('mouseenter', (e) => {
+         const card = e.target.closest('.card');
+         if (!card) return;
+         const bubble = card.querySelector('.note-bubble');
+         if (!bubble) return;
+         // Wait a frame so styles (visibility) apply before measuring
+         requestAnimationFrame(() => adjust(bubble));
+       }, true);
+   
+       grid.addEventListener('focusin', (e) => {
+         const card = e.target.closest('.card');
+         if (!card) return;
+         const bubble = card.querySelector('.note-bubble');
+         if (!bubble) return;
+         requestAnimationFrame(() => adjust(bubble));
+       });
+   
+       window.addEventListener('resize', () => {
+         document.querySelectorAll('.note-bubble').forEach(adjust);
+       });
+   
+       // Optional: reset shift when leaving the card
+       grid.addEventListener('mouseleave', (e) => {
+         const card = e.target.closest('.card');
+         if (!card) return;
+         const bubble = card.querySelector('.note-bubble');
+         if (bubble) bubble.style.removeProperty('--shift');
+       }, true);
+     })();
+   </script>
   </body>
 </html>
