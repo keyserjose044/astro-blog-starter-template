@@ -112,7 +112,7 @@ const books = await fetchAllRaindrops();
       const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
       // helpers
-      const debounce = (fn,ms)=>{let t;return (...a)=>{cleartimeout(t);t=setTimeout(()=>fn(...a),ms);} };
+      const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
       const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
       const grid = $('#grid'), input = $('#q');
