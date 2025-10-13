@@ -1,19 +1,16 @@
 ---
 // src/pages/art.astro
 import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro>';
+import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 
-/* Hardcoded per your request */
-const RAINDROP_TOKEN = "2df3b611-fa2c-4794-a359-1bf08efdd67f";
-const COLLECTION_ID  = "58506976";
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
+const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? "58506976";
 
-/** Fetch every item (Raindrop pagination ≈ 50/page, 0-based). */
 async function fetchAllRaindrops() {
   const perPage = 50;
   let page = 0, items: any[] = [];
-
   while (true) {
     const res = await fetch(
       `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
@@ -26,14 +23,8 @@ async function fetchAllRaindrops() {
     if (batch.length < perPage) break;
     page++;
   }
-
-  // newest first
-  items.sort(
-    (a,b) => new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime()
-  );
-
-  const placeholder = '/images/art-placeholder.png'; // optional
-
+  items.sort((a,b)=> new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime());
+  const placeholder = '/images/album-placeholder.png';
   return items.map((it)=>({
     id: it._id,
     title: it.title ?? 'Untitled',
@@ -43,19 +34,17 @@ async function fetchAllRaindrops() {
     tags: it.tags ?? []
   }));
 }
-const art = await fetchAllRaindrops();
+const albums = await fetchAllRaindrops();
 ---
 
 <!doctype html>
 <html lang="en">
 <head>
-  <BaseHead title={`${SITE_TITLE} — Art`} description="Art I’ve saved and enjoyed, pulled from my Raindrop collection." />
+  <BaseHead title={`${SITE_TITLE} — Albums`} description="Albums gallery powered by Raindrop — auto-updated from my collection." />
   <style>
     :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fb;color:var(--ink)}
-
-    /* full-bleed shell + centered header band (same as Albums) */
     .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
     .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
     .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
@@ -63,56 +52,39 @@ const art = await fetchAllRaindrops();
     .hint{color:var(--muted);margin:6px 0 20px}
     .toolbar{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0 24px}
     .toolbar input[type="search"]{width:100%;max-width:520px;margin-inline:auto;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-
-    /* responsive, full-width grid (auto-fit like Albums) */
     .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
     @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
     .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
-
-    /* cards */
     .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
-    .thumb{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
+    .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
     .title{font-weight:700;font-size:.98rem;line-height:1.3}
     .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
-
-    /* note tooltip — identical behavior to Albums */
-    .note-bubble{
-      position:absolute;left:50%;top:-10px;
-      transform:translate(calc(-50% + var(--shift,0px)),-100%);
-      width:max-content;max-width:min(600px,90vw);white-space:normal;
-      background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;
-      padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);
-      z-index:10;pointer-events:none;opacity:0;visibility:hidden;
-      transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;
-      hyphens:auto;word-break:break-word
-    }
+    .note-bubble{position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);width:max-content;max-width:min(600px,90vw);white-space:normal;background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:10;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;hyphens:auto;word-break:break-word}
     .note-bubble::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(20,23,31,.96)}
     .card:hover .note-bubble,.card:focus-within .note-bubble,.card.show-note .note-bubble{opacity:1;visibility:visible}
     @media (max-width:700px){
       .note-bubble{top:auto;bottom:-10px;transform:translate(calc(-50% + var(--shift,0px)),100%)}
       .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
     }
-
     .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
   </style>
 </head>
 <body>
   <Header />
-
   <main class="wrap wrap--wide">
-    <div class="intro" role="region" aria-label="Art header">
-      <h1>🎨 Art</h1>
-      <p class="hint">Pieces I’ve saved and enjoyed — browse or search below.</p>
+    <div class="intro" role="region" aria-label="Albums header">
+      <h1>🎵 Albums</h1>
+      <p class="hint">My life in albums — every listen logged and displayed here.</p>
       <div class="toolbar">
-        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter art" />
+        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter albums" />
       </div>
     </div>
 
-    {art.length === 0 ? (
-      <div class="empty">No art found in this collection.</div>
+    {albums.length === 0 ? (
+      <div class="empty">No albums found in this collection.</div>
     ) : (
       <div class="grid fullbleed" id="grid" role="list">
-        {art.map(a => (
+        {albums.map(a => (
           <a
             class="card"
             role="listitem"
@@ -132,64 +104,68 @@ const art = await fetchAllRaindrops();
       </div>
     )}
   </main>
-
   <Footer />
 
   <script>
     (function(){
-      const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-      const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);}};
-      const norm=s=>(s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const $ = (sel,root=document)=>root.querySelector(sel);
+      const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
-      const grid = $('#grid'), input = $('#q'); if(!grid||!input) return;
+      // helpers
+      const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
+      const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-      // Search (title + note)
-      const cards = $$('.card',grid);
-      const haystack = new Map(cards.map(c=>[c,norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
-      function filter(){
+      const grid = $('#grid'), input = $('#q');
+      if (!grid || !input) return;
+
+      const cards = $$('.card', grid);
+      const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+
+      function filter() {
         const s = norm(input.value.trim());
-        if(!s){ cards.forEach(c=>c.style.display=''); return; }
+        if (!s) { cards.forEach(c=>c.style.display=''); return; }
         const words = s.split(/\s+/);
-        cards.forEach(c => c.style.display = words.every(w=>haystack.get(c).includes(w)) ? '' : 'none');
+        cards.forEach(c => c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none');
       }
-      input.addEventListener('input',debounce(filter,80));
-      addEventListener('keydown',e=>{
-        if(e.key==='Escape'){ input.value=''; filter(); input.focus(); }
-        else if(e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+      input.addEventListener('input', debounce(filter, 80));
+      window.addEventListener('keydown', e => {
+        if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
+        else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
       });
       filter();
 
-      // Tooltip: keep inside viewport + tap-to-toggle
-      function adjust(b){
-        if(!b) return;
-        b.style.setProperty('--shift','0px');
-        const r=b.getBoundingClientRect(), m=8;
-        let shift=0;
-        if(r.left<m) shift=m-r.left;
-        else if(r.right>innerWidth-m) shift=(innerWidth-m)-r.right;
-        if(shift) b.style.setProperty('--shift',`${shift}px`);
+      // tooltip: keep on screen + tap-to-show on touch
+      function adjust(bubble){
+        if (!bubble) return;
+        bubble.style.setProperty('--shift','0px');
+        const r = bubble.getBoundingClientRect(), m = 8;
+        let shift = 0;
+        if (r.left < m) shift = m - r.left;
+        else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
+        if (shift) bubble.style.setProperty('--shift', `${shift}px`);
       }
-      grid.addEventListener('mouseenter',e=>{
-        const b=e.target.closest('.card')?.querySelector('.note-bubble'); if(!b) return;
+      grid.addEventListener('mouseenter', e=>{
+        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
         requestAnimationFrame(()=>adjust(b));
-      },true);
-      grid.addEventListener('focusin',e=>{
-        const b=e.target.closest('.card')?.querySelector('.note-bubble'); if(!b) return;
+      }, true);
+      grid.addEventListener('focusin', e=>{
+        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
         requestAnimationFrame(()=>adjust(b));
       });
-      addEventListener('resize',()=>$$('.note-bubble').forEach(adjust));
+      addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
-      document.addEventListener('click',e=>{
-        const card=e.target.closest('.card');
-        if(!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
-        if(!card.querySelector('.note-bubble')) return;
-        if(card.classList.contains('show-note')) return; // second tap follows link
+      // tap-to-toggle: first tap shows, second tap follows link
+      document.addEventListener('click', e=>{
+        const card = e.target.closest('.card');
+        if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+        if (!card.querySelector('.note-bubble')) return;
+        if (card.classList.contains('show-note')) return; // allow navigation
         e.preventDefault();
         cards.forEach(c=>c.classList.remove('show-note'));
         card.classList.add('show-note');
         requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
-        setTimeout(()=>card.classList.remove('show-note'),2500);
-      },true);
+        setTimeout(()=>card.classList.remove('show-note'), 2500);
+      }, true);
     })();
   </script>
 </body>
