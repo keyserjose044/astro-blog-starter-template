@@ -1,0 +1,117 @@
+---
+// src/pages/inspirations.astro
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+const title = "LifeLoggerz Inspirations";
+const description = "The people, projects, and ideas that sparked my obsession with tracking life and optimizing every hour.";
+const pubDate = "2025-10-11";
+const heroImage = "/images/inspirations-hero.jpg";
+const tags = ["LifeLoggerz", "Inspiration", "Self-Improvement", "Data Tracking"];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={`${SITE_TITLE} — ${title}`} description={description} image={heroImage} />
+    <style>
+      :root { --ink:#0e121b; --muted:#5e6573; --border:#e6e9ef; --surface:#fff; }
+      * { box-sizing: border-box; }
+      body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:var(--ink); background:#f6f8fb; }
+
+      .wrap { margin:0 auto; padding-block:28px 48px; padding-inline: clamp(16px,3vw,48px); }
+      .post {
+        max-width: 860px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: clamp(16px, 3vw, 40px);
+        box-shadow: 0 10px 24px rgba(0,0,0,.06);
+      }
+
+      .post header { margin-bottom: 20px; }
+      .title { margin:0 0 8px; letter-spacing:-0.02em; font-weight: 800; }
+      .meta { color: var(--muted); font-size: .95rem; display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; }
+      .tags { display:flex; gap:.5rem; flex-wrap:wrap; }
+      .tag { background:#f0f2f7; border:1px solid var(--border); padding:.2rem .6rem; border-radius:999px; font-size:.8rem; color:#445; }
+
+      .hero { width:100%; border-radius: 12px; object-fit: cover; margin: 16px 0 24px; border: 1px solid var(--border); }
+
+      .prose h1,.prose h2,.prose h3 { letter-spacing:-.01em; }
+      .prose h2 { margin-top: 1.4em; }
+      .prose p { line-height:1.65; margin: .85rem 0; }
+      .prose a { color: #2337ff; text-decoration: underline; text-underline-offset: 2px; }
+      .prose ul { padding-left: 1.2rem; }
+      .prose li { margin: .4rem 0; }
+      .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
+    </style>
+  </head>
+  <body>
+    <Header />
+
+    <main class="wrap">
+      <article class="post">
+        <header>
+          <h1 class="title">🌟 {title}</h1>
+          <div class="meta">
+            <time datetime={pubDate}>{pubDate}</time>
+            <span>•</span>
+            <div class="tags">
+              {tags.map(t => <span class="tag">{t}</span>)}
+            </div>
+          </div>
+          {heroImage ? <img class="hero" src={heroImage} alt="Post hero image" loading="eager" /> : null}
+        </header>
+
+        <section class="prose">
+          <p>The point of <em>LifeLoggerz</em> isn’t just to show what I track — it’s to show <strong>why</strong> I started doing it in the first place.<br />Here are the people, projects, and philosophies that pushed me down this rabbit hole of data and discipline.</p>
+
+          <hr class="divider" />
+
+          <h2>⚡ Efficiency Is Everything</h2>
+          <p><a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">Efficiency Is Everything</a> was one of the first blogs that changed how I thought about time and optimization.<br />The creator breaks down things like the <strong>cheapest foods per calorie</strong>, and how much time you lose on daily tasks.</p>
+          <p>This mindset <strong>kindled my rush to save time</strong>, since we all only have 24 hours a day.</p>
+
+          <h2>🎥 Phil Von Stade — The Original Life Logger</h2>
+          <p>I thought I invented life-logging until I found <a href="https://www.youtube.com/watch?v=DPwZ-5M6XKw" target="_blank" rel="noopener noreferrer">Phil Von Stade’s video</a> from over 16 years ago.<br />He was tracking his entire life long before spreadsheets went viral — a pioneer of quantified living before it even had a name.</p>
+
+          <h2>🏊 Michael Phelps and Journaling</h2>
+          <p>Even world-class athletes do it.<br />After reading <a href="https://www.inc.com/jeff-haden/michael-phelps-journaling-habits.html" target="_blank" rel="noopener noreferrer">this article about Michael Phelps</a>, I realized he’s been journaling for years.</p>
+          <p>You know what Google Sheets has over journaling?</p>
+          <ul>
+            <li>You can <strong>Ctrl + F</strong> for specific thoughts or entries.</li>
+            <li>You can <strong>see the data evolve</strong> over time.</li>
+            <li>A full year can be analyzed in minutes — and you still have every log.</li>
+          </ul>
+          <p>That’s when I knew structured journaling could become something bigger.</p>
+
+          <h2>📱 Perfice — Tracking Life as an App</h2>
+          <p><a href="https://www.perfice.com" target="_blank" rel="noopener noreferrer">Perfice</a> is a clean, minimal life-tracking app.<br />I could build something similar one day — but for now, I enjoy the <strong>interactivity and transparency</strong> of my Google Sheets systems.<br />You see your data face-first — not buried in menus or dashboards.</p>
+
+          <h2>🎨 Feltron’s 2013 Annual Report</h2>
+          <p>Nicholas Felton’s <a href="https://feltron.com/FAR13.html" target="_blank" rel="noopener noreferrer">2013 Life Report</a> blew my mind.<br />The design, typography, and storytelling made raw data feel <strong>alive</strong>.</p>
+          <p>Feel free to improve on my systems in the <strong>aesthetics department</strong>.<br />I haven’t explored Looker Studio or Power BI yet, but visual storytelling is high on my list for future upgrades.</p>
+
+          <h2>🌱 Raptitude — Experiments in Living Better</h2>
+          <p><a href="https://www.raptitude.com" target="_blank" rel="noopener noreferrer">Raptitude</a> inspired me to view self-improvement as a series of <strong>experiments</strong>.<br />It’s not about perfection; it’s about iteration.</p>
+          <p>My blog isn’t just about tracking — it’s about <strong>improving workflows, free time, and ultimately life</strong>.</p>
+
+          <h2>📊 The Quantified Self Movement</h2>
+          <p>The <a href="https://quantifiedself.com" target="_blank" rel="noopener noreferrer">Quantified Self</a> community taught me what’s possible when people turn <strong>awareness into numbers</strong>.<br />They showed that life-logging isn’t obsessive — it’s <strong>reflective</strong>.<br />It’s not about collecting data for data’s sake, but using it to make better decisions.</p>
+
+          <h2>💬 Final Thoughts</h2>
+          <p>You think you can do better?<br />Try Looker Studio, Power BI, or any tool I haven’t explored yet.<br />I avoid deep biometrics for now — there’s still plenty to optimize manually.</p>
+          <p>When I was younger, I kept <strong>stacks of notes</strong> and filled whiteboards trying to organize ideas.<br />It was chaos.</p>
+          <p>In <strong>January 2023</strong>, I began logging simple stats in Google Sheets.<br />By <strong>July 2023</strong>, I realized I could <strong>organize my entire mind in Excel</strong> —<br />and that’s when <em>LifeLoggerz</em> truly began.</p>
+
+          <hr class="divider" />
+          <p><em>Thanks to every creator who pushed me to quantify life itself.</em></p>
+        </section>
+      </article>
+    </main>
+
+    <Footer />
+  </body>
+</html>
