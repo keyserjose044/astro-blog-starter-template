@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
-const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? "58506976";
+const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ART_ID ?? "58506976";
 
 async function fetchAllRaindrops() {
   const perPage = 50;
@@ -24,7 +24,7 @@ async function fetchAllRaindrops() {
     page++;
   }
   items.sort((a,b)=> new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime());
-  const placeholder = '/images/album-placeholder.png';
+  const placeholder = '/images/art-placeholder.png';
   return items.map((it)=>({
     id: it._id,
     title: it.title ?? 'Untitled',
@@ -34,13 +34,13 @@ async function fetchAllRaindrops() {
     tags: it.tags ?? []
   }));
 }
-const albums = await fetchAllRaindrops();
+const art = await fetchAllRaindrops();
 ---
 
 <!doctype html>
 <html lang="en">
 <head>
-  <BaseHead title={`${SITE_TITLE} — Albums`} description="Albums gallery powered by Raindrop — auto-updated from my collection." />
+  <BaseHead title={`${SITE_TITLE} — Art`} description="Art gallery powered by Raindrop — auto-updated from my collection." />
   <style>
     :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
     *{box-sizing:border-box}
@@ -56,7 +56,7 @@ const albums = await fetchAllRaindrops();
     @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
     .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
     .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
-    .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
+    .thumb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
     .title{font-weight:700;font-size:.98rem;line-height:1.3}
     .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
     .note-bubble{position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);width:max-content;max-width:min(600px,90vw);white-space:normal;background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:10;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;hyphens:auto;word-break:break-word}
@@ -72,19 +72,19 @@ const albums = await fetchAllRaindrops();
 <body>
   <Header />
   <main class="wrap wrap--wide">
-    <div class="intro" role="region" aria-label="Albums header">
-      <h1>🎵 Albums</h1>
-      <p class="hint">My life in albums — every listen logged and displayed here.</p>
+    <div class="intro" role="region" aria-label="Art header">
+      <h1>🎨 Art</h1>
+      <p class="hint">I look at one painting a day using DailyArt.</p>
       <div class="toolbar">
-        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter albums" />
+        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter art" />
       </div>
     </div>
 
-    {albums.length === 0 ? (
-      <div class="empty">No albums found in this collection.</div>
+    {art.length === 0 ? (
+      <div class="empty">No art found in this collection.</div>
     ) : (
       <div class="grid fullbleed" id="grid" role="list">
-        {albums.map(a => (
+        {art.map(a => (
           <a
             class="card"
             role="listitem"
