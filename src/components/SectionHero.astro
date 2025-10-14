@@ -1,0 +1,39 @@
+---
+const { src, alt = "", caption = "" } = Astro.props;
+---
+
+<figure class="section-hero">
+  <img src={src} alt={alt} loading="lazy" decoding="async" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .section-hero {
+    /* match BlogPost width without full-bleed */
+    margin: 2rem auto 1.25rem;
+    max-width: var(--post-max-width, 900px);
+  }
+
+  .section-hero img {
+    width: 100%;
+    /* lock a uniform size for all section images */
+    aspect-ratio: 16 / 9;           /* change to 3/1 or 2/1 if your main hero is wider */
+    object-fit: cover;              /* crops to fill while preserving composition */
+    object-position: center center; /* keep the “centered” placement */
+    display: block;
+    border-radius: var(--radius-xl, 16px);
+  }
+
+  .section-hero figcaption {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  /* Optional: if your Layout has a `wide` mode, nudge to line up with content */
+  :global(.post-content) .section-hero {
+    padding-left: 0;
+    padding-right: 0;
+  }
+</style>
