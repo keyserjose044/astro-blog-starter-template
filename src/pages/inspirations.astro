@@ -6,7 +6,6 @@ import SectionHero from '../components/SectionHero.astro';
 <Layout
   title="LifeLoggerz Inspirations"
   description="The people, projects, and ideas that sparked my obsession with tracking life and optimizing every hour."
-  pubDate={null}
   wide
 >
   <p>
@@ -15,112 +14,128 @@ import SectionHero from '../components/SectionHero.astro';
   </p>
 
   {/* 1. Phil Von Stade */}
-  <SectionHero
-    src="/images/phil_von_stade.png"
-    alt="Phil Von Stade life-logging video thumbnail"
-/>
-  <h2>🎥 Phil Von Stade — The Original Life Logger</h2>
-  <p>
-    I thought I invented life-logging until I found
-    <a href="https://www.youtube.com/watch?v=w2yIGGxg52A" target="_blank" rel="noopener noreferrer"> Phil Von Stade’s video</a> from over 16 years ago.
-    He was tracking his entire life long before spreadsheets went viral — a pioneer of quantified living before it even had a name.
-  </p>
+  <section class="inspo">
+    <h2>🎥 Phil Von Stade — The Original Life Logger</h2>
+    <SectionHero
+      src="/images/phil_von_stade.png"
+      alt="Phil Von Stade life-logging video thumbnail"
+    />
+    <p>
+      I thought I invented life-logging until I found
+      <a href="https://www.youtube.com/watch?v=w2yIGGxg52A" target="_blank" rel="noopener noreferrer"> Phil Von Stade’s video</a> from over 16 years ago.
+      He was tracking his entire life long before spreadsheets went viral — a pioneer of quantified living before it even had a name.
+    </p>
+  </section>
 
   {/* 2. Efficiency Is Everything */}
-  <SectionHero
-    src="/images/efficiency_is_everything.png"
-    alt="Efficiency Is Everything site"
-/>
-  <h2>⚡ Efficiency Is Everything</h2>
-  <p>
-    <a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">Efficiency Is Everything</a> was one of the first blogs that changed how I thought about time and optimization.
-    The creator breaks down things like the <strong>cheapest foods per calorie</strong>, and how much time you lose on daily tasks.
-  </p>
-  <p>This mindset <strong>kindled my rush to save time</strong>, since we all only have 24 hours a day.</p>
+  <section class="inspo">
+    <h2>⚡ Efficiency Is Everything</h2>
+    <SectionHero
+      src="/images/efficiency_is_everything.png"
+      alt="Efficiency Is Everything site"
+    />
+    <p>
+      <a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">Efficiency Is Everything</a> was one of the first blogs that changed how I thought about time and optimization.
+      The creator breaks down things like the <strong>cheapest foods per calorie</strong>, and how much time you lose on daily tasks.
+    </p>
+    <p>This mindset <strong>kindled my rush to save time</strong>, since we all only have 24 hours a day.</p>
+  </section>
 
   {/* 3. Michael Phelps */}
-  <SectionHero
-    src="/images/michael_phelps.png"
-    alt="Michael Phelps journaling"
-/>
-  <h2>🏊 Michael Phelps and Journaling</h2>
-  <p>
-    Even world-class athletes do it.
-    After reading
-    <a href="https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/" target="_blank" rel="noopener noreferrer"> this article about Michael Phelps</a>,
-    I realized he’s been journaling for years.
-  </p>
-  <p>You know what Google Sheets has over journaling?</p>
-  <ul>
-    <li>You can <strong>Ctrl + F</strong> for specific thoughts or entries.</li>
-    <li>You can <strong>see the data evolve</strong> over time.</li>
-    <li>A full year can be analyzed in minutes — and you still have every log.</li>
-  </ul>
-  <p>That’s when I knew structured journaling could become something bigger.</p>
+  <section class="inspo">
+    <h2>🏊 Michael Phelps and Journaling</h2>
+    <SectionHero
+      src="/images/michael_phelps.png"
+      alt="Michael Phelps journaling"
+    />
+    <p>
+      Even world-class athletes do it.
+      After reading
+      <a href="https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/" target="_blank" rel="noopener noreferrer"> this article about Michael Phelps</a>,
+      I realized he’s been journaling for years.
+    </p>
+    <p>You know what Google Sheets has over journaling?</p>
+    <ul>
+      <li>You can <strong>Ctrl + F</strong> for specific thoughts or entries.</li>
+      <li>You can <strong>see the data evolve</strong> over time.</li>
+      <li>A full year can be analyzed in minutes — and you still have every log.</li>
+    </ul>
+    <p>That’s when I knew structured journaling could become something bigger.</p>
+  </section>
 
   {/* 4. Perfice */}
-  <SectionHero
-    src="/images/perfice.png"
-    alt="Perfice life-tracking app"
-/>
-  <h2>📱 Perfice — Tracking Life as an App</h2>
-  <p>
-    <a href="https://perfice.adoe.dev/" target="_blank" rel="noopener noreferrer">Perfice</a> is a clean, minimal life-tracking app.
-    I could build something similar one day — but for now, I enjoy the <strong>interactivity and transparency</strong> of my Google Sheets systems.
-    You see your data face-first — not buried in menus or dashboards.
-  </p>
+  <section class="inspo">
+    <h2>📱 Perfice — Tracking Life as an App</h2>
+    <SectionHero
+      src="/images/perfice.png"
+      alt="Perfice life-tracking app"
+    />
+    <p>
+      <a href="https://perfice.adoe.dev/" target="_blank" rel="noopener noreferrer">Perfice</a> is a clean, minimal life-tracking app.
+      I could build something similar one day — but for now, I enjoy the <strong>interactivity and transparency</strong> of my Google Sheets systems.
+      You see your data face-first — not buried in menus or dashboards.
+    </p>
+  </section>
 
   {/* 5. Feltron */}
-  <SectionHero
-    src="/images/feltron.png"
-    alt="Feltron 2013 Life Report"
-/>
-  <h2>🎨 Feltron’s 2013 Annual Report</h2>
-  <p>
-    Nicholas Felton’s
-    <a href="http://feltron.com/FAR14.html" target="_blank" rel="noopener noreferrer"> 2013 Life Report</a>
-    blew my mind. The design, typography, and storytelling made raw data feel <strong>alive</strong>.
-  </p>
-  <p>
-    Feel free to improve on my systems in the <strong>aesthetics department</strong>.
-    I haven’t explored Looker Studio or Power BI yet, but visual storytelling is high on my list for future upgrades.
-  </p>
+  <section class="inspo">
+    <h2>🎨 Feltron’s 2013 Annual Report</h2>
+    <SectionHero
+      src="/images/feltron.png"
+      alt="Feltron 2013 Life Report"
+    />
+    <p>
+      Nicholas Felton’s
+      <a href="http://feltron.com/FAR14.html" target="_blank" rel="noopener noreferrer"> 2013 Life Report</a>
+      blew my mind. The design, typography, and storytelling made raw data feel <strong>alive</strong>.
+    </p>
+    <p>
+      Feel free to improve on my systems in the <strong>aesthetics department</strong>.
+      I haven’t explored Looker Studio or Power BI yet, but visual storytelling is high on my list for future upgrades.
+    </p>
+  </section>
 
   {/* 6. Raptitude */}
-  <SectionHero
-    src="/images/raptitude.png"
-    alt="Raptitude blog"
-/>
-  <h2>🌱 Raptitude — Experiments in Living Better</h2>
-  <p>
-    <a href="https://www.raptitude.com" target="_blank" rel="noopener noreferrer">Raptitude</a> inspired me to view self-improvement as a series of
-    <strong> experiments</strong>. It’s not about perfection; it’s about iteration.
-  </p>
-  <p>My blog isn’t just about tracking — it’s about <strong>improving workflows, free time, and ultimately life</strong>.</p>
+  <section class="inspo">
+    <h2>🌱 Raptitude — Experiments in Living Better</h2>
+    <SectionHero
+      src="/images/raptitude.png"
+      alt="Raptitude blog"
+    />
+    <p>
+      <a href="https://www.raptitude.com" target="_blank" rel="noopener noreferrer">Raptitude</a> inspired me to view self-improvement as a series of
+      <strong> experiments</strong>. It’s not about perfection; it’s about iteration.
+    </p>
+    <p>My blog isn’t just about tracking — it’s about <strong>improving workflows, free time, and ultimately life</strong>.</p>
+  </section>
 
   {/* 7. Quantified Self */}
-  <SectionHero
-    src="/images/dailyvis.png"
-    alt="Quantified Self"
-/>
-  <h2>📊 The Quantified Self Movement</h2>
-  <p>
-    The <a href="https://dailyvis.com/posts/quantified-self-why-i-track-my-life-in-data/" target="_blank" rel="noopener noreferrer">Quantified Self</a> community taught me what’s possible when people turn
-    <strong> awareness into numbers</strong>. They showed that life-logging isn’t obsessive — it’s <strong>reflective</strong>.
-    It’s not about collecting data for data’s sake, but using it to make better decisions.
-  </p>
+  <section class="inspo">
+    <h2>📊 The Quantified Self Movement</h2>
+    <SectionHero
+      src="/images/dailyvis.png"
+      alt="Quantified Self"
+    />
+    <p>
+      The <a href="https://dailyvis.com/posts/quantified-self-why-i-track-my-life-in-data/" target="_blank" rel="noopener noreferrer">Quantified Self</a> community taught me what’s possible when people turn
+      <strong> awareness into numbers</strong>. They showed that life-logging isn’t obsessive — it’s <strong>reflective</strong>.
+      It’s not about collecting data for data’s sake, but using it to make better decisions.
+    </p>
+  </section>
 
   {/* 8. RYOT */}
-  <SectionHero
-    src="/images/ryot.png"
-    alt="RYOT GitHub"
-/>
-  <h2>📊 RYOT GitHub</h2>
-  <p>
-    The <a href="https://github.com/IgnisDa/ryot" target="_blank" rel="noopener noreferrer">Quantified Self</a> community taught me what’s possible when people turn
-    <strong> awareness into numbers</strong>. They showed that life-logging isn’t obsessive — it’s <strong>reflective</strong>.
-    It’s not about collecting data for data’s sake, but using it to make better decisions.
-  </p>
+  <section class="inspo">
+    <h2>📊 RYOT GitHub</h2>
+    <SectionHero
+      src="/images/ryot.png"
+      alt="RYOT GitHub"
+    />
+    <p>
+      The <a href="https://github.com/IgnisDa/ryot" target="_blank" rel="noopener noreferrer">Quantified Self</a> community taught me what’s possible when people turn
+      <strong> awareness into numbers</strong>. They showed that life-logging isn’t obsessive — it’s <strong>reflective</strong>.
+      It’s not about collecting data for data’s sake, but using it to make better decisions.
+    </p>
+  </section>
 
   <h2>💬 Final Thoughts</h2>
   <p>
@@ -141,11 +156,20 @@ import SectionHero from '../components/SectionHero.astro';
 </Layout>
 
 <style>
-  /* Centers all section headings on this page */
+  /* Center headings on this page */
+  .inspo h2,
   h2 {
     text-align: center;
-    margin-top: 3rem;
-    margin-bottom: 1rem;
+    margin: 2.5rem 0 1rem;
+  }
+
+  /* Space out entries and add a subtle divider */
+  .inspo + .inspo { margin-top: 2.5rem; }
+  .inspo { padding-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,.08); }
+
+  /* Keep image visually grouped with its title */
+  .inspo h2 + .section-hero {
+    margin-top: 0.75rem;  /* tighter heading→image */
+    margin-bottom: 1rem;  /* image→text */
   }
 </style>
-
