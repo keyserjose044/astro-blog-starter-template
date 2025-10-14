@@ -68,20 +68,20 @@ const link = (p: string = '') => `${base}${p}`;
     border-bottom-color: var(--accent, #405cf5);
   }
 
-  .contact-button a {
-    background: var(--accent, #405cf5);
-    color: white;
-    padding: 0.5em 1em;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-  }
+.contact-btn {
+  background: transparent;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
 
-  .contact-button a:hover {
-    background: #2f46c6;
-    transform: translateY(-1px);
-  }
+.contact-btn:hover {
+  background: #2563eb;
+  color: white;
+}
 
   @media (max-width: 720px) {
     .contact-button a {
