@@ -3,9 +3,8 @@ const today = new Date();
 ---
 
 <footer>
-  <p class="motto">Building systems to make life measurable, efficient, and meaningful.</p>
   <div class="footer-links">
-    <a href="mailto:smartstuffstays@gmail.com">Contact</a>
+    <p>Contact: <a href="mailto:smartstuffstays@gmail.com">smartstuffstays@gmail.com</a></p>
   </div>
   <p class="copyright">&copy; {today.getFullYear()} LifeLoggerz. All rights reserved.</p>
 </footer>
@@ -18,18 +17,13 @@ const today = new Date();
     text-align: center;
   }
 
-  .motto {
-    font-size: 1.1em;
-    margin-bottom: 0.75em;
-  }
-
   .footer-links {
-    margin-bottom: 0.75em;
+    margin-bottom: 0.5em;
   }
 
   .footer-links a {
     color: rgb(var(--gray));
-    text-decoration: none;
+    text-decoration: underline;
     font-weight: 500;
   }
 
