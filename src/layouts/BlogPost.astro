@@ -121,17 +121,18 @@ const hasUpd = !!upd;
     <Header />
     <main>
       <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
-        <div class="hero-image">
-          {heroImage && (
-            <img
-              width={1200}
-              height={600}
-              src={heroImage}
-              alt=""
-              loading="eager"
-            />
-          )}
-        </div>
+      <div class="hero-image">
+        {heroImage && (
+          <img
+            width={1200}
+            height={600}
+            src={heroImage}
+            alt={title}
+            loading="eager"
+            style={Astro.props.heroImageStyle || "max-height: 500px; width: 100%; object-fit: contain;"}
+          />
+        )}
+      </div>
 
         <div class="prose">
           <div class="title">
