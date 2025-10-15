@@ -17,10 +17,9 @@ type Item = {
   imageSrc?: string;
   imageAlt?: string;
   imageOrientation?: 'portrait' | 'landscape';
-  postUrl?: string; // NEW — optional link to blog post
+  postUrl?: string; // optional link to blog post
 };
 
-// ✅ Update filenames and add postUrl when ready
 const templates: Item[] = [
   {
     title: 'Weekly To-Do List Template',
@@ -31,7 +30,6 @@ const templates: Item[] = [
     imageSrc: `${base}templates/covers/todo-cover.png`,
     imageAlt: 'Preview of the To-Do List Template',
     imageOrientation: 'portrait',
-    // postUrl: `${base}blog/to-do-list-template/` // Add once post is live
   },
   {
     title: 'Research Paper Fill-In Template',
@@ -62,12 +60,22 @@ const templates: Item[] = [
         --ring: rgba(64, 92, 245, 0.25);
         --card: #f8fafc;
         --border: #e5e7eb;
+
+        /* containers */
+        --list-max: clamp(60ch, 90vw, 1100px); /* desktop */
+        --read-max: 72ch;                      /* mobile */
       }
 
-      main {
-        max-width: 980px;
+      html, body { max-width: 100%; overflow-x: hidden; background: var(--bg); }
+      main { width: 100%; margin: 0; }
+
+      /* shared wrapper (same idea as Blog/BlogPost .wrap) */
+      .wrap {
+        width: 100%;
+        max-width: var(--list-max);
         margin: 0 auto;
         padding: 2rem 1rem 4rem;
+        box-sizing: border-box; /* keep padding inside max-width */
         text-align: center;
       }
 
@@ -83,6 +91,7 @@ const templates: Item[] = [
         font-size: 1.05rem;
       }
 
+      /* grid of cards */
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -103,7 +112,7 @@ const templates: Item[] = [
       @media (min-width: 720px) { .card { grid-column: span 6; } }
       @media (min-width: 1024px) { .card { grid-column: span 4; } }
 
-      /* ✅ Portrait-friendly preview images */
+      /* Preview images */
       .thumb {
         display: block;
         background: #f8fafc;
@@ -120,6 +129,7 @@ const templates: Item[] = [
         background: white;
         padding: 0.25rem;
         transition: transform 0.3s ease;
+        display: block;
       }
       .thumb:hover img { transform: scale(1.03); }
 
@@ -154,7 +164,6 @@ const templates: Item[] = [
         gap: 0.75rem;
       }
 
-      /* ✅ Centered action buttons */
       .actions {
         display: flex;
         justify-content: center;
@@ -177,7 +186,6 @@ const templates: Item[] = [
         transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
       }
       .btn:hover { transform: translateY(-1px); }
-
       .btn-outline {
         background: transparent;
         color: var(--accent);
@@ -185,51 +193,73 @@ const templates: Item[] = [
         box-shadow: none;
       }
 
+      /* =================== MOBILE-ONLY CENTERING =================== */
+      @media (max-width: 768px) {
+        .wrap {
+          max-width: var(--read-max);
+          margin-inline: auto !important;
+          padding-inline: clamp(16px, 4vw, 24px) !important;
+        }
+        .grid {
+          grid-template-columns: 1fr !important;
+          gap: clamp(12px, 3vw, 20px);
+          justify-items: center; /* center cards with intrinsic width */
+          text-align: center;    /* nicer titles on small screens */
+        }
+        .card h3 { font-size: clamp(1rem, 4.5vw, 1.15rem); }
+        img, figure, video {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          margin-inline: auto;
+        }
+      }
+      /* ============================================================ */
     </style>
   </head>
   <body>
     <Header />
     <main>
-      <h1 class="page-title">Templates & Downloads</h1>
-      <p class="subtitle">
-        Ready-to-use files for time-tracking, research, and productivity.
-      </p>
+      <section class="wrap">
+        <h1 class="page-title">Templates & Downloads</h1>
+        <p class="subtitle">
+          Ready-to-use files for time-tracking, research, and productivity.
+        </p>
 
-      <section class="grid">
-        {templates.map((t) => (
-          <article class="card">
-            {t.imageSrc && (
-              <a
-                class:list={[
-                  'thumb',
-                  (t.imageOrientation ?? 'portrait') === 'landscape'
-                    ? 'landscape'
-                    : 'portrait',
-                ]}
-                href={t.postUrl ?? t.href}
-                {...(t.postUrl ? {} : { download: true })}
-              >
-                <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
-              </a>
-            )}
-            <div class="content">
-              <div class="eyebrow">{t.filetype}</div>
-              <h3>{t.title}</h3>
-              {t.description && <p class="desc">{t.description}</p>}
-              {t.updated && (
-                <div class="meta">
-                  <span>Updated: {t.updated}</span>
-                </div>
+        <section class="grid">
+          {templates.map((t) => (
+            <article class="card">
+              {t.imageSrc && (
+                <a
+                  class:list={[
+                    'thumb',
+                    (t.imageOrientation ?? 'portrait') === 'landscape'
+                      ? 'landscape'
+                      : 'portrait',
+                  ]}
+                  href={t.postUrl ?? t.href}
+                  {...(t.postUrl ? {} : { download: true })}
+                >
+                  <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
+                </a>
               )}
-              <div class="actions">
-                {t.postUrl && (
-                  <a class="btn btn-outline" href={t.postUrl}>Example</a>
+              <div class="content">
+                <div class="eyebrow">{t.filetype}</div>
+                <h3>{t.title}</h3>
+                {t.description && <p class="desc">{t.description}</p>}
+                {t.updated && (
+                  <div class="meta">
+                    <span>Updated: {t.updated}</span>
+                  </div>
                 )}
-                <a class="btn" href={t.href} download>Download</a>
+                <div class="actions">
+                  {t.postUrl && <a class="btn btn-outline" href={t.postUrl}>Example</a>}
+                  <a class="btn" href={t.href} download>Download</a>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          ))}
+        </section>
       </section>
     </main>
     <Footer />
