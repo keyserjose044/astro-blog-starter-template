@@ -63,10 +63,12 @@ const templates: Item[] = [
       }
 
       main {
+        width: 100%;                /* ← overrides the global 720px */
         max-width: 1080px;
         margin: 0 auto;
         padding: 2rem 1rem 4rem;
         text-align: center;
+        box-sizing: border-box;
       }
 
       .page-title {
