@@ -90,12 +90,15 @@ const hasUpd = !!upd;
           object-fit: contain;
         }
 
-        /* Landscape-specific (default) */
+        /* Landscape — letterboxed look (no cropping, scales smoothly) */
         .hero-image img.landscape {
-          width: 100%;
-          height: auto;
-          max-height: none;
-          object-fit: cover;
+          width: auto;
+          max-width: 100%;
+          max-height: 90vh;
+          object-fit: contain;
+          background-color: #ffffff; /* frame around it */
+          padding: 0.5rem;
+          border-radius: 12px;
         }
       }
 
