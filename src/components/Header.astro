@@ -8,22 +8,21 @@ const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const link = (p: string = '') => `${base}${p}`;
 ---
 
-<header class="site-header">
-  <nav class="nav">
-    <a class="brand" href={base}>{SITE_TITLE}</a>
+<header>
+  <nav>
+    <h2><a href={base}>{SITE_TITLE}</a></h2>
 
-    <!-- Mobile toggle -->
+    <!-- Mobile toggle (hidden on desktop) -->
     <button
       class="menu-toggle"
+      type="button"
       aria-label="Toggle navigation"
       aria-expanded="false"
       aria-controls="primary-nav"
-    >
-      ☰
-    </button>
+    >☰</button>
 
-    <!-- Links -->
-    <div id="primary-nav" class="links">
+    <!-- Wrap links + contact so desktop stays inline, mobile becomes a panel -->
+    <div id="primary-nav" class="menu-panel">
       <div class="internal-links">
         <HeaderLink href={link('')}>Home</HeaderLink>
         <HeaderLink href={link('blog/')}>Blog</HeaderLink>
@@ -37,61 +36,36 @@ const link = (p: string = '') => `${base}${p}`;
         <HeaderLink href={link('about/')}>About</HeaderLink>
       </div>
 
-      <a class="contact-btn" href="mailto:smartstuffstays@gmail.com">Contact</a>
+      <div class="contact-button">
+        <a href="mailto:smartstuffstays@gmail.com">Contact</a>
+      </div>
     </div>
   </nav>
 </header>
 
 <style>
-  :root {
-    --text: var(--black, #0e121b);
-    --accent: var(--accent, #405cf5);
-    --pad-x: 1rem;
-  }
-
-  .site-header {
+  header {
     margin: 0;
-    padding: 0 var(--pad-x);
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    padding: 0 1em;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     position: sticky;
     top: 0;
     z-index: 50;
   }
 
-  .nav {
+  nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: .5rem;
   }
 
-  .brand {
-    display: inline-block;
-    text-decoration: none;
-    color: var(--text);
-    font-weight: 700;
-    font-size: 1.15rem;
-    padding: .9rem .25rem;
-    line-height: 1;
-    white-space: nowrap;
-  }
+  h2 { margin: 0; font-size: 1em; }
+  h2 a, h2 a.active { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
 
-  /* Shared link styles */
-  .links a,
-  .links :global(a) {
-    color: var(--text);
-    text-decoration: none;
-    padding: .9rem .5rem;
-    border-bottom: 4px solid transparent;
-    display: inline-block;
-  }
-  .links :global(a.active) {
-    border-bottom-color: var(--accent);
-  }
-
-  /* Desktop layout */
-  .links {
+  /* Desktop: keep original inline layout */
+  .menu-panel {
     display: flex;
     align-items: center;
     gap: .25rem;
@@ -101,10 +75,16 @@ const link = (p: string = '') => `${base}${p}`;
     flex-wrap: nowrap;
     gap: .25rem;
   }
+  .internal-links :global(a) {
+    padding: 1em .5em;
+    color: var(--black, #0e121b);
+    border-bottom: 4px solid transparent;
+    text-decoration: none;
+  }
+  .internal-links :global(a.active) { border-bottom-color: var(--accent, #405cf5); }
 
-  /* Contact button */
-  .contact-btn {
-    margin-left: .5rem;
+  /* Contact button matches your original intent */
+  .contact-button a {
     background: transparent;
     color: #2563eb;
     border: 2px solid #2563eb;
@@ -112,11 +92,12 @@ const link = (p: string = '') => `${base}${p}`;
     border-radius: 9999px;
     font-weight: 600;
     transition: all .25s ease;
+    text-decoration: none;
     white-space: nowrap;
   }
-  .contact-btn:hover { background: #2563eb; color: #fff; }
+  .contact-button a:hover { background: #2563eb; color: #fff; }
 
-  /* Toggle (hidden on desktop) */
+  /* Hidden by default on desktop */
   .menu-toggle {
     display: none;
     border: 1px solid rgba(0,0,0,.12);
@@ -127,27 +108,27 @@ const link = (p: string = '') => `${base}${p}`;
     line-height: 1;
   }
 
-  /* ===== Mobile / Tablet ===== */
+  /* ===== Mobile only (≤900px) ===== */
   @media (max-width: 900px) {
-    .menu-toggle { display: inline-block; }
-    .links {
+    .menu-toggle { display: inline-block; z-index: 60; }
+
+    /* Turn the group into a dropdown panel */
+    .menu-panel {
       position: absolute;
-      left: 0;
-      right: 0;
-      top: 100%;
+      left: 0; right: 0; top: 100%;
       background: #fff;
       border-top: 1px solid rgba(0,0,0,.06);
       box-shadow: 0 8px 24px rgba(0,0,0,.06);
-      display: none;              /* hidden by default */
+      display: none;                /* hidden until toggled */
       flex-direction: column;
       align-items: stretch;
       padding: .25rem 0;
     }
-    .links.open { display: flex; }
+    .menu-panel.open { display: flex; }
 
     .internal-links {
       display: grid;
-      grid-template-columns: 1fr 1fr; /* two-column grid for shorter height */
+      grid-template-columns: 1fr 1fr; /* compact grid */
       gap: 0;
     }
     .internal-links :global(a) {
@@ -155,39 +136,47 @@ const link = (p: string = '') => `${base}${p}`;
       border-bottom: 1px solid rgba(0,0,0,.04);
     }
 
-    .contact-btn {
-      margin: .35rem 1rem .6rem;
-      text-align: center;
-    }
+    .contact-button { padding: .35rem 1rem .6rem; }
+    .contact-button a { display: block; text-align: center; }
 
-    .brand { font-size: 1.05rem; padding: .8rem .25rem; }
+    /* Slightly smaller brand spacing on mobile */
+    h2 a { padding: .2rem 0; }
   }
 
-  /* Extra-small phones */
+  /* Very small phones → single column list */
   @media (max-width: 420px) {
-    .internal-links { grid-template-columns: 1fr; } /* single column if space is tight */
+    .internal-links { grid-template-columns: 1fr; }
   }
 </style>
 
 <script>
-  // Minimal, framework-agnostic toggle for the dropdown
-  const btn = document.currentScript.previousElementSibling?.previousElementSibling?.querySelector('.menu-toggle') 
-           || document.querySelector('.menu-toggle');
-  const links = document.getElementById('primary-nav');
+  // Bind after DOM ready and on Astro client navigations
+  const init = () => {
+    const btn = document.querySelector('.menu-toggle');
+    const panel = document.getElementById('primary-nav');
+    if (!btn || !panel) return;
 
-  if (btn && links) {
-    btn.addEventListener('click', () => {
-      const open = links.classList.toggle('open');
-      btn.setAttribute('aria-expanded', String(open));
-    });
+    if (!btn.__bound) {
+      btn.__bound = true;
+      btn.addEventListener('click', () => {
+        const open = panel.classList.toggle('open');
+        btn.setAttribute('aria-expanded', String(open));
+      });
+    }
 
-    // Close the menu when a link is tapped
-    links.addEventListener('click', (e) => {
-      const t = e.target;
-      if (t && t.tagName === 'A') {
-        links.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
+    // Close panel when any link is tapped
+    if (!panel.__bound) {
+      panel.__bound = true;
+      panel.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t && t.tagName === 'A') {
+          panel.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('astro:page-load', init);
 </script>
