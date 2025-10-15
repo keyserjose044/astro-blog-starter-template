@@ -4,29 +4,18 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 
-/** Works for BOTH collection posts and regular pages */
 interface Props {
   title: string;
   description?: string;
   pubDate?: Date | string;
   updatedDate?: Date | string;
   heroImage?: string;
-  /** Optional: extra-wide on desktop */
   wide?: boolean;
-  /** Optional per-page override for hero style if ever needed */
   heroImageStyle?: string;
 }
 
-const {
-  title,
-  description,
-  pubDate,
-  updatedDate,
-  heroImage,
-  wide = false,
-} = Astro.props as Props;
+const { title, description, pubDate, updatedDate, heroImage, wide = false } = Astro.props as Props;
 
-/** Safe date normalizer */
 function toValidDate(v: unknown): Date | null {
   if (!v) return null;
   if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
@@ -45,27 +34,20 @@ const hasUpd = !!upd;
     <BaseHead title={title} description={description} />
     <style>
       :root {
-        /* Base reading width */
-        --prose-max: 68ch; /* ~720px at default font size */
+        --prose-max: 68ch;
         --shadow: 0 4px 16px rgba(0,0,0,0.08);
-
-        /* Gentle fluid type */
         --step--1: clamp(0.95rem, 0.9rem + 0.1vw, 1rem);
-        --step-0:  clamp(1rem, 0.98rem + 0.2vw, 1.08rem);
-        --step-3:  clamp(1.45rem, 1.15rem + 1.4vw, 1.9rem);
+        --step-0: clamp(1rem, 0.98rem + 0.2vw, 1.08rem);
+        --step-3: clamp(1.45rem, 1.15rem + 1.4vw, 1.9rem);
       }
 
-      /* Widen on tablets/desktops */
       @media (min-width: 900px) {
         :root { --prose-max: clamp(60ch, 90vw, 1100px); }
       }
-
-      /* If a page passes `wide`, allow extra on large screens */
       @media (min-width: 1200px) {
         .prose--wide { --prose-max: clamp(60ch, 90vw, 1280px); }
       }
 
-      /* White page background everywhere */
       html, body { background: #ffffff; }
 
       main { width: 100%; margin: 0; }
@@ -73,55 +55,65 @@ const hasUpd = !!upd;
       .wrap {
         width: 100%;
         max-width: var(--prose-max);
-        margin: 0 auto;               /* centered at all sizes */
-        padding: 0 1rem 2.25rem;      /* cozy side padding on mobile */
+        margin: 0 auto;
+        padding: 0 1rem 2.25rem;
       }
       @media (max-width: 360px) {
         .wrap { padding-inline: 0.75rem; }
       }
-      
+
+      /* -------------------- HERO IMAGE -------------------- */
       .hero-image {
         width: 100%;
-        margin: 0 auto 0.75rem;
-        text-align: center; /* centers portrait images horizontally */
+        margin: 0 auto 1rem;
+        text-align: center;
         position: relative;
-        overflow: hidden; /* ensures cover images don’t bleed */
       }
-      
+
       .hero-image img {
         display: block;
         margin: 0 auto;
         width: 100%;
         height: auto;
-        max-width: 1100px;
         border-radius: 12px;
         box-shadow: var(--shadow);
-        background: #ffffff;
-        transition: object-fit 0.3s ease, max-height 0.3s ease;
-      
-        /* Default: landscape-friendly */
-        object-fit: cover;
-        max-height: clamp(220px, 50vh, 560px);
+        max-width: 1100px;
+        transition: all 0.3s ease;
       }
-      
-      /* Portrait detection — switch to contain for tall images */
-      @media (orientation: portrait) {
-        .hero-image img {
+
+      /* Portrait-specific adjustments on desktop */
+      @media (min-width: 900px) {
+        .hero-image img.portrait {
+          width: auto;
+          max-width: 100%;
+          max-height: 80vh;
           object-fit: contain;
-          max-height: clamp(360px, 70vh, 700px);
+        }
+
+        /* Landscape-specific (default) */
+        .hero-image img.landscape {
+          width: 100%;
+          height: auto;
+          max-height: none;
+          object-fit: cover;
         }
       }
-      
-      /* Fallback for tall-but-not-phone aspect ratios (e.g., narrow screenshots) */
-      .hero-image img[data-orientation='portrait'] {
-        object-fit: contain !important;
-        max-height: clamp(360px, 70vh, 700px) !important;
+
+      /* Mobile: responsive full width */
+      @media (max-width: 899px) {
+        .hero-image img {
+          width: 100%;
+          height: auto;
+          object-fit: contain;
+          max-height: none;
+        }
       }
+      /* ---------------------------------------------------- */
 
       .prose {
         max-width: var(--prose-max);
         margin: 0 auto;
-        color: #111827;          /* slate-900 */
+        color: #111827;
         line-height: 1.7;
         font-size: var(--step-0);
       }
@@ -136,13 +128,9 @@ const hasUpd = !!upd;
         margin: 0 0 0.4em 0;
         font-size: var(--step-3);
       }
-      .date {
-        margin-bottom: 0.25em;
-        color: #6b7280;          /* slate-500 */
-      }
+      .date { margin-bottom: 0.25em; color: #6b7280; }
       .last-updated-on { font-style: italic; }
 
-      /* Make embedded media & long content behave on small screens */
       .prose img, .prose video { max-width: 100%; height: auto; }
       .prose table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .prose pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -163,6 +151,7 @@ const hasUpd = !!upd;
               loading="eager"
               sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
               style={Astro.props.heroImageStyle}
+              onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
             />
           </div>
         )}
@@ -182,7 +171,6 @@ const hasUpd = !!upd;
             <h1>{title}</h1>
             <hr />
           </div>
-
           <slot />
         </div>
       </article>
