@@ -4,7 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 
-/** Props work for BOTH collection posts and regular pages */
+/** Works for BOTH collection posts and regular pages */
 interface Props {
   title: string;
   description?: string;
@@ -49,26 +49,24 @@ const hasUpd = !!upd;
         --prose-max: 68ch; /* ~720px at default font size */
         --shadow: 0 4px 16px rgba(0,0,0,0.08);
 
-        /* Fluid type scale */
-        --step--1: clamp(0.95rem, 0.9rem + 0.2vw, 1rem);
-        --step-0:  clamp(1rem, 0.95rem + 0.35vw, 1.1rem);
-        --step-1:  clamp(1.15rem, 1.05rem + 0.6vw, 1.3rem);
-        --step-3:  clamp(1.6rem, 1.2rem + 2vw, 2.2rem);
+        /* Gentle fluid type */
+        --step--1: clamp(0.95rem, 0.9rem + 0.1vw, 1rem);
+        --step-0:  clamp(1rem, 0.98rem + 0.2vw, 1.08rem);
+        --step-3:  clamp(1.45rem, 1.15rem + 1.4vw, 1.9rem);
       }
 
       /* Widen on tablets/desktops */
       @media (min-width: 900px) {
-        :root {
-          --prose-max: clamp(60ch, 90vw, 1100px);
-        }
+        :root { --prose-max: clamp(60ch, 90vw, 1100px); }
       }
 
       /* If a page passes `wide`, allow extra on large screens */
       @media (min-width: 1200px) {
-        .prose--wide {
-          --prose-max: clamp(60ch, 90vw, 1280px);
-        }
+        .prose--wide { --prose-max: clamp(60ch, 90vw, 1280px); }
       }
+
+      /* White page background everywhere */
+      html, body { background: #ffffff; }
 
       main { width: 100%; margin: 0; }
 
@@ -87,13 +85,15 @@ const hasUpd = !!upd;
         margin: 0 auto 0.75rem;
         text-align: center; /* centers portrait images horizontally */
       }
-
       .hero-image img {
         display: block;
+        margin: 0 auto;                         /* ensure centered */
         width: 100%;
         height: auto;                            /* keep aspect ratio */
-        max-height: clamp(180px, 35vh, 420px);   /* cap hero on phones */
-        object-fit: cover;                       /* tidy crop */
+        max-width: 1100px;                       /* don't exceed prose width */
+        max-height: clamp(220px, 50vh, 560px);   /* cap but do not dominate */
+        object-fit: contain;                     /* show full image (no crop) */
+        background: #ffffff;                     /* white behind transparent PNGs */
         border-radius: 12px;
         box-shadow: var(--shadow);
       }
@@ -101,7 +101,7 @@ const hasUpd = !!upd;
       .prose {
         max-width: var(--prose-max);
         margin: 0 auto;
-        color: rgb(var(--gray-dark));
+        color: #111827;          /* slate-900 */
         line-height: 1.7;
         font-size: var(--step-0);
       }
@@ -118,7 +118,7 @@ const hasUpd = !!upd;
       }
       .date {
         margin-bottom: 0.25em;
-        color: rgb(var(--gray));
+        color: #6b7280;          /* slate-500 */
       }
       .last-updated-on { font-style: italic; }
 
