@@ -167,3 +167,51 @@ hr {
   white-space: nowrap;
 }
 
+/* ========== MOBILE WRAPPER NORMALIZE (no desktop impact) ========== */
+@media (max-width: 768px) {
+  /* Center any page that isn't using <main> */
+  article,
+  .prose,
+  .content,
+  .page,
+  .post,
+  .posts,
+  .templates,
+  .mdx-content,
+  .markdown-body {
+    margin-inline: auto !important;
+    padding-inline: clamp(16px, 4vw, 24px) !important;
+    max-width: 72ch;   /* comfortable reading width on phones */
+    width: 100%;
+  }
+
+  /* Keep hero images/figures centered and non-overflowing */
+  img, figure, .hero, .section-hero {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+  }
+
+  /* Blog index / cards: collapse to one column and center the items */
+  .grid, .cards, .post-list {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: clamp(12px, 3vw, 20px);
+    justify-items: center;
+  }
+
+  /* Optional: tone down gigantic H1s on small screens */
+  h1 { font-size: clamp(2rem, 7vw, 2.4rem); }
+  h2 { font-size: clamp(1.6rem, 6vw, 2rem); }
+
+  /* Nav links row centered on mobile if present */
+  header nav .internal-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .5rem .75rem;
+  }
+}
+
+
