@@ -60,22 +60,19 @@ const templates: Item[] = [
         --ring: rgba(64, 92, 245, 0.25);
         --card: #f8fafc;
         --border: #e5e7eb;
-
-        /* containers */
-        --list-max: clamp(60ch, 90vw, 1100px); /* desktop */
-        --read-max: 72ch;                      /* mobile */
+        --list-max: clamp(60ch, 90vw, 1100px);
+        --read-max: 72ch;
       }
 
       html, body { max-width: 100%; overflow-x: hidden; background: var(--bg); }
       main { width: 100%; margin: 0; }
 
-      /* shared wrapper (same idea as Blog/BlogPost .wrap) */
       .wrap {
         width: 100%;
         max-width: var(--list-max);
         margin: 0 auto;
         padding: 2rem 1rem 4rem;
-        box-sizing: border-box; /* keep padding inside max-width */
+        box-sizing: border-box;
         text-align: center;
       }
 
@@ -91,7 +88,6 @@ const templates: Item[] = [
         font-size: 1.05rem;
       }
 
-      /* grid of cards */
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -112,7 +108,7 @@ const templates: Item[] = [
       @media (min-width: 720px) { .card { grid-column: span 6; } }
       @media (min-width: 1024px) { .card { grid-column: span 4; } }
 
-      /* Preview images */
+      /* Image previews */
       .thumb {
         display: block;
         background: #f8fafc;
@@ -167,7 +163,6 @@ const templates: Item[] = [
       .actions {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
         margin-top: 0.6rem;
       }
 
@@ -186,14 +181,8 @@ const templates: Item[] = [
         transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
       }
       .btn:hover { transform: translateY(-1px); }
-      .btn-outline {
-        background: transparent;
-        color: var(--accent);
-        border: 1px solid var(--accent);
-        box-shadow: none;
-      }
 
-      /* =================== MOBILE-ONLY CENTERING =================== */
+      /* =============== MOBILE-ONLY CENTERING =============== */
       @media (max-width: 768px) {
         .wrap {
           max-width: var(--read-max);
@@ -203,8 +192,8 @@ const templates: Item[] = [
         .grid {
           grid-template-columns: 1fr !important;
           gap: clamp(12px, 3vw, 20px);
-          justify-items: center; /* center cards with intrinsic width */
-          text-align: center;    /* nicer titles on small screens */
+          justify-items: center;
+          text-align: center;
         }
         .card h3 { font-size: clamp(1rem, 4.5vw, 1.15rem); }
         img, figure, video {
@@ -214,7 +203,7 @@ const templates: Item[] = [
           margin-inline: auto;
         }
       }
-      /* ============================================================ */
+      /* ===================================================== */
     </style>
   </head>
   <body>
@@ -253,7 +242,6 @@ const templates: Item[] = [
                   </div>
                 )}
                 <div class="actions">
-                  {t.postUrl && <a class="btn btn-outline" href={t.postUrl}>Example</a>}
                   <a class="btn" href={t.href} download>Download</a>
                 </div>
               </div>
