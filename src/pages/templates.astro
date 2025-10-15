@@ -1,0 +1,171 @@
+---
+// src/pages/templates.astro
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import BaseHead from '../components/BaseHead.astro';
+
+// Normalize base URL (works for GitHub Pages subpaths)
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+
+// List your downloadable items here:
+type Item = {
+  title: string;
+  description?: string;
+  href: string;       // path under /public (prefix with base)
+  filetype: 'Google Sheet' | 'Excel' | 'PDF' | 'Word' | 'ZIP' | 'Other';
+  size?: string;      // optional label, e.g., "42 KB"
+  updated?: string;   // optional label, e.g., "Oct 2025"
+};
+
+const templates: Item[] = [
+  {
+    title: 'Original To-Do List Template',
+    description: 'Simple printable weekly list with weekday blocks.',
+    href: `${base}templates/Original-To-Do-List-Template.docx`,
+    filetype: 'Word',
+    size: '—',
+    updated: 'Oct 2025',
+  },
+  {
+    title: 'Research Paper Fill-In Template',
+    description: 'Structured prompts for quick paper summaries and notes.',
+    href: `${base}templates/Research-Paper-Fill-In-Template.docx`,
+    filetype: 'PDF',
+    size: '—',
+    updated: 'Oct 2025',
+  },
+
+  // Example external Google Sheet (make it viewable or copyable):
+  // {
+  //   title: 'Life-Log 2026 (Google Sheet)',
+  //   description: 'Master template for daily tracking.',
+  //   href: 'https://docs.google.com/spreadsheets/d/XXXXXXXXXXXXXXX/copy',
+  //   filetype: 'Google Sheet',
+  //   size: 'External',
+  //   updated: '—',
+  // },
+];
+---
+
+<html lang="en">
+  <head>
+    <BaseHead title="Templates • Downloads" description="Download LifeLoggerz templates and tools." />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #0e121b;
+        --muted: #5b6473;
+        --accent: #405cf5;
+        --ring: rgba(64, 92, 245, 0.25);
+        --card: #f8fafc;
+        --border: #e5e7eb;
+      }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+      }
+      .page-title {
+        margin: 1.5rem 0 0.75rem;
+        font-size: clamp(1.6rem, 2.5vw, 2rem);
+        font-weight: 800;
+      }
+      .subtitle {
+        color: var(--muted);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1rem;
+      }
+      .card {
+        grid-column: span 12;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1rem;
+      }
+      @media (min-width: 720px) {
+        .card { grid-column: span 6; }
+      }
+      @media (min-width: 1024px) {
+        .card { grid-column: span 4; }
+      }
+      .eyebrow {
+        font-size: 0.8rem;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .card h3 {
+        margin: 0.35rem 0 0.25rem;
+        font-size: 1.05rem;
+      }
+      .desc {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin: 0 0 0.8rem 0;
+      }
+      .meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 0.9rem;
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 0.9rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        border: 1px solid var(--accent);
+        text-decoration: none;
+        transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 6px 20px var(--ring);
+      }
+      .btn-outline {
+        background: transparent;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <h1 class="page-title">Templates & Downloads</h1>
+      <p class="subtitle">Ready-to-use files for time-tracking, research, and productivity.</p>
+
+      <section class="grid">
+        {templates.map((t) => (
+          <article class="card">
+            <div class="eyebrow">{t.filetype}</div>
+            <h3>{t.title}</h3>
+            {t.description && <p class="desc">{t.description}</p>}
+            <div class="meta">
+              {t.size && <span>Size: {t.size}</span>}
+              {t.updated && <span>Updated: {t.updated}</span>}
+            </div>
+            <div class="actions">
+              <a class="btn btn-primary" href={t.href} download>Download</a>
+              <a class="btn btn-outline" href={t.href} target="_blank" rel="noopener">Open</a>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+    <Footer />
+  </body>
+</html>
