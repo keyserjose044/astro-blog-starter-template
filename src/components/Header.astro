@@ -8,146 +8,154 @@ const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const link = (p: string = '') => `${base}${p}`;
 ---
 
-<header>
-  <nav>
-    <h2><a href={base}>{SITE_TITLE}</a></h2>
+<header class="site-header">
+  <nav class="nav">
+    <h2 class="brand"><a href={base}>{SITE_TITLE}</a></h2>
 
-    <!-- NEW: hidden on desktop -->
-    <button
-      class="menu-toggle"
-      type="button"
-      aria-label="Toggle navigation"
-      aria-expanded="false"
-      aria-controls="primary-nav"
-    >☰</button>
+    <!-- MOBILE TOGGLER (hidden on desktop) -->
+    <details class="nav-toggle">
+      <summary aria-label="Toggle navigation" role="button">
+        ☰
+      </summary>
 
-    <div id="primary-nav" class="internal-links">
-      <HeaderLink href={link('')}>Home</HeaderLink>
-      <HeaderLink href={link('blog/')}>Blog</HeaderLink>
-      <HeaderLink href={link('templates/')}>Templates</HeaderLink>
-      <HeaderLink href={link('books/')}>Books</HeaderLink>
-      <HeaderLink href={link('albums/')}>Albums</HeaderLink>
-      <HeaderLink href={link('art/')}>Art</HeaderLink>
-      <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
-      <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
-      <HeaderLink href={link('projects/')}>Projects</HeaderLink>
-      <HeaderLink href={link('about/')}>About</HeaderLink>
-    </div>
+      <!-- MENU PANEL (same links; desktop uses this inline, mobile as dropdown) -->
+      <div class="menu-panel" id="primary-nav">
+        <div class="internal-links">
+          <HeaderLink href={link('')}>Home</HeaderLink>
+          <HeaderLink href={link('blog/')}>Blog</HeaderLink>
+          <HeaderLink href={link('templates/')}>Templates</HeaderLink>
+          <HeaderLink href={link('books/')}>Books</HeaderLink>
+          <HeaderLink href={link('albums/')}>Albums</HeaderLink>
+          <HeaderLink href={link('art/')}>Art</HeaderLink>
+          <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
+          <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
+          <HeaderLink href={link('projects/')}>Projects</HeaderLink>
+          <HeaderLink href={link('about/')}>About</HeaderLink>
+        </div>
 
-    <div class="contact-button">
-      <a href="mailto:smartstuffstays@gmail.com">Contact</a>
-    </div>
+        <div class="contact-button">
+          <a href="mailto:smartstuffstays@gmail.com">Contact</a>
+        </div>
+      </div>
+    </details>
   </nav>
 </header>
 
 <style>
-  /* === Your original desktop styles (unchanged) === */
-  header {
+  /* Base (desktop-first) — your original look */
+  .site-header {
     margin: 0;
     padding: 0 1em;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
-  h2 { margin: 0; font-size: 1em; }
-  h2 a, h2 a.active { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
-  nav { display: flex; align-items: center; justify-content: space-between; }
-  nav a { padding: 1em 0.5em; color: var(--black, #0e121b); border-bottom: 4px solid transparent; text-decoration: none; }
-  nav a.active { border-bottom-color: var(--accent, #405cf5); }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+
+  .brand { margin: 0; font-size: 1em; }
+  .brand a, .brand a.active {
+    text-decoration: none;
+    color: var(--black, #0e121b);
+    font-weight: 600;
+  }
+
+  /* Links styling (unchanged) */
+  .internal-links :global(a) {
+    padding: 1em .5em;
+    color: var(--black, #0e121b);
+    border-bottom: 4px solid transparent;
+    text-decoration: none;
+  }
+  .internal-links :global(a.active) {
+    border-bottom-color: var(--accent, #405cf5);
+  }
 
   .contact-button a {
     background: transparent;
     color: #2563eb;
     border: 2px solid #2563eb;
-    padding: 0.5rem 1.1rem;
+    padding: .5rem 1.1rem;
     border-radius: 9999px;
     font-weight: 600;
-    transition: all 0.25s ease;
+    transition: all .25s ease;
     text-decoration: none;
     white-space: nowrap;
   }
-  .contact-button a:hover { background: #2563eb; color: #fff; }
+  .contact-button a:hover { background:#2563eb; color:#fff; }
 
-  /* NEW: hidden hamburger on desktop */
-  .menu-toggle {
-    display: none;
-    border: 1px solid rgba(0,0,0,.12);
-    background: #fff;
-    border-radius: .6rem;
-    padding: .45rem .65rem;
-    font-size: 1.15rem;
-    line-height: 1;
+  /* ---- Desktop layout (exactly like before) ---- */
+  .nav-toggle { display: contents; }          /* wrapper disappears on desktop */
+  .nav-toggle > summary { display: none; }    /* hide hamburger */
+  .menu-panel {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+  }
+  .internal-links {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: .25rem;
   }
 
-  /* === MOBILE-ONLY BEGINS HERE === */
+  /* ---- Mobile-only behavior ---- */
   @media (max-width: 900px) {
-    /* show the hamburger */
-    .menu-toggle { display: inline-block; }
+    .nav { position: relative; }
 
-    /* turn links + contact into a dropdown panel, hidden by default */
-    header .dropdown {
-      position: absolute; left: 0; right: 0; top: 100%;
+    /* Show hamburger */
+    .nav-toggle { display: block; }
+    .nav-toggle > summary {
+      display: inline-block;
+      border: 1px solid rgba(0,0,0,.12);
+      background: #fff;
+      border-radius: .6rem;
+      padding: .45rem .65rem;
+      font-size: 1.15rem;
+      line-height: 1;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+    .nav-toggle > summary::-webkit-details-marker { display: none; }
+
+    /* Dropdown panel defaults hidden until open */
+    .menu-panel {
+      position: absolute;
+      left: 0; right: 0; top: 100%;
       background: #fff;
       border-top: 1px solid rgba(0,0,0,.06);
       box-shadow: 0 8px 24px rgba(0,0,0,.06);
-      display: none; flex-direction: column; align-items: stretch;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
       padding: .25rem 0;
-      z-index: 50;
+      z-index: 40;
     }
-    header .dropdown.open { display: flex; }
+    .nav-toggle[open] .menu-panel { display: flex; }
 
-    /* put your internal links inside a tidy grid on mobile */
-    header .dropdown .internal-links {
+    /* Compact grid for links */
+    .internal-links {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      gap: 0;
     }
-    header .dropdown .internal-links :global(a) {
+    .internal-links :global(a) {
       padding: .85rem 1rem;
       border-bottom: 1px solid rgba(0,0,0,.04);
     }
 
-    /* move Contact into the dropdown visually without changing desktop */
-    header .dropdown .contact-button { padding: .35rem 1rem .6rem; }
-    header .dropdown .contact-button a { display: block; text-align: center; }
+    .contact-button { padding: .35rem 1rem .6rem; }
+    .contact-button a { display: block; text-align: center; }
+  }
 
-    /* layout: brand + hamburger on top; dropdown spans full width below */
-    nav { position: relative; }
-    /* reflow structure only on mobile */
-    #primary-nav, .contact-button { display: none; } /* hide original inline row */
-    /* we’ll recreate them inside a shadow container via script */
+  /* Extra-small phones → single column */
+  @media (max-width: 420px) {
+    .internal-links { grid-template-columns: 1fr; }
   }
 </style>
-
-<script>
-  // Mobile-only dropdown builder (safe: does nothing on desktop)
-  const setup = () => {
-    if (window.matchMedia('(max-width: 900px)').matches) {
-      const nav = document.querySelector('header nav');
-      const btn = nav?.querySelector('.menu-toggle');
-      const linksRow = nav?.querySelector('#primary-nav');      // your links
-      const contact = nav?.querySelector('.contact-button');     // contact wrapper
-      if (!nav || !btn || !linksRow || !contact) return;
-
-      // Build the dropdown container once
-      let panel = nav.querySelector('.dropdown');
-      if (!panel) {
-        panel = document.createElement('div');
-        panel.className = 'dropdown';
-        // clone nodes so desktop stays untouched
-        panel.appendChild(linksRow.cloneNode(true));
-        panel.appendChild(contact.cloneNode(true));
-        nav.appendChild(panel);
-      }
-
-      if (!btn.__bound) {
-        btn.__bound = true;
-        btn.addEventListener('click', () => {
-          const open = panel.classList.toggle('open');
-          btn.setAttribute('aria-expanded', String(open));
-        });
-      }
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded', setup);
-  document.addEventListener('astro:page-load', setup);
-</script>
