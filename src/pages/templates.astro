@@ -1,256 +1,233 @@
----
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import BaseHead from '../components/BaseHead.astro';
+<head>
+  <BaseHead
+    title="Templates • Downloads"
+    description="Download LifeLoggerz templates and tools."
+  />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #0e121b;
+      --muted: #5b6473;
+      --accent: #405cf5;
+      --ring: rgba(64, 92, 245, 0.25);
+      --card: #f8fafc;
+      --border: #e5e7eb;
+    }
 
-// GitHub Pages–safe base URL handling
-const rawBase = import.meta.env.BASE_URL || '/';
-const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+    /* ===== Scoped hardening just for this page ===== */
+    .templates-page,
+    .templates-page * { box-sizing: border-box; }
 
-type Item = {
-  title: string;
-  description?: string;
-  href: string; // download link
-  filetype: 'Google Sheet' | 'Excel' | 'PDF' | 'Word' | 'ZIP' | 'Other';
-  updated?: string;
-  imageSrc?: string;
-  imageAlt?: string;
-  imageOrientation?: 'portrait' | 'landscape';
-  postUrl?: string; // optional blog post link
-};
+    .templates-page {
+      display: block;
+      inline-size: 100%;
+      max-inline-size: 1080px;
+      margin-inline: auto;
+      padding: 2rem 1rem 4rem;
+      text-align: center;
+      overflow-x: hidden;         /* never allow horizontal scroll */
+      contain: layout;            /* isolate from external layout influences */
+    }
 
-// ✅ Template list
-const templates: Item[] = [
-  {
-    title: 'Weekly To-Do List Template',
-    description: 'Simple, customizable weekly list with weekday blocks.',
-    href: `${base}templates/Original-To-Do-List-Template.docx`,
-    filetype: 'Word',
-    updated: 'Oct 2025',
-    imageSrc: `${base}templates/covers/todo-cover.png`,
-    imageAlt: 'Preview of the To-Do List Template',
-    imageOrientation: 'portrait',
-  },
-  {
-    title: 'Research Paper Fill-In Template',
-    description: 'Structured template for organized paper notes.',
-    href: `${base}templates/Research-Paper-Fill-In-Template.docx`,
-    filetype: 'Word',
-    updated: 'Oct 2025',
-    imageSrc: `${base}templates/covers/research-template-cover.png`,
-    imageAlt: 'Preview of the Research Paper Fill-In Template',
-    imageOrientation: 'portrait',
-    postUrl: `${base}blog/research-paper-fill-in-template/`,
-  },
-];
----
+    .templates-page section,
+    .templates-page article,
+    .templates-page .content {
+      min-width: 0;               /* allow children to shrink in grid/flex */
+      max-inline-size: 100%;
+    }
 
-<html lang="en">
-  <head>
-    <BaseHead
-      title="Templates • Downloads"
-      description="Download LifeLoggerz templates and tools."
-    />
-    <style>
-      :root {
-        --bg: #ffffff;
-        --text: #0e121b;
-        --muted: #5b6473;
-        --accent: #405cf5;
-        --ring: rgba(64, 92, 245, 0.25);
-        --card: #f8fafc;
-        --border: #e5e7eb;
+    .templates-page img,
+    .templates-page video,
+    .templates-page figure {
+      display: block;
+      max-inline-size: 100%;
+      height: auto;
+      margin-inline: auto;
+    }
+
+    .page-title {
+      margin: 1.5rem 0 0.5rem;
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+      overflow-wrap: anywhere;
+    }
+
+    /* ✅ Responsive grid: no spans, no phantom columns */
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+      justify-items: stretch;
+      align-items: stretch;
+      margin-inline: auto;
+      inline-size: 100%;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;           /* clip any overflow just in case */
+      display: flex;
+      flex-direction: column;
+      inline-size: 100%;          /* fill the grid track */
+      min-width: 0;               /* critical: allow shrink */
+      text-align: left;
+      contain: content;           /* prevents child overflow from affecting grid */
+    }
+
+    .thumb {
+      display: block;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      border-radius: 16px 16px 0 0;
+      inline-size: 100%;
+    }
+    .thumb.portrait { aspect-ratio: 3 / 4; }
+    .thumb.landscape { aspect-ratio: 16 / 9; }
+    .thumb img {
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: contain;
+      background: white;
+      padding: 0.25rem;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    .thumb:hover img { transform: scale(1.03); }
+
+    .content {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .eyebrow,
+    .card h3,
+    .desc,
+    .meta {
+      overflow-wrap: anywhere;     /* long words/URLs won’t push width */
+      word-break: break-word;
+      min-width: 0;
+      max-inline-size: 100%;
+    }
+
+    .eyebrow {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .card h3 {
+      margin: 0.15rem 0 0.15rem;
+      font-size: 1.05rem;
+    }
+
+    .desc { color: var(--muted); font-size: 0.95rem; }
+
+    .meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;             /* don’t force one long line */
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 1.2rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      border: 1px solid var(--accent);
+      text-decoration: none;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 6px 20px var(--ring);
+      transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
+      max-inline-size: 100%;
+    }
+    .btn:hover { transform: translateY(-1px); }
+
+    /* ===== Mobile polish (desktop unaffected) ===== */
+    @media (max-width: 768px) {
+      .templates-page {
+        padding-inline: clamp(1rem, 4vw, 2rem);
       }
-
-      main {
-        width: 100%;                /* ← overrides the global 720px */
-        max-width: 1080px;
-        margin: 0 auto;
-        padding: 2rem 1rem 4rem;
-        text-align: center;
-        box-sizing: border-box;
-      }
-
-      .page-title {
-        margin: 1.5rem 0 0.5rem;
-        font-size: clamp(1.6rem, 2.5vw, 2rem);
-        font-weight: 800;
-      }
-
-      .subtitle {
-        color: var(--muted);
-        margin-bottom: 2rem;
-        font-size: 1.05rem;
-      }
-
-      /* ✅ Responsive, auto-centered grid (1–3 columns) */
       .grid {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-        justify-items: stretch;
-        align-items: stretch;
-        margin-inline: auto;
+        grid-template-columns: 1fr !important;
+        justify-items: center;
+        text-align: center;
       }
+      .card { text-align: center; }
+      .card h3 { font-size: clamp(1rem, 4.5vw, 1.15rem); }
+    }
+  </style>
+</head>
 
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        min-width: 0;
-        text-align: left;
-      }
+<body>
+  <Header />
+  <!-- 👇 scoped wrapper isolates from global CSS -->
+  <main class="templates-page">
+    <h1 class="page-title">Templates & Downloads</h1>
+    <p class="subtitle">
+      Ready-to-use files for time-tracking, research, and productivity.
+    </p>
 
-      /* ✅ Image previews */
-      .thumb {
-        display: block;
-        background: #f8fafc;
-        border-bottom: 1px solid var(--border);
-        overflow: hidden;
-        border-radius: 16px 16px 0 0;
-      }
-      .thumb.portrait {
-        aspect-ratio: 3 / 4;
-      }
-      .thumb.landscape {
-        aspect-ratio: 16 / 9;
-      }
-      .thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        background: white;
-        padding: 0.25rem;
-        transition: transform 0.3s ease;
-        display: block;
-      }
-      .thumb:hover img {
-        transform: scale(1.03);
-      }
-
-      .content {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .eyebrow {
-        font-size: 0.8rem;
-        color: var(--muted);
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-
-      .card h3 {
-        margin: 0.15rem 0 0.15rem;
-        font-size: 1.05rem;
-      }
-
-      .desc {
-        color: var(--muted);
-        font-size: 0.95rem;
-      }
-
-      .meta {
-        font-size: 0.85rem;
-        color: var(--muted);
-        display: flex;
-        gap: 0.75rem;
-      }
-
-      /* ✅ Centered download button */
-      .actions {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin-top: 0.6rem;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.6rem 1.2rem;
-        border-radius: 9999px;
-        font-weight: 700;
-        border: 1px solid var(--accent);
-        text-decoration: none;
-        background: var(--accent);
-        color: white;
-        box-shadow: 0 6px 20px var(--ring);
-        transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
-      }
-      .btn:hover {
-        transform: translateY(-1px);
-      }
-
-      /* ✅ Mobile centering fix */
-      @media (max-width: 768px) {
-        main {
-          padding-inline: clamp(1rem, 4vw, 2rem);
-        }
-        .grid {
-          grid-template-columns: 1fr !important;
-          justify-items: center;
-          text-align: center;
-        }
-        .card {
-          text-align: center;
-        }
-        .card h3 {
-          font-size: clamp(1rem, 4.5vw, 1.15rem);
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <Header />
-    <main>
-      <h1 class="page-title">Templates & Downloads</h1>
-      <p class="subtitle">
-        Ready-to-use files for time-tracking, research, and productivity.
-      </p>
-
-      <section class="grid">
-        {templates.map((t) => (
-          <article class="card">
-            {t.imageSrc && (
-              <a
-                class:list={[
-                  'thumb',
-                  (t.imageOrientation ?? 'portrait') === 'landscape'
-                    ? 'landscape'
-                    : 'portrait',
-                ]}
-                href={t.postUrl ?? t.href}
-                {...(t.postUrl ? {} : { download: true })}
-              >
-                <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
-              </a>
-            )}
-            <div class="content">
-              <div class="eyebrow">{t.filetype}</div>
-              <h3>{t.title}</h3>
-              {t.description && <p class="desc">{t.description}</p>}
-              {t.updated && (
-                <div class="meta">
-                  <span>Updated: {t.updated}</span>
-                </div>
-              )}
-              <div class="actions">
-                <a class="btn" href={t.href} download>Download</a>
+    <section class="grid">
+      {templates.map((t) => (
+        <article class="card">
+          {t.imageSrc && (
+            <a
+              class:list={[
+                'thumb',
+                (t.imageOrientation ?? 'portrait') === 'landscape'
+                  ? 'landscape'
+                  : 'portrait',
+              ]}
+              href={t.postUrl ?? t.href}
+              {...(t.postUrl ? {} : { download: true })}
+            >
+              <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
+            </a>
+          )}
+          <div class="content">
+            <div class="eyebrow">{t.filetype}</div>
+            <h3>{t.title}</h3>
+            {t.description && <p class="desc">{t.description}</p>}
+            {t.updated && (
+              <div class="meta">
+                <span>Updated: {t.updated}</span>
               </div>
+            )}
+            <div class="actions">
+              <a class="btn" href={t.href} download>Download</a>
             </div>
-          </article>
-        ))}
-      </section>
-    </main>
-    <Footer />
-  </body>
-</html>
+          </div>
+        </article>
+      ))}
+    </section>
+  </main>
+  <Footer />
+</body>
