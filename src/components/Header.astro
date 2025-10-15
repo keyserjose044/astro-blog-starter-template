@@ -8,85 +8,186 @@ const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const link = (p: string = '') => `${base}${p}`;
 ---
 
-<header>
-  <nav>
-    <h2><a href={base}>{SITE_TITLE}</a></h2>
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href={base}>{SITE_TITLE}</a>
 
-    <div class="internal-links">
-      <HeaderLink href={link('')}>Home</HeaderLink>
-      <HeaderLink href={link('blog/')}>Blog</HeaderLink>
-      <HeaderLink href={link('templates/')}>Templates</HeaderLink>
-      <HeaderLink href={link('books/')}>Books</HeaderLink>
-      <HeaderLink href={link('albums/')}>Albums</HeaderLink>
-      <HeaderLink href={link('art/')}>Art</HeaderLink>
-      <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
-      <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
-      <HeaderLink href={link('projects/')}>Projects</HeaderLink>
-      <HeaderLink href={link('about/')}>About</HeaderLink>
-    </div>
+    <!-- Mobile toggle -->
+    <button
+      class="menu-toggle"
+      aria-label="Toggle navigation"
+      aria-expanded="false"
+      aria-controls="primary-nav"
+    >
+      ☰
+    </button>
 
-    <div class="contact-button">
-      <a href="mailto:smartstuffstays@gmail.com">Contact</a>
+    <!-- Links -->
+    <div id="primary-nav" class="links">
+      <div class="internal-links">
+        <HeaderLink href={link('')}>Home</HeaderLink>
+        <HeaderLink href={link('blog/')}>Blog</HeaderLink>
+        <HeaderLink href={link('templates/')}>Templates</HeaderLink>
+        <HeaderLink href={link('books/')}>Books</HeaderLink>
+        <HeaderLink href={link('albums/')}>Albums</HeaderLink>
+        <HeaderLink href={link('art/')}>Art</HeaderLink>
+        <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
+        <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
+        <HeaderLink href={link('projects/')}>Projects</HeaderLink>
+        <HeaderLink href={link('about/')}>About</HeaderLink>
+      </div>
+
+      <a class="contact-btn" href="mailto:smartstuffstays@gmail.com">Contact</a>
     </div>
   </nav>
 </header>
 
 <style>
-  header {
+  :root {
+    --text: var(--black, #0e121b);
+    --accent: var(--accent, #405cf5);
+    --pad-x: 1rem;
+  }
+
+  .site-header {
     margin: 0;
-    padding: 0 1em;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 0 var(--pad-x);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
 
-  h2 {
-    margin: 0;
-    font-size: 1em;
-  }
-
-  h2 a,
-  h2 a.active {
-    text-decoration: none;
-    color: var(--black, #0e121b);
-    font-weight: 600;
-  }
-
-  nav {
+  .nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: .5rem;
   }
 
-  nav a {
-    padding: 1em 0.5em;
-    color: var(--black, #0e121b);
-    border-bottom: 4px solid transparent;
+  .brand {
+    display: inline-block;
     text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.15rem;
+    padding: .9rem .25rem;
+    line-height: 1;
+    white-space: nowrap;
   }
 
-  nav a.active {
-    border-bottom-color: var(--accent, #405cf5);
+  /* Shared link styles */
+  .links a,
+  .links :global(a) {
+    color: var(--text);
+    text-decoration: none;
+    padding: .9rem .5rem;
+    border-bottom: 4px solid transparent;
+    display: inline-block;
+  }
+  .links :global(a.active) {
+    border-bottom-color: var(--accent);
   }
 
-.contact-btn {
-  background: transparent;
-  color: #2563eb;
-  border: 2px solid #2563eb;
-  padding: 0.5rem 1.1rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  transition: all 0.25s ease;
-}
+  /* Desktop layout */
+  .links {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+  }
+  .internal-links {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: .25rem;
+  }
 
-.contact-btn:hover {
-  background: #2563eb;
-  color: white;
-}
+  /* Contact button */
+  .contact-btn {
+    margin-left: .5rem;
+    background: transparent;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    padding: .5rem 1.1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all .25s ease;
+    white-space: nowrap;
+  }
+  .contact-btn:hover { background: #2563eb; color: #fff; }
 
-  @media (max-width: 720px) {
-    .contact-button a {
-      padding: 0.4em 0.8em;
-      font-size: 0.9em;
+  /* Toggle (hidden on desktop) */
+  .menu-toggle {
+    display: none;
+    border: 1px solid rgba(0,0,0,.12);
+    background: #fff;
+    border-radius: .6rem;
+    padding: .45rem .65rem;
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  /* ===== Mobile / Tablet ===== */
+  @media (max-width: 900px) {
+    .menu-toggle { display: inline-block; }
+    .links {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 8px 24px rgba(0,0,0,.06);
+      display: none;              /* hidden by default */
+      flex-direction: column;
+      align-items: stretch;
+      padding: .25rem 0;
     }
+    .links.open { display: flex; }
+
+    .internal-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* two-column grid for shorter height */
+      gap: 0;
+    }
+    .internal-links :global(a) {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+    }
+
+    .contact-btn {
+      margin: .35rem 1rem .6rem;
+      text-align: center;
+    }
+
+    .brand { font-size: 1.05rem; padding: .8rem .25rem; }
+  }
+
+  /* Extra-small phones */
+  @media (max-width: 420px) {
+    .internal-links { grid-template-columns: 1fr; } /* single column if space is tight */
   }
 </style>
+
+<script>
+  // Minimal, framework-agnostic toggle for the dropdown
+  const btn = document.currentScript.previousElementSibling?.previousElementSibling?.querySelector('.menu-toggle') 
+           || document.querySelector('.menu-toggle');
+  const links = document.getElementById('primary-nav');
+
+  if (btn && links) {
+    btn.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+
+    // Close the menu when a link is tapped
+    links.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t && t.tagName === 'A') {
+        links.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+</script>
