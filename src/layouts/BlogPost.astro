@@ -4,14 +4,14 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 
-/** Robust props that work for BOTH collection posts and regular pages */
+/** Props work for BOTH collection posts and regular pages */
 interface Props {
   title: string;
   description?: string;
-  pubDate?: Date | string;      // optional + flexible
-  updatedDate?: Date | string;  // optional + flexible
+  pubDate?: Date | string;
+  updatedDate?: Date | string;
   heroImage?: string;
-  /** Set to true on pages you want wider text: <Layout wide /> */
+  /** Optional: extra-wide on desktop */
   wide?: boolean;
 }
 
@@ -43,67 +43,97 @@ const hasUpd = !!upd;
     <BaseHead title={title} description={description} />
     <style>
       :root {
-        /* Default comfortable reading width (~68ch ≈ 720px at base font) */
-        --prose-max: 68ch;
+        /* Base reading width for small screens (phones) */
+        --prose-max: 68ch; /* ~720px at default font size */
+
+        /* Card/shadow tokens reused below if you have them globally */
+        --shadow: 0 4px 16px rgba(0,0,0,0.08);
       }
-      .prose--wide {
-        /* Wider variant when you pass wide={true} */
-        --prose-max: 110ch;
+
+      /* ✅ On tablets/desktops, widen the text container but keep it centered */
+      @media (min-width: 900px) {
+        :root {
+          /* clamp(min, preferred, max): grows with viewport up to 1100px */
+          --prose-max: clamp(68ch, 90vw, 1100px);
+        }
+      }
+
+      /* ✅ If a page passes `wide`, allow a little extra on large screens */
+      @media (min-width: 1200px) {
+        .prose--wide {
+          --prose-max: clamp(68ch, 90vw, 1280px);
+        }
       }
 
       main {
-        width: calc(100% - 2em);
-        max-width: 100%;
+        width: 100%;
         margin: 0;
       }
+
+      .wrap {
+        width: 100%;
+        max-width: var(--prose-max);
+        margin: 0 auto;               /* centered at all sizes */
+        padding: 0 1rem 3rem;         /* nice side padding on mobile */
+      }
+
       .hero-image {
         width: 100%;
+        margin: 0 auto 1rem;
       }
+
       .hero-image img {
         display: block;
-        margin: 0 auto;
-        border-radius: 12px;
-        box-shadow: var(--box-shadow);
-        max-width: 100%;
-        height: auto;
-      }
-      .prose {
-        /* Use CSS var for easy per-page control */
-        max-width: var(--prose-max);
         width: 100%;
-        margin: auto;
-        padding: 1em;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .prose {
+        max-width: var(--prose-max);
+        margin: 0 auto;
         color: rgb(var(--gray-dark));
         line-height: 1.7;
       }
+
       .title {
         margin-bottom: 1em;
         padding: 1em 0;
         text-align: center;
         line-height: 1;
       }
+
       .title h1 {
         margin: 0 0 0.5em 0;
       }
+
       .date {
         margin-bottom: 0.5em;
         color: rgb(var(--gray));
       }
-      .last-updated-on {
-        font-style: italic;
-      }
+
+      .last-updated-on { font-style: italic; }
     </style>
   </head>
 
   <body>
     <Header />
     <main>
-      <article>
+      <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
         <div class="hero-image">
-          {heroImage && <img width={1020} height={510} src={heroImage} alt="" loading="eager" />}
+          {heroImage && (
+            <img
+              width={1200}
+              height={600}
+              src={heroImage}
+              alt=""
+              loading="eager"
+            />
+          )}
         </div>
 
-        <div class={`prose ${wide ? 'prose--wide' : ''}`}>
+        <div class="prose">
           <div class="title">
             {(hasPub || hasUpd) && (
               <div class="date">
