@@ -65,22 +65,30 @@ For example:
 
 ## 🖋 Example Pages
 
-Below are two real examples — front and back — from an actual research summary sheet.
-
-<div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem" }}>
-  <img
-    src="/templates/examples/rpfo-ex-1.png"
-    alt="Research Paper Fill-In Template Example Front"
-    style={{ maxWidth: "480px", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
-    loading="lazy"
-  />
-  <img
-    src="/templates/examples/rpfo-ex-2.png"
-    alt="Research Paper Fill-In Template Example Back"
-    style={{ maxWidth: "480px", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
-    loading="lazy"
-  />
+<div class="example-grid">
+  <img src="/templates/examples/rpfo-ex-1.png" alt="Example — front" loading="lazy" />
+  <img src="/templates/examples/rpfo-ex-2.png" alt="Example — back" loading="lazy" />
 </div>
+
+<style>
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    justify-items: center;
+  }
+  .example-grid img {
+    width: 100%;
+    max-width: 520px;          /* keeps them tidy on huge screens */
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    background: #fff;
+  }
+  @media (min-width: 900px) {
+    .example-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
 
 ---
 
