@@ -4,18 +4,18 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BaseHead from '../components/BaseHead.astro';
 
-// Normalize base URL (works for GitHub Pages subpaths)
 const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
-// List your downloadable items here:
 type Item = {
   title: string;
   description?: string;
-  href: string;       // path under /public (prefix with base)
+  href: string;         // download/open URL
   filetype: 'Google Sheet' | 'Excel' | 'PDF' | 'Word' | 'ZIP' | 'Other';
-  size?: string;      // optional label, e.g., "42 KB"
-  updated?: string;   // optional label, e.g., "Oct 2025"
+  size?: string;
+  updated?: string;
+  imageSrc?: string;    // OPTIONAL cover image URL (under /public)
+  imageAlt?: string;    // OPTIONAL alt text
 };
 
 const templates: Item[] = [
@@ -24,27 +24,20 @@ const templates: Item[] = [
     description: 'Simple printable weekly list with weekday blocks.',
     href: `${base}templates/Original-To-Do-List-Template.docx`,
     filetype: 'Word',
-    size: '—',
     updated: 'Oct 2025',
+    imageSrc: `${base}templates/covers/todo-cover.png`,
+    imageAlt: 'Preview of the To-Do List template',
   },
   {
     title: 'Research Paper Fill-In Template',
     description: 'Structured prompts for quick paper summaries and notes.',
-    href: `${base}templates/Research-Paper-Fill-In-Template.docx`,
+    href: `${base}templates/Research-Paper-Fill-In-Template.pdf`,
     filetype: 'PDF',
-    size: '—',
     updated: 'Oct 2025',
+    // If you don’t have an image yet, just omit imageSrc/imageAlt.
+    imageSrc: `${base}templates/covers/research-template-cover.png`,
+    imageAlt: 'Preview of the Research Paper Fill-In template',
   },
-
-  // Example external Google Sheet (make it viewable or copyable):
-  // {
-  //   title: 'Life-Log 2026 (Google Sheet)',
-  //   description: 'Master template for daily tracking.',
-  //   href: 'https://docs.google.com/spreadsheets/d/XXXXXXXXXXXXXXX/copy',
-  //   filetype: 'Google Sheet',
-  //   size: 'External',
-  //   updated: '—',
-  // },
 ];
 ---
 
@@ -75,24 +68,42 @@ const templates: Item[] = [
         color: var(--muted);
         margin-bottom: 2rem;
       }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 1rem;
       }
+
       .card {
         grid-column: span 12;
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 16px;
+        padding: 0; /* we’ll pad the inner content */
+        overflow: hidden; /* keeps rounded corners for images */
+        display: flex;
+        flex-direction: column;
+      }
+      @media (min-width: 720px) { .card { grid-column: span 6; } }
+      @media (min-width: 1024px) { .card { grid-column: span 4; } }
+
+      .thumb {
+        display: block;
+        aspect-ratio: 16 / 9; /* keeps consistent height; remove if you prefer natural size */
+        background: #eaeef5;
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* crop nicely; switch to 'contain' if you want full view with padding */
+        display: block;
+      }
+
+      .content {
         padding: 1rem;
       }
-      @media (min-width: 720px) {
-        .card { grid-column: span 6; }
-      }
-      @media (min-width: 1024px) {
-        .card { grid-column: span 4; }
-      }
+
       .eyebrow {
         font-size: 0.8rem;
         color: var(--muted);
@@ -118,6 +129,7 @@ const templates: Item[] = [
       .actions {
         display: flex;
         gap: 0.5rem;
+        margin-top: auto; /* pushes buttons to the bottom when content is short */
       }
       .btn {
         display: inline-flex;
@@ -151,16 +163,23 @@ const templates: Item[] = [
       <section class="grid">
         {templates.map((t) => (
           <article class="card">
-            <div class="eyebrow">{t.filetype}</div>
-            <h3>{t.title}</h3>
-            {t.description && <p class="desc">{t.description}</p>}
-            <div class="meta">
-              {t.size && <span>Size: {t.size}</span>}
-              {t.updated && <span>Updated: {t.updated}</span>}
-            </div>
-            <div class="actions">
-              <a class="btn btn-primary" href={t.href} download>Download</a>
-              <a class="btn btn-outline" href={t.href} target="_blank" rel="noopener">Open</a>
+            {t.imageSrc && (
+              <a class="thumb" href={t.href} target="_blank" rel="noopener">
+                <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
+              </a>
+            )}
+            <div class="content">
+              <div class="eyebrow">{t.filetype}</div>
+              <h3>{t.title}</h3>
+              {t.description && <p class="desc">{t.description}</p>}
+              <div class="meta">
+                {t.size && <span>Size: {t.size}</span>}
+                {t.updated && <span>Updated: {t.updated}</span>}
+              </div>
+              <div class="actions">
+                <a class="btn btn-primary" href={t.href} download>Download</a>
+                <a class="btn btn-outline" href={t.href} target="_blank" rel="noopener">Open</a>
+              </div>
             </div>
           </article>
         ))}
