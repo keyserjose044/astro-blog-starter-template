@@ -12,7 +12,7 @@ const link = (p: string = '') => `${base}${p}`;
   <nav>
     <h2><a href={base}>{SITE_TITLE}</a></h2>
 
-    <!-- Mobile toggle (hidden on desktop) -->
+    <!-- NEW: hidden on desktop -->
     <button
       class="menu-toggle"
       type="button"
@@ -21,83 +21,53 @@ const link = (p: string = '') => `${base}${p}`;
       aria-controls="primary-nav"
     >☰</button>
 
-    <!-- Wrap links + contact so desktop stays inline, mobile becomes a panel -->
-    <div id="primary-nav" class="menu-panel">
-      <div class="internal-links">
-        <HeaderLink href={link('')}>Home</HeaderLink>
-        <HeaderLink href={link('blog/')}>Blog</HeaderLink>
-        <HeaderLink href={link('templates/')}>Templates</HeaderLink>
-        <HeaderLink href={link('books/')}>Books</HeaderLink>
-        <HeaderLink href={link('albums/')}>Albums</HeaderLink>
-        <HeaderLink href={link('art/')}>Art</HeaderLink>
-        <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
-        <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
-        <HeaderLink href={link('projects/')}>Projects</HeaderLink>
-        <HeaderLink href={link('about/')}>About</HeaderLink>
-      </div>
+    <div id="primary-nav" class="internal-links">
+      <HeaderLink href={link('')}>Home</HeaderLink>
+      <HeaderLink href={link('blog/')}>Blog</HeaderLink>
+      <HeaderLink href={link('templates/')}>Templates</HeaderLink>
+      <HeaderLink href={link('books/')}>Books</HeaderLink>
+      <HeaderLink href={link('albums/')}>Albums</HeaderLink>
+      <HeaderLink href={link('art/')}>Art</HeaderLink>
+      <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
+      <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
+      <HeaderLink href={link('projects/')}>Projects</HeaderLink>
+      <HeaderLink href={link('about/')}>About</HeaderLink>
+    </div>
 
-      <div class="contact-button">
-        <a href="mailto:smartstuffstays@gmail.com">Contact</a>
-      </div>
+    <div class="contact-button">
+      <a href="mailto:smartstuffstays@gmail.com">Contact</a>
     </div>
   </nav>
 </header>
 
 <style>
+  /* === Your original desktop styles (unchanged) === */
   header {
     margin: 0;
     padding: 0 1em;
     background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
-
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-  }
-
   h2 { margin: 0; font-size: 1em; }
   h2 a, h2 a.active { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
+  nav { display: flex; align-items: center; justify-content: space-between; }
+  nav a { padding: 1em 0.5em; color: var(--black, #0e121b); border-bottom: 4px solid transparent; text-decoration: none; }
+  nav a.active { border-bottom-color: var(--accent, #405cf5); }
 
-  /* Desktop: keep original inline layout */
-  .menu-panel {
-    display: flex;
-    align-items: center;
-    gap: .25rem;
-  }
-  .internal-links {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: .25rem;
-  }
-  .internal-links :global(a) {
-    padding: 1em .5em;
-    color: var(--black, #0e121b);
-    border-bottom: 4px solid transparent;
-    text-decoration: none;
-  }
-  .internal-links :global(a.active) { border-bottom-color: var(--accent, #405cf5); }
-
-  /* Contact button matches your original intent */
   .contact-button a {
     background: transparent;
     color: #2563eb;
     border: 2px solid #2563eb;
-    padding: .5rem 1.1rem;
+    padding: 0.5rem 1.1rem;
     border-radius: 9999px;
     font-weight: 600;
-    transition: all .25s ease;
+    transition: all 0.25s ease;
     text-decoration: none;
     white-space: nowrap;
   }
   .contact-button a:hover { background: #2563eb; color: #fff; }
 
-  /* Hidden by default on desktop */
+  /* NEW: hidden hamburger on desktop */
   .menu-toggle {
     display: none;
     border: 1px solid rgba(0,0,0,.12);
@@ -108,75 +78,76 @@ const link = (p: string = '') => `${base}${p}`;
     line-height: 1;
   }
 
-  /* ===== Mobile only (≤900px) ===== */
+  /* === MOBILE-ONLY BEGINS HERE === */
   @media (max-width: 900px) {
-    .menu-toggle { display: inline-block; z-index: 60; }
+    /* show the hamburger */
+    .menu-toggle { display: inline-block; }
 
-    /* Turn the group into a dropdown panel */
-    .menu-panel {
-      position: absolute;
-      left: 0; right: 0; top: 100%;
+    /* turn links + contact into a dropdown panel, hidden by default */
+    header .dropdown {
+      position: absolute; left: 0; right: 0; top: 100%;
       background: #fff;
       border-top: 1px solid rgba(0,0,0,.06);
       box-shadow: 0 8px 24px rgba(0,0,0,.06);
-      display: none;                /* hidden until toggled */
-      flex-direction: column;
-      align-items: stretch;
+      display: none; flex-direction: column; align-items: stretch;
       padding: .25rem 0;
+      z-index: 50;
     }
-    .menu-panel.open { display: flex; }
+    header .dropdown.open { display: flex; }
 
-    .internal-links {
+    /* put your internal links inside a tidy grid on mobile */
+    header .dropdown .internal-links {
       display: grid;
-      grid-template-columns: 1fr 1fr; /* compact grid */
-      gap: 0;
+      grid-template-columns: 1fr 1fr;
     }
-    .internal-links :global(a) {
+    header .dropdown .internal-links :global(a) {
       padding: .85rem 1rem;
       border-bottom: 1px solid rgba(0,0,0,.04);
     }
 
-    .contact-button { padding: .35rem 1rem .6rem; }
-    .contact-button a { display: block; text-align: center; }
+    /* move Contact into the dropdown visually without changing desktop */
+    header .dropdown .contact-button { padding: .35rem 1rem .6rem; }
+    header .dropdown .contact-button a { display: block; text-align: center; }
 
-    /* Slightly smaller brand spacing on mobile */
-    h2 a { padding: .2rem 0; }
-  }
-
-  /* Very small phones → single column list */
-  @media (max-width: 420px) {
-    .internal-links { grid-template-columns: 1fr; }
+    /* layout: brand + hamburger on top; dropdown spans full width below */
+    nav { position: relative; }
+    /* reflow structure only on mobile */
+    #primary-nav, .contact-button { display: none; } /* hide original inline row */
+    /* we’ll recreate them inside a shadow container via script */
   }
 </style>
 
 <script>
-  // Bind after DOM ready and on Astro client navigations
-  const init = () => {
-    const btn = document.querySelector('.menu-toggle');
-    const panel = document.getElementById('primary-nav');
-    if (!btn || !panel) return;
+  // Mobile-only dropdown builder (safe: does nothing on desktop)
+  const setup = () => {
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      const nav = document.querySelector('header nav');
+      const btn = nav?.querySelector('.menu-toggle');
+      const linksRow = nav?.querySelector('#primary-nav');      // your links
+      const contact = nav?.querySelector('.contact-button');     // contact wrapper
+      if (!nav || !btn || !linksRow || !contact) return;
 
-    if (!btn.__bound) {
-      btn.__bound = true;
-      btn.addEventListener('click', () => {
-        const open = panel.classList.toggle('open');
-        btn.setAttribute('aria-expanded', String(open));
-      });
-    }
+      // Build the dropdown container once
+      let panel = nav.querySelector('.dropdown');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.className = 'dropdown';
+        // clone nodes so desktop stays untouched
+        panel.appendChild(linksRow.cloneNode(true));
+        panel.appendChild(contact.cloneNode(true));
+        nav.appendChild(panel);
+      }
 
-    // Close panel when any link is tapped
-    if (!panel.__bound) {
-      panel.__bound = true;
-      panel.addEventListener('click', (e) => {
-        const t = e.target;
-        if (t && t.tagName === 'A') {
-          panel.classList.remove('open');
-          btn.setAttribute('aria-expanded', 'false');
-        }
-      });
+      if (!btn.__bound) {
+        btn.__bound = true;
+        btn.addEventListener('click', () => {
+          const open = panel.classList.toggle('open');
+          btn.setAttribute('aria-expanded', String(open));
+        });
+      }
     }
   };
 
-  document.addEventListener('DOMContentLoaded', init);
-  document.addEventListener('astro:page-load', init);
+  document.addEventListener('DOMContentLoaded', setup);
+  document.addEventListener('astro:page-load', setup);
 </script>
