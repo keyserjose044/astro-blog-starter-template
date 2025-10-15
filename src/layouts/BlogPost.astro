@@ -41,6 +41,7 @@ const hasUpd = !!upd;
         --step-3: clamp(1.45rem, 1.15rem + 1.4vw, 1.9rem);
       }
 
+      /* Desktop wideners */
       @media (min-width: 900px) {
         :root { --prose-max: clamp(60ch, 90vw, 1100px); }
       }
@@ -48,15 +49,19 @@ const hasUpd = !!upd;
         .prose--wide { --prose-max: clamp(60ch, 90vw, 1280px); }
       }
 
-      html, body { background: #ffffff; }
+      /* Local safety: keep any stray horizontal overflow off on this layout */
+      html, body { background: #ffffff; max-width: 100%; overflow-x: hidden; }
 
+      /* Use full width; the inner wrap controls readable width */
       main { width: 100%; margin: 0; }
 
+      /* Core wrapper (used by all posts) */
       .wrap {
         width: 100%;
         max-width: var(--prose-max);
         margin: 0 auto;
         padding: 0 1rem 2.25rem;
+        box-sizing: border-box; /* keep padding inside max-width */
       }
       @media (max-width: 360px) {
         .wrap { padding-inline: 0.75rem; }
@@ -69,7 +74,6 @@ const hasUpd = !!upd;
         text-align: center;
         position: relative;
       }
-
       .hero-image img {
         display: block;
         margin: 0 auto;
@@ -80,7 +84,6 @@ const hasUpd = !!upd;
         max-width: 1100px;
         transition: all 0.3s ease;
       }
-
       /* Portrait-specific adjustments on desktop */
       @media (min-width: 900px) {
         .hero-image img.portrait {
@@ -89,19 +92,17 @@ const hasUpd = !!upd;
           max-height: 80vh;
           object-fit: contain;
         }
-
         /* Landscape — letterboxed look (no cropping, scales smoothly) */
         .hero-image img.landscape {
           width: auto;
           max-width: 100%;
           max-height: 90vh;
           object-fit: contain;
-          background-color: #ffffff; /* frame around it */
+          background-color: #ffffff;
           padding: 0.5rem;
           border-radius: 12px;
         }
       }
-
       /* Mobile: responsive full width */
       @media (max-width: 899px) {
         .hero-image img {
@@ -139,6 +140,34 @@ const hasUpd = !!upd;
       .prose pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .prose code { font-size: var(--step--1); }
       .prose hr { margin: 1.25rem 0; }
+
+      /* ==================== MOBILE-ONLY CENTERING ==================== */
+      @media (max-width: 768px) {
+        :root { --post-pad: clamp(16px, 4vw, 24px); --read-max: 72ch; }
+
+        /* Ensure inner wrappers center on phones and padding stays inside */
+        article.wrap,
+        .prose {
+          width: 100%;
+          max-width: var(--read-max);
+          margin-inline: auto !important;
+          padding-inline: var(--post-pad) !important;
+          box-sizing: border-box;
+        }
+
+        /* Calm down huge headings on phones */
+        .title h1 { font-size: clamp(2rem, 7vw, 2.4rem); }
+        .prose h2 { font-size: clamp(1.6rem, 6vw, 2rem); }
+
+        /* Media never overflows and stays centered */
+        img, figure, video {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          margin-inline: auto;
+        }
+      }
+      /* =============================================================== */
     </style>
   </head>
 
