@@ -22,105 +22,104 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
   <head>
     <BaseHead title={`${SITE_TITLE} — Blog`} description={SITE_DESCRIPTION} />
     <style>
-      main {
-        width: 960px;
-        max-width: 100%;
-        margin-inline: auto;
-        padding: 2rem 1rem;
+      :root {
+        --list-max: clamp(60ch, 90vw, 1100px); /* desktop container */
+        --read-max: 72ch;                      /* phone container */
       }
 
+      /* Keep this page from drifting horizontally on any device */
+      html, body { max-width: 100%; overflow-x: hidden; }
+
+      main { width: 100%; margin: 0; }
+
+      /* Shared wrapper – matches BlogPost.astro behavior */
+      .wrap {
+        width: 100%;
+        max-width: var(--list-max);
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        box-sizing: border-box; /* padding stays inside max-width */
+      }
+
+      /* Card list: 2-up on desktop, featured first spans both */
       ul {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 2rem;
         list-style: none;
         margin: 0;
         padding: 0;
       }
 
-      ul li {
-        width: calc(50% - 1rem);
-      }
+      li a { display: block; text-decoration: none; transition: 0.2s ease; }
+      .title { margin: 0.5rem 0 0; color: rgb(var(--black)); line-height: 1.1; }
+      .date  { margin: 0; color: rgb(var(--gray)); }
 
-      ul li * {
-        text-decoration: none;
-        transition: 0.2s ease;
-      }
+      /* First (featured) post takes full row */
+      ul li:first-child { grid-column: 1 / -1; text-align: center; }
 
-      /* First (featured) post full-width */
-      ul li:first-child {
-        width: 100%;
-        margin-bottom: 1rem;
-        text-align: center;
-      }
-
-      /* Default (landscape) thumbnail: keep original look, no cropping */
+      /* Thumbnails */
       .thumb {
         display: block;
         width: 100%;
         height: auto;
         border-radius: 12px;
-        margin-inline: 0;
       }
-
-      /* Portrait opt-in: center it, don't crop, respect inline style if provided */
+      /* Portrait opt-in (if post supplies heroImageStyle) */
       .thumb.portrait {
-        width: auto;           /* allow natural portrait width */
+        width: auto;
         max-width: 100%;
         height: auto;
-        margin-inline: auto;   /* center inside card */
-        object-fit: contain;   /* no cropping */
+        margin-inline: auto;
+        object-fit: contain;
       }
-
-      /* Keep the featured (first) image controlled but uncropped */
+      /* Featured hero stays uncropped but capped */
       ul li:first-child .thumb {
         width: 100%;
         height: auto;
-        max-height: 600px;     /* safety cap for very tall portraits */
-        object-fit: contain;   /* don't crop the hero */
+        max-height: 600px;
+        object-fit: contain;
       }
 
-      ul li a {
-        display: block;
-      }
+      ul a:hover img { box-shadow: var(--box-shadow); }
+      ul li a:hover h4, ul li a:hover .date { color: rgb(var(--accent)); }
 
-      .title {
-        margin: 0;
-        color: rgb(var(--black));
-        line-height: 1.1;
-      }
+      /* =================== MOBILE-ONLY CENTERING =================== */
+      @media (max-width: 768px) {
+        /* Center the whole page column on phones (matches posts) */
+        .wrap {
+          max-width: var(--read-max);
+          margin-inline: auto !important;
+          padding-inline: clamp(16px, 4vw, 24px) !important;
+        }
 
-      .date {
-        margin: 0;
-        color: rgb(var(--gray));
-      }
+        /* 1 column list, center cards and media */
+        ul {
+          grid-template-columns: 1fr !important;
+          gap: clamp(12px, 3vw, 20px);
+          justify-items: center; /* centers items with intrinsic width */
+        }
 
-      ul li a:hover h4,
-      ul li a:hover .date {
-        color: rgb(var(--accent));
-      }
+        /* Calm headings a bit on small screens */
+        h1, .title { font-size: clamp(1.1rem, 4.5vw, 1.35rem); }
 
-      ul a:hover img {
-        box-shadow: var(--box-shadow);
+        /* Ensure images never overflow and stay centered */
+        img, figure, video {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          margin-inline: auto;
+        }
       }
-
-      /* Responsive layout for mobile */
-      @media (max-width: 720px) {
-        ul { gap: 0.5em; }
-        ul li { width: 100%; text-align: center; }
-        ul li:first-child { margin-bottom: 0; }
-        ul li:first-child .title { font-size: 1.563em; }
-      }
+      /* ============================================================ */
     </style>
   </head>
   <body>
     <Header />
     <main>
-      <section>
+      <section class="wrap">
         <ul>
           {posts.map((post) => {
-            // If the post supplies a heroImageStyle (your portrait posts do),
-            // we treat it as a portrait and apply that style in the listing too.
             const isPortrait = Boolean(post.data?.heroImageStyle);
             return (
               <li>
@@ -135,9 +134,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
                     />
                   )}
                   <h4 class="title">{post.data.title}</h4>
-                  <p class="date">
-                    <FormattedDate date={post._pub} />
-                  </p>
+                  <p class="date"><FormattedDate date={post._pub} /></p>
                 </a>
               </li>
             );
