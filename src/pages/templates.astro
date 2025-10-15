@@ -1,5 +1,4 @@
 ---
-// src/pages/templates.astro
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BaseHead from '../components/BaseHead.astro';
@@ -17,9 +16,10 @@ type Item = {
   imageSrc?: string;
   imageAlt?: string;
   imageOrientation?: 'portrait' | 'landscape';
-  postUrl?: string; // optional link to blog post
+  postUrl?: string; // optional blog post link
 };
 
+// ✅ Template list
 const templates: Item[] = [
   {
     title: 'Weekly To-Do List Template',
@@ -60,19 +60,12 @@ const templates: Item[] = [
         --ring: rgba(64, 92, 245, 0.25);
         --card: #f8fafc;
         --border: #e5e7eb;
-        --list-max: clamp(60ch, 90vw, 1100px);
-        --read-max: 72ch;
       }
 
-      html, body { max-width: 100%; overflow-x: hidden; background: var(--bg); }
-      main { width: 100%; margin: 0; }
-
-      .wrap {
-        width: 100%;
-        max-width: var(--list-max);
+      main {
+        max-width: 1080px;
         margin: 0 auto;
         padding: 2rem 1rem 4rem;
-        box-sizing: border-box;
         text-align: center;
       }
 
@@ -87,47 +80,30 @@ const templates: Item[] = [
         margin-bottom: 2rem;
         font-size: 1.05rem;
       }
-      /* grid of cards */
+
+      /* ✅ Responsive, auto-centered grid (1–3 columns) */
       .grid {
         display: grid;
-        grid-template-columns: repeat(12, 1fr);
         gap: 1rem;
-        text-align: left;
-      
-        /* ✅ Stretch cards across the grid evenly */
+        grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
         justify-items: stretch;
         align-items: stretch;
-        grid-auto-columns: minmax(0, 1fr);
+        margin-inline: auto;
       }
-      
-      /* Each card fills its column properly */
+
       .card {
-        grid-column: span 12;
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 16px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-      
-        /* ✅ Prevent left-leaning or overflow */
         width: 100%;
         min-width: 0;
+        text-align: left;
       }
-      
-      @media (min-width: 720px) {
-        .card {
-          grid-column: span 6;
-        }
-      }
-      
-      @media (min-width: 1024px) {
-        .card {
-          grid-column: span 4;
-        }
-      }
-      
-      /* Image previews */
+
+      /* ✅ Image previews */
       .thumb {
         display: block;
         background: #f8fafc;
@@ -153,7 +129,6 @@ const templates: Item[] = [
       .thumb:hover img {
         transform: scale(1.03);
       }
-
 
       .content {
         padding: 1rem;
@@ -186,9 +161,11 @@ const templates: Item[] = [
         gap: 0.75rem;
       }
 
+      /* ✅ Centered download button */
       .actions {
         display: flex;
         justify-content: center;
+        gap: 0.5rem;
         margin-top: 0.6rem;
       }
 
@@ -206,82 +183,70 @@ const templates: Item[] = [
         box-shadow: 0 6px 20px var(--ring);
         transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
       }
-      .btn:hover { transform: translateY(-1px); }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
 
-      /* =============== MOBILE-ONLY CENTERING =============== */
+      /* ✅ Mobile centering fix */
       @media (max-width: 768px) {
-        .wrap {
-          max-width: var(--read-max);
-          margin-inline: auto !important;
-          padding-inline: clamp(16px, 4vw, 24px) !important;
+        main {
+          padding-inline: clamp(1rem, 4vw, 2rem);
         }
-      
         .grid {
           grid-template-columns: 1fr !important;
-          gap: clamp(12px, 3vw, 20px);
           justify-items: center;
           text-align: center;
         }
-      
-        /* 🧽 Reset the desktop span that caused overflow */
         .card {
-          grid-column: 1 / -1 !important;   /* or: grid-column: auto !important; */
-          width: 100%;
+          text-align: center;
         }
-      
-        /* keep images centered & contained */
-        img, figure, video {
-          display: block;
-          max-width: 100%;
-          height: auto;
-          margin-inline: auto;
+        .card h3 {
+          font-size: clamp(1rem, 4.5vw, 1.15rem);
         }
       }
-      /* ===================================================== */
     </style>
   </head>
+
   <body>
     <Header />
     <main>
-      <section class="wrap">
-        <h1 class="page-title">Templates & Downloads</h1>
-        <p class="subtitle">
-          Ready-to-use files for time-tracking, research, and productivity.
-        </p>
+      <h1 class="page-title">Templates & Downloads</h1>
+      <p class="subtitle">
+        Ready-to-use files for time-tracking, research, and productivity.
+      </p>
 
-        <section class="grid">
-          {templates.map((t) => (
-            <article class="card">
-              {t.imageSrc && (
-                <a
-                  class:list={[
-                    'thumb',
-                    (t.imageOrientation ?? 'portrait') === 'landscape'
-                      ? 'landscape'
-                      : 'portrait',
-                  ]}
-                  href={t.postUrl ?? t.href}
-                  {...(t.postUrl ? {} : { download: true })}
-                >
-                  <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
-                </a>
-              )}
-              <div class="content">
-                <div class="eyebrow">{t.filetype}</div>
-                <h3>{t.title}</h3>
-                {t.description && <p class="desc">{t.description}</p>}
-                {t.updated && (
-                  <div class="meta">
-                    <span>Updated: {t.updated}</span>
-                  </div>
-                )}
-                <div class="actions">
-                  <a class="btn" href={t.href} download>Download</a>
+      <section class="grid">
+        {templates.map((t) => (
+          <article class="card">
+            {t.imageSrc && (
+              <a
+                class:list={[
+                  'thumb',
+                  (t.imageOrientation ?? 'portrait') === 'landscape'
+                    ? 'landscape'
+                    : 'portrait',
+                ]}
+                href={t.postUrl ?? t.href}
+                {...(t.postUrl ? {} : { download: true })}
+              >
+                <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
+              </a>
+            )}
+            <div class="content">
+              <div class="eyebrow">{t.filetype}</div>
+              <h3>{t.title}</h3>
+              {t.description && <p class="desc">{t.description}</p>}
+              {t.updated && (
+                <div class="meta">
+                  <span>Updated: {t.updated}</span>
                 </div>
+              )}
+              <div class="actions">
+                <a class="btn" href={t.href} download>Download</a>
               </div>
-            </article>
-          ))}
-        </section>
+            </div>
+          </article>
+        ))}
       </section>
     </main>
     <Footer />
