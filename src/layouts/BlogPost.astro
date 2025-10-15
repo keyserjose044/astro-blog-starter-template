@@ -79,23 +79,43 @@ const hasUpd = !!upd;
       @media (max-width: 360px) {
         .wrap { padding-inline: 0.75rem; }
       }
-
+      
       .hero-image {
         width: 100%;
         margin: 0 auto 0.75rem;
         text-align: center; /* centers portrait images horizontally */
+        position: relative;
+        overflow: hidden; /* ensures cover images don’t bleed */
       }
+      
       .hero-image img {
         display: block;
-        margin: 0 auto;                         /* ensure centered */
+        margin: 0 auto;
         width: 100%;
-        height: auto;                            /* keep aspect ratio */
-        max-width: 1100px;                       /* don't exceed prose width */
-        max-height: clamp(220px, 50vh, 560px);   /* cap but do not dominate */
-        object-fit: contain;                     /* show full image (no crop) */
-        background: #ffffff;                     /* white behind transparent PNGs */
+        height: auto;
+        max-width: 1100px;
         border-radius: 12px;
         box-shadow: var(--shadow);
+        background: #ffffff;
+        transition: object-fit 0.3s ease, max-height 0.3s ease;
+      
+        /* Default: landscape-friendly */
+        object-fit: cover;
+        max-height: clamp(220px, 50vh, 560px);
+      }
+      
+      /* Portrait detection — switch to contain for tall images */
+      @media (orientation: portrait) {
+        .hero-image img {
+          object-fit: contain;
+          max-height: clamp(360px, 70vh, 700px);
+        }
+      }
+      
+      /* Fallback for tall-but-not-phone aspect ratios (e.g., narrow screenshots) */
+      .hero-image img[data-orientation='portrait'] {
+        object-fit: contain !important;
+        max-height: clamp(360px, 70vh, 700px) !important;
       }
 
       .prose {
