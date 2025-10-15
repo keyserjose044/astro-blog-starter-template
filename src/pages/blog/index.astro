@@ -54,23 +54,30 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         text-align: center;
       }
 
-      ul li:first-child img {
+      /* Default (landscape) thumbnail: keep original look, no cropping */
+      .thumb {
+        display: block;
         width: 100%;
-        max-height: 420px;
-        object-fit: cover;
-        object-position: center;
+        height: auto;
         border-radius: 12px;
+        margin-inline: 0;
       }
 
-      /* ✅ Unified thumbnail behavior for all posts */
-      .post-thumb {
-        width: 100%;
-        aspect-ratio: 16 / 9; /* normalize portrait vs. landscape */
+      /* Portrait opt-in: center it, don't crop, respect inline style if provided */
+      .thumb.portrait {
+        width: auto;           /* allow natural portrait width */
+        max-width: 100%;
         height: auto;
-        object-fit: cover;
-        object-position: center;
-        border-radius: 12px;
-        display: block;
+        margin-inline: auto;   /* center inside card */
+        object-fit: contain;   /* no cropping */
+      }
+
+      /* Keep the featured (first) image controlled but uncropped */
+      ul li:first-child .thumb {
+        width: 100%;
+        height: auto;
+        max-height: 600px;     /* safety cap for very tall portraits */
+        object-fit: contain;   /* don't crop the hero */
       }
 
       ul li a {
@@ -99,19 +106,10 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
 
       /* Responsive layout for mobile */
       @media (max-width: 720px) {
-        ul {
-          gap: 0.5em;
-        }
-        ul li {
-          width: 100%;
-          text-align: center;
-        }
-        ul li:first-child {
-          margin-bottom: 0;
-        }
-        ul li:first-child .title {
-          font-size: 1.563em;
-        }
+        ul { gap: 0.5em; }
+        ul li { width: 100%; text-align: center; }
+        ul li:first-child { margin-bottom: 0; }
+        ul li:first-child .title { font-size: 1.563em; }
       }
     </style>
   </head>
@@ -120,24 +118,30 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
     <main>
       <section>
         <ul>
-          {posts.map((post) => (
-            <li>
-              <a href={`/blog/${post.slug}/`}>
-                {post.data.heroImage && (
-                  <img
-                    class="post-thumb"
-                    src={post.data.heroImage}
-                    alt=""
-                    loading="lazy"
-                  />
-                )}
-                <h4 class="title">{post.data.title}</h4>
-                <p class="date">
-                  <FormattedDate date={post._pub} />
-                </p>
-              </a>
-            </li>
-          ))}
+          {posts.map((post) => {
+            // If the post supplies a heroImageStyle (your portrait posts do),
+            // we treat it as a portrait and apply that style in the listing too.
+            const isPortrait = Boolean(post.data?.heroImageStyle);
+            return (
+              <li>
+                <a href={`/blog/${post.slug}/`}>
+                  {post.data.heroImage && (
+                    <img
+                      class={`thumb ${isPortrait ? 'portrait' : ''}`}
+                      src={post.data.heroImage}
+                      alt=""
+                      loading="lazy"
+                      style={isPortrait ? post.data.heroImageStyle : undefined}
+                    />
+                  )}
+                  <h4 class="title">{post.data.title}</h4>
+                  <p class="date">
+                    <FormattedDate date={post._pub} />
+                  </p>
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </section>
     </main>
