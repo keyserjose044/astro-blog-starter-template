@@ -87,14 +87,20 @@ const templates: Item[] = [
         margin-bottom: 2rem;
         font-size: 1.05rem;
       }
-
+      /* grid of cards */
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 1rem;
         text-align: left;
+      
+        /* ✅ Stretch cards across the grid evenly */
+        justify-items: stretch;
+        align-items: stretch;
+        grid-auto-columns: minmax(0, 1fr);
       }
-
+      
+      /* Each card fills its column properly */
       .card {
         grid-column: span 12;
         background: var(--card);
@@ -103,11 +109,24 @@ const templates: Item[] = [
         overflow: hidden;
         display: flex;
         flex-direction: column;
+      
+        /* ✅ Prevent left-leaning or overflow */
+        width: 100%;
+        min-width: 0;
       }
-
-      @media (min-width: 720px) { .card { grid-column: span 6; } }
-      @media (min-width: 1024px) { .card { grid-column: span 4; } }
-
+      
+      @media (min-width: 720px) {
+        .card {
+          grid-column: span 6;
+        }
+      }
+      
+      @media (min-width: 1024px) {
+        .card {
+          grid-column: span 4;
+        }
+      }
+      
       /* Image previews */
       .thumb {
         display: block;
@@ -116,8 +135,12 @@ const templates: Item[] = [
         overflow: hidden;
         border-radius: 16px 16px 0 0;
       }
-      .thumb.portrait { aspect-ratio: 3 / 4; }
-      .thumb.landscape { aspect-ratio: 16 / 9; }
+      .thumb.portrait {
+        aspect-ratio: 3 / 4;
+      }
+      .thumb.landscape {
+        aspect-ratio: 16 / 9;
+      }
       .thumb img {
         width: 100%;
         height: 100%;
@@ -127,7 +150,10 @@ const templates: Item[] = [
         transition: transform 0.3s ease;
         display: block;
       }
-      .thumb:hover img { transform: scale(1.03); }
+      .thumb:hover img {
+        transform: scale(1.03);
+      }
+
 
       .content {
         padding: 1rem;
