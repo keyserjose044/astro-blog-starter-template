@@ -12,7 +12,7 @@ const link = (p: string = '') => `${base}${p}`;
   <nav class="desktop-nav">
     <h2><a href={base}>{SITE_TITLE}</a></h2>
     <div class="internal-links" id="desktop-links">
-      <HeaderLink href={link('')}>Home</HeaderLink>
+      <HeaderLink href={link('')} exact>Home</HeaderLink>
       <HeaderLink href={link('blog/')}>Blog</HeaderLink>
       <HeaderLink href={link('templates/')}>Templates</HeaderLink>
       <HeaderLink href={link('books/')}>Books</HeaderLink>
