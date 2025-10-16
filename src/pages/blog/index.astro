@@ -35,7 +35,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         width: 100%;
         max-width: var(--list-max);
         margin: 0 auto;
-        padding: 2rem 1rem;
+        padding: 0.5rem 1rem 2rem; /* makes it hug the navbar more */
         box-sizing: border-box;
       }
 
