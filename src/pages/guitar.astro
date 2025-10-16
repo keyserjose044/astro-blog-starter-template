@@ -68,6 +68,13 @@ const guitar = await fetchAllRaindrops();
       .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
     }
     .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
+
+    /* Force YouTube-style thumbnails on Guitar page */
+    #grid .thumb {
+      aspect-ratio: 16 / 9 !important;
+      object-fit: cover;
+    }
+
   </style>
 </head>
 <body>
