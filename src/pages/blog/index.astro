@@ -25,23 +25,46 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       :root {
         --list-max: clamp(60ch, 90vw, 1100px); /* desktop container */
         --read-max: 72ch;                      /* phone container */
+        --border: #e6e9ef;
       }
 
-      /* Keep this page from drifting horizontally on any device */
       html, body { max-width: 100%; overflow-x: hidden; }
-
       main { width: 100%; margin: 0; }
 
-      /* Shared wrapper – matches BlogPost.astro behavior */
       .wrap {
         width: 100%;
         max-width: var(--list-max);
         margin: 0 auto;
         padding: 2rem 1rem;
-        box-sizing: border-box; /* padding stays inside max-width */
+        box-sizing: border-box;
       }
 
-      /* Card list: 2-up on desktop, featured first spans both */
+      /* header + search */
+      .intro {
+        max-width: var(--list-max);
+        margin: 0 auto 1.25rem;
+        text-align: center;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 10px 0 0;
+      }
+      .toolbar input[type="search"]{
+        width: 100%;
+        max-width: 520px;
+        margin-inline: auto;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-size: .95rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,.03);
+      }
+
+      /* grid of posts */
       ul {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -59,70 +82,51 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       ul li:first-child { grid-column: 1 / -1; text-align: center; }
 
       /* Thumbnails */
-      .thumb {
-        display: block;
-        width: 100%;
-        height: auto;
-        border-radius: 12px;
-      }
-      /* Portrait opt-in (if post supplies heroImageStyle) */
-      .thumb.portrait {
-        width: auto;
-        max-width: 100%;
-        height: auto;
-        margin-inline: auto;
-        object-fit: contain;
-      }
-      /* Featured hero stays uncropped but capped */
-      ul li:first-child .thumb {
-        width: 100%;
-        height: auto;
-        max-height: 600px;
-        object-fit: contain;
-      }
+      .thumb { display: block; width: 100%; height: auto; border-radius: 12px; }
+      .thumb.portrait { width: auto; max-width: 100%; height: auto; margin-inline: auto; object-fit: contain; }
+      ul li:first-child .thumb { width: 100%; height: auto; max-height: 600px; object-fit: contain; }
 
       ul a:hover img { box-shadow: var(--box-shadow); }
       ul li a:hover h4, ul li a:hover .date { color: rgb(var(--accent)); }
 
+      .empty { display:none; text-align:center; color: rgb(var(--gray)); padding: 1rem 0; }
+
       /* =================== MOBILE-ONLY CENTERING =================== */
       @media (max-width: 768px) {
-        /* Center the whole page column on phones (matches posts) */
         .wrap {
           max-width: var(--read-max);
           margin-inline: auto !important;
           padding-inline: clamp(16px, 4vw, 24px) !important;
         }
-
-        /* 1 column list, center cards and media */
         ul {
           grid-template-columns: 1fr !important;
           gap: clamp(12px, 3vw, 20px);
-          justify-items: center; /* centers items with intrinsic width */
+          justify-items: center;
         }
-
-        /* Calm headings a bit on small screens */
         h1, .title { font-size: clamp(1.1rem, 4.5vw, 1.35rem); }
-
-        /* Ensure images never overflow and stay centered */
-        img, figure, video {
-          display: block;
-          max-width: 100%;
-          height: auto;
-          margin-inline: auto;
-        }
+        img, figure, video { display: block; max-width: 100%; height: auto; margin-inline: auto; }
       }
-      /* ============================================================ */
     </style>
   </head>
   <body>
     <Header />
     <main>
       <section class="wrap">
-        <ul>
+        <div class="intro" role="region" aria-label="Blog header">
+          <h1>Blog</h1>
+          <div class="toolbar">
+            <input id="q" type="search" placeholder="Search posts…" aria-label="Filter blog posts" />
+          </div>
+        </div>
+
+        <div class="empty" id="empty">No posts match your search.</div>
+
+        <ul id="grid">
           {posts.map((post) => {
             const isPortrait = Boolean(post.data?.heroImageStyle);
+            const title = post.data.title ?? '';
             return (
-              <li>
+              <li data-title={(title).toLowerCase()}>
                 <a href={`/blog/${post.slug}/`}>
                   {post.data.heroImage && (
                     <img
@@ -133,7 +137,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
                       style={isPortrait ? post.data.heroImageStyle : undefined}
                     />
                   )}
-                  <h4 class="title">{post.data.title}</h4>
+                  <h4 class="title">{title}</h4>
                   <p class="date"><FormattedDate date={post._pub} /></p>
                 </a>
               </li>
@@ -143,5 +147,47 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       </section>
     </main>
     <Footer />
+
+    <script>
+      (function(){
+        const $ = (s, r=document) => r.querySelector(s);
+        const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+        const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        const debounce = (fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+
+        const input = $('#q');
+        const grid  = $('#grid');
+        const empty = $('#empty');
+        if (!input || !grid) return;
+
+        const items = $$('li', grid);
+        const hay = new Map(items.map(li => [li, norm(li.dataset.title || '')]));
+
+        function filter(){
+          const s = norm(input.value.trim());
+          if (!s) {
+            items.forEach(li => li.style.display = '');
+            empty.style.display = 'none';
+            return;
+          }
+          const words = s.split(/\s+/);
+          let shown = 0;
+          items.forEach(li => {
+            const hit = words.every(w => hay.get(li).includes(w));
+            li.style.display = hit ? '' : 'none';
+            if (hit) shown++;
+          });
+          empty.style.display = shown ? 'none' : '';
+        }
+
+        input.addEventListener('input', debounce(filter, 80));
+        // UX shortcuts
+        window.addEventListener('keydown', e => {
+          if (e.key === 'Escape') { input.value = ''; filter(); input.focus(); }
+          else if (e.key === '/' && e.target === document.body) { e.preventDefault(); input.focus(); }
+        });
+        filter();
+      })();
+    </script>
   </body>
 </html>
