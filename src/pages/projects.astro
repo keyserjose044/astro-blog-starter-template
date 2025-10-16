@@ -1,1 +1,185 @@
-p
+---
+// src/pages/projects.astro
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+// Edit this array as you add items.
+// cover is optional; links are optional.
+type Project = {
+  title: string;
+  blurb: string;
+  status: 'WIP' | 'Shipped' | 'Archived';
+  tags: string[];
+  cover?: string;
+  postUrl?: string;
+  demoUrl?: string;
+  repoUrl?: string;
+  updated?: string;
+};
+
+const projects: Project[] = [
+  {
+    title: 'Research Paper Fill-In Template',
+    blurb: 'Word template + workflow for structured paper notes.',
+    status: 'Shipped',
+    tags: ['Templates', 'Word', 'Research'],
+    cover: '/templates/covers/research-template-cover.png',
+    postUrl: '/blog/research-paper-fill-in-template/',
+    updated: 'Oct 2025',
+  },
+  {
+    title: 'Weekly To-Do List (Printable)',
+    blurb: 'Clean weekly layout for time-blocking + priorities.',
+    status: 'Shipped',
+    tags: ['Templates', 'Planning', 'Printable'],
+    cover: '/templates/covers/todo-cover.png',
+    updated: 'Oct 2025',
+    // postUrl: '/blog/to-do-list-template/'
+  },
+  {
+    title: 'Sheets → MD Notes Exporter',
+    blurb: 'Prototype: export a Sheets range into Markdown notes.',
+    status: 'WIP',
+    tags: ['Google Sheets', 'Automation', 'Python'],
+  },
+];
+
+const STATUSES = ['All','WIP','Shipped','Archived'] as const;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <BaseHead title={`${SITE_TITLE} — Projects`} description="Experiments, utilities, and shipped builds from the LifeLoggerz lab." />
+  <style>
+    :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff;--badge:#eef2ff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fb;color:var(--ink)}
+    .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
+    .intro{max-width:920px;margin:0 auto 20px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
+    h1{margin:0 0 10px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
+    .hint{color:var(--muted);margin:6px 0 12px}
+    .toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:10px 0 20px}
+    .toolbar input[type="search"]{width:100%;max-width:520px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .chip{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer;font-size:.9rem}
+    .chip[aria-pressed="true"]{background:#405cf5;color:#fff;border-color:#405cf5}
+    .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));max-width:100%}
+    .card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+    .thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#f0f2f7;border-bottom:1px solid var(--border)}
+    .content{padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
+    .title{font-weight:800}
+    .blurb{color:var(--muted);font-size:.95rem}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .badge{font-size:.8rem;background:var(--badge);color:#223; padding:4px 8px;border-radius:999px}
+    .tags{color:var(--muted);font-size:.85rem}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid var(--border);text-decoration:none}
+    .btn.primary{border-color:#405cf5;background:#405cf5;color:#fff;box-shadow:0 6px 18px rgba(64,92,245,.18)}
+    .empty{text-align:center;color:var(--muted);padding:24px 0}
+  </style>
+</head>
+<body>
+  <Header />
+  <main class="wrap">
+    <div class="intro" role="region" aria-label="Projects header">
+      <h1>🧪 Projects Lab</h1>
+      <p class="hint">Experiments, utilities, and shipped builds. Filter by status or search by title/tags.</p>
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Search title or tags…" aria-label="Filter projects" />
+        <div class="chips" id="chips" role="tablist" aria-label="Filter by status">
+          {STATUSES.map(s => <button class="chip" data-status={s} aria-pressed={s==='All'}>{s}</button>)}
+        </div>
+      </div>
+    </div>
+
+    {projects.length === 0 ? (
+      <div class="empty">No projects yet — check back soon.</div>
+    ) : (
+      <div class="grid" id="grid" role="list">
+        {projects.map(p => (
+          <article class="card" role="listitem"
+                   data-title={(p.title||'').toLowerCase()}
+                   data-tags={(p.tags||[]).join(' ').toLowerCase()}
+                   data-status={p.status}>
+            {p.cover && <img class="thumb" src={p.cover} alt="" loading="lazy" decoding="async" />}
+            <div class="content">
+              <div class="title">{p.title}</div>
+              <div class="blurb">{p.blurb}</div>
+              <div class="meta">
+                <span class="badge">{p.status}</span>
+                {p.updated && <span class="tags">Updated: {p.updated}</span>}
+              </div>
+              {p.tags?.length ? <div class="tags">#{p.tags.join('  #')}</div> : null}
+              {(p.postUrl || p.demoUrl || p.repoUrl) && (
+                <div class="actions">
+                  {p.postUrl && <a class="btn" href={p.postUrl}>Post</a>}
+                  {p.demoUrl && <a class="btn primary" href={p.demoUrl} target="_blank" rel="noopener">Demo</a>}
+                  {p.repoUrl && <a class="btn" href={p.repoUrl} target="_blank" rel="noopener">Repo</a>}
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+    <div class="empty" id="empty" style="display:none">No projects match your filters.</div>
+  </main>
+  <Footer />
+
+  <script>
+    (function(){
+      const $ = (s, r=document) => r.querySelector(s);
+      const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+      const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+      const input = $('#q');
+      const grid  = $('#grid');
+      const chips = $$('#chips .chip');
+      const empty = $('#empty');
+
+      if (!grid) return;
+      const cards = $$('.card', grid);
+
+      let status = 'All';
+
+      function apply() {
+        const q = norm(input?.value || '');
+        const words = q ? q.split(/\s+/) : [];
+        let shown = 0;
+
+        cards.forEach(c => {
+          const okStatus = status === 'All' || c.dataset.status === status;
+          const hay = (c.dataset.title + ' ' + c.dataset.tags);
+          const okText = !words.length || words.every(w => hay.includes(w));
+          const show = okStatus && okText;
+          c.style.display = show ? '' : 'none';
+          shown += show ? 1 : 0;
+        });
+
+        empty.style.display = shown ? 'none' : '';
+      }
+
+      input?.addEventListener('input', apply);
+      chips.forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          chips.forEach(b => b.setAttribute('aria-pressed','false'));
+          chip.setAttribute('aria-pressed','true');
+          status = chip.dataset.status || 'All';
+          apply();
+        });
+      });
+
+      // Keyboard: "/" focus search, Esc clears.
+      window.addEventListener('keydown', e=>{
+        if (e.key==='/' && e.target===document.body){ e.preventDefault(); input?.focus(); }
+        if (e.key==='Escape' && input){ input.value=''; apply(); input.focus(); }
+      });
+
+      apply();
+    })();
+  </script>
+</body>
+</html>
