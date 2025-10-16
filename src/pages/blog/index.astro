@@ -23,81 +23,112 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
     <BaseHead title={`${SITE_TITLE} — Blog`} description={SITE_DESCRIPTION} />
     <style>
       :root {
-        --list-max: clamp(60ch, 90vw, 1100px);
-        --read-max: 72ch;
+        --list-max: clamp(60ch, 90vw, 1100px); /* desktop container */
+        --read-max: 72ch;                      /* phone container */
         --border: #e6e9ef;
       }
-    
+
       html, body { max-width: 100%; overflow-x: hidden; }
       main { width: 100%; margin: 0; }
-    
+
       .wrap {
         width: 100%;
         max-width: var(--list-max);
         margin: 0 auto;
-        padding: 1rem 1rem 2rem; /* ↓ reduced top padding */
+        padding: 2rem 1rem;
         box-sizing: border-box;
       }
-    
+
+      /* header + search */
       .intro {
         max-width: var(--list-max);
-        margin: 0 auto 1rem;
+        margin: 0 auto 1.25rem;
         text-align: center;
       }
-    
-      /* Toolbar + search input */
+
       .toolbar {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 12px;
-        margin: 6px 0 0;
+        margin: 10px 0 0;
       }
+
       .toolbar input[type="search"] {
         width: 100%;
         max-width: 520px;
-        padding: 12px 40px 12px 14px; /* now space is on the right */
+        padding: 12px 40px 12px 14px; /* right-side icon */
         border-radius: 12px;
         border: 1px solid var(--border);
-        background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="%235e6573" viewBox="0 0 24 24"><path d="M21.53 20.47l-3.67-3.67A8.5 8.5 0 1 0 10.5 19a8.46 8.46 0 0 0 5.3-1.82l3.67 3.67a.75.75 0 0 0 1.06-1.06ZM4 10.5a6.5 6.5 0 1 1 13 0a6.5 6.5 0 0 1-13 0Z"/></svg>') no-repeat right 12px center;
+        background: #fff
+          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="%235e6573" viewBox="0 0 24 24"><path d="M21.53 20.47l-3.67-3.67A8.5 8.5 0 1 0 10.5 19a8.46 8.46 0 0 0 5.3-1.82l3.67 3.67a.75.75 0 0 0 1.06-1.06ZM4 10.5a6.5 6.5 0 1 1 13 0a6.5 6.5 0 0 1-13 0Z"/></svg>')
+          no-repeat right 12px center;
         background-size: 18px;
         color: #0e121b;
         font-size: .95rem;
         box-shadow: 0 1px 2px rgba(0,0,0,.03);
       }
+
       .toolbar input::placeholder {
         color: #888;
         font-style: italic;
       }
-    
-      /* grid + misc left unchanged */
-      ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2rem; list-style:none; margin:0; padding:0; }
-      li a { display:block; text-decoration:none; transition:.2s ease; }
-      .title { margin:.5rem 0 0; color:rgb(var(--black)); line-height:1.1; }
-      .date { margin:0; color:rgb(var(--gray)); }
-      ul li:first-child { grid-column:1 / -1; text-align:center; }
-      .thumb { display:block; width:100%; height:auto; border-radius:12px; }
-      .thumb.portrait { width:auto; max-width:100%; height:auto; margin-inline:auto; object-fit:contain; }
-      ul li:first-child .thumb { max-height:600px; object-fit:contain; }
-      ul a:hover img { box-shadow:var(--box-shadow); }
-      ul li a:hover h4, ul li a:hover .date { color:rgb(var(--accent)); }
-    
-      .empty { display:none; text-align:center; color:rgb(var(--gray)); padding:1rem 0; }
-    
-      @media (max-width:768px){
-        .wrap { max-width:var(--read-max); margin-inline:auto!important; padding-inline:clamp(16px,4vw,24px)!important; }
-        ul { grid-template-columns:1fr!important; gap:clamp(12px,3vw,20px); justify-items:center; }
-        h1,.title{ font-size:clamp(1.1rem,4.5vw,1.35rem); }
-        img,figure,video{ display:block; max-width:100%; height:auto; margin-inline:auto; }
+
+      /* grid of posts */
+      ul {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      li a { display: block; text-decoration: none; transition: 0.2s ease; }
+      .title { margin: 0.5rem 0 0; color: rgb(var(--black)); line-height: 1.1; }
+      .date  { margin: 0; color: rgb(var(--gray)); }
+
+      /* First (featured) post takes full row */
+      ul li:first-child { grid-column: 1 / -1; text-align: center; }
+
+      /* Thumbnails */
+      .thumb { display: block; width: 100%; height: auto; border-radius: 12px; }
+      .thumb.portrait { width: auto; max-width: 100%; height: auto; margin-inline: auto; object-fit: contain; }
+      ul li:first-child .thumb { width: 100%; height: auto; max-height: 600px; object-fit: contain; }
+
+      ul a:hover img { box-shadow: var(--box-shadow); }
+      ul li a:hover h4, ul li a:hover .date { color: rgb(var(--accent)); }
+
+      .empty { display:none; text-align:center; color: rgb(var(--gray)); padding: 1rem 0; }
+
+      /* =================== MOBILE-ONLY CENTERING =================== */
+      @media (max-width: 768px) {
+        .wrap {
+          max-width: var(--read-max);
+          margin-inline: auto !important;
+          padding-inline: clamp(16px, 4vw, 24px) !important;
+        }
+        ul {
+          grid-template-columns: 1fr !important;
+          gap: clamp(12px, 3vw, 20px);
+          justify-items: center;
+        }
+        h1, .title { font-size: clamp(1.1rem, 4.5vw, 1.35rem); }
+        img, figure, video { display: block; max-width: 100%; height: auto; margin-inline: auto; }
       }
     </style>
-    
-    <div class="intro" role="region" aria-label="Blog header">
-      <h1>Blog</h1>
-      <div class="toolbar">
-        <input id="q" type="search" placeholder="Search 🔍" aria-label="Filter blog posts" />
-      </div>
-    </div>
+  </head>
+
+  <body>
+    <Header />
+    <main>
+      <section class="wrap">
+        <div class="intro" role="region" aria-label="Blog header">
+          <h1>Blog</h1>
+          <div class="toolbar">
+            <input id="q" type="search" placeholder="Search 🔍" aria-label="Filter blog posts" />
+          </div>
+        </div>
 
         <div class="empty" id="empty">No posts match your search.</div>
 
