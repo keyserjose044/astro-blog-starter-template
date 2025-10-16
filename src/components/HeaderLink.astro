@@ -1,24 +1,38 @@
 ---
-import type { HTMLAttributes } from 'astro/types';
+// HeaderLink.astro
+interface Props {
+  href: string;
+  /** If true, require exact path match (use for "/"). */
+  exact?: boolean;
+  class?: string;
+}
 
-type Props = HTMLAttributes<'a'>;
+const { href, exact = false, class: className, ...props } = Astro.props;
 
-const { href, class: className, ...props } = Astro.props;
-const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, '');
-const subpath = pathname.match(/[^\/]+/g);
-const isActive = href === pathname || href === '/' + (subpath?.[0] || '');
+const current = Astro.url.pathname;
+const target = new URL(href, Astro.url).pathname;
+const normalize = (s: string) => (s === "/" ? "/" : s.replace(/\/+$/, ""));
+const isActive = exact
+  ? normalize(current) === normalize(target)
+  : normalize(current).startsWith(normalize(target));
 ---
 
-<a href={href} class:list={[className, { active: isActive }]} {...props}>
-	<slot />
+<a
+  href={href}
+  class:list={[className, { active: isActive }]}
+  aria-current={isActive ? "page" : undefined}
+  {...props}
+>
+  <slot />
 </a>
+
 <style>
-	a {
-		display: inline-block;
-		text-decoration: none;
-	}
-	a.active {
-		font-weight: bolder;
-		text-decoration: underline;
-	}
+  a {
+    display: inline-block;
+    text-decoration: none;
+  }
+  a.active {
+    font-weight: bolder;
+    text-decoration: underline;
+  }
 </style>
