@@ -13,20 +13,43 @@ wide: true
 
 ## 🖋 Example Pages
 
-<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; align-items:start; justify-items:center;">
+<div class="example-grid">
   <img
     src="/templates/examples/rpfo-ex-1.png"
     alt="Research Paper Fill-In Template Example — Front"
-    style="width:100%; max-width:520px; height:auto; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.08); background:#fff;"
     loading="lazy"
   />
   <img
     src="/templates/examples/rpfo-ex-2.png"
     alt="Research Paper Fill-In Template Example — Back"
-    style="width:100%; max-width:520px; height:auto; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.08); background:#fff;"
     loading="lazy"
   />
 </div>
+
+<style>
+  /* Scoped to this post */
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr;            /* 1-up on phones */
+    gap: 1rem;
+    justify-items: center;                 /* centers the grid items */
+  }
+  @media (min-width: 768px) {
+    .example-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2-up on tablet+ */
+    }
+  }
+  .example-grid img {
+    display: block;                        /* allows margin auto centering */
+    width: 100%;
+    max-width: 520px;                      /* caps size (looks like desktop) */
+    height: auto;
+    margin: 0 auto;                        /* centers within the grid cell */
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    background: #fff;
+  }
+</style>
 
 ---
 
