@@ -1,5 +1,5 @@
 ---
-title: "The Daily Snapshot — Summary of Day's Raw Data in Google Sheets"
+title: "The Daily Snapshot — Summary of the Day's Raw Data in Google Sheets"
 pubDate: "2025-10-16"
 description: "How a single day in Google Sheets reflects years of structured data logging — from daily diaries and photos to automated summaries powered by Apps Script and ChatGPT."
 tags: ["LifeLoggerz", "Google Sheets", "Daily Snapshot", "Automation", "Self-Improvement"]
@@ -12,158 +12,68 @@ draft: false
 The **Daily Snapshot** is where all the data from my *Raw Data Sheets* comes to life.  
 Every meal, outfit, quote, interaction, and diary entry funnels here — indexed from dozens of columns spread across my Google Sheets ecosystem.
 
-This is the sheet that lets me *see my life* on a single page.
-
 ---
 
 ## 🧩 1. How It All Connects
 
-Each day’s entry is more than just a record — it’s a product of **52 formulas** drawing from the *Current Year’s Raw Data Sheets*.  
-Every dropdown I fill out adds to an expanding database: meals, people, weather, hobbies, even blunders and daily quotes.
-
-Together, they form a living logbook of my year.
+Each day’s entry is a product of **52 formulas** drawing from the *Current Year’s Raw Data Sheets*.  
+Every dropdown I fill out adds to an expanding database: meals, people, weather, hobbies, blunders, quotes, and more.
 
 ---
 
 ## 🖼 Daily Snapshot Overview
 
-<figure>
-  <img src="/images/daily_snapshot.png" alt="Daily Snapshot — the overview page pulling data from Raw Data Sheets" />
-  <figcaption><em>The Daily Snapshot sheet — every cell dynamically pulls from other pages using INDEX formulas.</em></figcaption>
-</figure>
+![Daily Snapshot — overview pulling data from Raw Data Sheets](/images/daily_snapshot.png)
 
-This is the “hub” — a dashboard of my day, visually arranged with color-coded sections for:
-
-- **Sleep and Weather**
-- **Money, Hobbies, Books**
-- **Food, Snacks, and Clothing**
-- **People and Places**
-- **Daily Quote, Photo, and Blunders**
+*The hub: color-coded sections for sleep & weather, money & hobbies, food & clothing, people & places, plus quote, photo, and blunders.*
 
 ---
 
 ## ✍️ 2. Complete Diary Log
 
-<figure>
-  <img src="/images/day-summary-diary-log.png" alt="Complete Diary Log generated from the Daily Snapshot sheet" />
-  <figcaption><em>The full diary for 9/11/25 — written by hand each night before data processing and archiving.</em></figcaption>
-</figure>
+![Complete Diary Log](/images/day-summary-diary-log.png)
 
-The **Complete Diary Log** section is written manually at the end of each day — a stream of consciousness I later refine through Apps Script.  
-It captures context: what I did, thought, and felt that day, preserved with timestamps and formatting for reflection.
+*Written nightly before processing and archiving.*
 
 ---
 
-## ⚙️ 3. Condensed Diary Log (Automated with GAS + ChatGPT API)
+## ⚙️ 3. Condensed Diary Log (GAS + ChatGPT API)
 
-<figure>
-  <img src="/images/day-summary-condensed-log.png" alt="Condensed Diary Log generated using GAS and ChatGPT API" />
-  <figcaption><em>Condensed Diary Log — automatically summarized by Google Apps Script + ChatGPT API.</em></figcaption>
-</figure>
+![Condensed Diary Log](/images/day-summary-condensed-log.png)
 
-To save time, I created an **Apps Script function** that uses the **ChatGPT API** to summarize my diary into a concise, human-readable format.  
-This becomes the “Condensed Log,” ideal for quick browsing or trend analysis later.
-
-It’s automation serving awareness — not replacing reflection, but amplifying it.
+*Summarized automatically by Google Apps Script + ChatGPT API for quick review.*
 
 ---
 
-## 🔧 4. Behind the Scenes — INDEX, IFERROR, and Drive Integration
+## 🔧 4. Behind the Scenes — INDEX, IFERROR, Drive Integration
 
-<figure>
-  <img src="/images/behind-the-scenes-summarygs.png" alt="Behind the scenes of the Summary GS sheet showing INDEX and IFERROR formulas" />
-  <figcaption><em>Behind the scenes: 52 formulas bring every piece of data together into a single snapshot.</em></figcaption>
-</figure>
+![Behind the scenes of the Summary GS sheet showing INDEX and IFERROR formulas](/images/behind-the-scenes-summarygs.png)
 
-Underneath the visual layout lies a network of formulas — primarily **INDEX()**, **IFERROR()**, and **MATCH()** — all working in harmony.  
-Each section references its own sheet:  
-`People`, `Places`, `Pics`, `RD1`, `RD2`, and more.  
+*INDEX(), MATCH(), IFERROR() stitch everything together. Photo-of-the-day appears via a parsed Google Drive link displayed with `IMAGE()`.*
 
-Even the **Photo of the Day** is automated: Google Drive links are parsed with a REGEX formula and displayed using the `IMAGE()` function, creating a seamless Photo-A-Day experience directly in Sheets.
-
-> 💡 Future post: *“Automating Photo-a-Day in Google Sheets”* — explaining how Drive, GAS, and regex combine to make this work.  
-> *(Click the image below to learn more — coming soon!)*
-
-<a href="/blog/photo-a-day-automation" title="Coming Soon: Automating Photo-a-Day in Google Sheets">
-  <img src="/images/day-summary-diary-log.png" alt="Clickable teaser for Photo-A-Day project" style="border-radius:12px; margin-top:1rem;" />
-</a>
+> **Coming soon:** *Automating Photo-a-Day in Google Sheets* — Drive + GAS + regex.
 
 ---
 
 ## 🔮 5. Day-vs-Day Archive Comparison
 
-<figure>
-  <img src="/images/day-vs-day-archive-comparison.png" alt="Day vs Day archive comparison across multiple years" />
-  <figcaption><em>Day-vs-Day Comparison — seeing the same date across years, side by side.</em></figcaption>
-</figure>
+![Day vs Day archive comparison across multiple years](/images/day-vs-day-archive-comparison.png)
 
-Once the *Daily Snapshot* becomes part of the **Archive**, it unlocks a new layer of reflection:  
-the ability to compare today to **any other day in the past** — even the same date a year ago.  
-
-This “crystal orb” effect lets me visualize change — where I was, what I wore, what I ate, and what I thought — all drawn from the Archive’s indexed data.
-
-It’s not just nostalgia — it’s longitudinal self-awareness.
+*Compare today to any past date — even the same month/day a year prior — using the Archive built from yearly data.*
 
 ---
 
 ## 🧠 Final Thoughts
 
-This *Daily Snapshot* system is where **data becomes reflection**.  
-It’s a bridge between the raw inputs I log each day and the insights that emerge over time.
-
-Soon, each part of this system will get its own post:
+This *Daily Snapshot* is where **data becomes reflection**. Soon, each layer gets its own post:
 
 1. **Raw Data Sheets** — where the story begins  
 2. **Daily Summary** *(this post)*  
 3. **Archive of All Years**  
 4. **Day-vs-Day Comparison Tool**  
-5. **Photo-A-Day Automation**  
+5. **Photo-a-Day Automation**  
 6. **GAS + ChatGPT Integration**
 
-Each layer builds on the last — just like the data itself.
-
 ---
 
-> “You can’t improve what you don’t measure.  
-> But you also can’t appreciate what you don’t record.”  
-> — *LifeLoggerz*
-
----
-
-<div className="post-nav">
-  <a className="btn-next" href="/blog/raw-data-sheets" aria-label="Next Post: Raw Data Sheets">
-    Next Post → Raw Data Sheets
-  </a>
-</div>
-
-<style>
-  figure { margin: 2rem 0; text-align: center; }
-  figcaption { font-size: 0.9rem; color: #555; margin-top: 0.5rem; }
-  img { border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.12); max-width: 100%; }
-  h2 { text-align: center; margin: 2rem 0 1rem; }
-  blockquote { border-left: 4px solid #ddd; padding-left: 1rem; font-style: italic; color: #444; }
-
-  /* post navigation */
-  .post-nav {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 2.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid rgba(0,0,0,.08);
-  }
-  .btn-next {
-    display: inline-block;
-    padding: 0.75rem 1.1rem;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 600;
-    border: 1px solid rgba(0,0,0,.12);
-    box-shadow: 0 4px 12px rgba(0,0,0,.08);
-    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-  }
-  .btn-next:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(0,0,0,.12);
-    background: rgba(0,0,0,.03);
-  }
-</style>
+**Next:** [Raw Data Sheets](/blog/raw-data-sheets)
