@@ -1,5 +1,5 @@
 ---
-title: "The Daily Snapshot — Summary from Raw Data with Google Sheets"
+title: "The Daily Snapshot — Summary of Any Day with Raw Data in Google Sheets"
 pubDate: "2025-10-16"
 description: "How a single day in Google Sheets reflects years of structured data logging — from daily diaries and photos to automated summaries powered by Apps Script and ChatGPT."
 tags: ["LifeLoggerz", "Google Sheets", "Daily Snapshot", "Automation", "Self-Improvement"]
@@ -130,33 +130,51 @@ Each layer builds on the last — just like the data itself.
 
 ---
 
+<div class="post-nav">
+  <a class="btn-next" href="/blog/raw-data-sheets" aria-label="Next Post: Raw Data Sheets">
+    Next Post → Raw Data Sheets
+  </a>
+</div>
+
 <style>
   figure {
     margin: 2rem 0;
     text-align: center;
   }
-
   figcaption {
     font-size: 0.9rem;
     color: #555;
     margin-top: 0.5rem;
   }
-
   img {
     border-radius: 12px;
     box-shadow: 0 10px 24px rgba(0,0,0,.12);
     max-width: 100%;
   }
+  h2 { text-align: center; margin: 2rem 0 1rem; }
+  blockquote { border-left: 4px solid #ddd; padding-left: 1rem; font-style: italic; color: #444; }
 
-  h2 {
-    text-align: center;
-    margin: 2rem 0 1rem;
+  /* post navigation */
+  .post-nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(0,0,0,.08);
   }
-
-  blockquote {
-    border-left: 4px solid #ddd;
-    padding-left: 1rem;
-    font-style: italic;
-    color: #444;
+  .btn-next {
+    display: inline-block;
+    padding: 0.75rem 1.1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid rgba(0,0,0,.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-next:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0,0,0,.12);
+    background: rgba(0,0,0,.03);
   }
 </style>
