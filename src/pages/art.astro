@@ -74,7 +74,11 @@ const art = await fetchAllRaindrops();
   <main class="wrap wrap--wide">
     <div class="intro" role="region" aria-label="Art header">
       <h1>🎨 Art</h1>
-      <p class="hint">I look at one work of art daily using <a href="https://getdailyart.com" target="_blank" rel="noopener noreferrer"><strong>DailyArt</strong></a>.</p>
+      <p class="hint">
+        I look at one work of art daily using
+        <a href="https://getdailyart.com" target="_blank" rel="noopener noreferrer"><strong>DailyArt</strong></a>.
+        {(art.length).toLocaleString('en-US')} pieces so far!
+      </p>
       <div class="toolbar">
         <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter art" />
       </div>
