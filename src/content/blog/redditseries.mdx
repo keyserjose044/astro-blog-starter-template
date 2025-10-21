@@ -1,5 +1,5 @@
 ---
-title: "The Raw Data Sheets — Quantifying My Life One Day"
+title: "The Raw Data Sheets - Gallery"
 pubDate: "2025-10-19"
 description: "The foundation of the LifeLoggerz system — a daily Google Sheet where every stat, habit, and moment gets recorded, forming the base of all future analytics."
 tags: ["LifeLoggerz", "Google Sheets", "Raw Data", "Productivity", "Self-Improvement"]
@@ -10,81 +10,289 @@ draft: false
 # 📊 The Raw Data Sheets — Quantifying My Life One Day at a Time
 
 This is my **bread and butter spreadsheet** — the one I open every single day without fail.  
-It’s the heart of LifeLoggerz: a living document in **Google Sheets** that turns days into data and data into insight.
+It’s the heart of LifeLoggerz: a living document in **Google Sheets** that quietly turns days into data, data into trends, and trends into understanding.  
+Ironically, building all of these sheets is the one thing that I didn't track timewise. Hundreds of hours have gone into the structure of my sheets.  
+However, filling this in every day only takes a few minutes.
 
 ---
 
 ## 🌱 How It All Began
+
 In 2022, I was simply writing **daily diary logs**.  
 They captured my thoughts well — but they didn’t quantify anything.  
 So in 2023, I decided to bring structure into the mix.
 
 ---
 
-## 🗓 Evolution of the Raw Data Sheet (2023–2025)
+## 🗓 Evolution of the Raw Data Sheet (Set 1)
 
-<div class="gallery">
-  <figure>
-    <img src="/images/rawdatapost/2023-raw-data-sheet.png" alt="2023 Raw Data Sheet" loading="lazy"/>
-    <figcaption>2023 — Barebones start: six metrics, monochrome layout, and tiny font.</figcaption>
-  </figure>
-  <figure>
-    <img src="/images/rawdatapost/2024-raw-data-sheet.png" alt="2024 Raw Data Sheet" loading="lazy"/>
-    <figcaption>2024 — Color enters; each life aspect gets its own tab.</figcaption>
-  </figure>
-  <figure>
-    <img src="/images/rawdatapost/2024-started-graphing-data.png" alt="2024 Graphing Data" loading="lazy"/>
-    <figcaption>2024 — The first graphs: productivity, habits, wellness trends.</figcaption>
-  </figure>
-  <figure>
-    <img src="/images/rawdatapost/2025-raw-data-sheet.png" alt="2025 Raw Data Sheet" loading="lazy"/>
-    <figcaption>2025 — Mature, automated, interconnected system.</figcaption>
-  </figure>
-</div>
+<section class="news-gallery" id="set1" aria-label="Gallery: Evolution 2023–2025">
+  <!-- controls -->
+  <input type="radio" name="set1" id="set1-1" defaultChecked hidden />
+  <input type="radio" name="set1" id="set1-2" hidden />
+  <input type="radio" name="set1" id="set1-3" hidden />
+  <input type="radio" name="set1" id="set1-4" hidden />
 
-Each version built on the last — from handwritten cells to automated dashboards.
+  <!-- slides -->
+  <div class="ng-slides">
+    <div class="ng-slide">
+      <h3>🗓 2023 — The Barebones Beginning</h3>
+      <figure>
+        <img src="/images/rawdatapost/2023-raw-data-sheet.png" alt="2023 Raw Data Sheet" loading="lazy" />
+        <figcaption><em>2023: Where it all started. Just a few stats — minimal, mostly monochrome, and size 8 font.</em></figcaption>
+      </figure>
+      <p>
+        Back then, my tracking consisted of <strong>six metrics</strong> on a single sheet:
+        Sleep (wake time, hours slept), Food (breakfast, lunch, dinner), and a short Summary of the Day.
+        No fancy formatting — more stats came later.
+      </p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>💡 2024 — The Awakening</h3>
+      <figure>
+        <img src="/images/rawdatapost/2024-raw-data-sheet.png" alt="2024 Raw Data Sheet" loading="lazy" />
+        <figcaption><em>2024: Color enters the picture. The system starts expanding — one sheet for every facet of life.</em></figcaption>
+      </figure>
+      <p>
+        I discovered my diary logs hid <strong>quantifiable patterns</strong>. Why keep them in text when I could visualize them?
+        I expanded the workbook: each part of life got its own tab. Color-coding and indexing turned the sheet into a true data system.
+      </p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>📈 2024 — The First Graphs</h3>
+      <figure>
+        <img src="/images/rawdatapost/2024-started-graphing-data.png" alt="2024 Graphing Data" loading="lazy" />
+        <figcaption><em>The birth of visual feedback — graphs for habits, work hours, and wellness.</em></figcaption>
+      </figure>
+      <p>
+        This was the first time I saw <strong>my life in charts</strong> thanks to all the data I was collecting.
+        Suddenly, I could see when I was most productive, most social, or most consistent.
+        Even with extra stats, daily input stayed quick — small effort, big clarity.
+      </p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>🚀 2025 — The Refined System</h3>
+      <figure>
+        <img src="/images/rawdatapost/2025-raw-data-sheet.png" alt="2025 Raw Data Sheet" loading="lazy" />
+        <figcaption><em>2025: A mature system — structured, colorful, and interconnected across sheets.</em></figcaption>
+      </figure>
+      <p>
+        By 2025, I had everything I needed for full-scale analytics. Conditional formatting paints meaning:
+        alternating week colors, maroon weekends, yellow/purple alternating months. With Apps Script,
+        tasks like importing my daily photo from Drive or condensing diary logs via ChatGPT API are automated.
+      </p>
+      <p>
+        What I track on this one sheet includes Sleep, Meals, Weather, Summary of Day, Work, Hobbies, Audiobooks, and more:
+        D: Time Slept • E: Hours Slept • F: Time Woke • G: Naps • I/J/K: Meals • N/O: Temp High/Low • Q: Summary • R: Diary Word Count •
+        T: Work Description • U: Hours Worked • W: Religious Study • X: Dictionary Page • Y: Language • Z: Running (mi) •
+        AA: Treadmill (min @ 2mph) • AB: Guitar • AD–AF: Audiobooks (timestamp/min).
+      </p>
+      <p>
+        Symbols like <code>[</code>, <code>@</code>, <code>"</code>, <code>*</code>, <code>$</code>, <code>#</code> trigger colors automatically.
+        Grey in Sleep = past 1am; baby blue in Weather = snow; red = &gt;100°F; green in Audiobooks = new title. Data on top of data.
+      </p>
+    </div>
+  </div>
+
+  <!-- dots -->
+  <div class="ng-dots" role="tablist" aria-label="Select slide">
+    <label htmlFor="set1-1" role="tab">•</label>
+    <label htmlFor="set1-2" role="tab">•</label>
+    <label htmlFor="set1-3" role="tab">•</label>
+    <label htmlFor="set1-4" role="tab">•</label>
+  </div>
+</section>
+
+> Check out the individual sheets below — the “organs” that make up this living system.
 
 ---
 
-## 🧩 The Individual Sheets
-Each sheet focuses on one aspect of daily life, working in harmony to build a full picture.  
-These are all part of the **Raw Data workbook** — the foundation of everything else.
+## 🧩 The Individual Sheets (Set 2)
 
----
+<section class="news-gallery" id="set2" aria-label="Gallery: Raw Data Tabs">
+  <!-- controls -->
+  <input type="radio" name="set2" id="set2-1" defaultChecked hidden />
+  <input type="radio" name="set2" id="set2-2" hidden />
+  <input type="radio" name="set2" id="set2-3" hidden />
+  <input type="radio" name="set2" id="set2-4" hidden />
+  <input type="radio" name="set2" id="set2-5" hidden />
+  <input type="radio" name="set2" id="set2-6" hidden />
+  <input type="radio" name="set2" id="set2-7" hidden />
+  <input type="radio" name="set2" id="set2-8" hidden />
+  <input type="radio" name="set2" id="set2-9" hidden />
 
-### 📚 Core Data Tabs
+  <!-- slides -->
+  <div class="ng-slides">
+    <div class="ng-slide">
+      <h3>💰 Money</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-money.png" alt="Raw Data Money" loading="lazy" />
+        <figcaption><em>Tracks income, spending, and savings progress — a mirror of financial discipline.</em></figcaption>
+      </figure>
+      <p>Money tells stories: priorities, habits, decisions. This shows what I spend on and what I invest in.</p>
+    </div>
 
-<div class="gallery">
-  <figure><img src="/images/rawdatapost/rawdata-money.png" alt="Raw Data Money"/><figcaption>💰 Money</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-logs.png" alt="Raw Data Logs"/><figcaption>📜 Logs (Complete)</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-logs-condensed.png" alt="Raw Data Condensed Logs"/><figcaption>⚙️ Logs (Condensed)</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-quotes.png" alt="Raw Data Quotes"/><figcaption>💬 Quotes</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-blunders.png" alt="Raw Data Blunders"/><figcaption>💥 Blunders</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-outfits.png" alt="Raw Data Outfits"/><figcaption>👕 Outfits</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-food.png" alt="Raw Data Food"/><figcaption>🍽 Food</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-places.png" alt="Raw Data Places"/><figcaption>📍 Places</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-peeps.png" alt="Raw Data People"/><figcaption>🧑‍🤝‍🧑 People</figcaption></figure>
-</div>
+    <div class="ng-slide">
+      <h3>📜 Logs (Complete)</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-logs.png" alt="Raw Data Logs" loading="lazy" />
+        <figcaption><em>The complete daily log — a full written record of the day’s thoughts and actions.</em></figcaption>
+      </figure>
+      <p>I write in Obsidian, then paste here. Seeing days side-by-side with easy search makes reflection effortless.</p>
+    </div>
 
-These are the “organs” of the system — each with its own purpose and visual rhythm.
+    <div class="ng-slide">
+      <h3>⚙️ Logs (Condensed)</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-logs-condensed.png" alt="Raw Data Condensed Logs" loading="lazy" />
+        <figcaption><em>Condensed logs — auto-generated summaries using Google Apps Script and ChatGPT API.</em></figcaption>
+      </figure>
+      <p>Morning/afternoon/evening briefs speed recall. A future post will explain the Apps Script + API pipeline.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>💬 Quotes</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-quotes.png" alt="Raw Data Quotes" loading="lazy" />
+        <figcaption><em>A growing collection of quotes from the people in my life.</em></figcaption>
+      </figure>
+      <p>Each night I capture the most remarkable line I heard. Context plants me back in that memory instantly.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>💥 Blunders</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-blunders.png" alt="Raw Data Blunders" loading="lazy" />
+        <figcaption><em>Failures become data too — make them visible so they’re easier to avoid repeating.</em></figcaption>
+      </figure>
+      <p>Small blunders accumulate patterns (“woke late” x70). Big ones don’t need commentary — the data nudges change.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>👕 Outfits</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-outfits.png" alt="Raw Data Outfits" loading="lazy" />
+        <figcaption><em>Daily outfits — color-coded for style, weather, and repetition tracking.</em></figcaption>
+      </figure>
+      <p>Not vanity — curiosity. Patterns in color, weather response, and taste shifts (hello carpenter jeans).</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>🍽 Food</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-food.png" alt="Raw Data Food" loading="lazy" />
+        <figcaption><em>Every meal logged — for health, enjoyment, and consistency.</em></figcaption>
+      </figure>
+      <p>Diet trends reveal discipline and mood. No calories tracked, but culprits (or wins) are easy to find.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>📍 Places</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-places.png" alt="Raw Data Places" loading="lazy" />
+        <figcaption><em>Where I went — a spatial record of movement and presence.</em></figcaption>
+      </figure>
+      <p>One breadcrumb per cell. Over time: more exploratory, or more homebound?</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>🧑‍🤝‍🧑 People</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-peeps.png" alt="Raw Data People" loading="lazy" />
+        <figcaption><em>People and interactions — a map of my social world.</em></figcaption>
+      </figure>
+      <p>“When’s the last time I saw X?” The answer is here.</p>
+    </div>
+  </div>
+
+  <!-- dots -->
+  <div class="ng-dots" role="tablist" aria-label="Select slide">
+    <label htmlFor="set2-1">•</label><label htmlFor="set2-2">•</label><label htmlFor="set2-3">•</label>
+    <label htmlFor="set2-4">•</label><label htmlFor="set2-5">•</label><label htmlFor="set2-6">•</label>
+    <label htmlFor="set2-7">•</label><label htmlFor="set2-8">•</label><label htmlFor="set2-9">•</label>
+  </div>
+</section>
 
 ---
 
 ## 📊 Advanced Visuals & Dashboards
 
-<div class="gallery">
-  <figure><img src="/images/rawdatapost/rawdata-money-dashboard.png" alt="Money Dashboard"/><figcaption>🧮 Money Dashboard</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-wknd.png" alt="Weekend Sheet"/><figcaption>🎈 Weekend Sheet</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-graphs1.png" alt="Graphs 1"/><figcaption>📉 Graphs I</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-graphs2.png" alt="Graphs 2"/><figcaption>📈 Graphs II</figcaption></figure>
-  <figure><img src="/images/rawdatapost/rawdata-trophyshelf.png" alt="Trophy Shelf"/><figcaption>🏆 Trophy Shelf</figcaption></figure>
-</div>
+The next layer of the system uses formulas to visualize patterns across weeks, months, and categories.  
+These **advanced sheets** transform data into insight — and beauty.
 
-These transform raw data into visuals — a full life dashboard of habits, work, and reflection.
+<section class="news-gallery" id="set3" aria-label="Gallery: Advanced Dashboards">
+  <!-- controls -->
+  <input type="radio" name="set3" id="set3-1" defaultChecked hidden />
+  <input type="radio" name="set3" id="set3-2" hidden />
+  <input type="radio" name="set3" id="set3-3" hidden />
+  <input type="radio" name="set3" id="set3-4" hidden />
+  <input type="radio" name="set3" id="set3-5" hidden />
+
+  <!-- slides -->
+  <div class="ng-slides">
+    <div class="ng-slide">
+      <h3>🧮 Money Dashboard</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-money-dashboard.png" alt="Money Dashboard" loading="lazy" />
+        <figcaption><em>The all-in-one overview for your finances — spending habits and averages.</em></figcaption>
+      </figure>
+      <p>
+        Connected to the financial log: totals, categories, and month filters. Curious about July gas or December donations?
+        This is where it’s instant. The ARCHIVE (future post) scales this across years.
+      </p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>🎈 Weekend Sheet</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-wknd.png" alt="Weekend Summary" loading="lazy" />
+        <figcaption><em>A weekend-only snapshot — shows whether I need to go out more.</em></figcaption>
+      </figure>
+      <p>Only Saturdays/Sundays, pulled from Raw Data. Netflix binge or outside time? Course-correct at a glance.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>📉 Graphs I</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-graphs1.png" alt="Raw Data Graphs 1" loading="lazy" />
+        <figcaption><em>Graphs turning daily logs into trends — visual analytics for self-awareness.</em></figcaption>
+      </figure>
+      <p>Habits, work, mood — together on one canvas.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>📈 Graphs II</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-graphs2.png" alt="Raw Data Graphs 2" loading="lazy" />
+        <figcaption><em>Deeper patterns: correlations between productivity, rest, emotion, and more.</em></figcaption>
+      </figure>
+      <p>Second pass: correlations and cross-metrics that surface blind spots.</p>
+    </div>
+
+    <div class="ng-slide">
+      <h3>🏆 Trophy Shelf</h3>
+      <figure>
+        <img src="/images/rawdatapost/rawdata-trophyshelf.png" alt="Trophy Shelf" loading="lazy" />
+        <figcaption><em>Cells turn green when goals are met — a gamified reward system within Sheets.</em></figcaption>
+      </figure>
+      <p>Micromotivation in spreadsheet form. Goals → feedback → streaks.</p>
+    </div>
+  </div>
+
+  <!-- dots -->
+  <div class="ng-dots" role="tablist" aria-label="Select slide">
+    <label htmlFor="set3-1">•</label><label htmlFor="set3-2">•</label><label htmlFor="set3-3">•</label>
+    <label htmlFor="set3-4">•</label><label htmlFor="set3-5">•</label>
+  </div>
+</section>
 
 ---
 
 ## 🔗 Related Posts
+
 This article is part **1 of 6** in the *LifeLoggerz Data System* series:
 
 1️⃣ **Raw Data Sheets** *(this post)*  
@@ -96,6 +304,14 @@ This article is part **1 of 6** in the *LifeLoggerz Data System* series:
 
 ---
 
+## 🧠 Final Thoughts
+
+There’s much more here than meets the eye.  
+Behind these sheets run **Google Apps Scripts** that automate summaries, manage file imports, and communicate with **ChatGPT’s API** to create condensed diary entries automatically.  
+Each post in this series will uncover a new part of that system — how automation and design turn everyday life into an evolving dataset.
+
+---
+
 > “A spreadsheet may seem lifeless, but fill it with your days — and it becomes your autobiography in code.”  
 > — *LifeLoggerz*
 
@@ -104,42 +320,57 @@ This article is part **1 of 6** in the *LifeLoggerz Data System* series:
 </div>
 
 <style>
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-.gallery figure {
-  margin: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fafafa;
-  border: 1px solid #eee;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-}
-.gallery img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.gallery figcaption {
-  padding: 0.6rem 0.8rem;
-  font-size: 0.9rem;
-  color: #555;
-  text-align: center;
-}
-@media (max-width: 700px) {
-  .gallery {
-    display: flex;
-    overflow-x: auto;
-    gap: 0.75rem;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 0.5rem;
-  }
-  .gallery figure {
-    flex: 0 0 80%;
-    scroll-snap-align: start;
-  }
-}
+/* Base news-gallery styles (shared by all sets) */
+.news-gallery { position: relative; max-width: 1050px; margin: 1.25rem auto; }
+.news-gallery .ng-slides { position: relative; }
+.news-gallery .ng-slide { display: none; }
+.news-gallery .ng-slide figure { margin: .25rem 0 .75rem 0; }
+.news-gallery .ng-slide img { width: 100%; height: auto; border-radius: 10px; display: block; }
+.news-gallery .ng-slide figcaption { text-align: center; color: #555; font-size: .9rem; margin-top: .4rem; }
+.news-gallery .ng-slide p { line-height: 1.65; }
+.news-gallery .ng-dots { display: flex; justify-content: center; gap: .5rem; margin-top: .5rem; user-select: none; }
+.news-gallery .ng-dots label { cursor: pointer; font-size: 1.6rem; line-height: 1; opacity: .45; }
+.news-gallery .ng-dots label:focus { outline: 2px solid #999; outline-offset: 2px; }
+
+/* Set 1 visibility rules (4 slides) */
+#set1-1:checked ~ .ng-slides .ng-slide:nth-of-type(1),
+#set1-2:checked ~ .ng-slides .ng-slide:nth-of-type(2),
+#set1-3:checked ~ .ng-slides .ng-slide:nth-of-type(3),
+#set1-4:checked ~ .ng-slides .ng-slide:nth-of-type(4) { display: block; }
+#set1-1:checked ~ .ng-dots label:nth-of-type(1),
+#set1-2:checked ~ .ng-dots label:nth-of-type(2),
+#set1-3:checked ~ .ng-dots label:nth-of-type(3),
+#set1-4:checked ~ .ng-dots label:nth-of-type(4) { opacity: 1; }
+
+/* Set 2 visibility rules (9 slides) */
+#set2-1:checked ~ .ng-slides .ng-slide:nth-of-type(1),
+#set2-2:checked ~ .ng-slides .ng-slide:nth-of-type(2),
+#set2-3:checked ~ .ng-slides .ng-slide:nth-of-type(3),
+#set2-4:checked ~ .ng-slides .ng-slide:nth-of-type(4),
+#set2-5:checked ~ .ng-slides .ng-slide:nth-of-type(5),
+#set2-6:checked ~ .ng-slides .ng-slide:nth-of-type(6),
+#set2-7:checked ~ .ng-slides .ng-slide:nth-of-type(7),
+#set2-8:checked ~ .ng-slides .ng-slide:nth-of-type(8),
+#set2-9:checked ~ .ng-slides .ng-slide:nth-of-type(9) { display: block; }
+#set2-1:checked ~ .ng-dots label:nth-of-type(1),
+#set2-2:checked ~ .ng-dots label:nth-of-type(2),
+#set2-3:checked ~ .ng-dots label:nth-of-type(3),
+#set2-4:checked ~ .ng-dots label:nth-of-type(4),
+#set2-5:checked ~ .ng-dots label:nth-of-type(5),
+#set2-6:checked ~ .ng-dots label:nth-of-type(6),
+#set2-7:checked ~ .ng-dots label:nth-of-type(7),
+#set2-8:checked ~ .ng-dots label:nth-of-type(8),
+#set2-9:checked ~ .ng-dots label:nth-of-type(9) { opacity: 1; }
+
+/* Set 3 visibility rules (5 slides) */
+#set3-1:checked ~ .ng-slides .ng-slide:nth-of-type(1),
+#set3-2:checked ~ .ng-slides .ng-slide:nth-of-type(2),
+#set3-3:checked ~ .ng-slides .ng-slide:nth-of-type(3),
+#set3-4:checked ~ .ng-slides .ng-slide:nth-of-type(4),
+#set3-5:checked ~ .ng-slides .ng-slide:nth-of-type(5) { display: block; }
+#set3-1:checked ~ .ng-dots label:nth-of-type(1),
+#set3-2:checked ~ .ng-dots label:nth-of-type(2),
+#set3-3:checked ~ .ng-dots label:nth-of-type(3),
+#set3-4:checked ~ .ng-dots label:nth-of-type(4),
+#set3-5:checked ~ .ng-dots label:nth-of-type(5) { opacity: 1; }
 </style>
