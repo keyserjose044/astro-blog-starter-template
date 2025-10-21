@@ -27,11 +27,52 @@ const pub = toValidDate(pubDate);
 const upd = toValidDate(updatedDate);
 const hasPub = !!pub;
 const hasUpd = !!upd;
+
+// ===== SEO additions =====
+const SITE = 'https://lifeloggerz.com';
+const canonical = new URL(Astro.url.pathname, SITE).toString();
+const abs = (p?: string) => (p ? new URL(p, SITE).toString() : undefined);
+const ogImage = abs(heroImage);
 ---
 
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonical} />
+
+    <!-- Robots -->
+    <meta name="robots" content="index,follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    {description && <meta name="twitter:description" content={description} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: title,
+        description: description ?? undefined,
+        url: canonical,
+        image: ogImage ? [ogImage] : undefined,
+        datePublished: pub ?? undefined,
+        dateModified: (hasUpd ? upd : pub) ?? undefined,
+        mainEntityOfPage: canonical
+      })}
+    </script>
+
     <style>
       :root {
         --prose-max: 68ch;
@@ -41,7 +82,6 @@ const hasUpd = !!upd;
         --step-3: clamp(1.45rem, 1.15rem + 1.4vw, 1.9rem);
       }
 
-      /* Desktop wideners */
       @media (min-width: 900px) {
         :root { --prose-max: clamp(60ch, 90vw, 1100px); }
       }
@@ -49,25 +89,20 @@ const hasUpd = !!upd;
         .prose--wide { --prose-max: clamp(60ch, 90vw, 1280px); }
       }
 
-      /* Local safety: keep any stray horizontal overflow off on this layout */
       html, body { background: #ffffff; max-width: 100%; overflow-x: hidden; }
-
-      /* Use full width; the inner wrap controls readable width */
       main { width: 100%; margin: 0; }
 
-      /* Core wrapper (used by all posts) */
       .wrap {
         width: 100%;
         max-width: var(--prose-max);
         margin: 0 auto;
         padding: 0 1rem 2.25rem;
-        box-sizing: border-box; /* keep padding inside max-width */
+        box-sizing: border-box;
       }
       @media (max-width: 360px) {
         .wrap { padding-inline: 0.75rem; }
       }
 
-      /* -------------------- HERO IMAGE -------------------- */
       .hero-image {
         width: 100%;
         margin: 0 auto 1rem;
@@ -84,7 +119,6 @@ const hasUpd = !!upd;
         max-width: 1100px;
         transition: all 0.3s ease;
       }
-      /* Portrait-specific adjustments on desktop */
       @media (min-width: 900px) {
         .hero-image img.portrait {
           width: auto;
@@ -92,7 +126,6 @@ const hasUpd = !!upd;
           max-height: 80vh;
           object-fit: contain;
         }
-        /* Landscape — letterboxed look (no cropping, scales smoothly) */
         .hero-image img.landscape {
           width: auto;
           max-width: 100%;
@@ -103,7 +136,6 @@ const hasUpd = !!upd;
           border-radius: 12px;
         }
       }
-      /* Mobile: responsive full width */
       @media (max-width: 899px) {
         .hero-image img {
           width: 100%;
@@ -112,7 +144,6 @@ const hasUpd = !!upd;
           max-height: none;
         }
       }
-      /* ---------------------------------------------------- */
 
       .prose {
         max-width: var(--prose-max);
@@ -141,11 +172,9 @@ const hasUpd = !!upd;
       .prose code { font-size: var(--step--1); }
       .prose hr { margin: 1.25rem 0; }
 
-      /* ==================== MOBILE-ONLY CENTERING ==================== */
       @media (max-width: 768px) {
         :root { --post-pad: clamp(16px, 4vw, 24px); --read-max: 72ch; }
 
-        /* Ensure inner wrappers center on phones and padding stays inside */
         article.wrap,
         .prose {
           width: 100%;
@@ -155,11 +184,9 @@ const hasUpd = !!upd;
           box-sizing: border-box;
         }
 
-        /* Calm down huge headings on phones */
         .title h1 { font-size: clamp(2rem, 7vw, 2.4rem); }
         .prose h2 { font-size: clamp(1.6rem, 6vw, 2rem); }
 
-        /* Media never overflows and stays centered */
         img, figure, video {
           display: block;
           max-width: 100%;
@@ -167,7 +194,6 @@ const hasUpd = !!upd;
           margin-inline: auto;
         }
       }
-      /* =============================================================== */
     </style>
   </head>
 
