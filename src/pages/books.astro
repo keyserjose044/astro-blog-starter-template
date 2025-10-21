@@ -74,7 +74,9 @@ const books = await fetchAllRaindrops();
   <main class="wrap wrap--wide">
     <div class="intro" role="region" aria-label="books header">
       <h1>📚 Books</h1>
-      <p class="hint">Audiobooks listened to since 2023. While I drive, wash, run — any menial task really...</p>
+      <p class="hint">
+        {(books.length).toLocaleString('en-US')} Audiobooks listened to since 2023. While I drive, wash, run — any menial task really...
+      </p>
       <div class="toolbar">
         <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter books" />
       </div>
@@ -170,5 +172,3 @@ const books = await fetchAllRaindrops();
   </script>
 </body>
 </html>
-
-
