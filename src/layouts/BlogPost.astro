@@ -64,7 +64,7 @@ const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
     <!-- JSON-LD Structured Data (hardened) -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BlogPosting",
