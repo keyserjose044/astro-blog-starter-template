@@ -1,5 +1,15 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
+
+// Server-side fallback for SEO / no-JS users
+const start = new Date('2023-01-01T00:00:00');
+const now = new Date();
+let years = now.getFullYear() - start.getFullYear();
+const monthDiff = now.getMonth() - start.getMonth();
+const dayDiff = now.getDate() - start.getDate();
+if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) years--;
+if (years < 0) years = 0;
+const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
 ---
 
 <Layout
@@ -56,7 +66,8 @@ import Layout from '../layouts/BlogPost.astro';
 
     <h2>🌱 Why This Blog Exists</h2>
     <p>
-      For the past 3 years, I've given impromptu demos of my systems to people. <strong>Publishing them here allows you to interact with these systems directly.</strong>
+      For the past <span id="years-since" data-start="2023-01-01">{yearsLabel}</span>, I've given impromptu demos of my systems to people.
+      <strong>Publishing them here allows you to interact with these systems directly.</strong>
       If you’re curious about tracking your habits, streamlining research, or building your own life-OS, you’re in the right place.
     </p>
 
@@ -92,4 +103,20 @@ import Layout from '../layouts/BlogPost.astro';
       line-height: 1.6;
     }
   </style>
+
+  <script>
+    (function () {
+      const el = document.getElementById('years-since');
+      if (!el) return;
+      const startStr = el.dataset.start || '2023-01-01';
+      const start = new Date(startStr + 'T00:00:00');
+      const now = new Date();
+      let y = now.getFullYear() - start.getFullYear();
+      const m = now.getMonth() - start.getMonth();
+      const d = now.getDate() - start.getDate();
+      if (m < 0 || (m === 0 && d < 0)) y--;
+      if (y < 0) y = 0;
+      el.textContent = `${y} year${y === 1 ? '' : 's'}`;
+    })();
+  </script>
 </Layout>
