@@ -58,20 +58,29 @@ const ogImage = abs(heroImage);
     {description && <meta name="twitter:description" content={description} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
+    ---
+    const publishedISO = hasPub ? pub!.toISOString() : undefined;
+    const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
+    
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: title,
+      description: description ?? undefined,
+      mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+      url: canonical,
+      image: ogImage ?? undefined,
+      datePublished: publishedISO,
+      dateModified: modifiedISO,
+      author: { "@type": "Person", "name": "LifeLoggerz" },
+      publisher: { "@type": "Organization", "name": "LifeLoggerz" }
+    };
+    
+    const jsonLdString = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+    ---
+    
     <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json">
-      {JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: title,
-        description: description ?? undefined,
-        url: canonical,
-        image: ogImage ? [ogImage] : undefined,
-        datePublished: pub ?? undefined,
-        dateModified: (hasUpd ? upd : pub) ?? undefined,
-        mainEntityOfPage: canonical
-      })}
-    </script>
+    <script type="application/ld+json">{jsonLdString}</script>
 
     <style>
       :root {
