@@ -16,6 +16,7 @@ interface Props {
 
 const { title, description, pubDate, updatedDate, heroImage, wide = false } = Astro.props as Props;
 
+// ---------- helpers ----------
 function toValidDate(v: unknown): Date | null {
   if (!v) return null;
   if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
@@ -28,11 +29,15 @@ const upd = toValidDate(updatedDate);
 const hasPub = !!pub;
 const hasUpd = !!upd;
 
-// ===== SEO additions =====
+// ---------- SEO base ----------
 const SITE = 'https://lifeloggerz.com';
 const canonical = new URL(Astro.url.pathname, SITE).toString();
 const abs = (p?: string) => (p ? new URL(p, SITE).toString() : undefined);
 const ogImage = abs(heroImage);
+
+// ---------- JSON-LD safe values ----------
+const publishedISO = hasPub ? pub!.toISOString() : undefined;
+const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
 ---
 
 <html lang="en">
@@ -58,29 +63,22 @@ const ogImage = abs(heroImage);
     {description && <meta name="twitter:description" content={description} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
-    ---
-    const publishedISO = hasPub ? pub!.toISOString() : undefined;
-    const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
-    
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      headline: title,
-      description: description ?? undefined,
-      mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-      url: canonical,
-      image: ogImage ?? undefined,
-      datePublished: publishedISO,
-      dateModified: modifiedISO,
-      author: { "@type": "Person", "name": "LifeLoggerz" },
-      publisher: { "@type": "Organization", "name": "LifeLoggerz" }
-    };
-    
-    const jsonLdString = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
-    ---
-    
-    <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json">{jsonLdString}</script>
+    <!-- JSON-LD Structured Data (hardened) -->
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description: description ?? undefined,
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+        url: canonical,
+        image: ogImage ?? undefined,
+        datePublished: publishedISO,
+        dateModified: modifiedISO,
+        author: { "@type": "Person", name: "LifeLoggerz" },
+        publisher: { "@type": "Organization", name: "LifeLoggerz" }
+      }).replace(/</g, "\\u003c")}
+    </script>
 
     <style>
       :root {
