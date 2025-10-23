@@ -38,6 +38,21 @@ const ogImage = abs(heroImage);
 // ---------- JSON-LD safe values ----------
 const publishedISO = hasPub ? pub!.toISOString() : undefined;
 const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
+
+// Build once, safely escaped so </script> can't terminate early
+const jsonLdString = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: title,
+  description: description ?? undefined,
+  mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+  url: canonical,
+  image: ogImage ?? undefined,
+  datePublished: publishedISO,
+  dateModified: modifiedISO,
+  author: { "@type": "Person", name: "LifeLoggerz" },
+  publisher: { "@type": "Organization", name: "LifeLoggerz" }
+}).replace(/</g, '\\u003c');
 ---
 
 <html lang="en">
@@ -64,21 +79,7 @@ const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
     <!-- JSON-LD Structured Data (hardened) -->
-    <script type="application/ld+json" is:inline>
-      {JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: title,
-        description: description ?? undefined,
-        mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-        url: canonical,
-        image: ogImage ?? undefined,
-        datePublished: publishedISO,
-        dateModified: modifiedISO,
-        author: { "@type": "Person", name: "LifeLoggerz" },
-        publisher: { "@type": "Organization", name: "LifeLoggerz" }
-      }).replace(/</g, "\\u003c")}
-    </script>
+    <script type="application/ld+json" is:inline set:html={jsonLdString}></script>
 
     <style>
       :root {
@@ -193,7 +194,6 @@ const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
 
         .title h1 { font-size: clamp(2rem, 7vw, 2.4rem); }
         .prose h2 { font-size: clamp(1.6rem, 6vw, 2rem); }
-
         img, figure, video {
           display: block;
           max-width: 100%;
@@ -243,3 +243,4 @@ const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
     <Footer />
   </body>
 </html>
+
