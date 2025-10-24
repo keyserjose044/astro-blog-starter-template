@@ -1,0 +1,35 @@
+---
+/**
+ * Wraps a download link so clicks go through dl.lifeloggerz.com,
+ * incrementing a KV counter before redirecting to the real file.
+ *
+ * Props:
+ *   slug: string        // unique id per file, e.g. "my-handout"
+ *   href: string        // final file URL on your site (e.g. https://lifeloggerz.com/files/my-handout.pdf)
+ *   type?: string       // optional bucket, default "file" (use "pdf", "zip", etc.)
+ *   text?: string       // link text; defaults to "Download"
+ *   showCount?: boolean // show "n downloads" next to the link (default true)
+ */
+const { slug, href, type = "file", text = "Download", showCount = true } = Astro.props;
+if (!slug || !href) {
+  throw new Error("DownloadLink.astro requires slug and href");
+}
+const counterKey = `${type}/${slug}`;
+const dlHref = `https://dl.lifeloggerz.com/d/${type}/${encodeURIComponent(slug)}?to=${encodeURIComponent(href)}`;
+---
+<a href={dlHref} rel="nofollow" download>{text}</a>
+{ showCount && <span id={`dl-count-${slug.replace(/[^a-z0-9_-]/gi, "_")}`}> — </span> }
+
+{ showCount && (
+  <script is:inline>
+    (async()=>{
+      try {
+        const id = "dl-count-" + {JSON.stringify(slug.replace(/[^a-z0-9_-]/gi, "_"))};
+        const r = await fetch(`https://stats.lifeloggerz.com/count/downloads?key=${encodeURIComponent({JSON.stringify(counterKey)})}`, { cache: "no-store" });
+        const { count } = await r.json();
+        const el = document.getElementById(id);
+        if (el) el.textContent = ` ${count} download${count===1?"":"s"}`;
+      } catch(_){}
+    })();
+  </script>
+) }
