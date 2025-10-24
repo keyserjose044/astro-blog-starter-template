@@ -272,7 +272,6 @@ const templates: Item[] = [
                     : 'portrait',
                 ]}
                 href={t.postUrl ?? t.href}
-                {...(t.postUrl ? {} : { download: true })}
               >
                 <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
               </a>
