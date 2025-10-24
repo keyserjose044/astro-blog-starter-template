@@ -1,0 +1,79 @@
+---
+/**
+ * DownloadMeta.astro
+ * Renders: "Updated <updated> | X Downloads" and a Download button.
+ *
+ * Props:
+ *   href: string      // final file URL on your site (e.g. /templates/file.docx)
+ *   updated: string   // e.g. "Oct 2025"
+ *   text?: string     // button text (default: "Download")
+ *   type?: string     // optional override, else inferred from file extension
+ *   slug?: string     // optional override, else inferred from filename (no ext)
+ */
+
+interface Props {
+  href: string;
+  updated: string;
+  text?: string;
+  type?: string;
+  slug?: string;
+}
+
+const { href, updated, text = "Download", type, slug } = Astro.props as Props;
+if (!href || !updated) {
+  throw new Error("DownloadMeta.astro requires href and updated");
+}
+
+// Infer slug/type from href if not provided
+const fileName = href.split("/").pop() || "";
+const inferredSlug = (fileName.replace(/\.[^.]+$/, "") || "file").toLowerCase();
+const inferredType = (fileName.split(".").pop() || "file").toLowerCase();
+
+// Final key + download redirect URL (dl. subdomain)
+const keyType = (type || inferredType);
+const keySlug = (slug || inferredSlug);
+const counterKey = `${keyType}/${keySlug}`;
+const dlHref = `https://dl.lifeloggerz.com/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(href)}`;
+
+// Unique ids per instance
+const lineId = "dl-meta-" + Math.random().toString(36).slice(2, 8);
+const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
+---
+
+<!-- Meta line -->
+<div id={lineId} class="download-meta">
+  <span>Updated {updated}</span>
+  <span class="meta-sep"> | </span>
+  <span id={countId}>— Downloads</span>
+</div>
+
+<!-- Download button -->
+<div class="actions">
+  <a class="btn" href={dlHref} download>{text}</a>
+</div>
+
+<style>
+  .download-meta {
+    font-size: 0.9rem;
+    color: #6b7280;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .download-meta .meta-sep { opacity: 0.6; }
+  .actions { margin-top: 0.6rem; display: flex; justify-content: center; }
+</style>
+
+<script is:inline>
+  (async () => {
+    try {
+      const countEl = document.getElementById(${JSON.stringify(countId)});
+      const r = await fetch(
+        `https://v.lifeloggerz.com/count/downloads?key=${encodeURIComponent(${JSON.stringify(counterKey)})}`,
+        { cache: "no-store" }
+      );
+      const { count = 0 } = await r.json();
+      if (countEl) countEl.textContent = `${count} Download${count === 1 ? "" : "s"}`;
+    } catch (_) {}
+  })();
+</script>
