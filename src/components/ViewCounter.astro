@@ -2,13 +2,15 @@
 /**
  * ViewCounter.astro
  * Props:
- *   path?: string   // per-page key, e.g. "/blog/my-post"
+ *   path?: string   // per-page key (prefer passing Astro.url.pathname)
  *   label?: string  // default "views"
  */
 const { path = "", label = "views" } = Astro.props;
----
 
-<span id="llz-view-count" aria-live="polite">—</span>
+// unique id so multiple counters on one page won't clash
+const elId = "llz-view-" + Math.random().toString(36).slice(2, 8);
+---
+<span id={elId} aria-live="polite">—</span>
 
 <script is:inline>
   (() => {
@@ -19,26 +21,32 @@ const { path = "", label = "views" } = Astro.props;
       } catch { return "/"; }
     };
 
-    // Prefer the server-injected path so every page has a unique key
+    const elId = ${JSON.stringify(elId)};
     const serverPath = ${JSON.stringify(path)};
     const label = ${JSON.stringify(label)};
+
     const p = normalize(serverPath || location.pathname);
 
-    // increment
-    fetch(`https://stats.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
-      mode: "no-cors",
-      keepalive: true
-    });
+    // 1) increment (fire-and-forget)
+    try {
+      fetch(`https://stats.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
+        mode: "no-cors",
+        keepalive: true
+      });
+    } catch (_) {}
 
-    // read + render
+    // 2) read & render
     fetch(`https://stats.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, {
       cache: "no-store"
     })
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(({ count }) => {
-        const el = document.getElementById("llz-view-count");
+        const el = document.getElementById(elId);
         if (el) el.textContent = `${count} ${label}`;
       })
-      .catch(() => {});
+      .catch((e) => {
+        // Optional: comment this out later, useful while wiring up
+        console.warn("ViewCounter read failed:", e);
+      });
   })();
 </script>
