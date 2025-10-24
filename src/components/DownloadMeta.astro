@@ -1,39 +1,26 @@
 ---
-/**
- * DownloadMeta.astro
- * Renders: "Updated <updated> | X Downloads" and a Download button.
- *
- * Props:
- *   href: string      // final file URL on your site (e.g. /templates/file.docx)
- *   updated: string   // e.g. "Oct 2025"
- *   text?: string     // button text (default: "Download")
- *   type?: string     // optional override, else inferred from file extension
- *   slug?: string     // optional override, else inferred from filename (no ext)
- */
-
 interface Props {
-  href: string;
-  updated: string;
-  text?: string;
-  type?: string;
-  slug?: string;
+  href: string;      // final file URL (e.g. /templates/file.docx)
+  updated: string;   // e.g. "Oct 2025"
+  text?: string;     // button text (default "Download")
+  type?: string;     // override; else inferred from extension
+  slug?: string;     // override; else inferred from filename (no ext)
 }
 
 const { href, updated, text = "Download", type, slug } = Astro.props as Props;
-if (!href || !updated) {
-  throw new Error("DownloadMeta.astro requires href and updated");
-}
+if (!href || !updated) throw new Error("DownloadMeta.astro requires href and updated");
 
 // Infer slug/type from href if not provided
-const fileName = href.split("/").pop() || "";
-const inferredSlug = (fileName.replace(/\.[^.]+$/, "") || "file").toLowerCase();
+const fileName = (href.split("/").pop() || "").toLowerCase();
+const inferredSlug = fileName.replace(/\.[^.]+$/, "") || "file";
 const inferredType = (fileName.split(".").pop() || "file").toLowerCase();
 
-// Final key + download redirect URL (dl. subdomain)
 const keyType = (type || inferredType);
 const keySlug = (slug || inferredSlug);
 const counterKey = `${keyType}/${keySlug}`;
-const dlHref = `https://dl.lifeloggerz.com/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(href)}`;
+
+// FIRST-PARTY route (no subdomain): /d/<type>/<slug>?to=<final>
+const dlHref = `/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(href)}`;
 
 // Unique ids per instance
 const lineId = "dl-meta-" + Math.random().toString(36).slice(2, 8);
@@ -61,19 +48,38 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
     gap: 0.4rem;
   }
   .download-meta .meta-sep { opacity: 0.6; }
+
   .actions { margin-top: 0.6rem; display: flex; justify-content: center; }
+
+  /* Bubble button styles (local to this component) */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    border: 1px solid var(--accent, #405cf5);
+    text-decoration: none;
+    background: var(--accent, #405cf5);
+    color: white;
+    box-shadow: 0 6px 20px var(--ring, rgba(64,92,245,0.25));
+    transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
+    max-inline-size: 100%;
+  }
+  .btn:hover { transform: translateY(-1px); }
 </style>
 
 <script is:inline>
   (async () => {
     try {
-      const countEl = document.getElementById(${JSON.stringify(countId)});
+      const el = document.getElementById(${JSON.stringify(countId)});
       const r = await fetch(
         `https://v.lifeloggerz.com/count/downloads?key=${encodeURIComponent(${JSON.stringify(counterKey)})}`,
         { cache: "no-store" }
       );
       const { count = 0 } = await r.json();
-      if (countEl) countEl.textContent = `${count} Download${count === 1 ? "" : "s"}`;
+      if (el) el.textContent = `${count} Download${count === 1 ? "" : "s"}`;
     } catch (_) {}
   })();
 </script>
