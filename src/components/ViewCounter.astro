@@ -1,35 +1,23 @@
 ---
-const { path = "", label = "views" } = Astro.props;
+interface Props {
+  /** Per-page key; pass Astro.url.pathname for unique counts */
+  path?: string;
+  /** Text to display after the number (default: "views") */
+  label?: string;
+}
+
+const { path = "", label = "views" } = Astro.props as Props;
+
+// unique id so multiple counters won't clash on one page
 const elId = "llz-view-" + Math.random().toString(36).slice(2, 8);
 ---
 <span id={elId} aria-live="polite">—</span>
 
-<script is:inline>
-  (() => {
-    // keep leading slash, KEEP trailing slash if present
-    const normalize = (p) => {
-      if (!p) return "/";
-      return p.startsWith("/") ? p : ("/" + p);
-    };
-
-    const elId = ${JSON.stringify(elId)};
-    const serverPath = ${JSON.stringify(path)};
-    const label = ${JSON.stringify(label)};
-    const p = normalize(serverPath || location.pathname);
-
-    console.debug("[ViewCounter] key =", p); // <-- temp log
-
-    // write beacon (image beacon to bypass some inline/CSP blockers)
-    const img = new Image();
-    img.src = `https://v.lifeloggerz.com/v?p=${encodeURIComponent(p)}`;
-
-    // read & render
-    fetch(`https://v.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, { cache: "no-store" })
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(({ count }) => {
-        const el = document.getElementById(elId);
-        if (el) el.textContent = `${count} ${label}`;
-      })
-      .catch(e => console.warn("[ViewCounter] read failed:", e));
-  })();
+<!-- Uses the static script in /public/viewcounter.js -->
+<script
+  src="/viewcounter.js"
+  defer
+  data-el={elId}
+  data-path={path}
+  data-label={label}>
 </script>
