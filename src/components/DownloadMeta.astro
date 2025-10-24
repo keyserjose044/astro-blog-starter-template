@@ -19,24 +19,28 @@ const keyType = (type || inferredType);
 const keySlug = (slug || inferredSlug);
 const counterKey = `${keyType}/${keySlug}`;
 
-// ✅ Use Worker custom domain (v.lifeloggerz.com) for first-party-like downloads
-// Make the final URL absolute so redirects work from anywhere
-const finalUrl = new URL(href, 'https://lifeloggerz.com').toString();
+// Use Worker custom domain for redirect; make target absolute
+const finalUrl = new URL(href, "https://lifeloggerz.com").toString();
 const dlHref = `https://v.lifeloggerz.com/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
 
-// Unique ids per instance
-const lineId = "dl-meta-" + Math.random().toString(36).slice(2, 8);
+// Unique id for the counter span
 const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
 ---
 
-<!-- Meta line -->
-<div id={lineId} class="download-meta">
+<div class="download-meta">
   <span>Updated {updated}</span>
   <span class="meta-sep"> | </span>
   <span id={countId}>— Downloads</span>
+
+  <!-- Fetch count using external script (CSP-safe) -->
+  <script
+    src="/downloadcount.js"
+    defer
+    data-el={countId}
+    data-key={counterKey}
+  ></script>
 </div>
 
-<!-- Download button -->
 <div class="actions">
   <a class="btn" href={dlHref} download>{text}</a>
 </div>
@@ -53,7 +57,6 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
 
   .actions { margin-top: 0.6rem; display: flex; justify-content: center; }
 
-  /* Bubble button styles (local to this component) */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -71,17 +74,3 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
   }
   .btn:hover { transform: translateY(-1px); }
 </style>
-
-<script is:inline>
-  (async () => {
-    try {
-      const el = document.getElementById(${JSON.stringify(countId)});
-      const r = await fetch(
-        `https://v.lifeloggerz.com/count/downloads?key=${encodeURIComponent(${JSON.stringify(counterKey)})}`,
-        { cache: "no-store" }
-      );
-      const { count = 0 } = await r.json();
-      if (el) el.textContent = `${count} Download${count === 1 ? "" : "s"}`;
-    } catch (_) {}
-  })();
-</script>
