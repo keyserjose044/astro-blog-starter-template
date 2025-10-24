@@ -2,7 +2,7 @@
 /**
  * ViewCounter.astro
  * Props:
- *   path?: string   // per-page key (prefer passing Astro.url.pathname)
+ *   path?: string   // per-page key; pass Astro.url.pathname for unique counts
  *   label?: string  // default "views"
  */
 const { path = "", label = "views" } = Astro.props;
@@ -25,27 +25,26 @@ const elId = "llz-view-" + Math.random().toString(36).slice(2, 8);
     const serverPath = ${JSON.stringify(path)};
     const label = ${JSON.stringify(label)};
 
+    // prefer server-provided path; fall back to current location
     const p = normalize(serverPath || location.pathname);
 
-    // 1) increment (fire-and-forget)
+    // 1) increment (fire-and-forget) on same origin
     try {
-      fetch(`https://stats.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
+      fetch(`/v?p=${encodeURIComponent(p)}`, {
         mode: "no-cors",
         keepalive: true
       });
     } catch (_) {}
 
-    // 2) read & render
-    fetch(`https://stats.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, {
-      cache: "no-store"
-    })
+    // 2) read & render from same origin
+    fetch(`/count/views?p=${encodeURIComponent(p)}`, { cache: "no-store" })
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(({ count }) => {
         const el = document.getElementById(elId);
         if (el) el.textContent = `${count} ${label}`;
       })
       .catch((e) => {
-        // Optional: comment this out later, useful while wiring up
+        // helpful while wiring up; remove later if you want
         console.warn("ViewCounter read failed:", e);
       });
   })();
