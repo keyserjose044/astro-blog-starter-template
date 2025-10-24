@@ -57,7 +57,7 @@ const jsonLdString = JSON.stringify({
 
 <html lang="en">
   <head>
-    <BaseHead title={title} description={description} />
+    <BaseHead title={title} description={description ?? ''} />
 
     <!-- Canonical URL -->
     <link rel="canonical" href={canonical} />
