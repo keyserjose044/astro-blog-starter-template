@@ -3,6 +3,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BaseHead from '../components/BaseHead.astro';
+import DownloadMeta from '../components/DownloadMeta.astro';
 
 // GitHub Pages–safe base URL handling
 const rawBase = import.meta.env.BASE_URL || '/';
@@ -280,14 +281,7 @@ const templates: Item[] = [
               <div class="eyebrow">{t.filetype}</div>
               <h3>{t.title}</h3>
               {t.description && <p class="desc">{t.description}</p>}
-              {t.updated && (
-                <div class="meta">
-                  <span>Updated: {t.updated}</span>
-                </div>
-              )}
-              <div class="actions">
-                <a class="btn" href={t.href} download>Download</a>
-              </div>
+              <DownloadMeta href={t.href} updated={t.updated!} text="Download" />
             </div>
           </article>
         ))}
