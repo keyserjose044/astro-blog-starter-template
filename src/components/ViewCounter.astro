@@ -28,16 +28,18 @@ const elId = "llz-view-" + Math.random().toString(36).slice(2, 8);
     // prefer server-provided path; fall back to current location
     const p = normalize(serverPath || location.pathname);
 
-    // 1) increment (fire-and-forget) on same origin
+    // 1) increment (fire-and-forget) via Worker custom domain
     try {
-      fetch(`/v?p=${encodeURIComponent(p)}`, {
+      fetch(`https://v.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
         mode: "no-cors",
         keepalive: true
       });
     } catch (_) {}
 
-    // 2) read & render from same origin
-    fetch(`/count/views?p=${encodeURIComponent(p)}`, { cache: "no-store" })
+    // 2) read & render from Worker custom domain
+    fetch(`https://v.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, {
+      cache: "no-store"
+    })
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(({ count }) => {
         const el = document.getElementById(elId);
