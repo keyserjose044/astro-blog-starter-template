@@ -2,8 +2,8 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import ViewCounter from '../components/ViewCounter.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import ViewCounter from '../components/ViewCounter.astro';
 
 interface Props {
   title: string;
@@ -13,9 +13,19 @@ interface Props {
   heroImage?: string;
   wide?: boolean;
   heroImageStyle?: string;
+  showViews?: boolean; // 👈 NEW
 }
 
-const { title, description, pubDate, updatedDate, heroImage, wide = false } = Astro.props as Props;
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroImage,
+  wide = false,
+  heroImageStyle,
+  showViews = true // 👈 default ON
+} = Astro.props as Props;
 
 // ---------- helpers ----------
 function toValidDate(v: unknown): Date | null {
@@ -40,7 +50,6 @@ const ogImage = abs(heroImage);
 const publishedISO = hasPub ? pub!.toISOString() : undefined;
 const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
 
-// Build once, safely escaped so </script> can't terminate early
 const jsonLdString = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BlogPosting",
@@ -60,26 +69,20 @@ const jsonLdString = JSON.stringify({
   <head>
     <BaseHead title={title} description={description} />
 
-    <!-- Canonical URL -->
     <link rel="canonical" href={canonical} />
-
-    <!-- Robots -->
     <meta name="robots" content="index,follow" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="article" />
     <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
     {ogImage && <meta property="og:image" content={ogImage} />}
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
     <meta name="twitter:title" content={title} />
     {description && <meta name="twitter:description" content={description} />}
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
-    <!-- JSON-LD Structured Data (hardened) -->
     <script type="application/ld+json" is:inline set:html={jsonLdString}></script>
 
     <style>
@@ -175,6 +178,15 @@ const jsonLdString = JSON.stringify({
       .date { margin-bottom: 0.25em; color: #6b7280; }
       .last-updated-on { font-style: italic; }
 
+      .meta-line {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        color: #6b7280;
+        font-size: 0.95rem;
+      }
+      .meta-sep { opacity: 0.6; }
+
       .prose img, .prose video { max-width: 100%; height: auto; }
       .prose table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .prose pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -202,22 +214,8 @@ const jsonLdString = JSON.stringify({
           margin-inline: auto;
         }
       }
-
-      /* Added for date + view counter */
-      .meta-line {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 0.4rem;
-        color: #6b7280;
-        font-size: 0.95rem;
-      }
-
-      .meta-sep {
-        opacity: 0.6;
-      }
     </style>
   </head>
-
 
   <body>
     <Header />
@@ -230,7 +228,7 @@ const jsonLdString = JSON.stringify({
               alt={title}
               loading="eager"
               sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
-              style={Astro.props.heroImageStyle}
+              style={heroImageStyle}
               onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
             />
           </div>
@@ -241,11 +239,15 @@ const jsonLdString = JSON.stringify({
             {(hasPub || hasUpd) && (
               <div class="date">
                 {hasPub && (
-                  <div class="meta-line">
+                  <>
                     <FormattedDate date={pub!} />
-                    <span class="meta-sep">|</span>
-                    <ViewCounter path={Astro.url.pathname} />
-                  </div>
+                    {showViews && (
+                      <>
+                        <span class="meta-sep"> | </span>
+                        <ViewCounter path={Astro.url.pathname} />
+                      </>
+                    )}
+                  </>
                 )}
                 {hasUpd && (
                   <div class="last-updated-on">
@@ -257,14 +259,10 @@ const jsonLdString = JSON.stringify({
             <h1>{title}</h1>
             <hr />
           </div>
-        
           <slot />
-        </div>
-
         </div>
       </article>
     </main>
     <Footer />
   </body>
 </html>
-
