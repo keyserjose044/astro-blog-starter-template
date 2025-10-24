@@ -1,49 +1,44 @@
 ---
 /**
- * Sends a view beacon to stats.lifeloggerz.com and renders the live count.
+ * ViewCounter.astro
  * Props:
- *   path?: string  (optional override; defaults to current pathname)
- *   label?: string (defaults to "views")
+ *   path?: string   // per-page key, e.g. "/blog/my-post"
+ *   label?: string  // default "views"
  */
-const { path = undefined, label = "views" } = Astro.props;
-
-// Normalize on the server (in case you pass a custom path)
-function normalize(p: string) {
-  if (!p) return "/";
-  const u = new URL("https://x" + (p.startsWith("/") ? p : "/" + p));
-  const clean = u.pathname.replace(/\/+$/, "") || "/";
-  return clean;
-}
-const serverPath = path ? normalize(path) : ""; // client will use location.pathname
+const { path = "", label = "views" } = Astro.props;
 ---
-<span id="view-count" aria-live="polite">—</span>
+
+<span id="llz-view-count" aria-live="polite">—</span>
 
 <script is:inline>
-  (function(){
-    try {
-      const normalize = (p)=> {
-        try { return new URL("https://x"+(p.startsWith("/")?p:"/"+p)).pathname.replace(/\/+$/,"") || "/"; }
-        catch { return "/"; }
-      };
+  (() => {
+    const normalize = (p) => {
+      try {
+        return new URL("https://x" + (p.startsWith("/") ? p : "/" + p))
+          .pathname.replace(/\/+$/,"") || "/";
+      } catch { return "/"; }
+    };
 
-      const p = normalize("{{serverPath}}".trim() || location.pathname);
+    // Prefer the server-injected path so every page has a unique key
+    const serverPath = ${JSON.stringify(path)};
+    const label = ${JSON.stringify(label)};
+    const p = normalize(serverPath || location.pathname);
 
-      // 1) fire-and-forget beacon (write)
-      fetch(`https://stats.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
-        mode: "no-cors",
-        keepalive: true
-      });
+    // increment
+    fetch(`https://stats.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
+      mode: "no-cors",
+      keepalive: true
+    });
 
-      // 2) read and render
-      fetch(`https://stats.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, {
-        cache: "no-store"
-      })
+    // read + render
+    fetch(`https://stats.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, {
+      cache: "no-store"
+    })
       .then(r => r.json())
-      .then(({count}) => {
-        const el = document.getElementById("view-count");
-        if (el) el.textContent = `${count} ${count === 1 ? "{{label}}".slice(0,-1) : "{{label}}"}`.replace("s", "s"); // simple plural
+      .then(({ count }) => {
+        const el = document.getElementById("llz-view-count");
+        if (el) el.textContent = `${count} ${label}`;
       })
-      .catch(()=>{});
-    } catch(_){}
+      .catch(() => {});
   })();
 </script>
