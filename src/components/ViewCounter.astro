@@ -1,53 +1,35 @@
 ---
-/**
- * ViewCounter.astro
- * Props:
- *   path?: string   // per-page key; pass Astro.url.pathname for unique counts
- *   label?: string  // default "views"
- */
 const { path = "", label = "views" } = Astro.props;
-
-// unique id so multiple counters on one page won't clash
 const elId = "llz-view-" + Math.random().toString(36).slice(2, 8);
 ---
 <span id={elId} aria-live="polite">—</span>
 
 <script is:inline>
   (() => {
+    // keep leading slash, KEEP trailing slash if present
     const normalize = (p) => {
-      try {
-        return new URL("https://x" + (p.startsWith("/") ? p : "/" + p))
-          .pathname.replace(/\/+$/,"") || "/";
-      } catch { return "/"; }
+      if (!p) return "/";
+      return p.startsWith("/") ? p : ("/" + p);
     };
 
     const elId = ${JSON.stringify(elId)};
     const serverPath = ${JSON.stringify(path)};
     const label = ${JSON.stringify(label)};
-
-    // prefer server-provided path; fall back to current location
     const p = normalize(serverPath || location.pathname);
 
-    // 1) increment (fire-and-forget) via Worker custom domain
-    try {
-      fetch(`https://v.lifeloggerz.com/v?p=${encodeURIComponent(p)}`, {
-        mode: "no-cors",
-        keepalive: true
-      });
-    } catch (_) {}
+    console.debug("[ViewCounter] key =", p); // <-- temp log
 
-    // 2) read & render from Worker custom domain
-    fetch(`https://v.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, {
-      cache: "no-store"
-    })
+    // write beacon (image beacon to bypass some inline/CSP blockers)
+    const img = new Image();
+    img.src = `https://v.lifeloggerz.com/v?p=${encodeURIComponent(p)}`;
+
+    // read & render
+    fetch(`https://v.lifeloggerz.com/count/views?p=${encodeURIComponent(p)}`, { cache: "no-store" })
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(({ count }) => {
         const el = document.getElementById(elId);
         if (el) el.textContent = `${count} ${label}`;
       })
-      .catch((e) => {
-        // helpful while wiring up; remove later if you want
-        console.warn("ViewCounter read failed:", e);
-      });
+      .catch(e => console.warn("[ViewCounter] read failed:", e));
   })();
 </script>
