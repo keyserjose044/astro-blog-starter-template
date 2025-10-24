@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import ViewCounter from '../components/ViewCounter.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 
 interface Props {
@@ -201,8 +202,22 @@ const jsonLdString = JSON.stringify({
           margin-inline: auto;
         }
       }
+
+      /* Added for date + view counter */
+      .meta-line {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        color: #6b7280;
+        font-size: 0.95rem;
+      }
+
+      .meta-sep {
+        opacity: 0.6;
+      }
     </style>
   </head>
+
 
   <body>
     <Header />
@@ -225,12 +240,21 @@ const jsonLdString = JSON.stringify({
           <div class="title">
             {(hasPub || hasUpd) && (
               <div class="date">
-                {hasPub && <FormattedDate date={pub!} />}
+                {hasPub && (
+                  <div class="meta-line">
+                    <FormattedDate date={pub!} />
+                    <span class="meta-sep">|</span>
+                    <ViewCounter /> <!-- your live counter -->
+                  </div>
+                )}
                 {hasUpd && (
                   <div class="last-updated-on">
                     Last updated on <FormattedDate date={upd!} />
                   </div>
                 )}
+              </div>
+            )}
+
               </div>
             )}
             <h1>{title}</h1>
