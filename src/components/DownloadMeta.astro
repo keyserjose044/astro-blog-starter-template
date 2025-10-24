@@ -19,11 +19,10 @@ const keyType = (type || inferredType);
 const keySlug = (slug || inferredSlug);
 const counterKey = `${keyType}/${keySlug}`;
 
-// FIRST-PARTY route (no subdomain): /d/<type>/<slug>?to=<final>
-const dlHref = `/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(href)}`;
-const finalUrl = new URL(href, 'https://lifeloggerz.com').toString(); // absolute
+// ✅ Use Worker custom domain (v.lifeloggerz.com) for first-party-like downloads
+// Make the final URL absolute so redirects work from anywhere
+const finalUrl = new URL(href, 'https://lifeloggerz.com').toString();
 const dlHref = `https://v.lifeloggerz.com/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
-
 
 // Unique ids per instance
 const lineId = "dl-meta-" + Math.random().toString(36).slice(2, 8);
