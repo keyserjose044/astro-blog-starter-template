@@ -244,7 +244,7 @@ const jsonLdString = JSON.stringify({
                   <div class="meta-line">
                     <FormattedDate date={pub!} />
                     <span class="meta-sep">|</span>
-                    <ViewCounter /> <!-- your live counter -->
+                    <ViewCounter path={Astro.url.pathname} />
                   </div>
                 )}
                 {hasUpd && (
