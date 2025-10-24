@@ -21,6 +21,9 @@ const counterKey = `${keyType}/${keySlug}`;
 
 // FIRST-PARTY route (no subdomain): /d/<type>/<slug>?to=<final>
 const dlHref = `/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(href)}`;
+const finalUrl = new URL(href, 'https://lifeloggerz.com').toString(); // absolute
+const dlHref = `https://v.lifeloggerz.com/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
+
 
 // Unique ids per instance
 const lineId = "dl-meta-" + Math.random().toString(36).slice(2, 8);
