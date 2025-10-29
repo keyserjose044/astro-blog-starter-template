@@ -1,6 +1,4 @@
-// LifeLoggerz view counter (same-origin, slash-safe)
-// Works with ViewCounter.astro (data-el, data-path, data-label)
-// Optional: add data-write="1" on the <script> to increment; defaults to write.
+// LifeLoggerz view counter (same-origin, filename-agnostic)
 (function () {
   function norm(p) {
     if (!p) return "/";
@@ -8,8 +6,7 @@
     p = p.replace(/\/+$/, "") || "/";
     return p;
   }
-
-  function update(el, label, count) {
+  function setTxt(el, label, count) {
     if (!el) return;
     if (typeof count === "number" && isFinite(count)) {
       el.textContent = `${count.toLocaleString()} ${label || "views"}`;
@@ -18,11 +15,11 @@
     }
   }
 
-  // Find all instances of this loader (supports multiple counters)
-  const scripts = document.querySelectorAll('script[src$="/viewcounter.js"]');
+  // ✅ Do NOT depend on the script src filename; look for our data attrs instead
+  const scripts = Array.from(document.querySelectorAll('script[data-el][data-path]'));
   if (!scripts.length) return;
 
-  // Group by normalized path so we write/read once per unique path
+  // Group by normalized path (dedupe writes/reads)
   const groups = new Map();
   for (const s of scripts) {
     const elId  = s.dataset.el || "";
@@ -30,17 +27,18 @@
     const label = s.dataset.label || "views";
     const raw   = s.dataset.path || (location && location.pathname) || "/";
     const path  = norm(raw);
-    const write = s.dataset.write === "" ? false : (s.dataset.write ? true : true); 
-    // default write=true; set data-write="" to force false, or data-write="1" to force true
+
+    // default write = true unless explicitly empty string
+    const write = s.dataset.write === "" ? false : (s.dataset.write ? true : true);
 
     if (!groups.has(path)) groups.set(path, { els: [], label, write });
     const g = groups.get(path);
     g.els.push(el);
-    g.label = label;               // last label wins for this path (fine for single-page)
-    g.write = g.write || write;    // if any instance wants write, we write once
+    g.label = label;
+    g.write = g.write || write;
   }
 
-  // Write (increment) first
+  // Write first
   for (const [path, g] of groups) {
     if (!g.write) continue;
     fetch(`/v?p=${encodeURIComponent(path)}`, {
@@ -50,14 +48,14 @@
     }).catch(() => {});
   }
 
-  // Then read and render
+  // Then read
   for (const [path, g] of groups) {
     fetch(`/count/views?p=${encodeURIComponent(path)}`, {
       cache: "no-store",
       mode: "cors",
     })
       .then(r => (r.ok ? r.json() : Promise.reject()))
-      .then(({ count }) => g.els.forEach(el => update(el, g.label, count)))
-      .catch(() => g.els.forEach(el => update(el, g.label, null)));
+      .then(({ count }) => g.els.forEach(el => setTxt(el, g.label, count)))
+      .catch(() => g.els.forEach(el => setTxt(el, g.label, null)));
   }
 })();
