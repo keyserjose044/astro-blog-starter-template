@@ -1,23 +1,24 @@
 ---
 interface Props {
-  /** Per-page key; pass Astro.url.pathname for unique counts */
-  path?: string;
-  /** Text to display after the number (default: "views") */
-  label?: string;
+  path?: string;   // defaults to current page
+  label?: string;  // defaults "views"
+  write?: boolean; // default true (index cards can pass false)
 }
+const {
+  path = Astro.url?.pathname ?? "/",
+  label = "views",
+  write = true,
+} = Astro.props as Props;
 
-const { path = "", label = "views" } = Astro.props as Props;
-
-// unique id so multiple counters won't clash on one page
 const elId = "llz-view-" + Math.random().toString(36).slice(2, 8);
 ---
 <span id={elId} aria-live="polite">—</span>
 
-<!-- Uses the static script in /public/viewcounter.js -->
 <script
   src="/viewcounter.js"
   defer
   data-el={elId}
   data-path={path}
-  data-label={label}>
-</script>
+  data-label={label}
+  data-write={write ? "1" : ""}
+/>
