@@ -25,16 +25,15 @@ const templates: Item[] = [
   {
     title: '2026 Raw Data Template (Google Sheets)',
     description: 'My 2026 life-tracking template — cleaner visuals, smarter formulas, and script-ready.',
-    // 🔧 Absolute path so it hits the Worker route at domain root
-    href: `/d/template/2026-raw-data-template?to=${encodeURIComponent(
-      'https://docs.google.com/spreadsheets/d/1bSoK1QHIGkvxMBjmG478fghTF-sZX2KH99Wd-KS7WVI/edit?gid=1660968934#gid=1660968934'
-    )}`,
+    href: 'https://docs.google.com/spreadsheets/d/1bSoK1QHIGkvxMBjmG478fghTF-sZX2KH99Wd-KS7WVI/edit?gid=1660968934#gid=1660968934',
     filetype: 'Google Sheet',
     updated: 'Oct 2025',
     imageSrc: `${base}images/2026cleanrawdatatemplate.png`,
     imageAlt: '2026 Raw Data Template preview',
     imageOrientation: 'landscape',
-    postUrl: `${base}blog/rawdatapost2026/`, // optional
+    postUrl: `${base}blog/rawdatapost2026/`,
+    // 👇 ensures UI reads the same key the Worker writes
+    downloadKey: 'template/2026-raw-data-template',
   },
   {
     title: 'Weekly To-Do List Template',
