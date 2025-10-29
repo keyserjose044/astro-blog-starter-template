@@ -1,29 +1,84 @@
 ---
 interface Props {
-  href: string;      // final file URL (e.g. /templates/file.docx)
-  updated: string;   // e.g. "Oct 2025"
-  text?: string;     // button text (default "Download")
-  type?: string;     // override; else inferred from extension
-  slug?: string;     // override; else inferred from filename (no ext)
+  /** Final destination (the actual file or Google Sheets link) */
+  href: string;
+  updated: string;
+  text?: string;
+
+  /** Preferred: explicit counter key, e.g. "template/2026-raw-data-template" */
+  downloadKey?: string;
+
+  /** Optional fallbacks if you don't provide downloadKey */
+  type?: string;   // e.g. "template" or "pdf"
+  slug?: string;   // e.g. "2026-raw-data-template"
 }
 
-const { href, updated, text = "Download", type, slug } = Astro.props as Props;
-if (!href || !updated) throw new Error("DownloadMeta.astro requires href and updated");
+const {
+  href,
+  updated,
+  text = "Download",
+  downloadKey,
+  type,
+  slug,
+} = Astro.props as Props;
 
-// Infer slug/type from href if not provided
-const fileName = (href.split("/").pop() || "").toLowerCase();
-const inferredSlug = fileName.replace(/\.[^.]+$/, "") || "file";
-const inferredType = (fileName.split(".").pop() || "file").toLowerCase();
+if (!href || !updated) {
+  throw new Error("DownloadMeta.astro requires href and updated");
+}
 
-const keyType = (type || inferredType);
-const keySlug = (slug || inferredSlug);
-const counterKey = `${keyType}/${keySlug}`;
+/** ---------- Helpers ---------- */
+const SITE_ORIGIN = "https://lifeloggerz.com"; // same origin as your Worker routes
 
-// Use Worker custom domain for redirect; make target absolute
-const finalUrl = new URL(href, "https://lifeloggerz.com").toString();
-const dlHref = `https://v.lifeloggerz.com/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
+function toAbsolute(url: string): string {
+  try { return new URL(url, SITE_ORIGIN).toString(); }
+  catch { return SITE_ORIGIN; }
+}
 
-// Unique id for the counter span
+/** Try to parse a /d/<type>/<slug> style href and return "type/slug" */
+function parseCounterKeyFromDHref(url: string): string | null {
+  try {
+    const u = new URL(url, SITE_ORIGIN);
+    const m = u.pathname.match(/^\/d\/([^/]+)\/(.+)$/);
+    if (!m) return null;
+    return `${m[1]}/${decodeURIComponent(m[2])}`;
+  } catch { return null; }
+}
+
+/** Fallback inference from props or filename */
+function deriveKeyFromPropsOrFilename(url: string): string {
+  if (type && slug) return `${type}/${slug}`;
+
+  // last segment (no query/hash)
+  const u = new URL(url, SITE_ORIGIN);
+  const last = (u.pathname.split("/").pop() || "").toLowerCase();
+
+  // slug = filename without extension
+  const inferredSlug = last.replace(/\.[^.]+$/, "") || "file";
+  // type = extension or "file"
+  const inferredType = (last.split(".").pop() || "file").toLowerCase();
+
+  return `${inferredType}/${inferredSlug}`;
+}
+
+/** ---------- Build counter key ---------- */
+const counterKey =
+  downloadKey ||
+  parseCounterKeyFromDHref(href) ||
+  deriveKeyFromPropsOrFilename(href);
+
+/** ---------- Build redirect URL through Worker ---------- */
+const finalUrl = toAbsolute(href); // where user ultimately lands
+const [keyType, keySlug] = counterKey.split("/", 2);
+const dlHref = `/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
+
+/** ---------- Count endpoint for the UI ---------- */
+const countUrl = `/count/downloads?key=${encodeURIComponent(counterKey)}`;
+
+/** Only add the download attribute for same-origin direct files */
+const isSameOrigin = finalUrl.startsWith(SITE_ORIGIN);
+const looksLikeFile =
+  /\.(pdf|docx?|xlsx?|pptx?|zip|png|jpe?g|gif|csv|txt|mp3|mp4|webm|wav)$/i.test(finalUrl);
+const addDownloadAttr = isSameOrigin && looksLikeFile;
 const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
 ---
 
@@ -32,17 +87,20 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
   <span class="meta-sep"> | </span>
   <span id={countId}>— Downloads</span>
 
-  <!-- Fetch count using external script (CSP-safe) -->
+  <!-- Fetch count -->
   <script
     src="/downloadcount.js"
     defer
     data-el={countId}
     data-key={counterKey}
+    data-url={countUrl}
   ></script>
 </div>
 
 <div class="actions">
-  <a class="btn" href={dlHref} download>{text}</a>
+  <a class="btn" href={dlHref} {...(addDownloadAttr ? { download: "" } : {})}>
+    {text}
+  </a>
 </div>
 
 <style>
