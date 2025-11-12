@@ -26,7 +26,8 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
 >
   <!-- HERO renders ABOVE the date/title -->
   <div slot="hero" class="about-hero">
-    <div class="about-image-wrapper">
+    <!-- Force animations ON for this page only -->
+    <div class="about-image-wrapper" data-animate="on">
       <img
         src={HERO1}
         alt="Family photo with kid drawing at the table"
@@ -130,14 +131,25 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
       transition: opacity 1s ease-in-out;
       will-change: opacity;
     }
-    /* Make sure the first image is visible even if animations are disabled */
-    .image1 { opacity: 1; animation: fadeA 4s infinite; }
-    .image2 { opacity: 0; animation: fadeB 4s infinite; }
-
+    
+    /* Baseline: first image visible, second hidden (works even if animations are off) */
+    .image1 { opacity: 1; }
+    .image2 { opacity: 0; }
+    
+    /* Animate only when the user has NOT requested reduced motion */
+    @media (prefers-reduced-motion: no-preference) {
+      .image1 { animation: fadeA 4s infinite; }
+      .image2 { animation: fadeB 4s infinite; }
+    }
+    
+    /* Page-level override: force animations ON for this page only */
+    .about-image-wrapper[data-animate="on"] .image1 { animation: fadeA 4s infinite !important; }
+    .about-image-wrapper[data-animate="on"] .image2 { animation: fadeB 4s infinite !important; }
+    
     @keyframes fadeA { 0%,45%{opacity:1} 50%,95%{opacity:0} 100%{opacity:1} }
     @keyframes fadeB { 0%,45%{opacity:0} 50%,95%{opacity:1} 100%{opacity:0} }
-
-    /* Fallback when no animation */
+    
+    /* Fallback when JS/CSS disables animations globally */
     .about-image-fallback {
       width: min(1100px, 92vw);
       height: auto;
