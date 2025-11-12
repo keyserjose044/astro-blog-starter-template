@@ -16,10 +16,36 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   title="About Me"
   description="Civil engineering PhD, systems builder, and data-driven life logger."
   pubDate="2025-10-14"
-  heroImage="/images/about-lifeloggerz.png"
   wide
   showViews={false}
 >
+  <!-- Animated cross-fade hero -->
+  <div class="about-hero">
+    <div class="about-image-wrapper">
+      <img
+        src="/images/about-lifeloggerz.png"
+        alt="Family photo with kid drawing at the table"
+        class="about-image image1"
+        loading="eager"
+        decoding="async"
+      />
+      <img
+        src="/images/about-lifeloggerz-trace.png"
+        alt="Highlighted trace of the kid drawing in the family photo"
+        class="about-image image2"
+        loading="eager"
+        decoding="async"
+      />
+    </div>
+    <noscript>
+      <img
+        src="/images/about-lifeloggerz.png"
+        alt="Family photo with kid drawing at the table"
+        class="about-image-fallback"
+      />
+    </noscript>
+  </div>
+
   <div class="about">
     <p>
       Welcome! I’m <strong>José</strong> — the kid sitting down with pen and paper in the photo above. I'm an engineering grad student and the guy behind
@@ -82,23 +108,71 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   </div>
 
   <style is:global>
+    .about-hero {
+      display: grid;
+      place-items: center;
+      margin: 1.25rem auto 1.5rem;
+    }
+    .about-image-wrapper {
+      position: relative;
+      width: min(1100px, 92vw);
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      background: #f6f7fb;
+    }
+    .about-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 1s ease-in-out;
+      will-change: opacity;
+    }
+    /* 4s loop: ~2s each image visible */
+    .image1 { animation: fadeA 4s infinite; }
+    .image2 { animation: fadeB 4s infinite; }
+
+    @keyframes fadeA {
+      0%, 45%   { opacity: 1; }
+      50%, 95%  { opacity: 0; }
+      100%      { opacity: 1; }
+    }
+    @keyframes fadeB {
+      0%, 45%   { opacity: 0; }
+      50%, 95%  { opacity: 1; }
+      100%      { opacity: 0; }
+    }
+
+    /* Fallback image when JS/CSS is disabled */
+    .about-image-fallback {
+      width: min(1100px, 92vw);
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+    }
+
+    /* Respect user preference to reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      .image1, .image2 { animation: none; }
+      .image2 { display: none; }
+    }
+
     .about h2 {
       text-align: center;
       margin-top: 2.5rem;
       margin-bottom: 1rem;
     }
-
     .centered-list {
       list-style-position: inside;
       text-align: center;
       padding: 0;
       margin: 1.5rem 0;
     }
-
-    .centered-list li {
-      margin: 0.5rem 0;
-    }
-
+    .centered-list li { margin: 0.5rem 0; }
     .centered-email {
       text-align: center;
       line-height: 1.6;
