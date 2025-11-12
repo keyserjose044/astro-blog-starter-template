@@ -5,12 +5,20 @@ import { SITE_TITLE } from '../consts';
 const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const link = (p: string = '') => `${base}${p}`;
+
+// base-aware path so it works on subpaths too
+const iconSrc = `${base}favicon.svg`;
 ---
 
 <header class="site-header">
   <!-- ===== DESKTOP NAV ===== -->
   <nav class="desktop-nav">
-    <h2><a href={base}>{SITE_TITLE}</a></h2>
+    <h2>
+      <a href={base} class="brand-link">
+        <span class="site-title">{SITE_TITLE}</span>
+        <img class="brandmark" src={iconSrc} width="20" height="20" alt="" aria-hidden="true" />
+      </a>
+    </h2>
 
     <div class="internal-links" id="desktop-links">
       <HeaderLink href={link('')} exact>Home</HeaderLink>
@@ -55,7 +63,12 @@ const link = (p: string = '') => `${base}${p}`;
 
   <!-- ===== MOBILE NAV ===== -->
   <nav class="mobile-nav">
-    <h2 class="brand"><a href={base}>{SITE_TITLE}</a></h2>
+    <h2 class="brand">
+      <a href={base} class="brand-link">
+        <span class="site-title">{SITE_TITLE}</span>
+        <img class="brandmark" src={iconSrc} width="20" height="20" alt="" aria-hidden="true" />
+      </a>
+    </h2>
 
     <details class="nav-toggle">
       <summary aria-label="Open menu">☰</summary>
@@ -122,6 +135,11 @@ const link = (p: string = '') => `${base}${p}`;
   }
   .desktop-nav h2 { margin: 0; font-size: 1em; }
   .desktop-nav h2 a { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
+
+  /* title + favicon inline */
+  .brand-link { display: inline-flex; align-items: center; gap: .4rem; }
+  .brandmark { display: block; width: 20px; height: 20px; }
+  .site-title { line-height: 1; }
 
   .desktop-nav .internal-links {
     display: flex;
