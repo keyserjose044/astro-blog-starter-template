@@ -1,11 +1,6 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
 
-// Base-aware paths so it works on custom domains AND subpaths
-const BASE = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
-const HERO1 = `${BASE}images/about-lifeloggerz.png`;
-const HERO2 = `${BASE}images/about-lifeloggerz-trace.png`;
-
 // Server-side fallback for SEO / no-JS users
 const start = new Date('2023-01-01T00:00:00');
 const now = new Date();
@@ -21,33 +16,10 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   title="About Me"
   description="Civil engineering PhD, systems builder, and data-driven life logger."
   pubDate="2025-10-14"
+  heroImage="/images/about-lifeloggerz-trace.png"
   wide
   showViews={false}
 >
-  <!-- HERO renders ABOVE the date/title -->
-  <div slot="hero" class="about-hero">
-    <!-- Force animations ON for this page only -->
-    <div class="about-image-wrapper" data-animate="on">
-      <img
-        src={HERO1}
-        alt="Family photo with kid drawing at the table"
-        class="about-image image1"
-        loading="eager"
-        decoding="async"
-      />
-      <img
-        src={HERO2}
-        alt="Highlighted trace of the kid drawing in the family photo"
-        class="about-image image2"
-        loading="eager"
-        decoding="async"
-      />
-    </div>
-    <noscript>
-      <img src={HERO1} alt="Family photo with kid drawing at the table" class="about-image-fallback" />
-    </noscript>
-  </div>
-
   <div class="about">
     <p>
       Welcome! I’m <strong>José</strong> — the kid sitting down with pen and paper in the photo above. I'm an engineering grad student and the guy behind
@@ -110,67 +82,27 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   </div>
 
   <style is:global>
-    /* HERO crossfade (image on top; date/title below via layout) */
-    .about-hero { display: grid; place-items: center; }
-    .about-image-wrapper {
-      position: relative;
-      width: min(1100px, 92vw);
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.12);
-      background: #f6f7fb;
-      margin: 0 auto;
-    }
-    .about-image {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: opacity 1s ease-in-out;
-      will-change: opacity;
-    }
-    
-    /* Baseline: first image visible, second hidden (works even if animations are off) */
-    .image1 { opacity: 1; }
-    .image2 { opacity: 0; }
-    
-    /* Animate only when the user has NOT requested reduced motion */
-    @media (prefers-reduced-motion: no-preference) {
-      .image1 { animation: fadeA 4s infinite; }
-      .image2 { animation: fadeB 4s infinite; }
-    }
-    
-    /* Page-level override: force animations ON for this page only */
-    .about-image-wrapper[data-animate="on"] .image1 { animation: fadeA 4s infinite !important; }
-    .about-image-wrapper[data-animate="on"] .image2 { animation: fadeB 4s infinite !important; }
-    
-    @keyframes fadeA { 0%,45%{opacity:1} 50%,95%{opacity:0} 100%{opacity:1} }
-    @keyframes fadeB { 0%,45%{opacity:0} 50%,95%{opacity:1} 100%{opacity:0} }
-    
-    /* Fallback when JS/CSS disables animations globally */
-    .about-image-fallback {
-      width: min(1100px, 92vw);
-      height: auto;
-      display: block;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.12);
-      margin: 0 auto;
+    .about h2 {
+      text-align: center;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
     }
 
-    /* Respect reduced motion: show only first image, static */
-    @media (prefers-reduced-motion: reduce) {
-      .image1, .image2 { animation: none !important; }
-      .image1 { opacity: 1 !important; }
-      .image2 { display: none !important; }
+    .centered-list {
+      list-style-position: inside;
+      text-align: center;
+      padding: 0;
+      margin: 1.5rem 0;
     }
 
-    /* Content styles */
-    .about h2 { text-align: center; margin-top: 2.5rem; margin-bottom: 1rem; }
-    .centered-list { list-style-position: inside; text-align: center; padding: 0; margin: 1.5rem 0; }
-    .centered-list li { margin: .5rem 0; }
-    .centered-email { text-align: center; line-height: 1.6; }
+    .centered-list li {
+      margin: 0.5rem 0;
+    }
+
+    .centered-email {
+      text-align: center;
+      line-height: 1.6;
+    }
   </style>
 
   <script>
