@@ -13,7 +13,7 @@ interface Props {
   heroImage?: string;
   wide?: boolean;
   heroImageStyle?: string;
-  showViews?: boolean; // 👈 NEW
+  showViews?: boolean;
 }
 
 const {
@@ -24,7 +24,7 @@ const {
   heroImage,
   wide = false,
   heroImageStyle,
-  showViews = true // 👈 default ON
+  showViews = true
 } = Astro.props as Props;
 
 // ---------- helpers ----------
@@ -46,7 +46,6 @@ const canonical = new URL(Astro.url.pathname, SITE).toString();
 const abs = (p?: string) => (p ? new URL(p, SITE).toString() : undefined);
 const ogImage = abs(heroImage);
 
-// ---------- JSON-LD safe values ----------
 const publishedISO = hasPub ? pub!.toISOString() : undefined;
 const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
 
@@ -63,6 +62,8 @@ const jsonLdString = JSON.stringify({
   author: { "@type": "Person", name: "LifeLoggerz" },
   publisher: { "@type": "Organization", name: "LifeLoggerz" }
 }).replace(/</g, '\\u003c');
+
+const hasCustomHero = Astro.slots.has('hero');
 ---
 
 <html lang="en">
@@ -221,7 +222,11 @@ const jsonLdString = JSON.stringify({
     <Header />
     <main>
       <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
-        {heroImage && (
+        {Astro.slots.has('hero') ? (
+          <div class="hero-image">
+            <slot name="hero" />
+          </div>
+        ) : heroImage ? (
           <div class="hero-image">
             <img
               src={heroImage}
@@ -232,7 +237,7 @@ const jsonLdString = JSON.stringify({
               onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
             />
           </div>
-        )}
+        ) : null}
 
         <div class="prose">
           <div class="title">
