@@ -19,8 +19,8 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   wide
   showViews={false}
 >
-  <!-- Animated cross-fade hero -->
-  <div class="about-hero">
+  <!-- Named slot renders ABOVE the header -->
+  <div slot="hero" class="about-hero">
     <div class="about-image-wrapper">
       <img
         src="/images/about-lifeloggerz.png"
@@ -108,11 +108,8 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   </div>
 
   <style is:global>
-    .about-hero {
-      display: grid;
-      place-items: center;
-      margin: 1.25rem auto 1.5rem;
-    }
+    /* CROSSFADE HERO */
+    .about-hero { display: grid; place-items: center; }
     .about-image-wrapper {
       position: relative;
       width: min(1100px, 92vw);
@@ -121,6 +118,7 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,.12);
       background: #f6f7fb;
+      margin: 0 auto;
     }
     .about-image {
       position: absolute;
@@ -131,52 +129,34 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
       transition: opacity 1s ease-in-out;
       will-change: opacity;
     }
-    /* 4s loop: ~2s each image visible */
+    /* 4s loop => ~2s each */
     .image1 { animation: fadeA 4s infinite; }
     .image2 { animation: fadeB 4s infinite; }
 
-    @keyframes fadeA {
-      0%, 45%   { opacity: 1; }
-      50%, 95%  { opacity: 0; }
-      100%      { opacity: 1; }
-    }
-    @keyframes fadeB {
-      0%, 45%   { opacity: 0; }
-      50%, 95%  { opacity: 1; }
-      100%      { opacity: 0; }
-    }
+    @keyframes fadeA { 0%,45%{opacity:1} 50%,95%{opacity:0} 100%{opacity:1} }
+    @keyframes fadeB { 0%,45%{opacity:0} 50%,95%{opacity:1} 100%{opacity:0} }
 
-    /* Fallback image when JS/CSS is disabled */
+    /* Fallback when no animation */
     .about-image-fallback {
       width: min(1100px, 92vw);
       height: auto;
       display: block;
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      margin: 0 auto;
     }
 
-    /* Respect user preference to reduce motion */
+    /* Respect user pref */
     @media (prefers-reduced-motion: reduce) {
       .image1, .image2 { animation: none; }
       .image2 { display: none; }
     }
 
-    .about h2 {
-      text-align: center;
-      margin-top: 2.5rem;
-      margin-bottom: 1rem;
-    }
-    .centered-list {
-      list-style-position: inside;
-      text-align: center;
-      padding: 0;
-      margin: 1.5rem 0;
-    }
-    .centered-list li { margin: 0.5rem 0; }
-    .centered-email {
-      text-align: center;
-      line-height: 1.6;
-    }
+    /* CONTENT STYLES */
+    .about h2 { text-align: center; margin-top: 2.5rem; margin-bottom: 1rem; }
+    .centered-list { list-style-position: inside; text-align: center; padding: 0; margin: 1.5rem 0; }
+    .centered-list li { margin: .5rem 0; }
+    .centered-email { text-align: center; line-height: 1.6; }
   </style>
 
   <script>
