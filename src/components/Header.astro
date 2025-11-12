@@ -8,9 +8,10 @@ const link = (p: string = '') => `${base}${p}`;
 ---
 
 <header class="site-header">
-  <!-- ===== DESKTOP NAV (your original) ===== -->
+  <!-- ===== DESKTOP NAV ===== -->
   <nav class="desktop-nav">
     <h2><a href={base}>{SITE_TITLE}</a></h2>
+
     <div class="internal-links" id="desktop-links">
       <HeaderLink href={link('')} exact>Home</HeaderLink>
       <HeaderLink href={link('blog/')}>Blog</HeaderLink>
@@ -23,12 +24,36 @@ const link = (p: string = '') => `${base}${p}`;
       <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
       <HeaderLink href={link('about/')}>About</HeaderLink>
     </div>
-    <div class="contact-button">
-      <a href="mailto:lifeloggerz.official@gmail.com">Contact</a>
+
+    <!-- Socials + Contact -->
+    <div class="right-rail">
+      <a
+        class="social reddit"
+        href="https://www.reddit.com/user/LifeLoggerz/"
+        aria-label="LifeLoggerz on Reddit"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img src="/reddit.svg" width="22" height="22" alt="Reddit" />
+      </a>
+
+      <a
+        class="social youtube"
+        href="https://www.youtube.com/@LifeLoggerz"
+        aria-label="LifeLoggerz on YouTube"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img src="/youtube.svg" width="22" height="22" alt="YouTube" />
+      </a>
+
+      <div class="contact-button">
+        <a href="mailto:lifeloggerz.official@gmail.com">Contact</a>
+      </div>
     </div>
   </nav>
 
-  <!-- ===== MOBILE NAV (separate, dropdown) ===== -->
+  <!-- ===== MOBILE NAV ===== -->
   <nav class="mobile-nav">
     <h2 class="brand"><a href={base}>{SITE_TITLE}</a></h2>
 
@@ -43,12 +68,36 @@ const link = (p: string = '') => `${base}${p}`;
           <HeaderLink href={link('books/')}>Books</HeaderLink>
           <HeaderLink href={link('albums/')}>Albums</HeaderLink>
           <HeaderLink href={link('art/')}>Art</HeaderLink>
-          <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
           <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
+          <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
           <HeaderLink href={link('downloads/')}>Downloads</HeaderLink>
           <HeaderLink href={link('about/')}>About</HeaderLink>
         </div>
-        <a class="contact-btn" href="mailto:smartstuffstays@gmail.com">Contact</a>
+
+        <!-- Socials in mobile menu -->
+        <div class="social-row">
+          <a
+            class="social reddit"
+            href="https://www.reddit.com/user/LifeLoggerz/"
+            aria-label="LifeLoggerz on Reddit"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/reddit.svg" width="22" height="22" alt="Reddit" />
+          </a>
+
+          <a
+            class="social youtube"
+            href="https://www.youtube.com/@LifeLoggerz"
+            aria-label="LifeLoggerz on YouTube"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/youtube.svg" width="22" height="22" alt="YouTube" />
+          </a>
+        </div>
+
+        <a class="contact-btn" href="mailto:lifeloggerz.official@gmail.com">Contact</a>
       </div>
     </details>
   </nav>
@@ -64,7 +113,7 @@ const link = (p: string = '') => `${base}${p}`;
     position: sticky; top: 0; z-index: 50;
   }
 
-  /* ===== DESKTOP styles (exactly like your original) ===== */
+  /* ===== DESKTOP styles ===== */
   .desktop-nav {
     display: flex;
     align-items: center;
@@ -72,24 +121,71 @@ const link = (p: string = '') => `${base}${p}`;
     gap: .5rem;
   }
   .desktop-nav h2 { margin: 0; font-size: 1em; }
-  .desktop-nav h2 a,
-  .desktop-nav h2 a.active { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
-  .desktop-nav .internal-links { display: flex; flex-wrap: nowrap; gap: .25rem; }
+  .desktop-nav h2 a { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
+
+  .desktop-nav .internal-links {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: .25rem;
+  }
   .desktop-nav .internal-links :global(a) {
     padding: 1em .5em;
     color: var(--black, #0e121b);
     border-bottom: 4px solid transparent;
     text-decoration: none;
   }
-  .desktop-nav .internal-links :global(a.active) { border-bottom-color: var(--accent, #405cf5); }
-  .desktop-nav .contact-button a {
-    background: transparent; color: #2563eb; border: 2px solid #2563eb;
-    padding: .5rem 1.1rem; border-radius: 9999px; font-weight: 600; transition: all .25s; text-decoration: none; white-space: nowrap;
+  .desktop-nav .internal-links :global(a.active) {
+    border-bottom-color: var(--accent, #405cf5);
   }
-  .desktop-nav .contact-button a:hover { background:#2563eb; color:#fff; }
 
-  /* ===== MOBILE nav (dropdown) ===== */
-  .mobile-nav { display: none; align-items: center; justify-content: space-between; gap: .5rem; }
+  /* Contact + Social area */
+  .right-rail {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+
+  .contact-button a {
+    background: transparent;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    padding: .5rem 1.1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all .25s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .contact-button a:hover {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    transition: transform .2s ease, opacity .2s ease, background .2s ease;
+    opacity: 0.9;
+  }
+  .social:hover {
+    transform: translateY(-1px);
+    opacity: 1;
+  }
+  .social.reddit:hover { background: rgba(255, 69, 0, 0.1); }
+  .social.youtube:hover { background: rgba(255, 0, 0, 0.1); }
+
+  /* ===== MOBILE styles ===== */
+  .mobile-nav {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    position: relative;
+  }
   .mobile-nav .brand { margin: 0; font-size: 1em; }
   .mobile-nav .brand a { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
 
@@ -108,15 +204,23 @@ const link = (p: string = '') => `${base}${p}`;
   .mobile-nav .nav-toggle > summary::-webkit-details-marker { display: none; }
 
   .mobile-nav .menu-panel {
-    position: absolute; left: 0; right: 0; top: 100%;
-    background: #fff; border-top: 1px solid rgba(0,0,0,.06);
+    position: absolute;
+    left: 0; right: 0; top: 100%;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,.06);
     box-shadow: 0 8px 24px rgba(0,0,0,.06);
-    display: none; flex-direction: column; align-items: stretch; padding: .25rem 0; z-index: 40;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    padding: .25rem 0;
+    z-index: 40;
   }
   .mobile-nav .nav-toggle[open] .menu-panel { display: flex; }
 
   .mobile-nav .internal-links {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
   }
   .mobile-nav .internal-links :global(a) {
     padding: .85rem 1rem;
@@ -124,16 +228,34 @@ const link = (p: string = '') => `${base}${p}`;
     color: var(--black, #0e121b);
     text-decoration: none;
   }
-  .mobile-nav .contact-btn {
-    margin: .35rem 1rem .6rem; text-align: center;
-    background: transparent; color: #2563eb; border: 2px solid #2563eb;
-    padding: .5rem 1.1rem; border-radius: 9999px; font-weight: 600; transition: all .25s; text-decoration: none; white-space: nowrap;
+
+  .mobile-nav .social-row {
+    display: flex;
+    gap: .6rem;
+    padding: .5rem 1rem .25rem;
   }
-  .mobile-nav .contact-btn:hover { background:#2563eb; color:#fff; }
+
+  .mobile-nav .contact-btn {
+    margin: .35rem 1rem .6rem;
+    text-align: center;
+    background: transparent;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    padding: .5rem 1.1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all .25s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .mobile-nav .contact-btn:hover {
+    background: #2563eb;
+    color: #fff;
+  }
 
   /* ===== RESPONSIVE SWITCH ===== */
   @media (max-width: 900px) {
     .desktop-nav { display: none; }
-    .mobile-nav { display: flex; position: relative; }
+    .mobile-nav { display: flex; }
   }
 </style>
