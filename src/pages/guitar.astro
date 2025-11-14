@@ -86,30 +86,6 @@ const guitar = await fetchAllRaindrops();
       opacity: 0.9;
     }
 
-    /* Mute button */
-    .mute-toggle {
-      position: absolute;
-      right: 16px;
-      bottom: 16px;
-      border: none;
-      border-radius: 999px;
-      padding: 8px 10px;
-      background: rgba(0,0,0,0.55);
-      color: #fff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      line-height: 1;
-      backdrop-filter: blur(4px);
-      transition: background 0.15s ease, transform 0.1s ease;
-    }
-    .mute-toggle:hover {
-      background: rgba(0,0,0,0.8);
-      transform: translateY(-1px);
-    }
-
     .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
     .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
 
@@ -151,22 +127,13 @@ const guitar = await fetchAllRaindrops();
 
   <!-- HERO VIDEO SECTION -->
   <div class="hero-video">
-    <video id="heroVideo" autoplay muted loop playsinline>
+    <video autoplay muted loop playsinline>
       <source src="/videos/guitar.mp4" type="video/mp4" />
     </video>
     <div class="hero-overlay">
       <h1>🎸 Guitar</h1>
       <p>Licks, lessons, gear & inspiration — collected over time.</p>
     </div>
-    <button
-      class="mute-toggle"
-      type="button"
-      aria-label="Toggle sound"
-      aria-pressed="false"
-      id="muteToggle"
-    >
-      🔇
-    </button>
   </div>
 
   <main class="wrap wrap--wide">
@@ -240,12 +207,14 @@ const guitar = await fetchAllRaindrops();
       }
 
       grid.addEventListener('mouseenter', e=>{
-        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
+        const b = e.target.closest('.card')?.querySelector('.note-bubble');
+        if (!b) return;
         requestAnimationFrame(()=>adjust(b));
       }, true);
 
       grid.addEventListener('focusin', e=>{
-        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
+        const b = e.target.closest('.card')?.querySelector('.note-bubble');
+        if (!b) return;
         requestAnimationFrame(()=>adjust(b));
       });
 
@@ -255,33 +224,13 @@ const guitar = await fetchAllRaindrops();
         const card = e.target.closest('.card');
         if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
         if (!card.querySelector('.note-bubble')) return;
-        if (card.classList.contains('show-note')) return; // allow navigation
+        if (card.classList.contains('show-note')) return;
         e.preventDefault();
         cards.forEach(c=>c.classList.remove('show-note'));
         card.classList.add('show-note');
         requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
         setTimeout(()=>card.classList.remove('show-note'), 2500);
       }, true);
-
-      // Mute / unmute logic for hero video
-      const video = $('#heroVideo');
-      const btn = $('#muteToggle');
-      if (video && btn) {
-        btn.addEventListener('click', () => {
-          const willUnmute = video.muted;      // if currently muted, we are about to unmute
-          video.muted = !willUnmute;
-          btn.textContent = willUnmute ? '🔊' : '🔇';
-          btn.setAttribute('aria-pressed', willUnmute ? 'true' : 'false');
-
-          // Ensure playback continues after unmuting (especially on mobile)
-          if (willUnmute) {
-            const playPromise = video.play();
-            if (playPromise && playPromise.catch) {
-              playPromise.catch(() => {/* ignore */});
-            }
-          }
-        });
-      }
     })();
   </script>
 
