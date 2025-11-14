@@ -86,6 +86,36 @@ const guitar = await fetchAllRaindrops();
       opacity: 0.9;
     }
 
+    /* HERO VIDEO AUDIO TOGGLE */
+    .hero-audio-toggle {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.6);
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #fff;
+      font-size: 1.2rem;
+      z-index: 5;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+      transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+    }
+    .hero-audio-toggle:hover {
+      transform: translateY(-1px);
+      background: rgba(0,0,0,0.75);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+    }
+    .hero-audio-toggle span {
+      pointer-events: none;
+    }
+
     .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
     .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
 
@@ -127,13 +157,30 @@ const guitar = await fetchAllRaindrops();
 
   <!-- HERO VIDEO SECTION -->
   <div class="hero-video">
-    <video autoplay muted loop playsinline>
+    <video
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+    >
       <source src="/videos/guitar.mp4" type="video/mp4" />
     </video>
+
     <div class="hero-overlay">
       <h1>🎸 Guitar</h1>
       <p>Licks, lessons, gear & inspiration — collected over time.</p>
     </div>
+
+    <!-- MUTE / UNMUTE BUTTON -->
+    <button
+      class="hero-audio-toggle"
+      type="button"
+      aria-label="Unmute video"
+      data-muted="true"
+    >
+      <span>🔇</span>
+    </button>
   </div>
 
   <main class="wrap wrap--wide">
@@ -172,6 +219,50 @@ const guitar = await fetchAllRaindrops();
     (function(){
       const $ = (sel,root=document)=>root.querySelector(sel);
       const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+
+      /* HERO VIDEO AUDIO LOGIC */
+      const heroVideo  = $('.hero-video video');
+      const audioBtn   = $('.hero-audio-toggle');
+
+      if (heroVideo) {
+        const tryPlay = () => {
+          const p = heroVideo.play();
+          if (p && typeof p.catch === 'function') {
+            p.catch(() => {
+              // If autoplay is blocked, we'll just rely on the user clicking the button.
+            });
+          }
+        };
+
+        if (heroVideo.readyState >= 2) {
+          tryPlay();
+        } else {
+          heroVideo.addEventListener('canplay', tryPlay, { once: true });
+        }
+
+        if (audioBtn) {
+          const updateButton = () => {
+            const isMuted = heroVideo.muted;
+            audioBtn.dataset.muted = String(isMuted);
+            audioBtn.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+            const span = audioBtn.querySelector('span');
+            if (span) span.textContent = isMuted ? '🔇' : '🔊';
+          };
+
+          audioBtn.addEventListener('click', () => {
+            heroVideo.muted = !heroVideo.muted;
+            // If autoplay was blocked earlier, ensure playback starts now
+            if (heroVideo.paused) {
+              const p = heroVideo.play();
+              if (p && typeof p.catch === 'function') p.catch(()=>{});
+            }
+            updateButton();
+          });
+
+          // Initial state
+          updateButton();
+        }
+      }
 
       const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
       const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
