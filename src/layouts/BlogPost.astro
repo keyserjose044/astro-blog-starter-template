@@ -14,7 +14,7 @@ interface Props {
   wide?: boolean;
   heroImageStyle?: string;
   showViews?: boolean;
-  heroVideo?: string; // NEW: optional hero video
+  heroVideo?: string; // optional hero video
 }
 
 const {
@@ -162,6 +162,51 @@ const hasCustomHero = Astro.slots.has('hero');
         }
       }
 
+      /* hero video + audio toggle */
+      .hero-image.hero-video-wrap {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-video {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero-audio-toggle {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.6);
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #fff;
+        font-size: 1.2rem;
+        z-index: 5;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        backdrop-filter: blur(6px);
+        transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+      }
+
+      .hero-audio-toggle:hover {
+        transform: translateY(-1px);
+        background: rgba(0,0,0,0.75);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+      }
+
+      .hero-audio-toggle span {
+        pointer-events: none;
+      }
+
       .prose {
         max-width: var(--prose-max);
         margin: 0 auto;
@@ -231,16 +276,27 @@ const hasCustomHero = Astro.slots.has('hero');
             <slot name="hero" />
           </div>
         ) : heroVideo ? (
-          <div class="hero-image">
+          <div class="hero-image hero-video-wrap">
             <video
+              class="hero-video"
               autoplay
               muted
               loop
               playsinline
               preload="auto"
+              data-hero-video
             >
               <source src={heroVideo} type="video/mp4" />
             </video>
+
+            <button
+              class="hero-audio-toggle"
+              type="button"
+              aria-label="Unmute video"
+              data-muted="true"
+            >
+              <span>🔇</span>
+            </button>
           </div>
         ) : heroImage ? (
           <div class="hero-image">
@@ -285,5 +341,39 @@ const hasCustomHero = Astro.slots.has('hero');
       </article>
     </main>
     <Footer />
+
+    <script is:inline>
+      (function () {
+        const wrap = document.querySelector('.hero-video-wrap');
+        if (!wrap) return;
+
+        const video = wrap.querySelector('[data-hero-video]');
+        const btn   = wrap.querySelector('.hero-audio-toggle');
+        if (!video || !btn) return;
+
+        function updateButton() {
+          const isMuted = video.muted;
+          btn.dataset.muted = String(isMuted);
+          btn.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+          const span = btn.querySelector('span');
+          if (span) span.textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        btn.addEventListener('click', () => {
+          video.muted = !video.muted;
+
+          // if autoplay was blocked or user paused, ensure playback resumes
+          if (video.paused) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          }
+
+          updateButton();
+        });
+
+        // initial state: muted
+        updateButton();
+      })();
+    </script>
   </body>
 </html>
