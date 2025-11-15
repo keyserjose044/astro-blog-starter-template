@@ -7,10 +7,11 @@ const blog = defineCollection({
   type: "content",
   schema: z.object({
     title: z.string(),
-    description: z.string(),
+    description: z.string(),              // you can make this .optional() later if you like
     pubDate: z.preprocess(toDate, z.date()),
     updatedDate: z.preprocess(toDate, z.date().optional()),
     heroImage: z.string().optional(),
+    heroVideo: z.string().optional(),     // ⬅️ NEW FIELD
     draft: z.boolean().optional().default(false),
   }),
 });
