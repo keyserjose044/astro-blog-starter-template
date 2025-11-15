@@ -23,7 +23,7 @@ const posts = rawPosts
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={SITE_TITLE} /> {/* ⟵ remove “— Blog” */}
+    <BaseHead title={SITE_TITLE} />
   </head>
   <body>
     <Header />
@@ -54,6 +54,16 @@ const posts = rawPosts
                 <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
                   {post.data.heroImage ? (
                     <img src={post.data.heroImage} alt="" loading="lazy" />
+                  ) : post.data.heroVideo ? (
+                    <video
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      preload="auto"
+                    >
+                      <source src={post.data.heroVideo} type="video/mp4" />
+                    </video>
                   ) : null}
                   <h3>{post.data.title}</h3>
                   {post._pub ? (
@@ -96,7 +106,8 @@ const posts = rawPosts
     background: #fff;
     box-shadow: 0 8px 24px rgba(0,0,0,.08);
   }
-  .card img {
+  .card img,
+  .card video {
     width: 100%;
     height: 180px;
     object-fit: cover;
