@@ -134,13 +134,19 @@ const projects = [
         High-level stats pulled from my tracking sheets and logs. Not exhaustive
         — just a glimpse.
       </p>
-      <div class="grid">
+      <div class="grid grid--stats">
         {stats.map((item) => (
           <article class="card card--stat">
-            <div class="icon-bubble">{item.icon}</div>
-            <div class="stat-label">{item.label}</div>
-            <div class="stat-value">{item.value}</div>
-            {item.note && <p class="muted">{item.note}</p>}
+            <div class="card-inner">
+              <div class="icon-bubble">{item.icon}</div>
+              <div class="card-text">
+                <div class="stat-top-row">
+                  <div class="stat-label">{item.label}</div>
+                  <div class="stat-value">{item.value}</div>
+                </div>
+                {item.note && <p class="muted">{item.note}</p>}
+              </div>
+            </div>
           </article>
         ))}
       </div>
@@ -152,13 +158,17 @@ const projects = [
         A lot of my productivity comes from what I <strong>don’t</strong> do.
         These constraints protect my time, focus, and identity.
       </p>
-      <div class="grid">
+      <div class="grid grid--prohibitions">
         {prohibitions.map((item) => (
           <article class="card card--prohibition">
-            <div class="icon-bubble">{item.icon}</div>
-            <h3>{item.title}</h3>
-            <p class="subtitle">{item.subtitle}</p>
-            <p class="muted">{item.description}</p>
+            <div class="card-inner">
+              <div class="icon-bubble">{item.icon}</div>
+              <div class="card-text">
+                <h3>{item.title}</h3>
+                <p class="subtitle">{item.subtitle}</p>
+                <p class="muted">{item.description}</p>
+              </div>
+            </div>
           </article>
         ))}
       </div>
@@ -174,7 +184,7 @@ const projects = [
         What I’m actively building or practicing outside of classes and lab
         work. Themes stay similar: systems, learning, and craft.
       </p>
-      <div class="grid">
+      <div class="grid grid--projects">
         {projects.map((p) => (
           <article class="card card--project">
             <div class="project-header">
@@ -193,6 +203,7 @@ const projects = [
     .stats-page {
       max-width: 960px;
       margin: 0 auto;
+      padding-inline: 1rem;
     }
 
     .stats-page .intro {
@@ -220,22 +231,30 @@ const projects = [
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.5rem;
+    }
+
+    .grid--stats,
+    .grid--prohibitions {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .grid--projects {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
     .card {
       background: #ffffff;
       border-radius: 18px;
       border: 1px solid #e5e7eb;
-      padding: 18px 16px 16px;
+      padding: 16px 16px 14px;
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
     }
 
-    .card--stat,
-    .card--prohibition {
-      text-align: center;
+    .card-inner {
       display: flex;
+      align-items: flex-start;
+      gap: 1rem;
     }
 
     .icon-bubble {
@@ -246,9 +265,22 @@ const projects = [
       align-items: center;
       justify-content: center;
       font-size: 1.8rem;
-      margin: 0 auto 0.35rem;   /* ⬅ center horizontally */
       background: #0f172a;
       color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .card-text {
+      flex: 1;
+      text-align: left;
+    }
+
+    .stat-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .stat-label {
@@ -256,26 +288,27 @@ const projects = [
       font-size: 0.95rem;
     }
 
-    .card--prohibition h3 {
-      margin: 0.25rem 0 0.1rem;
-      font-size: 0.95rem;   /* same as .stat-label */
-      font-weight: 600;
-    }
-
     .stat-value {
       font-size: 1.2rem;
       font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .card--prohibition h3 {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 700;
     }
 
     .subtitle {
       font-size: 0.9rem;
       color: #6b7280;
       font-weight: 500;
-      margin: 0;
+      margin: 0.15rem 0 0;
     }
 
     .muted {
-      margin-top: 0.4rem;
+      margin-top: 0.35rem;
       font-size: 0.9rem;
       color: #4b5563;
     }
@@ -319,6 +352,25 @@ const projects = [
     @media (max-width: 640px) {
       .section {
         margin-top: 2.25rem;
+      }
+
+      .grid--stats,
+      .grid--prohibitions,
+      .grid--projects {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        border-radius: 20px;
+      }
+
+      .stat-top-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .stat-value {
+        margin-top: 0.1rem;
       }
     }
   </style>
