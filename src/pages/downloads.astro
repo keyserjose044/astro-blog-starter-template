@@ -137,16 +137,10 @@ const projects = [
       <div class="grid grid--stats">
         {stats.map((item) => (
           <article class="card card--stat">
-            <div class="card-inner">
-              <div class="icon-bubble">{item.icon}</div>
-              <div class="card-text">
-                <div class="stat-top-row">
-                  <div class="stat-label">{item.label}</div>
-                  <div class="stat-value">{item.value}</div>
-                </div>
-                {item.note && <p class="muted">{item.note}</p>}
-              </div>
-            </div>
+            <div class="icon-bubble">{item.icon}</div>
+            <div class="stat-label">{item.label}</div>
+            <div class="stat-value">{item.value}</div>
+            {item.note && <p class="muted">{item.note}</p>}
           </article>
         ))}
       </div>
@@ -161,14 +155,10 @@ const projects = [
       <div class="grid grid--prohibitions">
         {prohibitions.map((item) => (
           <article class="card card--prohibition">
-            <div class="card-inner">
-              <div class="icon-bubble">{item.icon}</div>
-              <div class="card-text">
-                <h3>{item.title}</h3>
-                <p class="subtitle">{item.subtitle}</p>
-                <p class="muted">{item.description}</p>
-              </div>
-            </div>
+            <div class="icon-bubble">{item.icon}</div>
+            <h3>{item.title}</h3>
+            <p class="subtitle">{item.subtitle}</p>
+            <p class="muted">{item.description}</p>
           </article>
         ))}
       </div>
@@ -235,10 +225,7 @@ const projects = [
     }
 
     .grid--stats,
-    .grid--prohibitions {
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
-
+    .grid--prohibitions,
     .grid--projects {
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
@@ -247,14 +234,12 @@ const projects = [
       background: #ffffff;
       border-radius: 18px;
       border: 1px solid #e5e7eb;
-      padding: 16px 16px 14px;
+      padding: 18px 16px 16px;
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
-    }
-
-    .card-inner {
       display: flex;
-      align-items: flex-start;
-      gap: 1rem;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
 
     .icon-bubble {
@@ -265,22 +250,10 @@ const projects = [
       align-items: center;
       justify-content: center;
       font-size: 1.8rem;
+      margin-bottom: 0.5rem;
       background: #0f172a;
       color: #ffffff;
       flex-shrink: 0;
-    }
-
-    .card-text {
-      flex: 1;
-      text-align: left;
-    }
-
-    .stat-top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 0.5rem;
-      flex-wrap: wrap;
     }
 
     .stat-label {
@@ -291,24 +264,24 @@ const projects = [
     .stat-value {
       font-size: 1.2rem;
       font-weight: 800;
-      white-space: nowrap;
+      margin-top: 0.1rem;
     }
 
     .card--prohibition h3 {
-      margin: 0;
-      font-size: 0.98rem;
-      font-weight: 700;
+      margin: 0.3rem 0 0.1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
     }
 
     .subtitle {
       font-size: 0.9rem;
       color: #6b7280;
       font-weight: 500;
-      margin: 0.15rem 0 0;
+      margin: 0;
     }
 
     .muted {
-      margin-top: 0.35rem;
+      margin-top: 0.4rem;
       font-size: 0.9rem;
       color: #4b5563;
     }
@@ -337,6 +310,7 @@ const projects = [
     .project-header {
       display: flex;
       justify-content: flex-end;
+      width: 100%;
     }
 
     .status-badge {
@@ -362,15 +336,6 @@ const projects = [
 
       .card {
         border-radius: 20px;
-      }
-
-      .stat-top-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .stat-value {
-        margin-top: 0.1rem;
       }
     }
   </style>
