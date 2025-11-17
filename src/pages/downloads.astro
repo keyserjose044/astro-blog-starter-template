@@ -193,7 +193,7 @@ const projects = [
     .stats-page {
       max-width: 960px;
       margin: 0 auto;
-      padding-inline: 1rem;
+      padding: 0 1.5rem 2.5rem; /* extra side padding so cards don’t hug edges */
     }
 
     .stats-page .intro {
@@ -222,6 +222,7 @@ const projects = [
     .grid {
       display: grid;
       gap: 1.5rem;
+      justify-items: center; /* center cards in their grid cells */
     }
 
     .grid--stats,
@@ -240,6 +241,10 @@ const projects = [
       flex-direction: column;
       align-items: center;
       text-align: center;
+
+      width: 100%;
+      max-width: 520px;      /* keeps bubbles narrower than viewport */
+      margin-inline: auto;   /* centers the card itself */
     }
 
     .icon-bubble {
@@ -326,6 +331,10 @@ const projects = [
     @media (max-width: 640px) {
       .section {
         margin-top: 2.25rem;
+      }
+
+      .stats-page {
+        padding-inline: 1.25rem; /* comfortable but not cramped on phones */
       }
 
       .grid--stats,
