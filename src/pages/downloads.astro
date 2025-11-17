@@ -1,29 +1,7 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
 
-type StatCard = {
-  icon: string;
-  label: string;
-  value: string;
-  note?: string;
-};
-
-type Prohibition = {
-  icon: string;
-  title: string;
-  subtitle: string;
-  description: string;
-};
-
-type Project = {
-  title: string;
-  blurb: string;
-  status: 'WIP' | 'Shipped' | 'Archived';
-  tags: string[];
-};
-
-// Edit these as your life / numbers change.
-const stats: StatCard[] = [
+const stats = [
   {
     icon: '📚',
     label: 'Books Finished',
@@ -62,7 +40,7 @@ const stats: StatCard[] = [
   }
 ];
 
-const prohibitions: Prohibition[] = [
+const prohibitions = [
   {
     icon: '🚫',
     title: 'No Alcohol',
@@ -107,8 +85,7 @@ const prohibitions: Prohibition[] = [
   }
 ];
 
-// Light “projects / hobbies” snapshot (not templates/downloads).
-const projects: Project[] = [
+const projects = [
   {
     title: 'LifeLoggerz Blog & Systems',
     blurb: 'Documenting the Google Sheets + Python ecosystem that runs my life.',
@@ -151,39 +128,37 @@ const projects: Project[] = [
       building.
     </p>
 
-    <!-- Snapshot Stats -->
     <section class="section" aria-labelledby="snapshot-heading">
       <h2 id="snapshot-heading">📊 Snapshot Stats</h2>
       <p class="section-hint">
         High-level stats pulled from my tracking sheets and logs. Not exhaustive
         — just a glimpse.
       </p>
-      <div class="grid stats-grid">
+      <div class="grid">
         {stats.map((item) => (
-          <article class="stat-card">
-            <div class="stat-icon" aria-hidden="true">{item.icon}</div>
+          <article class="card card--stat">
+            <div class="icon-bubble">{item.icon}</div>
             <div class="stat-label">{item.label}</div>
             <div class="stat-value">{item.value}</div>
-            {item.note && <p class="stat-note">{item.note}</p>}
+            {item.note && <p class="muted">{item.note}</p>}
           </article>
         ))}
       </div>
     </section>
 
-    <!-- Prohibitions -->
     <section class="section" aria-labelledby="prohibitions-heading">
       <h2 id="prohibitions-heading">🚫 Prohibitions</h2>
       <p class="section-hint">
         A lot of my productivity comes from what I <strong>don’t</strong> do.
         These constraints protect my time, focus, and identity.
       </p>
-      <div class="grid prohibitions-grid" aria-label="List of prohibitions">
+      <div class="grid">
         {prohibitions.map((item) => (
-          <article class="prohibition-card">
-            <div class="prohibition-icon" aria-hidden="true">{item.icon}</div>
+          <article class="card card--prohibition">
+            <div class="icon-bubble">{item.icon}</div>
             <h3>{item.title}</h3>
             <p class="subtitle">{item.subtitle}</p>
-            <p class="description">{item.description}</p>
+            <p class="muted">{item.description}</p>
           </article>
         ))}
       </div>
@@ -193,25 +168,21 @@ const projects: Project[] = [
       </p>
     </section>
 
-    <!-- Projects & Hobbies -->
     <section class="section" aria-labelledby="projects-heading">
       <h2 id="projects-heading">🧪 Current Projects & Hobbies</h2>
       <p class="section-hint">
         What I’m actively building or practicing outside of classes and lab
-        work. These shift over time, but the themes stay similar: systems,
-        learning, and craft.
+        work. Themes stay similar: systems, learning, and craft.
       </p>
-      <div class="grid projects-grid">
+      <div class="grid">
         {projects.map((p) => (
-          <article class="project-card">
+          <article class="card card--project">
             <div class="project-header">
               <span class="status-badge">{p.status}</span>
             </div>
             <h3>{p.title}</h3>
-            <p class="description">{p.blurb}</p>
-            {p.tags?.length ? (
-              <p class="tags">#{p.tags.join('  #')}</p>
-            ) : null}
+            <p class="muted">{p.blurb}</p>
+            {p.tags?.length && <p class="tags">#{p.tags.join('  #')}</p>}
           </article>
         ))}
       </div>
@@ -230,11 +201,11 @@ const projects: Project[] = [
       color: #4b5563;
     }
 
-    .stats-page .section {
+    .section {
       margin-top: 3rem;
     }
 
-    .stats-page h2 {
+    .section h2 {
       text-align: center;
       margin-bottom: 0.5rem;
     }
@@ -253,29 +224,32 @@ const projects: Project[] = [
       gap: 1.5rem;
     }
 
-    /* Snapshot cards */
-    .stat-card {
+    .card {
       background: #ffffff;
       border-radius: 18px;
       border: 1px solid #e5e7eb;
       padding: 18px 16px 16px;
-      text-align: center;
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    }
+
+    .card--stat,
+    .card--prohibition {
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
     }
 
-    .stat-icon {
-      width: 56px;
-      height: 56px;
+    .icon-bubble {
+      width: 60px;
+      height: 60px;
       border-radius: 999px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
-      margin-bottom: 0.25rem;
+      font-size: 1.8rem;
+      margin-bottom: 0.35rem;
       background: #0f172a;
       color: #ffffff;
     }
@@ -286,58 +260,19 @@ const projects: Project[] = [
     }
 
     .stat-value {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       font-weight: 800;
-      margin-top: 0.1rem;
     }
 
-    .stat-note {
-      margin: 0.2rem 0 0;
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-
-    /* Prohibitions cards */
-    .prohibition-card {
-      background: #ffffff;
-      border-radius: 18px;
-      border: 1px solid #e5e7eb;
-      padding: 18px 16px 16px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
-    }
-
-    .prohibition-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.9rem;
-      margin-bottom: 0.4rem;
-      background: #0f172a;
-      color: #ffffff;
-    }
-
-    .prohibition-card h3 {
-      margin: 0.2rem 0 0.1rem;
-      font-size: 1.02rem;
-      font-weight: 700;
-    }
-
-    .prohibition-card .subtitle {
-      margin: 0;
+    .subtitle {
       font-size: 0.9rem;
       color: #6b7280;
       font-weight: 500;
+      margin: 0;
     }
 
-    .prohibition-card .description {
-      margin-top: 0.5rem;
+    .muted {
+      margin-top: 0.4rem;
       font-size: 0.9rem;
       color: #4b5563;
     }
@@ -351,19 +286,21 @@ const projects: Project[] = [
       margin-inline: auto;
     }
 
-    /* Projects / hobbies */
-    .project-card {
-      background: #ffffff;
-      border-radius: 18px;
-      border: 1px solid #e5e7eb;
-      padding: 18px 16px 16px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    .card--project h3 {
+      margin: 0.25rem 0 0.35rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .tags {
+      margin: 0.35rem 0 0;
+      font-size: 0.85rem;
+      color: #6b7280;
     }
 
     .project-header {
       display: flex;
       justify-content: flex-end;
-      margin-bottom: 0.25rem;
     }
 
     .status-badge {
@@ -376,26 +313,8 @@ const projects: Project[] = [
       letter-spacing: 0.04em;
     }
 
-    .project-card h3 {
-      margin: 0.25rem 0 0.35rem;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .project-card .description {
-      margin: 0 0 0.5rem;
-      font-size: 0.9rem;
-      color: #4b5563;
-    }
-
-    .project-card .tags {
-      margin: 0;
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-
     @media (max-width: 640px) {
-      .stats-page .section {
+      .section {
         margin-top: 2.25rem;
       }
     }
