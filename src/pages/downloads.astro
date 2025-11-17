@@ -1,185 +1,403 @@
 ---
-// src/pages/projects.astro
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE } from '../consts';
+import Layout from '../layouts/BlogPost.astro';
 
-// Edit this array as you add items.
-// cover is optional; links are optional.
+type StatCard = {
+  icon: string;
+  label: string;
+  value: string;
+  note?: string;
+};
+
+type Prohibition = {
+  icon: string;
+  title: string;
+  subtitle: string;
+  description: string;
+};
+
 type Project = {
   title: string;
   blurb: string;
   status: 'WIP' | 'Shipped' | 'Archived';
   tags: string[];
-  cover?: string;
-  postUrl?: string;
-  demoUrl?: string;
-  repoUrl?: string;
-  updated?: string;
 };
 
-const projects: Project[] = [
+// Edit these as your life / numbers change.
+const stats: StatCard[] = [
   {
-    title: 'Research Paper Fill-In Template',
-    blurb: 'Word template + workflow for structured paper notes.',
-    status: 'Shipped',
-    tags: ['Templates', 'Word', 'Research'],
-    cover: '/templates/covers/research-template-cover.png',
-    postUrl: '/blog/research-paper-fill-in-template/',
-    updated: 'Oct 2025',
+    icon: '📚',
+    label: 'Books Finished',
+    value: '260+',
+    note: 'Across physical, ebooks, and audiobooks.'
   },
   {
-    title: 'Weekly To-Do List (Printable)',
-    blurb: 'Clean weekly layout for time-blocking + priorities.',
-    status: 'Shipped',
-    tags: ['Templates', 'Planning', 'Printable'],
-    cover: '/templates/covers/todo-cover.png',
-    updated: 'Oct 2025',
-    // postUrl: '/blog/to-do-list-template/'
+    icon: '🎵',
+    label: 'Albums Logged',
+    value: '330+',
+    note: 'Complete listens, not background playlists.'
   },
   {
-    title: 'Sheets → MD Notes Exporter',
-    blurb: 'Prototype: export a Sheets range into Markdown notes.',
-    status: 'WIP',
-    tags: ['Google Sheets', 'Automation', 'Python'],
+    icon: '🧪',
+    label: 'Research Papers Read',
+    value: '150+',
+    note: 'Tracked with structured notes & templates.'
   },
+  {
+    icon: '⌛',
+    label: 'Hours of Guitar',
+    value: '350+',
+    note: 'Flamenco, mariachi, and classical practice.'
+  },
+  {
+    icon: '📊',
+    label: 'Stats Tracked Daily',
+    value: '150+',
+    note: 'Sleep, food, work, health, music, and more.'
+  },
+  {
+    icon: '🏆',
+    label: 'Scholarships & Awards',
+    value: '8+',
+    note: 'Fuel that keeps the PhD journey moving.'
+  }
 ];
 
-const STATUSES = ['All','WIP','Shipped','Archived'] as const;
+const prohibitions: Prohibition[] = [
+  {
+    icon: '🚫',
+    title: 'No Alcohol',
+    subtitle: 'Clarity > Numbing',
+    description:
+      'Alcohol blunts awareness, recovery, and discipline. I don’t drink, ever.'
+  },
+  {
+    icon: '📵',
+    title: 'No Social Media Scrolling',
+    subtitle: 'Creation > Consumption',
+    description:
+      'I use social media only for posting value — never for browsing feeds.'
+  },
+  {
+    icon: '⚔️',
+    title: 'No Drama or Gossip',
+    subtitle: 'Focus > Noise',
+    description:
+      'Interpersonal chaos kills deep work, so I stay clear of it.'
+  },
+  {
+    icon: '🛌',
+    title: 'No Oversleeping',
+    subtitle: 'Structure > Drift',
+    description:
+      'Morning momentum sets the tone. I don’t sleep in.'
+  },
+  {
+    icon: '🥦',
+    title: 'No Junk Food Bingeing',
+    subtitle: 'Energy > Impulse',
+    description:
+      'Clean fuel = clean thinking and better performance.'
+  },
+  {
+    icon: '🎮',
+    title: 'No Mindless Entertainment',
+    subtitle: 'Deliberate Leisure > Passive Dopamine',
+    description:
+      'No bingewatching or doomscrolling — only intentional fun.'
+  }
+];
+
+// Light “projects / hobbies” snapshot (not templates/downloads).
+const projects: Project[] = [
+  {
+    title: 'LifeLoggerz Blog & Systems',
+    blurb: 'Documenting the Google Sheets + Python ecosystem that runs my life.',
+    status: 'WIP',
+    tags: ['Writing', 'Meta-Tracking', 'Systems']
+  },
+  {
+    title: 'Guitar & Music Study',
+    blurb: 'Structured practice on flamenco, mariachi, and classical pieces.',
+    status: 'WIP',
+    tags: ['Guitar', 'Practice', 'Art']
+  },
+  {
+    title: 'Lab Automation Scripts',
+    blurb: 'Python tools for calorimetry, TGA, Load–CMOD, and research workflows.',
+    status: 'WIP',
+    tags: ['Python', 'Research', 'Automation']
+  },
+  {
+    title: 'Research Paper Pipeline',
+    blurb: 'From reading to databasing figures, mix designs, and results.',
+    status: 'WIP',
+    tags: ['Research', 'Knowledge Base']
+  }
+];
 ---
 
-<!doctype html>
-<html lang="en">
-<head>
-  <BaseHead title={`${SITE_TITLE} — Projects`} description="Experiments, utilities, and shipped builds from the LifeLoggerz lab." />
-  <style>
-    :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff;--badge:#eef2ff}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fb;color:var(--ink)}
-    .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
-    .intro{max-width:920px;margin:0 auto 20px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
-    h1{margin:0 0 10px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
-    .hint{color:var(--muted);margin:6px 0 12px}
-    .toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:10px 0 20px}
-    .toolbar input[type="search"]{width:100%;max-width:520px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-    .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-    .chip{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer;font-size:.9rem}
-    .chip[aria-pressed="true"]{background:#405cf5;color:#fff;border-color:#405cf5}
-    .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));max-width:100%}
-    .card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
-    .thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#f0f2f7;border-bottom:1px solid var(--border)}
-    .content{padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
-    .title{font-weight:800}
-    .blurb{color:var(--muted);font-size:.95rem}
-    .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .badge{font-size:.8rem;background:var(--badge);color:#223; padding:4px 8px;border-radius:999px}
-    .tags{color:var(--muted);font-size:.85rem}
-    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid var(--border);text-decoration:none}
-    .btn.primary{border-color:#405cf5;background:#405cf5;color:#fff;box-shadow:0 6px 18px rgba(64,92,245,.18)}
-    .empty{text-align:center;color:var(--muted);padding:24px 0}
-  </style>
-</head>
-<body>
-  <Header />
-  <main class="wrap">
-    <div class="intro" role="region" aria-label="Projects header">
-      <h1>🧪 Projects Lab</h1>
-      <p class="hint">Experiments, utilities, and shipped builds. Filter by status or search by title/tags.</p>
-      <div class="toolbar">
-        <input id="q" type="search" placeholder="Search title or tags…" aria-label="Filter projects" />
-        <div class="chips" id="chips" role="tablist" aria-label="Filter by status">
-          {STATUSES.map(s => <button class="chip" data-status={s} aria-pressed={s==='All'}>{s}</button>)}
-        </div>
-      </div>
-    </div>
+<Layout
+  title="Stats & Systems"
+  description="A numbers-first snapshot of who I am, what I track, and the rules I live by."
+  pubDate="2025-11-17"
+  heroImage="/images/about-lifeloggerz.gif"
+  wide
+  showViews={false}
+>
+  <div class="stats-page">
+    <p class="intro">
+      This page is my extended “About” — not just who I am, but how I live:
+      the numbers I track, the rules I follow, and the projects I’m actively
+      building.
+    </p>
 
-    {projects.length === 0 ? (
-      <div class="empty">No projects yet — check back soon.</div>
-    ) : (
-      <div class="grid" id="grid" role="list">
-        {projects.map(p => (
-          <article class="card" role="listitem"
-                   data-title={(p.title||'').toLowerCase()}
-                   data-tags={(p.tags||[]).join(' ').toLowerCase()}
-                   data-status={p.status}>
-            {p.cover && <img class="thumb" src={p.cover} alt="" loading="lazy" decoding="async" />}
-            <div class="content">
-              <div class="title">{p.title}</div>
-              <div class="blurb">{p.blurb}</div>
-              <div class="meta">
-                <span class="badge">{p.status}</span>
-                {p.updated && <span class="tags">Updated: {p.updated}</span>}
-              </div>
-              {p.tags?.length ? <div class="tags">#{p.tags.join('  #')}</div> : null}
-              {(p.postUrl || p.demoUrl || p.repoUrl) && (
-                <div class="actions">
-                  {p.postUrl && <a class="btn" href={p.postUrl}>Post</a>}
-                  {p.demoUrl && <a class="btn primary" href={p.demoUrl} target="_blank" rel="noopener">Demo</a>}
-                  {p.repoUrl && <a class="btn" href={p.repoUrl} target="_blank" rel="noopener">Repo</a>}
-                </div>
-              )}
-            </div>
+    <!-- Snapshot Stats -->
+    <section class="section" aria-labelledby="snapshot-heading">
+      <h2 id="snapshot-heading">📊 Snapshot Stats</h2>
+      <p class="section-hint">
+        High-level stats pulled from my tracking sheets and logs. Not exhaustive
+        — just a glimpse.
+      </p>
+      <div class="grid stats-grid">
+        {stats.map((item) => (
+          <article class="stat-card">
+            <div class="stat-icon" aria-hidden="true">{item.icon}</div>
+            <div class="stat-label">{item.label}</div>
+            <div class="stat-value">{item.value}</div>
+            {item.note && <p class="stat-note">{item.note}</p>}
           </article>
         ))}
       </div>
-    )}
-    <div class="empty" id="empty" style="display:none">No projects match your filters.</div>
-  </main>
-  <Footer />
+    </section>
 
-  <script>
-    (function(){
-      const $ = (s, r=document) => r.querySelector(s);
-      const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-      const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    <!-- Prohibitions -->
+    <section class="section" aria-labelledby="prohibitions-heading">
+      <h2 id="prohibitions-heading">🚫 Prohibitions</h2>
+      <p class="section-hint">
+        A lot of my productivity comes from what I <strong>don’t</strong> do.
+        These constraints protect my time, focus, and identity.
+      </p>
+      <div class="grid prohibitions-grid" aria-label="List of prohibitions">
+        {prohibitions.map((item) => (
+          <article class="prohibition-card">
+            <div class="prohibition-icon" aria-hidden="true">{item.icon}</div>
+            <h3>{item.title}</h3>
+            <p class="subtitle">{item.subtitle}</p>
+            <p class="description">{item.description}</p>
+          </article>
+        ))}
+      </div>
+      <p class="warning">
+        ⚠️ Over time, you can become so productive that you end up scratching
+        your head, wondering what to do next.
+      </p>
+    </section>
 
-      const input = $('#q');
-      const grid  = $('#grid');
-      const chips = $$('#chips .chip');
-      const empty = $('#empty');
+    <!-- Projects & Hobbies -->
+    <section class="section" aria-labelledby="projects-heading">
+      <h2 id="projects-heading">🧪 Current Projects & Hobbies</h2>
+      <p class="section-hint">
+        What I’m actively building or practicing outside of classes and lab
+        work. These shift over time, but the themes stay similar: systems,
+        learning, and craft.
+      </p>
+      <div class="grid projects-grid">
+        {projects.map((p) => (
+          <article class="project-card">
+            <div class="project-header">
+              <span class="status-badge">{p.status}</span>
+            </div>
+            <h3>{p.title}</h3>
+            <p class="description">{p.blurb}</p>
+            {p.tags?.length ? (
+              <p class="tags">#{p.tags.join('  #')}</p>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </section>
+  </div>
 
-      if (!grid) return;
-      const cards = $$('.card', grid);
+  <style is:global>
+    .stats-page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
 
-      let status = 'All';
+    .stats-page .intro {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #4b5563;
+    }
 
-      function apply() {
-        const q = norm(input?.value || '');
-        const words = q ? q.split(/\s+/) : [];
-        let shown = 0;
+    .stats-page .section {
+      margin-top: 3rem;
+    }
 
-        cards.forEach(c => {
-          const okStatus = status === 'All' || c.dataset.status === status;
-          const hay = (c.dataset.title + ' ' + c.dataset.tags);
-          const okText = !words.length || words.every(w => hay.includes(w));
-          const show = okStatus && okText;
-          c.style.display = show ? '' : 'none';
-          shown += show ? 1 : 0;
-        });
+    .stats-page h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
 
-        empty.style.display = shown ? 'none' : '';
+    .section-hint {
+      text-align: center;
+      margin: 0 auto 1.75rem;
+      max-width: 640px;
+      color: #6b7280;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Snapshot cards */
+    .stat-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      padding: 18px 16px 16px;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 0.25rem;
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .stat-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-top: 0.1rem;
+    }
+
+    .stat-note {
+      margin: 0.2rem 0 0;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    /* Prohibitions cards */
+    .prohibition-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      padding: 18px 16px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    }
+
+    .prohibition-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.9rem;
+      margin-bottom: 0.4rem;
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .prohibition-card h3 {
+      margin: 0.2rem 0 0.1rem;
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .prohibition-card .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .prohibition-card .description {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .warning {
+      margin-top: 2rem;
+      text-align: center;
+      font-style: italic;
+      color: #6b7280;
+      max-width: 640px;
+      margin-inline: auto;
+    }
+
+    /* Projects / hobbies */
+    .project-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      padding: 18px 16px 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    }
+
+    .project-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.25rem;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e0ecff;
+      color: #1d4ed8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .project-card h3 {
+      margin: 0.25rem 0 0.35rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .project-card .description {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .project-card .tags {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 640px) {
+      .stats-page .section {
+        margin-top: 2.25rem;
       }
-
-      input?.addEventListener('input', apply);
-      chips.forEach(chip=>{
-        chip.addEventListener('click', ()=>{
-          chips.forEach(b => b.setAttribute('aria-pressed','false'));
-          chip.setAttribute('aria-pressed','true');
-          status = chip.dataset.status || 'All';
-          apply();
-        });
-      });
-
-      // Keyboard: "/" focus search, Esc clears.
-      window.addEventListener('keydown', e=>{
-        if (e.key==='/' && e.target===document.body){ e.preventDefault(); input?.focus(); }
-        if (e.key==='Escape' && input){ input.value=''; apply(); input.focus(); }
-      });
-
-      apply();
-    })();
-  </script>
-</body>
-</html>
+    }
+  </style>
+</Layout>
