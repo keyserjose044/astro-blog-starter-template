@@ -134,7 +134,7 @@ const projects = [
         High-level stats pulled from my tracking sheets and logs. Not exhaustive
         — just a glimpse.
       </p>
-      <div class="grid grid--stats">
+      <div class="grid">
         {stats.map((item) => (
           <article class="card card--stat">
             <div class="icon-bubble">{item.icon}</div>
@@ -152,7 +152,7 @@ const projects = [
         A lot of my productivity comes from what I <strong>don’t</strong> do.
         These constraints protect my time, focus, and identity.
       </p>
-      <div class="grid grid--prohibitions">
+      <div class="grid">
         {prohibitions.map((item) => (
           <article class="card card--prohibition">
             <div class="icon-bubble">{item.icon}</div>
@@ -174,7 +174,7 @@ const projects = [
         What I’m actively building or practicing outside of classes and lab
         work. Themes stay similar: systems, learning, and craft.
       </p>
-      <div class="grid grid--projects">
+      <div class="grid">
         {projects.map((p) => (
           <article class="card card--project">
             <div class="project-header">
@@ -193,7 +193,6 @@ const projects = [
     .stats-page {
       max-width: 960px;
       margin: 0 auto;
-      padding: 0 1.5rem 2.5rem; /* extra side padding so cards don’t hug edges */
     }
 
     .stats-page .intro {
@@ -221,14 +220,8 @@ const projects = [
 
     .grid {
       display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.5rem;
-      justify-items: center; /* center cards in their grid cells */
-    }
-
-    .grid--stats,
-    .grid--prohibitions,
-    .grid--projects {
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
     .card {
@@ -237,14 +230,15 @@ const projects = [
       border: 1px solid #e5e7eb;
       padding: 18px 16px 16px;
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    }
+
+    .card--stat,
+    .card--prohibition {
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      text-align: center;
-
-      width: 100%;
-      max-width: 520px;      /* keeps bubbles narrower than viewport */
-      margin-inline: auto;   /* centers the card itself */
+      gap: 4px;
     }
 
     .icon-bubble {
@@ -255,10 +249,9 @@ const projects = [
       align-items: center;
       justify-content: center;
       font-size: 1.8rem;
-      margin-bottom: 0.5rem;
+      margin: 0 auto 0.35rem;   /* ⬅ center horizontally */
       background: #0f172a;
       color: #ffffff;
-      flex-shrink: 0;
     }
 
     .stat-label {
@@ -266,16 +259,15 @@ const projects = [
       font-size: 0.95rem;
     }
 
+    .card--prohibition h3 {
+      margin: 0.25rem 0 0.1rem;
+      font-size: 0.95rem;   /* same as .stat-label */
+      font-weight: 600;
+    }
+
     .stat-value {
       font-size: 1.2rem;
       font-weight: 800;
-      margin-top: 0.1rem;
-    }
-
-    .card--prohibition h3 {
-      margin: 0.3rem 0 0.1rem;
-      font-size: 0.95rem;
-      font-weight: 600;
     }
 
     .subtitle {
@@ -315,7 +307,6 @@ const projects = [
     .project-header {
       display: flex;
       justify-content: flex-end;
-      width: 100%;
     }
 
     .status-badge {
@@ -331,20 +322,6 @@ const projects = [
     @media (max-width: 640px) {
       .section {
         margin-top: 2.25rem;
-      }
-
-      .stats-page {
-        padding-inline: 1.25rem; /* comfortable but not cramped on phones */
-      }
-
-      .grid--stats,
-      .grid--prohibitions,
-      .grid--projects {
-        grid-template-columns: 1fr;
-      }
-
-      .card {
-        border-radius: 20px;
       }
     }
   </style>
