@@ -243,27 +243,25 @@ const projects = [
       }
     }
 
-    .card--stat,
+      .card--stat,
     .card--prohibition {
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
     }
+
 
     .icon-bubble {
       width: 60px;
       height: 60px;
       border-radius: 999px;
-      display: flex;
+      display: inline-flex;              /* inline so text-align works */
       align-items: center;
       justify-content: center;
       font-size: 1.8rem;
-      margin: 0 auto 0.35rem;   /* ⬅ center horizontally */
+      margin-bottom: 0.35rem;            /* no auto margin needed */
       background: #0f172a;
       color: #ffffff;
     }
+
 
     .stat-label {
       font-weight: 600;
