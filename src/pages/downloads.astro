@@ -223,13 +223,24 @@ const projects = [
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.5rem;
     }
-
+    
     .card {
       background: #ffffff;
       border-radius: 18px;
       border: 1px solid #e5e7eb;
       padding: 18px 16px 16px;
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    }
+    
+    /* 🔥 Mobile fixes: full-width cards + slightly tweaked padding */
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    
+      .card {
+        padding: 20px 18px;
+      }
     }
 
     .card--stat,
