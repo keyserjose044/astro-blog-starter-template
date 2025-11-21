@@ -2,114 +2,28 @@
 import Layout from '../layouts/BlogPost.astro';
 
 const stats = [
-  {
-    icon: '📚',
-    label: 'Books Finished',
-    value: '260+',
-    note: 'Across physical, ebooks, and audiobooks.'
-  },
-  {
-    icon: '🎵',
-    label: 'Albums Logged',
-    value: '330+',
-    note: 'Complete listens, not background playlists.'
-  },
-  {
-    icon: '🧪',
-    label: 'Research Papers Read',
-    value: '150+',
-    note: 'Tracked with structured notes & templates.'
-  },
-  {
-    icon: '⌛',
-    label: 'Hours of Guitar',
-    value: '350+',
-    note: 'Flamenco, mariachi, and classical practice.'
-  },
-  {
-    icon: '📊',
-    label: 'Stats Tracked Daily',
-    value: '150+',
-    note: 'Sleep, food, work, health, music, and more.'
-  },
-  {
-    icon: '🏆',
-    label: 'Scholarships & Awards',
-    value: '8+',
-    note: 'Fuel that keeps the PhD journey moving.'
-  }
+  { icon: '📚', label: 'Books Finished', value: '260+', note: 'Across physical, ebooks, and audiobooks.' },
+  { icon: '🎵', label: 'Albums Logged', value: '330+', note: 'Complete listens, not background playlists.' },
+  { icon: '🧪', label: 'Research Papers Read', value: '150+', note: 'Tracked with structured notes & templates.' },
+  { icon: '⌛', label: 'Hours of Guitar', value: '350+', note: 'Flamenco, mariachi, and classical practice.' },
+  { icon: '📊', label: 'Stats Tracked Daily', value: '150+', note: 'Sleep, food, work, health, music, and more.' },
+  { icon: '🏆', label: 'Scholarships & Awards', value: '8+', note: 'Fuel that keeps the PhD journey moving.' }
 ];
 
 const prohibitions = [
-  {
-    icon: '🚫',
-    title: 'No Alcohol',
-    subtitle: 'Clarity > Numbing',
-    description:
-      'Alcohol blunts awareness, recovery, and discipline. I don’t drink, ever.'
-  },
-  {
-    icon: '📵',
-    title: 'No Social Media Scrolling',
-    subtitle: 'Creation > Consumption',
-    description:
-      'I use social media only for posting value — never for browsing feeds.'
-  },
-  {
-    icon: '⚔️',
-    title: 'No Drama or Gossip',
-    subtitle: 'Focus > Noise',
-    description:
-      'Interpersonal chaos kills deep work, so I stay clear of it.'
-  },
-  {
-    icon: '🛌',
-    title: 'No Oversleeping',
-    subtitle: 'Structure > Drift',
-    description:
-      'Morning momentum sets the tone. I don’t sleep in.'
-  },
-  {
-    icon: '🥦',
-    title: 'No Junk Food Bingeing',
-    subtitle: 'Energy > Impulse',
-    description:
-      'Clean fuel = clean thinking and better performance.'
-  },
-  {
-    icon: '🎮',
-    title: 'No Mindless Entertainment',
-    subtitle: 'Deliberate Leisure > Passive Dopamine',
-    description:
-      'No bingewatching or doomscrolling — only intentional fun.'
-  }
+  { icon: '🚫', title: 'No Alcohol', subtitle: 'Clarity > Numbing', description: 'Alcohol blunts awareness, recovery, and discipline. I don’t drink, ever.' },
+  { icon: '📵', title: 'No Social Media Scrolling', subtitle: 'Creation > Consumption', description: 'I use social media only for posting value — never for browsing feeds.' },
+  { icon: '⚔️', title: 'No Drama or Gossip', subtitle: 'Focus > Noise', description: 'Interpersonal chaos kills deep work, so I stay clear of it.' },
+  { icon: '🛌', title: 'No Oversleeping', subtitle: 'Structure > Drift', description: 'Morning momentum sets the tone. I don’t sleep in.' },
+  { icon: '🥦', title: 'No Junk Food Bingeing', subtitle: 'Energy > Impulse', description: 'Clean fuel = clean thinking and better performance.' },
+  { icon: '🎮', title: 'No Mindless Entertainment', subtitle: 'Deliberate Leisure > Passive Dopamine', description: 'No bingewatching or doomscrolling — only intentional fun.' }
 ];
 
 const projects = [
-  {
-    title: 'LifeLoggerz Blog & Systems',
-    blurb: 'Documenting the Google Sheets + Python ecosystem that runs my life.',
-    status: 'WIP',
-    tags: ['Writing', 'Meta-Tracking', 'Systems']
-  },
-  {
-    title: 'Guitar & Music Study',
-    blurb: 'Structured practice on flamenco, mariachi, and classical pieces.',
-    status: 'WIP',
-    tags: ['Guitar', 'Practice', 'Art']
-  },
-  {
-    title: 'Lab Automation Scripts',
-    blurb: 'Python tools for calorimetry, TGA, Load–CMOD, and research workflows.',
-    status: 'WIP',
-    tags: ['Python', 'Research', 'Automation']
-  },
-  {
-    title: 'Research Paper Pipeline',
-    blurb: 'From reading to databasing figures, mix designs, and results.',
-    status: 'WIP',
-    tags: ['Research', 'Knowledge Base']
-  }
+  { title: 'LifeLoggerz Blog & Systems', blurb: 'Documenting the Google Sheets + Python ecosystem that runs my life.', status: 'WIP', tags: ['Writing', 'Meta-Tracking', 'Systems'] },
+  { title: 'Guitar & Music Study', blurb: 'Structured practice on flamenco, mariachi, and classical pieces.', status: 'WIP', tags: ['Guitar', 'Practice', 'Art'] },
+  { title: 'Lab Automation Scripts', blurb: 'Python tools for calorimetry, TGA, Load–CMOD, and research workflows.', status: 'WIP', tags: ['Python', 'Research', 'Automation'] },
+  { title: 'Research Paper Pipeline', blurb: 'From reading to databasing figures, mix designs, and results.', status: 'WIP', tags: ['Research', 'Knowledge Base'] }
 ];
 ---
 
@@ -134,7 +48,7 @@ const projects = [
         High-level stats pulled from my tracking sheets and logs. Not exhaustive
         — just a glimpse.
       </p>
-      <div class="grid">
+      <div class="stats-grid">
         {stats.map((item) => (
           <article class="card card--stat">
             <div class="icon-bubble">{item.icon}</div>
@@ -152,7 +66,7 @@ const projects = [
         A lot of my productivity comes from what I <strong>don’t</strong> do.
         These constraints protect my time, focus, and identity.
       </p>
-      <div class="grid">
+      <div class="stats-grid">
         {prohibitions.map((item) => (
           <article class="card card--prohibition">
             <div class="icon-bubble">{item.icon}</div>
@@ -174,7 +88,7 @@ const projects = [
         What I’m actively building or practicing outside of classes and lab
         work. Themes stay similar: systems, learning, and craft.
       </p>
-      <div class="grid">
+      <div class="stats-grid">
         {projects.map((p) => (
           <article class="card card--project">
             <div class="project-header">
@@ -193,14 +107,6 @@ const projects = [
     .stats-page {
       max-width: 960px;
       margin: 0 auto;
-    }
-
-    .stats-page .grid {
-      justify-items: stretch !important;   /* overrides global.css */
-    }
-    
-    .stats-page .card {
-      margin: 0 auto;                      /* ensures card itself is centered */
     }
 
     .stats-page .intro {
@@ -226,50 +132,54 @@ const projects = [
       font-size: 0.95rem;
     }
 
-    .grid {
+    /* 🧱 Local grid (not affected by global .grid styles) */
+    .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.5rem;
     }
-    
+
+    @media (max-width: 640px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        margin-top: 2.25rem;
+      }
+    }
+
     .card {
       background: #ffffff;
       border-radius: 18px;
       border: 1px solid #e5e7eb;
       padding: 18px 16px 16px;
       box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
-    }
-    
-    /* 🔥 Mobile fixes: full-width cards + slightly tweaked padding */
-    @media (max-width: 640px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    
-      .card {
-        padding: 20px 18px;
-      }
+      width: 100%;
+      box-sizing: border-box;
     }
 
-      .card--stat,
+    .card--stat,
     .card--prohibition {
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
-
 
     .icon-bubble {
       width: 60px;
       height: 60px;
       border-radius: 999px;
-      display: inline-flex;              /* inline so text-align works */
+      display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.8rem;
-      margin-bottom: 0.35rem;            /* no auto margin needed */
+      margin-bottom: 0.35rem;
       background: #0f172a;
       color: #ffffff;
     }
-
 
     .stat-label {
       font-weight: 600;
@@ -278,7 +188,7 @@ const projects = [
 
     .card--prohibition h3 {
       margin: 0.25rem 0 0.1rem;
-      font-size: 0.95rem;   /* same as .stat-label */
+      font-size: 0.95rem;
       font-weight: 600;
     }
 
@@ -334,12 +244,6 @@ const projects = [
       color: #1d4ed8;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-    }
-
-    @media (max-width: 640px) {
-      .section {
-        margin-top: 2.25rem;
-      }
     }
   </style>
 </Layout>
