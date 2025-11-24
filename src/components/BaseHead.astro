@@ -9,7 +9,7 @@ interface Props {
   image?: string; // path or absolute URL
 }
 
-const { title, description, image = '/blog-placeholder-1.jpg' } = Astro.props;
+const { title, description, image = '/about-lifeloggerz.png' } = Astro.props;
 
 // Build absolute URLs for canonical + social tags
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
