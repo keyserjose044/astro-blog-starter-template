@@ -51,6 +51,10 @@ const defaultOgPath = '/about-lifeloggerz.png';
 const ogImagePath = heroImage ?? defaultOgPath;
 const ogImage = abs(ogImagePath);
 
+// ✅ MUST BE HERE BEFORE jsonLdString
+const publishedISO = hasPub ? pub!.toISOString() : undefined;
+const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
+
 const jsonLdString = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BlogPosting",
