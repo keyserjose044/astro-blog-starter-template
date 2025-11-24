@@ -29,6 +29,9 @@ const {
   heroVideo
 } = Astro.props as Props;
 
+// 👇 default OG image for posts (uses heroImage if provided, otherwise your site banner)
+const ogImage = heroImage ?? '/about-lifeloggerz.png';
+
 // ---------- helpers ----------
 function toValidDate(v: unknown): Date | null {
   if (!v) return null;
@@ -46,7 +49,11 @@ const hasUpd = !!upd;
 const SITE = 'https://lifeloggerz.com';
 const canonical = new URL(Astro.url.pathname, SITE).toString();
 const abs = (p?: string) => (p ? new URL(p, SITE).toString() : undefined);
-const ogImage = abs(heroImage); // still image-only for OG
+
+// 👇 pick a default OG image when heroImage is not provided
+const defaultOgPath = '/about-lifeloggerz.png';
+const ogImagePath = heroImage ?? defaultOgPath;
+const ogImage = abs(ogImagePath);
 
 const publishedISO = hasPub ? pub!.toISOString() : undefined;
 const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
@@ -70,7 +77,10 @@ const hasCustomHero = Astro.slots.has('hero');
 
 <html lang="en">
   <head>
-    <BaseHead title={title} description={description} />
+  <BaseHead
+    title={title}
+    description={description ?? ''}
+    image={ogImagePath}  <!-- 👈 important -->
 
     <link rel="canonical" href={canonical} />
     <meta name="robots" content="index,follow" />
