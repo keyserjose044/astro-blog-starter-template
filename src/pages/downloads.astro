@@ -1,13 +1,15 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
 
+const STATS_API_URL = 'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
+
 const stats = [
-  { icon: '📚', label: 'Books Finished', value: '260+', note: 'Across physical, ebooks, and audiobooks.' },
-  { icon: '🎵', label: 'Albums Logged', value: '330+', note: 'Complete listens, not background playlists.' },
-  { icon: '🧪', label: 'Research Papers Read', value: '150+', note: 'Tracked with structured notes & templates.' },
-  { icon: '⌛', label: 'Hours of Guitar', value: '350+', note: 'Flamenco, mariachi, and classical practice.' },
-  { icon: '📊', label: 'Stats Tracked Daily', value: '150+', note: 'Sleep, food, work, health, music, and more.' },
-  { icon: '🏆', label: 'Scholarships & Awards', value: '8+', note: 'Fuel that keeps the PhD journey moving.' }
+  { icon: '📚', label: 'Books Finished', key: 'booksCount',   value: '260+', note: 'Across physical, ebooks, and audiobooks.' },
+  { icon: '🎵', label: 'Albums Logged',   key: 'albumsLogged', value: '330+', note: 'Complete listens, not background playlists.' },
+  { icon: '🧪', label: 'Research Papers Read', key: 'papersRead', value: '150+', note: 'Tracked with structured notes & templates.' },
+  { icon: '⌛', label: 'Hours of Guitar', key: 'guitarHours',  value: '350+', note: 'Flamenco, mariachi, and classical practice.' },
+  { icon: '📊', label: 'Stats Tracked Daily', key: 'statsTracked', value: '150+', note: 'Sleep, food, work, health, music, and more.' },
+  { icon: '🏆', label: 'Scholarships & Awards', key: 'scholarships', value: '8+', note: 'Fuel that keeps the PhD journey moving.' }
 ];
 
 const prohibitions = [
@@ -53,7 +55,12 @@ const projects = [
           <article class="card card--stat">
             <div class="icon-bubble">{item.icon}</div>
             <div class="stat-label">{item.label}</div>
-            <div class="stat-value">{item.value}</div>
+            <div
+              class="stat-value"
+              data-stat-key={item.key}
+            >
+              {item.value}
+            </div>
             {item.note && <p class="muted">{item.note}</p>}
           </article>
         ))}
@@ -96,12 +103,45 @@ const projects = [
             </div>
             <h3>{p.title}</h3>
             <p class="muted">{p.blurb}</p>
-            {p.tags?.length && <p class="tags">#{p.tags.join('  #')}</p>}
+            {p.tags && p.tags.length > 0 && (
+              <p class="tags">#{p.tags.join('  #')}</p>
+            )}
           </article>
         ))}
       </div>
     </section>
   </div>
+
+  <script>
+    (function () {
+      const url = {STATS_API_URL: STATS_API_URL}.STATS_API_URL; // simple way to inline the constant
+
+      async function loadStats() {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return;
+
+          const data = await res.json();
+          if (!data) return;
+
+          var elements = document.querySelectorAll('[data-stat-key]');
+          for (var i = 0; i < elements.length; i++) {
+            var el = elements[i];
+            var key = el.getAttribute('data-stat-key');
+            if (key && data[key] !== undefined && data[key] !== null) {
+              el.textContent = String(data[key]);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load stats', err);
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        loadStats();
+      }
+    })();
+  </script>
 
   <style is:global>
     .stats-page {
@@ -132,7 +172,6 @@ const projects = [
       font-size: 0.95rem;
     }
 
-    /* 🧱 Local grid (not affected by global .grid styles) */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
