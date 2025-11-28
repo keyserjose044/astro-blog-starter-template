@@ -1,43 +1,36 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
 
-const STATS_API_URL =
-  'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
-
-// Base definitions: how the cards look + fallback text
-const baseStats = [
-  { icon: '🏃‍♂️', label: 'Running',           key: 'runningMiles', fallback: '445 Miles', note: 'Lifetime logged running distance.' },
-  { icon: '📔',   label: 'Diary Words',       key: 'diaryWords',   fallback: '546,587',   note: 'Words written in my diary.' },
-  { icon: '🎸',   label: 'Guitar Hours',      key: 'guitarHours',  fallback: '589',       note: 'Deliberate practice hours.' },
-  { icon: '📚',   label: 'Books Finished',    key: 'booksCount',   fallback: '260+',      note: 'Across physical, ebooks, and audiobooks.' },
-
-  // you can add your other high-level stats later with new keys
+const stats = [
+  {
+    icon: '🏃‍♂️',
+    label: 'Running',
+    key: 'runningMiles',
+    value: '445',
+    note: 'Lifetime logged running distance.',
+  },
+  {
+    icon: '📔',
+    label: 'Diary Words',
+    key: 'diaryWords',
+    value: '100000',
+    note: 'Words written in my diary.',
+  },
+  {
+    icon: '🎸',
+    label: 'Guitar Hours',
+    key: 'guitarHours',
+    value: '419',
+    note: 'Deliberate practice hours.',
+  },
+  {
+    icon: '📚',
+    label: 'Books Finished',
+    key: 'booksCount',
+    value: '400',
+    note: 'Across physical, ebooks, and audiobooks.',
+  },
 ];
-
-let liveData = {};
-try {
-  const res = await fetch(STATS_API_URL);
-  if (res.ok) {
-    liveData = await res.json();
-  }
-} catch (err) {
-  console.error('Failed to fetch stats JSON', err);
-}
-
-// This is what the template actually uses:
-const stats = baseStats.map((s) => {
-  let val = s.fallback;
-  if (liveData && liveData[s.key] !== undefined && liveData[s.key] !== null && liveData[s.key] !== '') {
-    val = String(liveData[s.key]);
-  }
-  return {
-    icon: s.icon,
-    label: s.label,
-    note: s.note,
-    key: s.key,
-    value: val
-  };
-});
 
 const prohibitions = [
   { icon: '🚫', title: 'No Alcohol', subtitle: 'Clarity > Numbing', description: 'Alcohol blunts awareness, recovery, and discipline. I don’t drink, ever.' },
@@ -141,7 +134,8 @@ const projects = [
 
   <script>
     (function () {
-      const url = {STATS_API_URL: STATS_API_URL}.STATS_API_URL; // simple way to inline the constant
+      // Your GAS web app URL
+      const url = 'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
 
       async function loadStats() {
         try {
