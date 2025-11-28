@@ -134,15 +134,20 @@ const projects = [
 
   <script>
     (function () {
-      // Your GAS web app URL
       const url = 'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
 
       async function loadStats() {
         try {
+          console.log('[Stats] Fetching from GAS…');
           const res = await fetch(url);
-          if (!res.ok) return;
+          if (!res.ok) {
+            console.error('[Stats] Fetch failed with status', res.status);
+            return;
+          }
 
           const data = await res.json();
+          console.log('[Stats] JSON received:', data);
+
           if (!data) return;
 
           var elements = document.querySelectorAll('[data-stat-key]');
@@ -154,12 +159,16 @@ const projects = [
             }
           }
         } catch (err) {
-          console.error('Failed to load stats', err);
+          console.error('[Stats] Failed to load stats', err);
         }
       }
 
       if (typeof window !== 'undefined') {
-        loadStats();
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          loadStats();
+        } else {
+          window.addEventListener('DOMContentLoaded', loadStats);
+        }
       }
     })();
   </script>
