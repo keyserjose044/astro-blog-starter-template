@@ -1,0 +1,195 @@
+---
+title: "3-Story Hospital Opening in Kerrville, TX — Is it Structurally Sound?"
+pubDate: "2025-11-27"
+description: "Our three-story hospital concept for Kerrville, TX: layout, loads, modeling strategy, and a full hand-designed corbel supporting a precast beam."
+tags: ["Structural Engineering", "Concrete", "ETABS", "RISA", "ACI 318", "Hospitals", "Corbels"]
+heroImage: "/images/hospital-kerrville/hero.png"
+draft: false
+---
+
+# 🏥 3-Story Hospital Opening in Kerrville, TX — Is it Structurally Sound?
+
+This post documents our structural concept and design workflow for a **3-story hospital** in **Kerrville, Texas**. We outline the building geometry, loading, analysis approach (ETABS/RISA), the **critical member designs** for the second-floor ceiling (slab, beams, columns), and include **hand calculations for a reinforced-concrete corbel** supporting a **precast beam**—the item required for hand submission.
+
+> **Specs at a Glance**
+>
+> - Plan: **A = 125 ft**, **B = 125 ft** (see plan below)  
+> - Stories: **3** (story height **18 ft**)  
+> - System: Cast-in-place RC frame with one **two-way slab** panel, precast beam supported on **corbels**  
+> - Materials: **f’c = 5 ksi**, **fy = 60 ksi**  
+> - Location: **Kerrville, TX** (hospital risk category, wind per ASCE 7)  
+> - **Alternate design**: swap beam **width/depth** and compare
+
+---
+
+## 🧭 Site & Program
+
+- **Occupancy**: Hospital (Risk Cat **IV**).  
+- **Location**: Kerrville, TX.  
+- **Performance**: Gravity + Wind per ASCE 7; drift and serviceability checked in model.
+
+<figure>
+  <img src="/images/hospital-kerrville/plan.png" alt="Plan view with dimensions and balcony" />
+  <figcaption><em>Plan concept (A=B=125'). Cantilever balcony noted at the upper left wing.</em></figcaption>
+</figure>
+
+---
+
+## 🧱 Structural Layout (Second-Floor “Design Ceiling”)
+
+- **Slab system**: 8-in RC slab; select at least one **interior panel** with Ly/Lx ≤ 2 and design as **two-way**.  
+- **Beams/joists**: Primary beams on column lines; secondary beams/joists framing into primaries.  
+- **Columns**: 18 in × 18 in at grid intersections. Slender by geometry (18-ft story).  
+- **Precast beam**: Selected line on the second floor rests on **RC corbels** at columns.
+
+> **Alternate Scheme:** Interchange beam **b** and **h** (e.g., 12×24 ↔ 24×12) and re-run analysis to compare weight, deflection, and demand/capacity ratios.
+
+---
+
+## 📦 Loads (summary)
+
+You noted full load derivations in the report. Here we list what’s applied in the model:
+
+- **Dead Load (DL)**: slab self-weight + superimposed dead (partitions, ceilings, MEP).  
+- **Live Load (LL)**: per hospital occupancies.  
+- **Roof**: DL + roof LL (or snow if applicable).  
+- **Wind**: ASCE 7 (directional cases X/Y; include ± for pressures).  
+- **Combos**: Strength and service combinations per ASCE 7 / ACI 318.
+
+*(In the model we apply area loads to slabs and let tributary loads flow to beams/columns. The precast beam end reaction from the 2nd floor is used directly in the corbel design below.)*
+
+---
+
+## 🧮 Analysis Workflow (ETABS/RISA)
+
+1. **Geometry**: 3 stories @ 18 ft; grid/bays per plan.  
+2. **Sections**: Columns 18×18; beams (baseline); **Alt** model with b/h swapped; slab 8 in.  
+3. **Loads**: Assign DL/LL/roof/wind; define load **combinations**.  
+4. **Run**: Extract for the **2nd floor**:
+   - **Slab panel** design moments \(M_x, M_y\) for the selected two-way panel.  
+   - **Beam** envelopes \(M_u, V_u\) (pick the **critical** beam).  
+   - **Column** envelopes \(P_u, M_{ux}, M_{uy}\) (pick a **critical** column).  
+   - **Precast beam end reaction** at corbel: \(V_u^{(corbel)}\) and eccentricity \(a\).
+
+5. **Design**:
+   - Slab (two-way): Direct Design / EFM or software design strips → top/bottom steel in both directions.  
+   - Beams: Flexure (top/bot steel), shear (stirrups), deflection check.  
+   - Columns: Axial-moment via interaction diagram; tie spacing; slenderness effects per ACI.  
+   - **Corbel**: full hand calc (next section).
+
+---
+
+## 🧷 Hand Calculation — Corbel Supporting a Precast Beam
+
+**Goal:** Design one **RC corbel** at a 2nd-floor column supporting the precast beam’s **factored end reaction**.
+
+> **Given/From Model**
+> - \( V_u = \) *(take from analysis)* kips acting at \( a = \) *(in.)* from column face  
+> - Assume horizontal tension from creep/shrinkage at top: \( N_{uc} = 0.2D \times 1.6 \) (or per instructor convention)  
+> - Materials: \( f'_{c} = 5 \) ksi, \( f_y = 60 \) ksi  
+> - Corbel width \(b_w\) = column width (e.g., 14 in). Choose **h** (≈ 18 in) so that \(d \approx h - 1\) in.
+> - Bearing plate (e.g., 12"×6"): check bearing capacity afterward.
+
+### 1) Applicability & Geometry
+- Check \( a/d < 1.0 \) and **depth at face ≥ 0.5d** (ACI 16.5.1–16.5.2).  
+- Choose slope/geometry so face depth satisfies the 0.5d requirement.
+
+### 2) Concrete Shear Limit (cap on \(V_n\))
+Smallest of:
+\[
+\begin{aligned}
+&0.2 f'_c b_w d,\quad 1600\,b_w d,\quad (480 + 0.08f'_c) b_w d \\
+&\Rightarrow \phi V_n^{\max} = 0.75 \times \min(\cdot) \ge V_u
+\end{aligned}
+\]
+
+### 3) Shear-Friction Steel \(A_{vf}\) (ACI 22.9)
+\[
+A_{vf} = \frac{V_u}{\phi \mu f_y},\quad \mu = 1.4 \text{ (monolithic)}
+\]
+
+### 4) Moment at Column Face
+\[
+M_u = V_u a + N_{uc}(h - d)
+\]
+
+### 5) Flexural Steel for Moment \(A_f\)
+Quick, accurate classroom form:
+\[
+\rho \approx \frac{M_u}{\phi f_y b_w d^2}\quad\Rightarrow\quad A_f = \rho b_w d
+\]
+(Alternative exact form available if needed.)
+
+### 6) Extra Steel for \(N_{uc}\)
+\[
+A_n = \frac{N_{uc}}{\phi f_y}
+\]
+
+### 7) Total Main Steel \(A_{sc}\) (take the **largest**)
+\[
+A_{sc} \ge \max\!\left(
+A_f + A_n,\;
+\frac{2}{3}A_{vf} + A_n,\;
+0.04 \frac{f'_c}{f_y} b_w d
+\right)
+\]
+→ **Provide** bars (e.g., 2#6, 3#7, etc.) near top; weld/anchor at the tip.
+
+### 8) Closed Hoops (ties) Parallel to Main Bars
+\[
+A_h = 0.5(A_{sc} - A_n)
+\]
+Count **both legs** of each closed hoop that are parallel to \(A_{sc}\).  
+Place within **\(2/3\,d\)** from the tension steel; s ≈ 3–4 in typical. Add small framing bars at the inside corner for anchorage.
+
+### 9) Development/Anchorage
+Use ACI hooked-bar provisions (tension, top bar) for chosen size; provide embedment into the column (often 40–56 in range depending on size/cover/position/tables). If providing excess steel, apply the permitted reduction factor.
+
+### 10) Bearing Under Plate (Concrete)
+\[
+\phi P_n \ge V_u,\qquad
+P_n = 0.85 f'_c A_1 \sqrt{A_2/A_1}
+\]
+Check \(A_1 =\) plate area; \(A_2 =\) effective supporting area behind bearing per ACI.  
+Also check plate thickness/anchor welds (steel design).
+
+> **Deliverable**: Include a neat calc sheet showing inputs from ETABS ( \(V_u, a\) ), your chosen geometry \(h,d,b_w\), and each step above with bar callouts and a detailing sketch.
+
+---
+
+## 🔁 Alternate Design (Beam b/h Swapped)
+
+Re-run the model with beam **width/depth interchanged**. Compare:
+
+- **Demands** \(M_u, V_u\), **deflections**, and **drift**  
+- Member **capacities / required steel**  
+- **Self-weight** and **constructability** (formwork, bar congestion)  
+- Any change in the **precast beam end reactions** → updated **corbel** demand (brief sensitivity note)
+
+Summarize in a small table/graphic.
+
+---
+
+## 📐 Drawing & Detailing Package
+
+- **Plans**: second-floor framing + grid.  
+- **Sections**: typical beam/slab and column zones.  
+- **Corbel detail**: bar sizes, weld note, hoop spacing, development, bearing plate.  
+- **General notes**: materials, design codes, load criteria, rebar specs, cover, tolerances.
+
+---
+
+## 📊 Results & Conclusion
+
+- Slab, beam, column designs meet ACI strength and serviceability.  
+- Corbel hand design demonstrates adequate strength and anchorage for the precast reaction at the 2nd floor.  
+- Alternate scheme trade-offs (stiffness/weight/demand) are discussed; recommend **[choose winning scheme]** for final.
+
+---
+
+## 📎 Downloads / Figures
+
+- [Report PDF](/files/hospital-kerrville/report.pdf)  
+- [Corbel Hand Calcs](/files/hospital-kerrville/corbel-calcs.pdf)  
+- [ETABS/RISA Model Images](/images/hospital-kerrville/model/)
+
