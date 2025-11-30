@@ -4,9 +4,10 @@ import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import VideoBg from '../components/VideoBg.astro';   // ← NEW
 import { SITE_TITLE } from '../consts';
 
-// Load non-draft posts and sort newest → oldest (robust to missing pubDate)
+// Load non-draft posts and sort newest → oldest
 const rawPosts = await getCollection('blog', ({ data }) => data?.draft !== true);
 
 const posts = rawPosts
@@ -17,7 +18,7 @@ const posts = rawPosts
     return { ...p, _pub: validDate };
   })
   .sort((a, b) => (b._pub?.getTime?.() ?? 0) - (a._pub?.getTime?.() ?? 0))
-  .slice(0, 3); // ⟵ only show 3 on Home
+  .slice(0, 3);
 ---
 
 <!doctype html>
@@ -25,66 +26,67 @@ const posts = rawPosts
   <head>
     <BaseHead title={SITE_TITLE} />
   </head>
+
   <body>
-    <Header />
-    <main>
-      <!-- Hero -->
-      <section style="text-align:center; margin: 3rem 0 2rem;">
-        <h1 style="font-size:clamp(2rem,4vw,3rem); margin:0 0 .5rem;">
-          LifeLoggerz
-        </h1>
-        <p style="opacity:.8; font-size:1.125rem;">
-          Systems, templates, and experiments in hyper-efficient living.
-        </p>
-      </section>
+    <VideoBg>
+      <Header />
 
-      <!-- Latest posts teaser -->
-      <section>
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem;">
-          <h2 style="margin:0;">Latest from the Blog</h2>
-          <a href="/blog" style="font-weight:700; text-decoration:underline; text-underline-offset:3px;">See all →</a>
-        </div>
+      <main>
+        <!-- Hero -->
+        <section style="text-align:center; margin: 3rem 0 2rem;">
+          <h1 style="font-size:clamp(2rem,4vw,3rem); margin:0 0 .5rem;">
+            LifeLoggerz
+          </h1>
+          <p style="opacity:.8; font-size:1.125rem;">
+            Systems, templates, and experiments in hyper-efficient living.
+          </p>
+        </section>
 
-        {posts.length === 0 ? (
-          <p>No posts yet. Add some markdown files to <code>src/content/blog/</code>!</p>
-        ) : (
-          <ul class="post-grid">
-            {posts.map((post) => (
-              <li class="card">
-                <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
-                  {post.data.heroImage ? (
-                    <img src={post.data.heroImage} alt="" loading="lazy" />
-                  ) : post.data.heroVideo ? (
-                    <video
-                      autoplay
-                      muted
-                      loop
-                      playsinline
-                      preload="auto"
-                    >
-                      <source src={post.data.heroVideo} type="video/mp4" />
-                    </video>
-                  ) : null}
-                  <h3>{post.data.title}</h3>
-                  {post._pub ? (
-                    <time datetime={post._pub.toISOString()}>
-                      {post._pub.toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </time>
-                  ) : (
-                    <time aria-hidden="true">Undated</time>
-                  )}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
-    <Footer />
+        <!-- Latest posts -->
+        <section>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem;">
+            <h2 style="margin:0;">Latest from the Blog</h2>
+            <a href="/blog" style="font-weight:700; text-decoration:underline; text-underline-offset:3px;">See all →</a>
+          </div>
+
+          {posts.length === 0 ? (
+            <p>No posts yet. Add some markdown files to <code>src/content/blog/</code>!</p>
+          ) : (
+            <ul class="post-grid">
+              {posts.map((post) => (
+                <li class="card">
+                  <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
+                    {post.data.heroImage ? (
+                      <img src={post.data.heroImage} alt="" loading="lazy" />
+                    ) : post.data.heroVideo ? (
+                      <video autoplay muted loop playsinline preload="auto">
+                        <source src={post.data.heroVideo} type="video/mp4" />
+                      </video>
+                    ) : null}
+
+                    <h3>{post.data.title}</h3>
+
+                    {post._pub ? (
+                      <time datetime={post._pub.toISOString()}>
+                        {post._pub.toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </time>
+                    ) : (
+                      <time aria-hidden="true">Undated</time>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
+
+      <Footer />
+    </VideoBg>
   </body>
 </html>
 
