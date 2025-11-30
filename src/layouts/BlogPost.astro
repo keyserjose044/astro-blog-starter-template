@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import ViewCounter from '../components/ViewCounter.astro';
+import VideoBg from '../components/VideoBg.astro';
 
 interface Props {
   title: string;
@@ -70,11 +71,6 @@ const jsonLdString = JSON.stringify({
 }).replace(/</g, '\\u003c');
 
 const hasCustomHero = Astro.slots.has('hero');
-
-// ---------- background video (GitHub Pages–safe) ----------
-const base = import.meta.env.BASE_URL || '/';
-const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
----
 
 <html lang="en">
   <head>
@@ -293,96 +289,83 @@ const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
   </head>
 
   <body>
-    <div class="page-with-video-bg">
-      <!-- Full-page background video INSIDE the wrapper -->
-      <video
-        src={backgroundVideoSrc}
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="auto"
-        class="page-with-video-bg__video"
-      ></video>
-
-      <div class="page-with-video-bg__content">
-        <Header />
-        <main>
-          <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
-            {hasCustomHero ? (
-              <div class="hero-image">
-                <slot name="hero" />
-              </div>
-            ) : heroVideo ? (
-              <div class="hero-image hero-video-wrap">
-                <video
-                  class="hero-video"
-                  autoplay
-                  muted
-                  loop
-                  playsinline
-                  preload="auto"
-                  data-hero-video
-                >
-                  <source src={heroVideo} type="video/mp4" />
-                </video>
-
-                <button
-                  class="hero-audio-toggle"
-                  type="button"
-                  aria-label="Unmute video"
-                  data-muted="true"
-                >
-                  <span>🔇</span>
-                </button>
-              </div>
-            ) : heroImage ? (
-              <div class="hero-image">
-                <img
-                  src={heroImage}
-                  alt={title}
-                  loading="eager"
-                  sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
-                  style={heroImageStyle}
-                  onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
-                />
-              </div>
-            ) : null}
-
-            <div class="prose">
-              <div class="title">
-                {(hasPub || hasUpd) && (
-                  <div class="date">
-                    {hasPub && (
-                      <>
-                        <FormattedDate date={pub!} />
-                        {showViews && (
-                          <>
-                            <span class="meta-sep"> | </span>
-                            <ViewCounter path={Astro.url.pathname} />
-                          </>
-                        )}
-                      </>
-                    )}
-                    {hasUpd && (
-                      <div class="last-updated-on">
-                        Last updated on <FormattedDate date={upd!} />
-                      </div>
-                    )}
-                  </div>
-                )}
-                <h1>{title}</h1>
-                <hr />
-              </div>
-
-              <slot />
+    <VideoBg>
+      <Header />
+      <main>
+        <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
+          {hasCustomHero ? (
+            <div class="hero-image">
+              <slot name="hero" />
             </div>
-          </article>
-        </main>
+          ) : heroVideo ? (
+            <div class="hero-image hero-video-wrap">
+              <video
+                class="hero-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="auto"
+                data-hero-video
+              >
+                <source src={heroVideo} type="video/mp4" />
+              </video>
 
-        <Footer />
-      </div>
-    </div>
+              <button
+                class="hero-audio-toggle"
+                type="button"
+                aria-label="Unmute video"
+                data-muted="true"
+              >
+                <span>🔇</span>
+              </button>
+            </div>
+          ) : heroImage ? (
+            <div class="hero-image">
+              <img
+                src={heroImage}
+                alt={title}
+                loading="eager"
+                sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
+                style={heroImageStyle}
+                onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
+              />
+            </div>
+          ) : null}
+
+          <div class="prose">
+            <div class="title">
+              {(hasPub || hasUpd) && (
+                <div class="date">
+                  {hasPub && (
+                    <>
+                      <FormattedDate date={pub!} />
+                      {showViews && (
+                        <>
+                          <span class="meta-sep"> | </span>
+                          <ViewCounter path={Astro.url.pathname} />
+                        </>
+                      )}
+                    </>
+                  )}
+                  {hasUpd && (
+                    <div class="last-updated-on">
+                      Last updated on <FormattedDate date={upd!} />
+                    </div>
+                  )}
+                </div>
+              )}
+              <h1>{title}</h1>
+              <hr />
+            </div>
+
+            <slot />
+          </div>
+        </article>
+      </main>
+
+      <Footer />
+    </VideoBg>
 
     <!-- Hero video button logic -->
     <script is:inline>
