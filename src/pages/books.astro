@@ -50,8 +50,82 @@ const books = await fetchAllRaindrops();
     .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
     h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
     .hint{color:var(--muted);margin:6px 0 20px}
-    .toolbar{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0 24px}
-    .toolbar input[type="search"]{width:100%;max-width:520px;margin-inline:auto;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+
+    .toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin:6px 0 18px;
+      flex-wrap:wrap;
+    }
+    .toolbar input[type="search"]{
+      flex:1 1 260px;
+      width:100%;
+      max-width:520px;
+      margin-inline:0;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--ink);
+      font-size:.95rem;
+      box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
+
+    .info-toggle{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.1rem;
+      cursor:pointer;
+      box-shadow:0 1px 2px rgba(0,0,0,.04);
+      transition:background .15s ease, box-shadow .15s ease, transform .08s ease, border-color .15s ease, color .15s ease;
+    }
+    .info-toggle span{
+      position:relative;
+      top:-1px;
+      font-weight:600;
+    }
+    .info-toggle:hover{
+      background:#f0f2ff;
+      box-shadow:0 4px 10px rgba(0,0,0,.08);
+      transform:translateY(-1px);
+    }
+    .info-toggle[aria-pressed="true"]{
+      background:#405cf5;
+      color:#fff;
+      border-color:#405cf5;
+    }
+
+    .info-panel{
+      max-width:920px;
+      margin:0 auto 24px;
+      padding:16px 18px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--border);
+      box-shadow:0 10px 24px rgba(15,23,42,.04);
+      font-size:.94rem;
+      line-height:1.5;
+      color:var(--muted);
+      text-align:left;
+      display:none;
+    }
+    .info-panel--visible{display:block;}
+    .info-panel h2{
+      font-size:1.02rem;
+      margin:0 0 .4rem;
+      font-weight:700;
+      color:var(--ink);
+    }
+    .info-panel p{margin:.35rem 0;}
+
     .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
     @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
     .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
@@ -77,9 +151,51 @@ const books = await fetchAllRaindrops();
       <p class="hint">
         {(books.length).toLocaleString('en-US')} Audiobooks listened to since 2023. While I drive, wash, run — any menial task really...
       </p>
+
+      <!-- toolbar with search + info button -->
       <div class="toolbar">
         <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter books" />
+        <button
+          type="button"
+          id="info-toggle"
+          class="info-toggle"
+          aria-label="About my reading"
+          aria-expanded="false"
+          aria-pressed="false"
+        >
+          <span>?</span>
+        </button>
       </div>
+
+      <!-- hidden info section (expands between search & gallery) -->
+      <section id="reading-info" class="info-panel" hidden>
+        <h2>Why I Listen to Audiobooks</h2>
+        <p>
+          I don’t watch TV, movies, videos, or scroll social media. Audiobooks are how I get my
+          mental stimulation while I drive, wash, run, or do any repetitive task. They turn
+          otherwise empty hours into something meaningful.
+        </p>
+
+        <h2>What I Read</h2>
+        <p>
+          I almost never follow a strict plan. Over these three years I’ve wandered through
+          classics, philosophy, history, psychology, fantasy, religion, and anything that sparks
+          curiosity in the moment. My favorite genres are simply the ones with the most entries.
+        </p>
+
+        <h2>The Numbers</h2>
+        <p>
+          Since <strong>February 9, 2023</strong>, I’ve listened to nearly
+          <strong>300 audiobooks</strong> and logged more than <strong>2,000 hours</strong> of
+          listening. With 2026 around the corner, that’s almost three full years of audiobooks
+          woven into everyday life.
+        </p>
+
+        <p>
+          Later I’ll add live stats here: genre counts, listening hours, favorite authors, and
+          graphs powered by my Google Sheets logs.
+        </p>
+      </section>
     </div>
 
     {books.length === 0 ? (
@@ -168,6 +284,22 @@ const books = await fetchAllRaindrops();
         requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
         setTimeout(()=>card.classList.remove('show-note'), 2500);
       }, true);
+
+      // info panel toggle
+      const infoBtn = $('#info-toggle');
+      const infoPanel = $('#reading-info');
+      if (infoBtn && infoPanel){
+        infoBtn.addEventListener('click', ()=>{
+          const isOpen = infoPanel.classList.toggle('info-panel--visible');
+          infoPanel.hidden = !isOpen;
+          infoBtn.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
+          infoBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          if (isOpen){
+            // bring into view on mobile without being jarring on desktop
+            infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        });
+      }
     })();
   </script>
 </body>
