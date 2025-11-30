@@ -3,7 +3,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import VideoBg from '../components/VideoBg.astro';
+import VideoBg from '../../components/VideoBg.astro';
 import { SITE_TITLE } from '../consts';
 
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
@@ -14,10 +14,10 @@ async function fetchAllRaindrops() {
   let page = 0, items: any[] = [];
   while (true) {
     const res = await fetch(
-      `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
-      { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
+      https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page},
+      { headers: { Authorization: Bearer ${RAINDROP_TOKEN} } }
     );
-    if (!res.ok) throw new Error(`Raindrop fetch failed (${res.status}): ${await res.text()}`);
+    if (!res.ok) throw new Error(Raindrop fetch failed (${res.status}): ${await res.text()});
     const batch = (await res.json())?.items ?? [];
     if (!batch.length) break;
     items.push(...batch);
@@ -41,7 +41,7 @@ const albums = await fetchAllRaindrops();
 <!doctype html>
 <html lang="en">
 <head>
-  <BaseHead title={`${SITE_TITLE} — Albums`} description="Albums gallery powered by Raindrop — auto-updated from my collection." />
+  <BaseHead title={${SITE_TITLE} — Albums} description="Albums gallery powered by Raindrop — auto-updated from my collection." />
   <style>
     :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
     *{box-sizing:border-box}
@@ -145,7 +145,7 @@ const albums = await fetchAllRaindrops();
   </style>
 </head>
 <body>
-  <VideoBg>
+  </VideoBg>
     <Header />
     <main class="wrap wrap--wide">
       <div class="intro" role="region" aria-label="Albums header">
@@ -153,7 +153,7 @@ const albums = await fetchAllRaindrops();
         <p class="hint">
           My life in {(albums.length).toLocaleString('en-US')} albums — every listen logged and displayed here.
         </p>
-
+  
         <!-- toolbar with search + info button -->
         <div class="toolbar">
           <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter albums" />
@@ -168,7 +168,7 @@ const albums = await fetchAllRaindrops();
             <span>?</span>
           </button>
         </div>
-
+  
         <!-- hidden info section (expands between search & gallery) -->
         <section id="albums-info" class="info-panel" hidden>
           <h2>Why I Log Albums</h2>
@@ -176,13 +176,13 @@ const albums = await fetchAllRaindrops();
             Music is the other half of my attention economy. I don’t listen passively — I log albums the way I log
             books, as a record of what’s been in my ears while I walk, work, or drive.
           </p>
-
+  
           <h2>What’s in Here</h2>
           <p>
             These are full albums, not shuffled playlists. I drift through classical, film scores, jazz, folk, and
             anything that grabs my curiosity hard enough to deserve a front-to-back listen.
           </p>
-
+  
           <h2>How to Read This Grid</h2>
           <p>
             Hover over a cover to see my structured note:
@@ -192,7 +192,7 @@ const albums = await fetchAllRaindrops();
             On mobile, tap once to reveal the note, then tap again to follow the link (usually to a streaming or
             reference page).
           </p>
-
+  
           <h2>Future Stats</h2>
           <p>
             Later I’ll surface live listening stats here: most-played artists, years, genres, and streaks powered by my
@@ -200,7 +200,7 @@ const albums = await fetchAllRaindrops();
           </p>
         </section>
       </div>
-
+  
       {albums.length === 0 ? (
         <div class="empty">No albums found in this collection.</div>
       ) : (
@@ -264,7 +264,7 @@ const albums = await fetchAllRaindrops();
         let shift = 0;
         if (r.left < m) shift = m - r.left;
         else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
-        if (shift) bubble.style.setProperty('--shift', `${shift}px`);
+        if (shift) bubble.style.setProperty('--shift', ${shift}px);
       }
       grid.addEventListener('mouseenter', e=>{
         const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
