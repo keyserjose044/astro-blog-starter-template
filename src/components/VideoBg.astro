@@ -1,0 +1,25 @@
+---
+/**
+ * Full-page background video wrapper for LifeLoggerz.
+ * Uses the global .page-with-video-bg styles.
+ */
+
+const base = import.meta.env.BASE_URL || '/';
+const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
+---
+
+<div class="page-with-video-bg">
+  <video
+    src={backgroundVideoSrc}
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    class="page-with-video-bg__video"
+  ></video>
+
+  <div class="page-with-video-bg__content">
+    <slot />
+  </div>
+</div>
