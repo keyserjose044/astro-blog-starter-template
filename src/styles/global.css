@@ -224,14 +224,15 @@ hr {
   }
 }
 
-.lifeloggerz-bg-video {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  opacity: 0.4;
-  pointer-events: none;
+video.lifeloggerz-bg-video {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+  opacity: 0.6 !important;           /* VERY visible for debugging */
+  pointer-events: none !important;
+  background: rgba(255, 0, 0, 0.3) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
