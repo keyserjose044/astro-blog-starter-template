@@ -7,7 +7,6 @@ import { getCollection } from 'astro:content';
 import FormattedDate from '../../components/FormattedDate.astro';
 import VideoBg from '../../components/VideoBg.astro';
 
-
 // Exclude drafts and sort safely
 const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
   .map((p) => ({
@@ -16,7 +15,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       ? p.data.pubDate
       : new Date(p.data?.pubDate ?? 0),
   }))
-  .sort((a, b) => (b._pub?.valueOf?.() ?? 0) - (a._pub?.valueOf?.() ?? 0));
+  .sort((a, b) => (b._pub?.getTime?.() ?? 0) - (a._pub?.getTime?.() ?? 0));
 ---
 
 <!doctype html>
@@ -38,24 +37,34 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       .wrap {
         width: 100%;
         max-width: var(--list-max);
-        margin: 0 auto;
-        padding: 0.5rem 1rem 2rem;
+        margin: 0 auto 2.5rem;
+        padding: 1rem 1.25rem 2.5rem;
         box-sizing: border-box;
       }
 
-      /* header + search */
+      @media (max-width: 480px) {
+        .wrap {
+          max-width: var(--read-max);
+          padding-inline: 1rem;
+        }
+      }
+
       .intro {
-        max-width: var(--list-max);
-        margin: 0 auto 1.25rem;
-        text-align: center;
+        padding: 2.2rem 0 1.5rem;
+      }
+
+      .intro h1 {
+        margin: 0 0 0.5rem;
+        font-size: clamp(2rem, 4vw, 2.5rem);
+      }
+
+      .intro p {
+        margin: 0.2rem 0 0;
+        color: #6b7280;
       }
 
       .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        margin: 10px 0 0;
+        margin: 1.25rem 0 0;
       }
 
       .toolbar input[type="search"] {
@@ -65,56 +74,81 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         border-radius: 12px;
         border: 1px solid var(--border);
         background: #fff
-          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="%235e6573" viewBox="0 0 24 24"><path d="M21.53 20.47l-3.67-3.67A8.5 8.5 0 1 0 10.5 19a8.46 8.46 0 0 0 5.3-1.82l3.67 3.67a.75.75 0 0 0 1.06-1.06ZM4 10.5a6.5 6.5 0 1 1 13 0a6.5 6.5 0 0 1-13 0Z"/></svg>')
+          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path fill="%23767f8b" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16.5 9.5 6.5 6.5 0 1 0 10 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-4.5-4.5ZM4 10.5a6.5 6.5 0 1 1 13 0a6.5 6.5 0 0 1-13 0Z"/></svg>')
           no-repeat right 12px center;
         background-size: 18px;
         color: #0e121b;
         font-size: .95rem;
-        box-shadow: 0 1px 2px rgba(0,0,0,.03);
+        box-sizing: border-box;
       }
 
-      .toolbar input::placeholder {
-        color: #888;
+      .toolbar input[type="search"]::placeholder {
+        color: #9ca3af;
+      }
+
+      .toolbar small {
+        display: block;
+        margin-top: 0.4rem;
+        color: #9ca3af;
+      }
+
+      .empty {
+        display: none;
+        margin: 2rem 0;
+        color: #6b7280;
         font-style: italic;
       }
 
-      /* grid of posts */
-      ul {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 2rem;
+      ul#grid {
         list-style: none;
-        margin: 0;
         padding: 0;
+        margin: 1.75rem 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      @media (min-width: 900px) {
+        ul#grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1.5rem;
+        }
+      }
+
+      li {
+        margin: 0;
       }
 
       li a {
         display: block;
         text-decoration: none;
-        transition: 0.2s ease;
         color: inherit;
-      }
-
-      .title { margin: 0.5rem 0 0; color: rgb(var(--black)); line-height: 1.1; }
-      .date  { margin: 0; color: rgb(var(--gray)); }
-
-      /* First (featured) post takes full row */
-      ul li:first-child { grid-column: 1 / -1; text-align: center; }
-
-      /* Thumbnail frame (same height for all cards on desktop) */
-      .thumb-frame {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 16 / 9;
         border-radius: var(--thumb-radius);
         overflow: hidden;
-        background: #f5f5f7;
+        background: #fff;
         box-shadow: var(--thumb-shadow);
+        transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+        border: 1px solid rgba(15,23,42,0.04);
       }
 
-      /* Make the featured one a bit more cinematic */
-      ul li:first-child .thumb-frame {
-        aspect-ratio: 21 / 9;
+      li a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 36px rgba(0,0,0,0.18);
+        border-color: rgba(15,23,42,0.08);
+      }
+
+      .thumb-frame {
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        background: #020617;
+      }
+
+      @media (max-width: 480px) {
+        .thumb-frame {
+          height: 180px;
+        }
       }
 
       .thumb-media {
@@ -124,63 +158,72 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         display: block;
       }
 
-      ul li a:hover .thumb-frame {
-        box-shadow: 0 14px 40px rgba(0,0,0,.18);
-        transform: translateY(-1px);
+      .card-body {
+        padding: 0.9rem 1.1rem 1.1rem;
       }
 
-      ul li a:hover h4,
-      ul li a:hover .date {
-        color: rgb(var(--accent));
+      .card-body h2 {
+        font-size: 1.12rem;
+        margin: 0 0 0.35rem;
       }
 
-      .empty {
-        display:none;
-        text-align:center;
-        color: rgb(var(--gray));
-        padding: 1rem 0;
+      .card-meta {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #6b7280;
       }
 
-      /* ===== MOBILE-ONLY CENTERING ===== */
-      @media (max-width: 768px) {
-        .wrap {
-          max-width: var(--read-max);
-          margin-inline: auto !important;
-          padding-inline: clamp(16px, 4vw, 24px) !important;
-        }
-        ul {
-          grid-template-columns: 1fr !important;
-          gap: clamp(12px, 3vw, 20px);
-          justify-items: center;
-        }
-        h1, .title { font-size: clamp(1.1rem, 4.5vw, 1.35rem); }
-        .thumb-frame {
-          aspect-ratio: 16 / 9; /* keeps consistency but still 1 column */
+      .card-meta time {
+        white-space: nowrap;
+      }
+
+      .card-tagline {
+        margin: 0.5rem 0 0;
+        font-size: 0.92rem;
+        color: #4b5563;
+      }
+
+      @media (max-width: 480px) {
+        .card-body {
+          padding-inline: 0.9rem;
         }
       }
     </style>
   </head>
 
   <body>
-    </VideoBg>
+    <VideoBg>
       <Header />
       <main>
         <section class="wrap">
           <div class="intro" role="region" aria-label="Blog header">
             <h1>Blog Posts</h1>
             <div class="toolbar">
-              <input id="q" type="search" placeholder="Search" aria-label="Filter blog posts" />
+              <input
+                id="q"
+                type="search"
+                placeholder="Search"
+                aria-label="Filter blog posts"
+              />
+              <small>Press "/" to focus search, "Esc" to clear.</small>
             </div>
           </div>
-  
+
           <div class="empty" id="empty">No posts match your search.</div>
-  
+
           <ul id="grid">
-            {posts.map((post, idx) => {
+            {posts.map((post) => {
               const title = post.data.title ?? '';
               const heroImage = post.data.heroImage;
               const heroVideo = (post.data as any).heroVideo; // optional
-  
+              const desc =
+                (post.data as any).description ||
+                (post.data as any).summary ||
+                '';
+
               return (
                 <li data-title={title.toLowerCase()}>
                   <a href={`/blog/${post.slug}/`}>
@@ -207,8 +250,27 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
                         ) : null}
                       </div>
                     )}
-                    <h4 class="title">{title}</h4>
-                    <p class="date"><FormattedDate date={post._pub} /></p>
+
+                    <div class="card-body">
+                      <h2>{title}</h2>
+                      <div class="card-meta">
+                        {post._pub ? (
+                          <time datetime={post._pub.toISOString()}>
+                            {post._pub.toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </time>
+                        ) : (
+                          <time aria-hidden="true">Undated</time>
+                        )}
+                        <span>
+                          <FormattedDate date={post._pub ?? new Date()} />
+                        </span>
+                      </div>
+                      {desc && <p class="card-tagline">{desc}</p>}
+                    </div>
                   </a>
                 </li>
               );
@@ -220,41 +282,49 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
     </VideoBg>
 
     <script>
-      (function(){
-        const $ = (s, r=document) => r.querySelector(s);
-        const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-        const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-        const debounce = (fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+      (function () {
+        const $ = (s, r = document) => r.querySelector(s);
+        const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+        const norm = (s) =>
+          (s || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+        const debounce = (fn, ms) => {
+          let t;
+          return (...a) => {
+            clearTimeout(t);
+            t = setTimeout(() => fn(...a), ms);
+          };
+        };
 
         const input = $('#q');
-        const grid  = $('#grid');
+        const items = $$('ul#grid > li');
         const empty = $('#empty');
-        if (!input || !grid) return;
+        if (!input || !items.length || !empty) return;
 
-        const items = $$('li', grid);
-        const hay = new Map(items.map(li => [li, norm(li.dataset.title || '')]));
-
-        function filter(){
-          const s = norm(input.value.trim());
-          if (!s) {
-            items.forEach(li => li.style.display = '');
-            empty.style.display = 'none';
-            return;
-          }
-          const words = s.split(/\s+/);
+        function filter() {
+          const q = norm(input.value);
           let shown = 0;
-          items.forEach(li => {
-            const hit = words.every(w => hay.get(li).includes(w));
-            li.style.display = hit ? '' : 'none';
-            if (hit) shown++;
+          items.forEach((li) => {
+            const title = norm(li.dataset.title || '');
+            const match = !q || title.includes(q);
+            li.style.display = match ? '' : 'none';
+            if (match) shown++;
           });
           empty.style.display = shown ? 'none' : '';
         }
 
         input.addEventListener('input', debounce(filter, 80));
-        window.addEventListener('keydown', e => {
-          if (e.key === 'Escape') { input.value = ''; filter(); input.focus(); }
-          else if (e.key === '/' && e.target === document.body) { e.preventDefault(); input.focus(); }
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            input.value = '';
+            filter();
+            input.focus();
+          } else if (e.key === '/' && e.target === document.body) {
+            e.preventDefault();
+            input.focus();
+          }
         });
         filter();
       })();
