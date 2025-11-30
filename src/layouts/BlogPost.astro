@@ -276,63 +276,58 @@ const hasCustomHero = Astro.slots.has('hero');
   </head>
 
   <body>
-    <!-- Background video -->
     <video
-      class="lifeloggerz-bg-video"
+      src="/backgrounds/waves.mp4?v=2"
       autoplay
       muted
       loop
       playsinline
       preload="auto"
-    >
-      <source src="/backgrounds/waves.mp4" type="video/mp4" />
-    </video>
+      class="lifeloggerz-bg-video"
+    ></video>
 
-    <!-- EVERYTHING above the background video -->
-    <div class="lifeloggerz-page-shell">
-      <Header />
+    <Header />
+    <main>
+      <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
+        {hasCustomHero ? (
+          <div class="hero-image">
+            <slot name="hero" />
+          </div>
+        ) : heroVideo ? (
+          <div class="hero-image hero-video-wrap">
+            <video
+              class="hero-video"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="auto"
+              data-hero-video
+            >
+              <source src={heroVideo} type="video/mp4" />
+            </video>
 
-      <main>
-        <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
-          {hasCustomHero ? (
-            <div class="hero-image">
-              <slot name="hero" />
-            </div>
-          ) : heroVideo ? (
-            <div class="hero-image hero-video-wrap">
-              <video
-                class="hero-video"
-                autoplay
-                muted
-                loop
-                playsinline
-                preload="auto"
-                data-hero-video
-              >
-                <source src={heroVideo} type="video/mp4" />
-              </video>
-
-              <button
-                class="hero-audio-toggle"
-                type="button"
-                aria-label="Unmute video"
-                data-muted="true"
-              >
-                <span>🔇</span>
-              </button>
-            </div>
-          ) : heroImage ? (
-            <div class="hero-image">
-              <img
-                src={heroImage}
-                alt={title}
-                loading="eager"
-                sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
-                style={heroImageStyle}
-                onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
-              />
-            </div>
-          ) : null}
+            <button
+              class="hero-audio-toggle"
+              type="button"
+              aria-label="Unmute video"
+              data-muted="true"
+            >
+              <span>🔇</span>
+            </button>
+          </div>
+        ) : heroImage ? (
+          <div class="hero-image">
+            <img
+              src={heroImage}
+              alt={title}
+              loading="eager"
+              sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
+              style={heroImageStyle}
+              onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
+            />
+          </div>
+        ) : null}
 
           <div class="prose">
             <div class="title">
