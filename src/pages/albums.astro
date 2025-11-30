@@ -6,45 +6,33 @@ import Footer from '../components/Footer.astro';
 import VideoBg from '../components/VideoBg.astro';
 import { SITE_TITLE } from '../consts';
 
-const RAINDROP_TOKEN =
-  import.meta.env.RAINDROP_TOKEN ?? '2df3b611-fa2c-4794-a359-1bf08efdd67f';
-const COLLECTION_ID =
-  import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? '54514878';
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
+const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID ?? "54514878";
 
 async function fetchAllRaindrops() {
   const perPage = 50;
-  let page = 0,
-    items: any[] = [];
+  let page = 0, items: any[] = [];
   while (true) {
     const res = await fetch(
       `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
       { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
     );
-    if (!res.ok)
-      throw new Error(
-        `Raindrop fetch failed (${res.status}): ${await res.text()}`
-      );
+    if (!res.ok) throw new Error(`Raindrop fetch failed (${res.status}): ${await res.text()}`);
     const batch = (await res.json())?.items ?? [];
     if (!batch.length) break;
     items.push(...batch);
     if (batch.length < perPage) break;
     page++;
   }
-  items.sort(
-    (a, b) =>
-      new Date(b.created || b.lastUpdate || 0).getTime() -
-      new Date(a.created || a.lastUpdate || 0).getTime()
-  );
+  items.sort((a,b)=> new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime());
   const placeholder = '/images/album-placeholder.png';
-  return items.map((it) => ({
+  return items.map((it)=>({
     id: it._id,
     title: it.title ?? 'Untitled',
     href: it.link ?? '#',
     cover: it.cover || it.media?.[0]?.link || placeholder,
-    note:
-      (typeof it.note === 'string' ? it.note : '') ||
-      (typeof it.excerpt === 'string' ? it.excerpt : ''),
-    tags: it.tags ?? [],
+    note: (typeof it.note==='string'?it.note:'') || (typeof it.excerpt==='string'?it.excerpt:''),
+    tags: it.tags ?? []
   }));
 }
 const albums = await fetchAllRaindrops();
@@ -52,280 +40,270 @@ const albums = await fetchAllRaindrops();
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <BaseHead
-      title={`${SITE_TITLE} — Albums`}
-      description="Albums gallery powered by Raindrop — auto-updated from my collection."
-    />
-    <style>
-      :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
-      *{box-sizing:border-box}
-      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fb;color:var(--ink)}
-      .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
-      .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
-      .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
-      h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
-      .hint{color:var(--muted);margin:6px 0 20px}
+<head>
+  <BaseHead title={`${SITE_TITLE} — Albums`} description="Albums gallery powered by Raindrop — auto-updated from my collection." />
+  <style>
+    :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fb;color:var(--ink)}
+    .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
+    .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
+    .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
+    h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
+    .hint{color:var(--muted);margin:6px 0 20px}
 
-      .toolbar{
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap:8px;
-        margin:6px 0 18px;
-        flex-wrap:wrap;
-      }
-      .toolbar input[type="search"]{
-        flex:1 1 260px;
-        width:100%;
-        max-width:520px;
-        margin-inline:0;
-        padding:12px 14px;
-        border-radius:12px;
-        border:1px solid var(--border);
-        background:var(--surface);
-        color:var(--ink);
-        font-size:.95rem;
-        box-shadow:0 1px 2px rgba(0,0,0,.03);
-      }
+    .toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin:6px 0 18px;
+      flex-wrap:wrap;
+    }
+    .toolbar input[type="search"]{
+      flex:1 1 260px;
+      width:100%;
+      max-width:520px;
+      margin-inline:0;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--ink);
+      font-size:.95rem;
+      box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
 
-      .info-toggle{
-        width:40px;
-        height:40px;
-        border-radius:999px;
-        border:1px solid #838796;
-        background:#a8adbd;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        font-size:1.1rem;
-        cursor:pointer;
-        box-shadow:0 1px 2px rgba(0,0,0,.04);
-        transition:background .15s ease, box-shadow .15s ease, transform .08s ease, border-color .15s ease, color .15s ease;
-      }
-      .info-toggle span{
-        position:relative;
-        top:-1px;
-        font-weight:600;
-      }
-      .info-toggle:hover{
-        background:#f0f2ff;
-        box-shadow:0 4px 10px rgba(0,0,0,.08);
-        transform:translateY(-1px);
-      }
-      .info-toggle[aria-pressed="true"]{
-        background:#405cf5;
-        color:#fff;
-        border-color:#405cf5;
-      }
+    .info-toggle{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      border:1px solid #838796;
+      background:#a8adbd;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.1rem;
+      cursor:pointer;
+      box-shadow:0 1px 2px rgba(0,0,0,.04);
+      transition:background .15s ease, box-shadow .15s ease, transform .08s ease, border-color .15s ease, color .15s ease;
+    }
+    .info-toggle span{
+      position:relative;
+      top:-1px;
+      font-weight:600;
+    }
+    .info-toggle:hover{
+      background:#f0f2ff;
+      box-shadow:0 4px 10px rgba(0,0,0,.08);
+      transform:translateY(-1px);
+    }
+    .info-toggle[aria-pressed="true"]{
+      background:#405cf5;
+      color:#fff;
+      border-color:#405cf5;
+    }
 
-      .info-panel{
-        max-width:920px;
-        margin:0 auto 24px;
-        padding:16px 18px 14px;
-        border-radius:14px;
-        background:rgba(255,255,255,.9);
-        border:1px solid var(--border);
-        box-shadow:0 10px 24px rgba(15,23,42,.04);
-        font-size:.94rem;
-        line-height:1.5;
-        color:var(--muted);
-        text-align:left;
-        display:none;
-      }
-      .info-panel--visible{display:block;}
-      .info-panel h2{
-        font-size:1.02rem;
-        margin:0 0 .4rem;
-        font-weight:700;
-        color:var(--ink);
-      }
-      .info-panel p{margin:.35rem 0;}
+    .info-panel{
+      max-width:920px;
+      margin:0 auto 24px;
+      padding:16px 18px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--border);
+      box-shadow:0 10px 24px rgba(15,23,42,.04);
+      font-size:.94rem;
+      line-height:1.5;
+      color:var(--muted);
+      text-align:left;
+      display:none;
+    }
+    .info-panel--visible{display:block;}
+    .info-panel h2{
+      font-size:1.02rem;
+      margin:0 0 .4rem;
+      font-weight:700;
+      color:var(--ink);
+    }
+    .info-panel p{margin:.35rem 0;}
 
-      .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
-      @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
-      .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
-      .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
-      .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
-      .title{font-weight:700;font-size:.98rem;line-height:1.3}
-      .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
-      .note-bubble{position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);width:max-content;max-width:min(600px,90vw);white-space:normal;background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:10;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;hyphens:auto;word-break:break-word}
-      .note-bubble::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(20,23,31,.96)}
-      .card:hover .note-bubble,.card:focus-within .note-bubble,.card.show-note .note-bubble{opacity:1;visibility:visible}
-      @media (max-width:700px){
-        .note-bubble{top:auto;bottom:-10px;transform:translate(calc(-50% + var(--shift,0px)),100%)}
-        .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
-      }
-      .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
-    </style>
-  </head>
-  <body>
-    <VideoBg>
-      <Header />
-      <main class="wrap wrap--wide">
-        <div class="intro" role="region" aria-label="Albums header">
-          <h1>🎵 Albums</h1>
-          <p class="hint">
-            My life in {(albums.length).toLocaleString('en-US')} albums — every listen logged and displayed here.
-          </p>
+    .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
+    @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+    .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
+    .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
+    .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
+    .title{font-weight:700;font-size:.98rem;line-height:1.3}
+    .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
+    .note-bubble{position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);width:max-content;max-width:min(600px,90vw);white-space:normal;background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:10;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;hyphens:auto;word-break:break-word}
+    .note-bubble::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(20,23,31,.96)}
+    .card:hover .note-bubble,.card:focus-within .note-bubble,.card.show-note .note-bubble{opacity:1;visibility:visible}
+    @media (max-width:700px){
+      .note-bubble{top:auto;bottom:-10px;transform:translate(calc(-50% + var(--shift,0px)),100%)}
+      .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
+    }
+    .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
+  </style>
+</head>
+<body>
+  <VideoBg>
+    <Header />
+    <main class="wrap wrap--wide">
+      <div class="intro" role="region" aria-label="Albums header">
+        <h1>🎵 Albums</h1>
+        <p class="hint">
+          My life in {(albums.length).toLocaleString('en-US')} albums — every listen logged and displayed here.
+        </p>
 
-          <div class="toolbar">
-            <input
-              id="q"
-              type="search"
-              placeholder="Search title or note…"
-              aria-label="Filter albums"
-            />
-            <button
-              type="button"
-              id="info-toggle"
-              class="info-toggle"
-              aria-label="About my listening"
-              aria-expanded="false"
-              aria-pressed="false"
-            >
-              <span>?</span>
-            </button>
-          </div>
-
-          <section id="albums-info" class="info-panel" hidden>
-            <h2>Why I Log Albums</h2>
-            <p>
-              Music is the other half of my attention economy. I don’t listen passively — I log albums the way
-              I log books, as a record of what’s been in my ears while I walk, work, or drive.
-            </p>
-
-            <h2>What’s in Here</h2>
-            <p>
-              These are full albums, not shuffled playlists. I drift through classical, film scores, jazz, folk,
-              and anything that grabs my curiosity hard enough to deserve a front-to-back listen.
-            </p>
-
-            <h2>How to Read This Grid</h2>
-            <p>
-              Hover over a cover to see my structured note:
-              <strong>Date · Album · Artist · Year · Style · Country · Length · Context</strong>.
-            </p>
-            <p>
-              On mobile, tap once to reveal the note, then tap again to follow the link (usually to a streaming
-              or reference page).
-            </p>
-
-            <h2>Future Stats</h2>
-            <p>
-              Later I’ll surface live listening stats here: most-played artists, years, genres, and streaks powered by my
-              Google Sheets logs.
-            </p>
-          </section>
+        <!-- toolbar with search + info button -->
+        <div class="toolbar">
+          <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter albums" />
+          <button
+            type="button"
+            id="info-toggle"
+            class="info-toggle"
+            aria-label="About my listening"
+            aria-expanded="false"
+            aria-pressed="false"
+          >
+            <span>?</span>
+          </button>
         </div>
 
-        {
-          albums.length === 0 ? (
-            <div class="empty">No albums found in this collection.</div>
-          ) : (
-            <div class="grid fullbleed" id="grid" role="list">
-              {albums.map((a) => (
-                <a
-                  class="card"
-                  role="listitem"
-                  href={a.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={a.title}
-                  data-title={a.title.toLowerCase()}
-                  data-note={(a.note || '').toLowerCase()}
-                >
-                  <img
-                    class="thumb"
-                    src={a.cover}
-                    alt={a.title}
-                    loading="lazy"
-                    decoding="async"
-                    sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw"
-                  />
-                  <div class="title">{a.title}</div>
-                  {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
-                </a>
-              ))}
-            </div>
-          )
-        }
-      </main>
-      <Footer />
-    </VideoBg>
+        <!-- hidden info section (expands between search & gallery) -->
+        <section id="albums-info" class="info-panel" hidden>
+          <h2>Why I Log Albums</h2>
+          <p>
+            Music is the other half of my attention economy. I don’t listen passively — I log albums the way I log
+            books, as a record of what’s been in my ears while I walk, work, or drive.
+          </p>
 
-    <script>
-      (function(){
-        const $ = (sel,root=document)=>root.querySelector(sel);
-        const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+          <h2>What’s in Here</h2>
+          <p>
+            These are full albums, not shuffled playlists. I drift through classical, film scores, jazz, folk, and
+            anything that grabs my curiosity hard enough to deserve a front-to-back listen.
+          </p>
 
-        const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
-        const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+          <h2>How to Read This Grid</h2>
+          <p>
+            Hover over a cover to see my structured note:
+            <strong>Date · Album · Artist · Year · Style · Country · Length · Context</strong>.
+          </p>
+          <p>
+            On mobile, tap once to reveal the note, then tap again to follow the link (usually to a streaming or
+            reference page).
+          </p>
 
-        const grid = $('#grid'), input = $('#q');
-        if (!grid || !input) return;
+          <h2>Future Stats</h2>
+          <p>
+            Later I’ll surface live listening stats here: most-played artists, years, genres, and streaks powered by my
+            Google Sheets logs.
+          </p>
+        </section>
+      </div>
 
-        const cards = $$('.card', grid);
-        const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+      {albums.length === 0 ? (
+        <div class="empty">No albums found in this collection.</div>
+      ) : (
+        <div class="grid fullbleed" id="grid" role="list">
+          {albums.map(a => (
+            <a
+              class="card"
+              role="listitem"
+              href={a.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={a.title}
+              data-title={a.title.toLowerCase()}
+              data-note={(a.note || '').toLowerCase()}
+            >
+              <img class="thumb" src={a.cover} alt={a.title} loading="lazy" decoding="async"
+                   sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw" />
+              <div class="title">{a.title}</div>
+              {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
+            </a>
+          ))}
+        </div>
+      )}
+    </main>
+    <Footer />
+  </VideoBg>
 
-        function filter() {
-          const s = norm(input.value.trim());
-          if (!s) { cards.forEach(c=>c.style.display=''); return; }
-          const words = s.split(/\s+/);
-          cards.forEach(c => c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none');
-        }
-        input.addEventListener('input', debounce(filter, 80));
-        window.addEventListener('keydown', e => {
-          if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
-          else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+  <script>
+    (function(){
+      const $ = (sel,root=document)=>root.querySelector(sel);
+      const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+
+      // helpers
+      const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
+      const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+      const grid = $('#grid'), input = $('#q');
+      if (!grid || !input) return;
+
+      const cards = $$('.card', grid);
+      const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+
+      function filter() {
+        const s = norm(input.value.trim());
+        if (!s) { cards.forEach(c=>c.style.display=''); return; }
+        const words = s.split(/\s+/);
+        cards.forEach(c => c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none');
+      }
+      input.addEventListener('input', debounce(filter, 80));
+      window.addEventListener('keydown', e => {
+        if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
+        else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+      });
+      filter();
+
+      // tooltip: keep on screen + tap-to-show on touch
+      function adjust(bubble){
+        if (!bubble) return;
+        bubble.style.setProperty('--shift','0px');
+        const r = bubble.getBoundingClientRect(), m = 8;
+        let shift = 0;
+        if (r.left < m) shift = m - r.left;
+        else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
+        if (shift) bubble.style.setProperty('--shift', `${shift}px`);
+      }
+      grid.addEventListener('mouseenter', e=>{
+        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
+        requestAnimationFrame(()=>adjust(b));
+      }, true);
+      grid.addEventListener('focusin', e=>{
+        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
+        requestAnimationFrame(()=>adjust(b));
+      });
+      addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
+
+      // tap-to-toggle: first tap shows, second tap follows link
+      document.addEventListener('click', e=>{
+        const card = e.target.closest('.card');
+        if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+        if (!card.querySelector('.note-bubble')) return;
+        if (card.classList.contains('show-note')) return; // allow navigation
+        e.preventDefault();
+        cards.forEach(c=>c.classList.remove('show-note'));
+        card.classList.add('show-note');
+        requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
+        setTimeout(()=>card.classList.remove('show-note'), 2500);
+      }, true);
+
+      // info panel toggle
+      const infoBtn = $('#info-toggle');
+      const infoPanel = $('#albums-info');
+      if (infoBtn && infoPanel){
+        infoBtn.addEventListener('click', ()=>{
+          const isOpen = infoPanel.classList.toggle('info-panel--visible');
+          infoPanel.hidden = !isOpen;
+          infoBtn.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
+          infoBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          if (isOpen){
+            infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         });
-        filter();
-
-        function adjust(bubble){
-          if (!bubble) return;
-          bubble.style.setProperty('--shift','0px');
-          const r = bubble.getBoundingClientRect(), m = 8;
-          let shift = 0;
-          if (r.left < m) shift = m - r.left;
-          else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
-          if (shift) bubble.style.setProperty('--shift', `${shift}px`);
-        }
-        grid.addEventListener('mouseenter', e=>{
-          const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
-          requestAnimationFrame(()=>adjust(b));
-        }, true);
-        grid.addEventListener('focusin', e=>{
-          const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
-          requestAnimationFrame(()=>adjust(b));
-        });
-        addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
-
-        document.addEventListener('click', e=>{
-          const card = e.target.closest('.card');
-          if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
-          if (!card.querySelector('.note-bubble')) return;
-          if (card.classList.contains('show-note')) return;
-          e.preventDefault();
-          cards.forEach(c=>c.classList.remove('show-note'));
-          card.classList.add('show-note');
-          requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
-          setTimeout(()=>card.classList.remove('show-note'), 2500);
-        }, true);
-
-        const infoBtn = $('#info-toggle');
-        const infoPanel = $('#albums-info');
-        if (infoBtn && infoPanel){
-          infoBtn.addEventListener('click', ()=>{
-            const isOpen = infoPanel.classList.toggle('info-panel--visible');
-            infoPanel.hidden = !isOpen;
-            infoBtn.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
-            infoBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            if (isOpen){
-              infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-          });
-        }
-      })();
-    </script>
-  </body>
+      }
+    })();
+  </script>
+</body>
 </html>
