@@ -228,24 +228,36 @@ video.lifeloggerz-bg-video {
   position: fixed;
   inset: 0;
   width: 100vw;
+
+  /* Mobile viewport quirks */
   height: 100vh;
+  height: 100dvh;         /* modern browsers use this */
+
   object-fit: cover;
-  opacity: 0.18;          /* tweak after it works */
   pointer-events: none;
-  z-index: 0;             /* BELOW page content, ABOVE body */
+  z-index: 0;
+
+  /* Visual feel */
+  opacity: 0.18;          /* tweak to taste */
+  filter: grayscale(1);
 }
 
-/* Content wrapper above the background video */
+/* Make sure your page shell sits above the video */
 .lifeloggerz-page-shell {
   position: relative;
   z-index: 1;
 }
 
-/* (For now, keep motion ON everywhere – we can re-add reduced-motion later) */
-/*
-@media (prefers-reduced-motion: reduce) {
-  .lifeloggerz-bg-video {
-    opacity: 0.05;  // faint instead of off
+/* Slightly stronger on mobile if you like */
+@media (max-width: 768px) {
+  video.lifeloggerz-bg-video {
+    opacity: 0.24;
   }
 }
-*/
+
+/* Respect “Reduce motion” */
+@media (prefers-reduced-motion: reduce) {
+  video.lifeloggerz-bg-video {
+    opacity: 0 !important;   /* invisible but still there */
+  }
+}
