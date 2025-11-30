@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BaseHead from '../components/BaseHead.astro';
 import DownloadMeta from '../components/DownloadMeta.astro';
+import VideoBg from '../components/VideoBg.astro';
 
 // GitHub Pages–safe base URL handling
 const rawBase = import.meta.env.BASE_URL || '/';
@@ -13,12 +14,13 @@ type Item = {
   title: string;
   description?: string;
   href: string; // download link
-  filetype: 'Google Sheet' | 'Excel' | 'PDF' | 'Word' | 'ZIP' | 'Other';
+  filetype: 'Google Sheet' | 'Excel' | 'PDF' | 'Word' | 'ZIP' | 'Other' | 'App';
   updated?: string;
   imageSrc?: string;
   imageAlt?: string;
   imageOrientation?: 'portrait' | 'landscape';
   postUrl?: string; // optional blog post link
+  downloadKey?: string; // optional KV/download counter key
 };
 
 const templates: Item[] = [
@@ -269,7 +271,6 @@ const templates: Item[] = [
         margin-inline: auto;
       }
 
-
       /* ===== Mobile polish (desktop unaffected) ===== */
       @media (max-width: 768px) {
         .templates-page { padding-inline: clamp(1rem, 4vw, 2rem); }
@@ -281,39 +282,41 @@ const templates: Item[] = [
   </head>
 
   <body>
-    <Header />
-    <main class="templates-page">
-      <h1 class="page-title">Templates & Downloads</h1>
-      <p class="subtitle">
-        Ready-to-use files for time-tracking, research, and productivity.
-      </p>
+    <VideoBg>
+      <Header />
+      <main class="templates-page">
+        <h1 class="page-title">Templates & Downloads</h1>
+        <p class="subtitle">
+          Ready-to-use files for time-tracking, research, and productivity.
+        </p>
 
-      <section class="grid">
-        {templates.map((t) => (
-          <article class="card">
-            {t.imageSrc && (
-              <a
-                class:list={[
-                  'thumb',
-                  (t.imageOrientation ?? 'portrait') === 'landscape'
-                    ? 'landscape'
-                    : 'portrait',
-                ]}
-                href={t.postUrl ?? t.href}
-              >
-                <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
-              </a>
-            )}
-            <div class="content">
-              <div class="eyebrow">{t.filetype}</div>
-              <h3>{t.title}</h3>
-              {t.description && <p class="desc">{t.description}</p>}
-              <DownloadMeta href={t.href} updated={t.updated!} text="Download" />
-            </div>
-          </article>
-        ))}
-      </section>
-    </main>
-    <Footer />
+        <section class="grid">
+          {templates.map((t) => (
+            <article class="card">
+              {t.imageSrc && (
+                <a
+                  class:list={[
+                    'thumb',
+                    (t.imageOrientation ?? 'portrait') === 'landscape'
+                      ? 'landscape'
+                      : 'portrait',
+                  ]}
+                  href={t.postUrl ?? t.href}
+                >
+                  <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
+                </a>
+              )}
+              <div class="content">
+                <div class="eyebrow">{t.filetype}</div>
+                <h3>{t.title}</h3>
+                {t.description && <p class="desc">{t.description}</p>}
+                <DownloadMeta href={t.href} updated={t.updated!} text="Download" />
+              </div>
+            </article>
+          ))}
+        </section>
+      </main>
+      <Footer />
+    </VideoBg>
   </body>
 </html>
