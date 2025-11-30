@@ -230,16 +230,22 @@ video.lifeloggerz-bg-video {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  opacity: 0.18;         /* adjust to taste */
+  opacity: 0.18;          /* tweak after it works */
   pointer-events: none;
-  z-index: -1;           /* behind all content */
-  background: #ffffff;   /* just in case video is slow to load */
+  z-index: 0;             /* BELOW page content, ABOVE body */
 }
 
-/* TEMP: disable reduced-motion override
+/* Content wrapper above the background video */
+.lifeloggerz-page-shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* (For now, keep motion ON everywhere – we can re-add reduced-motion later) */
+/*
 @media (prefers-reduced-motion: reduce) {
   .lifeloggerz-bg-video {
-    opacity: 0 !important;
+    opacity: 0.05;  // faint instead of off
   }
 }
 */
