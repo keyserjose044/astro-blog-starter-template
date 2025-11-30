@@ -233,6 +233,12 @@ video.lifeloggerz-bg-video {
   opacity: 0.6 !important;           /* VERY visible for debugging */
   pointer-events: none !important;
   background: rgba(255, 0, 0, 0.3) !important;
+  }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .lifeloggerz-bg-video {
+    opacity: 0 !important;  /* invisible but not display:none */
+  }
 }
 
