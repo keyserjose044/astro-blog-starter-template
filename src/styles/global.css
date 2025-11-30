@@ -233,8 +233,15 @@ body {
   position: relative;
 }
 
-/* LifeLoggerz background waves */
-video.lifeloggerz-bg-video {
+/* Wrapper for any page using the background video */
+.page-with-video-bg {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Background video */
+.page-with-video-bg__video {
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -242,15 +249,12 @@ video.lifeloggerz-bg-video {
   height: 100dvh;       /* mobile-friendly height */
   object-fit: cover;
   pointer-events: none;
-  z-index: -1;          /* behind all content */
+  z-index: -1;          /* behind content in the wrapper */
   opacity: 0.22;        /* tweak later for subtlety */
 }
 
-/* OPTIONAL: if you *really* want reduced-motion handling, add later.
-@media (prefers-reduced-motion: reduce) {
-  video.lifeloggerz-bg-video {
-    opacity: 0.05;
-  }
+/* Content on top of video */
+.page-with-video-bg__content {
+  position: relative;
+  z-index: 0;
 }
-*/
-
