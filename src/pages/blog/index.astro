@@ -19,7 +19,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-blog-layout="cards">
   <head>
     <BaseHead title={`${SITE_TITLE} — Blog`} description={SITE_DESCRIPTION} />
     <style>
@@ -31,8 +31,16 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         --thumb-shadow: 0 10px 30px rgba(0,0,0,.12);
       }
 
-      html, body { max-width: 100%; overflow-x: hidden; }
-      main { width: 100%; margin: 0; }
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+      }
 
       .wrap {
         width: 100%;
@@ -67,7 +75,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         margin: 1.25rem 0 0;
       }
 
-      .toolbar input[type="search"] {
+      .toolbar input[type='search'] {
         width: 100%;
         max-width: 520px;
         padding: 12px 40px 12px 14px;
@@ -78,11 +86,11 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           no-repeat right 12px center;
         background-size: 18px;
         color: #0e121b;
-        font-size: .95rem;
+        font-size: 0.95rem;
         box-sizing: border-box;
       }
 
-      .toolbar input[type="search"]::placeholder {
+      .toolbar input[type='search']::placeholder {
         color: #9ca3af;
       }
 
@@ -90,6 +98,45 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         display: block;
         margin-top: 0.4rem;
         color: #9ca3af;
+      }
+
+      /* Layout toggle */
+
+      .view-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 0.9rem;
+        padding: 0.3rem 0;
+        flex-wrap: wrap;
+      }
+
+      .view-toggle-label {
+        font-size: 0.8rem;
+        color: #6b7280;
+      }
+
+      .view-toggle button {
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #f9fafb;
+        font-size: 0.8rem;
+        padding: 0.2rem 0.7rem;
+        cursor: pointer;
+        line-height: 1.2;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+
+      .view-toggle button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(15, 23, 42, 0.2);
+      }
+
+      .view-toggle button.is-active {
+        background: #0f172a;
+        color: #f9fafb;
+        border-color: #0f172a;
       }
 
       .empty {
@@ -108,14 +155,6 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         gap: 1.25rem;
       }
 
-      @media (min-width: 900px) {
-        ul#grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 1.5rem;
-        }
-      }
-
       li {
         margin: 0;
       }
@@ -128,14 +167,15 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         overflow: hidden;
         background: #fff;
         box-shadow: var(--thumb-shadow);
-        transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-        border: 1px solid rgba(15,23,42,0.04);
+        transition: transform 0.12s ease, box-shadow 0.12s ease,
+          border-color 0.12s ease;
+        border: 1px solid rgba(15, 23, 42, 0.04);
       }
 
       li a:hover {
         transform: translateY(-2px);
-        box-shadow: 0 14px 36px rgba(0,0,0,0.18);
-        border-color: rgba(15,23,42,0.08);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+        border-color: rgba(15, 23, 42, 0.08);
       }
 
       .thumb-frame {
@@ -143,12 +183,6 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         height: 180px;
         overflow: hidden;
         background: #020617;
-      }
-
-      @media (max-width: 480px) {
-        .thumb-frame {
-          height: 180px;
-        }
       }
 
       .thumb-media {
@@ -191,6 +225,59 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           padding-inline: 0.9rem;
         }
       }
+
+      /* ====== DESKTOP LAYOUTS ====== */
+
+      /* Default: "cards" view on desktop (your newer design) */
+      @media (min-width: 900px) {
+        html[data-blog-layout='cards'] ul#grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1.5rem;
+        }
+      }
+
+      /* "featured" layout: first post spans whole row, others in 2-column grid */
+      @media (min-width: 900px) {
+        html[data-blog-layout='featured'] ul#grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 2rem;
+        }
+
+        html[data-blog-layout='featured'] ul#grid li:first-child {
+          grid-column: 1 / -1;
+        }
+
+        html[data-blog-layout='featured'] ul#grid li:first-child a {
+          display: grid;
+          grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+          gap: 1.5rem;
+          align-items: stretch;
+        }
+
+        html[data-blog-layout='featured'] ul#grid li:first-child .thumb-frame {
+          height: auto;
+          min-height: 220px;
+        }
+
+        html[data-blog-layout='featured'] ul#grid li:first-child .card-body {
+          padding: 1.25rem 1.4rem 1.4rem;
+        }
+
+        html[data-blog-layout='featured'] ul#grid li:first-child .card-body h2 {
+          font-size: 1.4rem;
+        }
+      }
+
+      /* Mobile keeps things simple, one column either way */
+      @media (max-width: 900px) {
+        ul#grid {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+      }
     </style>
   </head>
 
@@ -201,6 +288,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         <section class="wrap">
           <div class="intro" role="region" aria-label="Blog header">
             <h1>Blog Posts</h1>
+
             <div class="toolbar">
               <input
                 id="q"
@@ -209,6 +297,31 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
                 aria-label="Filter blog posts"
               />
               <small>Press "/" to focus search, "Esc" to clear.</small>
+            </div>
+
+            <div
+              class="view-toggle"
+              role="radiogroup"
+              aria-label="Choose blog layout"
+            >
+              <span class="view-toggle-label">View:</span>
+              <button
+                type="button"
+                data-layout="cards"
+                class="is-active"
+                role="radio"
+                aria-checked="true"
+              >
+                Grid
+              </button>
+              <button
+                type="button"
+                data-layout="featured"
+                role="radio"
+                aria-checked="false"
+              >
+                Featured
+              </button>
             </div>
           </div>
 
@@ -298,12 +411,15 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           };
         };
 
+        /* ====== SEARCH ====== */
+
         const input = $('#q');
         const items = $$('ul#grid > li');
         const empty = $('#empty');
-        if (!input || !items.length || !empty) return;
+        if (!items.length || !empty) return;
 
         function filter() {
+          if (!input) return;
           const q = norm(input.value);
           let shown = 0;
           items.forEach((li) => {
@@ -315,18 +431,61 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           empty.style.display = shown ? 'none' : '';
         }
 
-        input.addEventListener('input', debounce(filter, 80));
-        window.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            input.value = '';
-            filter();
-            input.focus();
-          } else if (e.key === '/' && e.target === document.body) {
-            e.preventDefault();
-            input.focus();
-          }
-        });
+        if (input) {
+          input.addEventListener('input', debounce(filter, 80));
+          window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+              input.value = '';
+              filter();
+              input.focus();
+            } else if (e.key === '/' && e.target === document.body) {
+              e.preventDefault();
+              input.focus();
+            }
+          });
+        }
         filter();
+
+        /* ====== LAYOUT TOGGLE ====== */
+
+        const root = document.documentElement;
+        const layoutButtons = $$(
+          '.view-toggle button[data-layout]'
+        );
+
+        function applyLayout(mode) {
+          if (!mode) return;
+          root.dataset.blogLayout = mode;
+
+          layoutButtons.forEach((btn) => {
+            const isActive = btn.dataset.layout === mode;
+            btn.classList.toggle('is-active', isActive);
+            btn.setAttribute('aria-checked', String(isActive));
+          });
+        }
+
+        if (layoutButtons.length) {
+          let stored = null;
+          try {
+            stored = window.localStorage.getItem('blogLayout');
+          } catch (_) {
+            stored = null;
+          }
+          const initial = stored === 'featured' ? 'featured' : 'cards';
+          applyLayout(initial);
+
+          layoutButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const mode = btn.dataset.layout;
+              applyLayout(mode);
+              try {
+                window.localStorage.setItem('blogLayout', mode);
+              } catch (_) {
+                /* ignore */
+              }
+            });
+          });
+        }
       })();
     </script>
   </body>
