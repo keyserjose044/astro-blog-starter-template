@@ -5,6 +5,8 @@ import Footer from '../../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
 import FormattedDate from '../../components/FormattedDate.astro';
+import VideoBg from '../../components/VideoBg.astro';
+
 
 // Exclude drafts and sort safely
 const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
@@ -160,60 +162,62 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
   </head>
 
   <body>
-    <Header />
-    <main>
-      <section class="wrap">
-        <div class="intro" role="region" aria-label="Blog header">
-          <h1>Blog Posts</h1>
-          <div class="toolbar">
-            <input id="q" type="search" placeholder="Search" aria-label="Filter blog posts" />
+    </VideoBg>
+      <Header />
+      <main>
+        <section class="wrap">
+          <div class="intro" role="region" aria-label="Blog header">
+            <h1>Blog Posts</h1>
+            <div class="toolbar">
+              <input id="q" type="search" placeholder="Search" aria-label="Filter blog posts" />
+            </div>
           </div>
-        </div>
-
-        <div class="empty" id="empty">No posts match your search.</div>
-
-        <ul id="grid">
-          {posts.map((post, idx) => {
-            const title = post.data.title ?? '';
-            const heroImage = post.data.heroImage;
-            const heroVideo = (post.data as any).heroVideo; // optional
-
-            return (
-              <li data-title={title.toLowerCase()}>
-                <a href={`/blog/${post.slug}/`}>
-                  {(heroImage || heroVideo) && (
-                    <div class="thumb-frame">
-                      {heroImage ? (
-                        <img
-                          class="thumb-media"
-                          src={heroImage}
-                          alt=""
-                          loading="lazy"
-                        />
-                      ) : heroVideo ? (
-                        <video
-                          class="thumb-media"
-                          autoplay
-                          muted
-                          loop
-                          playsinline
-                          preload="auto"
-                        >
-                          <source src={heroVideo} type="video/mp4" />
-                        </video>
-                      ) : null}
-                    </div>
-                  )}
-                  <h4 class="title">{title}</h4>
-                  <p class="date"><FormattedDate date={post._pub} /></p>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    </main>
-    <Footer />
+  
+          <div class="empty" id="empty">No posts match your search.</div>
+  
+          <ul id="grid">
+            {posts.map((post, idx) => {
+              const title = post.data.title ?? '';
+              const heroImage = post.data.heroImage;
+              const heroVideo = (post.data as any).heroVideo; // optional
+  
+              return (
+                <li data-title={title.toLowerCase()}>
+                  <a href={`/blog/${post.slug}/`}>
+                    {(heroImage || heroVideo) && (
+                      <div class="thumb-frame">
+                        {heroImage ? (
+                          <img
+                            class="thumb-media"
+                            src={heroImage}
+                            alt=""
+                            loading="lazy"
+                          />
+                        ) : heroVideo ? (
+                          <video
+                            class="thumb-media"
+                            autoplay
+                            muted
+                            loop
+                            playsinline
+                            preload="auto"
+                          >
+                            <source src={heroVideo} type="video/mp4" />
+                          </video>
+                        ) : null}
+                      </div>
+                    )}
+                    <h4 class="title">{title}</h4>
+                    <p class="date"><FormattedDate date={post._pub} /></p>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </main>
+      <Footer />
+    </VideoBg>
 
     <script>
       (function(){
