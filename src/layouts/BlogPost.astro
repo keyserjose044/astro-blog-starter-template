@@ -276,6 +276,17 @@ const hasCustomHero = Astro.slots.has('hero');
   </head>
 
   <body>
+    <video
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      class="lifeloggerz-bg-video"
+    >
+      <source src="/backgrounds/waves.mp4" type="video/mp4" />
+    </video>
+
     <Header />
     <main>
       <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
