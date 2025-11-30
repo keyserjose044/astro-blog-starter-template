@@ -1,6 +1,3 @@
-Here’s `albums.astro` cleaned up and properly wrapped in `VideoBg` (plus a small fix to the `VideoBg` import path):
-
-```astro
 ---
 // src/pages/albums.astro
 import BaseHead from '../components/BaseHead.astro';
@@ -27,13 +24,10 @@ async function fetchAllRaindrops() {
     if (batch.length < perPage) break;
     page++;
   }
-
-  // keep your original sort (oldest → newest)
   items.sort(
-    (a,b)=> new Date(a.created||a.lastUpdate||0).getTime()
-          - new Date(b.created||b.lastUpdate||0).getTime()
+    (a,b)=> new Date(b.created||b.lastUpdate||0).getTime()
+          - new Date(a.created||a.lastUpdate||0).getTime()
   );
-
   const placeholder = '/images/album-placeholder.png';
   return items.map((it)=>({
     id: it._id,
@@ -166,7 +160,6 @@ const albums = await fetchAllRaindrops();
           My life in {(albums.length).toLocaleString('en-US')} albums — every listen logged and displayed here.
         </p>
 
-        <!-- toolbar with search + info button -->
         <div class="toolbar">
           <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter albums" />
           <button
@@ -181,7 +174,6 @@ const albums = await fetchAllRaindrops();
           </button>
         </div>
 
-        <!-- hidden info section (expands between search & gallery) -->
         <section id="albums-info" class="info-panel" hidden>
           <h2>Why I Log Albums</h2>
           <p>
@@ -245,7 +237,6 @@ const albums = await fetchAllRaindrops();
       const $ = (sel,root=document)=>root.querySelector(sel);
       const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
-      // helpers
       const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
       const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
@@ -268,7 +259,6 @@ const albums = await fetchAllRaindrops();
       });
       filter();
 
-      // tooltip: keep on screen + tap-to-show on touch
       function adjust(bubble){
         if (!bubble) return;
         bubble.style.setProperty('--shift','0px');
@@ -288,12 +278,11 @@ const albums = await fetchAllRaindrops();
       });
       addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
-      // tap-to-toggle: first tap shows, second tap follows link
       document.addEventListener('click', e=>{
         const card = e.target.closest('.card');
         if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
         if (!card.querySelector('.note-bubble')) return;
-        if (card.classList.contains('show-note')) return; // allow navigation
+        if (card.classList.contains('show-note')) return;
         e.preventDefault();
         cards.forEach(c=>c.classList.remove('show-note'));
         card.classList.add('show-note');
@@ -301,7 +290,6 @@ const albums = await fetchAllRaindrops();
         setTimeout(()=>card.classList.remove('show-note'), 2500);
       }, true);
 
-      // info panel toggle
       const infoBtn = $('#info-toggle');
       const infoPanel = $('#albums-info');
       if (infoBtn && infoPanel){
@@ -319,4 +307,3 @@ const albums = await fetchAllRaindrops();
   </script>
 </body>
 </html>
-```
