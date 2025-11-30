@@ -246,12 +246,22 @@ body {
   inset: 0;
   width: 100vw;
   height: 100vh;
-  height: 100dvh;       /* mobile-friendly height */
+  height: 100dvh;
   object-fit: cover;
   pointer-events: none;
-  z-index: -1;          /* behind content in the wrapper */
-  opacity: 0.22;        /* tweak later for subtlety */
+
+  /* 🔧 KEY CHANGES */
+  z-index: 0;         /* above body background */
+  opacity: 1;         /* full strength for testing */
+  background: black;  /* helps you see it even if video frame is light */
 }
+
+/* content stays above the video */
+.page-with-video-bg__content {
+  position: relative;
+  z-index: 1;
+}
+
 
 /* Content on top of video */
 .page-with-video-bg__content {
