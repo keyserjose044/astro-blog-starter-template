@@ -10,26 +10,28 @@ const COLLECTION_ID  = import.meta.env.RAINDROP_COLLECTION_books_ID ?? "54514877
 
 async function fetchAllRaindrops() {
   const perPage = 50;
-  let page = 0, items = [];
+  let page = 0, items: any[] = [];
   while (true) {
     const res = await fetch(
       `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
       { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
     );
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) throw new Error(`Raindrop fetch failed (${res.status}): ${await res.text()}`);
     const batch = (await res.json())?.items ?? [];
     if (!batch.length) break;
     items.push(...batch);
     if (batch.length < perPage) break;
     page++;
   }
-  items.sort((a,b)=>new Date(b.created||0)-new Date(a.created||0));
-  const ph = '/images/books-placeholder.png';
-  return items.map(it=>({
+  items.sort((a,b)=> new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime());
+  const placeholder = '/images/books-placeholder.png';
+  return items.map((it)=>({
+    id: it._id,
     title: it.title ?? 'Untitled',
     href: it.link ?? '#',
-    cover: it.cover || it.media?.[0]?.link || ph,
-    note: it.note || it.excerpt || ''
+    cover: it.cover || it.media?.[0]?.link || placeholder,
+    note: (typeof it.note==='string'?it.note:'') || (typeof it.excerpt==='string'?it.excerpt:''),
+    tags: it.tags ?? []
   }));
 }
 const books = await fetchAllRaindrops();
@@ -38,105 +40,267 @@ const books = await fetchAllRaindrops();
 <!doctype html>
 <html lang="en">
 <head>
-  <BaseHead title={`${SITE_TITLE} — books`} />
+  <BaseHead title={`${SITE_TITLE} — books`} description="books gallery powered by Raindrop — auto-updated from my collection." />
   <style>
-    :root{--b:#e6e9ef;--m:#5e6573;--ink:#111;}
-    body{margin:0;font-family:system-ui;background:#f6f8fb;color:var(--ink)}
-    .wrap{max-width:100%;padding:28px clamp(16px,3vw,48px)}
-    .intro{text-align:center;max-width:900px;margin:0 auto}
-    h1{margin:0 0 12px;font-weight:800;display:flex;justify-content:center;gap:.5rem}
-    .hint{color:var(--m);margin-bottom:20px}
+    :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f8fb;color:var(--ink)}
+    .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
+    .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
+    .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
+    h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
+    .hint{color:var(--muted);margin:6px 0 20px}
 
-    /* toolbar */
-    .toolbar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-    .toolbar input{max-width:520px;width:100%;padding:12px 14px;border:1px solid var(--b);
-      border-radius:12px;background:#fff;font-size:.95rem}
+    .toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin:6px 0 18px;
+      flex-wrap:wrap;
+    }
+    .toolbar input[type="search"]{
+      flex:1 1 260px;
+      width:100%;
+      max-width:520px;
+      margin-inline:0;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--ink);
+      font-size:.95rem;
+      box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
 
-    /* toggle + panel */
-    .info-toggle{width:40px;height:40px;border-radius:50%;border:1px solid var(--b);background:#fff;
-      display:flex;align-items:center;justify-content:center;font-weight:600;cursor:pointer}
-    .info-toggle[aria-pressed="true"]{background:#405cf5;color:#fff;border-color:#405cf5}
-    .info-panel{display:none;max-width:900px;margin:0 auto 24px;padding:14px 18px;border:1px solid var(--b);
-      border-radius:14px;background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.05);color:var(--m);font-size:.93rem}
-    .info-panel h2{margin:.3rem 0 .2rem;font-size:1rem;color:var(--ink)}
-    .info-panel--visible{display:block}
+    .info-toggle{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.1rem;
+      cursor:pointer;
+      box-shadow:0 1px 2px rgba(0,0,0,.04);
+      transition:background .15s ease, box-shadow .15s ease, transform .08s ease, border-color .15s ease, color .15s ease;
+    }
+    .info-toggle span{
+      position:relative;
+      top:-1px;
+      font-weight:600;
+    }
+    .info-toggle:hover{
+      background:#f0f2ff;
+      box-shadow:0 4px 10px rgba(0,0,0,.08);
+      transform:translateY(-1px);
+    }
+    .info-toggle[aria-pressed="true"]{
+      background:#405cf5;
+      color:#fff;
+      border-color:#405cf5;
+    }
 
-    /* gallery grid */
-    .grid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-    .card{text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px}
-    .thumb{aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:1px solid var(--b);
-      box-shadow:0 6px 14px rgba(0,0,0,.12)}
-    .title{font-weight:700;font-size:.98rem}
+    .info-panel{
+      max-width:920px;
+      margin:0 auto 24px;
+      padding:16px 18px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--border);
+      box-shadow:0 10px 24px rgba(15,23,42,.04);
+      font-size:.94rem;
+      line-height:1.5;
+      color:var(--muted);
+      text-align:left;
+      display:none;
+    }
+    .info-panel--visible{display:block;}
+    .info-panel h2{
+      font-size:1.02rem;
+      margin:0 0 .4rem;
+      font-weight:700;
+      color:var(--ink);
+    }
+    .info-panel p{margin:.35rem 0;}
 
-    /* tooltip */
-    .note-bubble{position:absolute;background:#111;color:#fff;padding:8px 10px;border-radius:8px;
-      font-size:.85rem;opacity:0;visibility:hidden;transition:.15s}
-    .card:hover .note-bubble{opacity:1;visibility:visible}
-    .card{position:relative}
+    .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
+    @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+    .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
+    .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
+    .thumb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
+    .title{font-weight:700;font-size:.98rem;line-height:1.3}
+    .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
+    .note-bubble{position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);width:max-content;max-width:min(600px,90vw);white-space:normal;background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:10;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;hyphens:auto;word-break:break-word}
+    .note-bubble::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(20,23,31,.96)}
+    .card:hover .note-bubble,.card:focus-within .note-bubble,.card.show-note .note-bubble{opacity:1;visibility:visible}
+    @media (max-width:700px){
+      .note-bubble{top:auto;bottom:-10px;transform:translate(calc(-50% + var(--shift,0px)),100%)}
+      .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
+    }
+    .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
   </style>
 </head>
-
 <body>
-<Header />
-<main class="wrap">
+  <Header />
+  <main class="wrap wrap--wide">
+    <div class="intro" role="region" aria-label="books header">
+      <h1>📚 Books</h1>
+      <p class="hint">
+        {(books.length).toLocaleString('en-US')} Audiobooks listened to since 2023. While I drive, wash, run — any menial task really...
+      </p>
 
-  <div class="intro">
-    <h1>📚 Books</h1>
-    <p class="hint">{books.length} Audiobooks listened to since 2023.</p>
+      <!-- toolbar with search + info button -->
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter books" />
+        <button
+          type="button"
+          id="info-toggle"
+          class="info-toggle"
+          aria-label="About my reading"
+          aria-expanded="false"
+          aria-pressed="false"
+        >
+          <span>?</span>
+        </button>
+      </div>
 
-    <div class="toolbar">
-      <input id="q" type="search" placeholder="Search title or note…" />
-      <button id="info-toggle" class="info-toggle" aria-pressed="false">?</button>
+      <!-- hidden info section (expands between search & gallery) -->
+      <section id="reading-info" class="info-panel" hidden>
+        <h2>Why I Listen to Audiobooks</h2>
+        <p>
+          I don’t watch TV, movies, videos, or scroll social media. Audiobooks are how I get my
+          mental stimulation while I drive, wash, run, or do any repetitive task. They turn
+          otherwise empty hours into something meaningful.
+        </p>
+
+        <h2>What I Read</h2>
+        <p>
+          I almost never follow a strict plan. Over these three years I’ve wandered through
+          classics, philosophy, history, psychology, fantasy, religion, and anything that sparks
+          curiosity in the moment. My favorite genres are simply the ones with the most entries.
+        </p>
+
+        <h2>The Numbers</h2>
+        <p>
+          Since <strong>February 9, 2023</strong>, I’ve listened to nearly
+          <strong>300 audiobooks</strong> and logged more than <strong>2,000 hours</strong> of
+          listening. With 2026 around the corner, that’s almost three full years of audiobooks
+          woven into everyday life.
+        </p>
+
+        <p>
+          Later I’ll add live stats here: genre counts, listening hours, favorite authors, and
+          graphs powered by my Google Sheets logs.
+        </p>
+      </section>
     </div>
 
-    <section id="reading-info" class="info-panel" hidden>
-      <h2>Why I Listen</h2>
-      <p>I don’t watch TV or scroll social media. Audiobooks turn driving, washing, and running into meaningful hours.</p>
+    {books.length === 0 ? (
+      <div class="empty">No books found in this collection.</div>
+    ) : (
+      <div class="grid fullbleed" id="grid" role="list">
+        {books.map(a => (
+          <a
+            class="card"
+            role="listitem"
+            href={a.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={a.title}
+            data-title={a.title.toLowerCase()}
+            data-note={(a.note || '').toLowerCase()}
+          >
+            <img class="thumb" src={a.cover} alt={a.title} loading="lazy" decoding="async"
+                 sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw" />
+            <div class="title">{a.title}</div>
+            {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+  <Footer />
 
-      <h2>What I Read</h2>
-      <p>I follow curiosity, not a plan: classics, philosophy, history, psychology, religion, fantasy, and more.</p>
+  <script>
+    (function(){
+      const $ = (sel,root=document)=>root.querySelector(sel);
+      const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
-      <h2>The Numbers</h2>
-      <p>Since Feb 9, 2023: ~300 audiobooks and over 2,000 hours logged. Nearly three years of continuous listening.</p>
-    </section>
-  </div>
+      // helpers
+      const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
+      const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-  <div class="grid" id="grid">
-    {books.map(a => (
-      <a class="card" href={a.href} target="_blank" data-title={a.title.toLowerCase()} data-note={a.note.toLowerCase()}>
-        <img class="thumb" src={a.cover} alt={a.title} />
-        <div class="title">{a.title}</div>
-        {a.note ? <div class="note-bubble">{a.note}</div> : null}
-      </a>
-    ))}
-  </div>
+      const grid = $('#grid'), input = $('#q');
+      if (!grid || !input) return;
 
-</main>
-<Footer />
+      const cards = $$('.card', grid);
+      const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
 
-<script>
-(function(){
-  const $ = s=>document.querySelector(s);
-  const $$ = s=>[...document.querySelectorAll(s)];
+      function filter() {
+        const s = norm(input.value.trim());
+        if (!s) { cards.forEach(c=>c.style.display=''); return; }
+        const words = s.split(/\s+/);
+        cards.forEach(c => c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none');
+      }
+      input.addEventListener('input', debounce(filter, 80));
+      window.addEventListener('keydown', e => {
+        if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
+        else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+      });
+      filter();
 
-  // Filter
-  const input = $('#q'), cards = $$('.card');
-  const data = new Map(cards.map(c=>[c,(c.dataset.title+" "+c.dataset.note).toLowerCase()]));
-  input.addEventListener('input', ()=>{
-    const q = input.value.toLowerCase();
-    cards.forEach(c=>c.style.display = data.get(c).includes(q) ? '' : 'none');
-  });
+      // tooltip: keep on screen + tap-to-show on touch
+      function adjust(bubble){
+        if (!bubble) return;
+        bubble.style.setProperty('--shift','0px');
+        const r = bubble.getBoundingClientRect(), m = 8;
+        let shift = 0;
+        if (r.left < m) shift = m - r.left;
+        else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
+        if (shift) bubble.style.setProperty('--shift', `${shift}px`);
+      }
+      grid.addEventListener('mouseenter', e=>{
+        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
+        requestAnimationFrame(()=>adjust(b));
+      }, true);
+      grid.addEventListener('focusin', e=>{
+        const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
+        requestAnimationFrame(()=>adjust(b));
+      });
+      addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
-  // Info panel toggle
-  const btn = $('#info-toggle'), panel = $('#reading-info');
-  btn.onclick = ()=>{
-    const open = panel.classList.toggle('info-panel--visible');
-    panel.hidden = !open;
-    btn.setAttribute('aria-pressed', open);
-    if(open) panel.scrollIntoView({behavior:'smooth'});
-  };
-})();
-</script>
+      // tap-to-toggle: first tap shows, second tap follows link
+      document.addEventListener('click', e=>{
+        const card = e.target.closest('.card');
+        if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+        if (!card.querySelector('.note-bubble')) return;
+        if (card.classList.contains('show-note')) return; // allow navigation
+        e.preventDefault();
+        cards.forEach(c=>c.classList.remove('show-note'));
+        card.classList.add('show-note');
+        requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
+        setTimeout(()=>card.classList.remove('show-note'), 2500);
+      }, true);
 
+      // info panel toggle
+      const infoBtn = $('#info-toggle');
+      const infoPanel = $('#reading-info');
+      if (infoBtn && infoPanel){
+        infoBtn.addEventListener('click', ()=>{
+          const isOpen = infoPanel.classList.toggle('info-panel--visible');
+          infoPanel.hidden = !isOpen;
+          infoBtn.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
+          infoBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          if (isOpen){
+            // bring into view on mobile without being jarring on desktop
+            infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
