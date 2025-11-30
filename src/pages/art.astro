@@ -1,8 +1,12 @@
+Here’s `art.astro` updated to use `VideoBg` the same way as the other pages:
+
+```astro
 ---
 // src/pages/art.astro
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import VideoBg from '../components/VideoBg.astro';
 import { SITE_TITLE } from '../consts';
 
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN ?? "2df3b611-fa2c-4794-a359-1bf08efdd67f";
@@ -23,7 +27,10 @@ async function fetchAllRaindrops() {
     if (batch.length < perPage) break;
     page++;
   }
-  items.sort((a,b)=> new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime());
+  items.sort(
+    (a,b)=> new Date(b.created||b.lastUpdate||0).getTime()
+          - new Date(a.created||a.lastUpdate||0).getTime()
+  );
   const placeholder = '/images/art-placeholder.png';
   return items.map((it)=>({
     id: it._id,
@@ -40,7 +47,10 @@ const art = await fetchAllRaindrops();
 <!doctype html>
 <html lang="en">
 <head>
-  <BaseHead title={`${SITE_TITLE} — Art`} description="Art gallery powered by Raindrop — auto-updated from my collection." />
+  <BaseHead
+    title={`${SITE_TITLE} — Art`}
+    description="Art gallery powered by Raindrop — auto-updated from my collection."
+  />
   <style>
     :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
     *{box-sizing:border-box}
@@ -144,88 +154,90 @@ const art = await fetchAllRaindrops();
   </style>
 </head>
 <body>
-  <Header />
-  <main class="wrap wrap--wide">
-    <div class="intro" role="region" aria-label="Art header">
-      <h1>🎨 Art</h1>
-      <p class="hint">
-        I look at one work of art daily using
-        <a href="https://getdailyart.com" target="_blank" rel="noopener noreferrer"><strong>DailyArt</strong></a>.
-        {(art.length).toLocaleString('en-US')} pieces so far!
-      </p>
-
-      <!-- toolbar with search + info button -->
-      <div class="toolbar">
-        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter art" />
-        <button
-          type="button"
-          id="info-toggle"
-          class="info-toggle"
-          aria-label="About my art habit"
-          aria-expanded="false"
-          aria-pressed="false"
-        >
-          <span>?</span>
-        </button>
-      </div>
-
-      <!-- hidden info section (expands between search & gallery) -->
-      <section id="art-info" class="info-panel" hidden>
-        <h2>Why I Log Art</h2>
-        <p>
-          This page is my visual diary. Instead of scrolling feeds, I look at one work of art a day
-          and write a short structured note about it.
+  <VideoBg>
+    <Header />
+    <main class="wrap wrap--wide">
+      <div class="intro" role="region" aria-label="Art header">
+        <h1>🎨 Art</h1>
+        <p class="hint">
+          I look at one work of art daily using
+          <a href="https://getdailyart.com" target="_blank" rel="noopener noreferrer"><strong>DailyArt</strong></a>.
+          {(art.length).toLocaleString('en-US')} pieces so far!
         </p>
 
-        <h2>DailyArt as a Ritual</h2>
-        <p>
-          Most of these pieces come from the <strong>DailyArt</strong> app. I treat each one like a
-          tiny museum visit: pause, look, read, then log.
-        </p>
-
-        <h2>How to Read This Grid</h2>
-        <p>Hover over a painting to see my note in this format:</p>
-        <p>
-          <strong>Date · Title · Artist · Year · Medium · Movement · Country · Source</strong>
-        </p>
-        <p>
-          On mobile, tap once to reveal the note, then tap again to open the link
-          (usually to DailyArt, a museum page, or a reference site).
-        </p>
-
-        <h2>Future Stats</h2>
-        <p>
-          Later I’ll surface patterns here: most visited artists, favorite periods, countries, and
-          streaks powered by my Google Sheets logs.
-        </p>
-      </section>
-    </div>
-
-    {art.length === 0 ? (
-      <div class="empty">No art found in this collection.</div>
-    ) : (
-      <div class="grid fullbleed" id="grid" role="list">
-        {art.map(a => (
-          <a
-            class="card"
-            role="listitem"
-            href={a.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={a.title}
-            data-title={a.title.toLowerCase()}
-            data-note={(a.note || '').toLowerCase()}
+        <!-- toolbar with search + info button -->
+        <div class="toolbar">
+          <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter art" />
+          <button
+            type="button"
+            id="info-toggle"
+            class="info-toggle"
+            aria-label="About my art habit"
+            aria-expanded="false"
+            aria-pressed="false"
           >
-            <img class="thumb" src={a.cover} alt={a.title} loading="lazy" decoding="async"
-                 sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw" />
-            <div class="title">{a.title}</div>
-            {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
-          </a>
-        ))}
+            <span>?</span>
+          </button>
+        </div>
+
+        <!-- hidden info section (expands between search & gallery) -->
+        <section id="art-info" class="info-panel" hidden>
+          <h2>Why I Log Art</h2>
+          <p>
+            This page is my visual diary. Instead of scrolling feeds, I look at one work of art a day
+            and write a short structured note about it.
+          </p>
+
+          <h2>DailyArt as a Ritual</h2>
+          <p>
+            Most of these pieces come from the <strong>DailyArt</strong> app. I treat each one like a
+            tiny museum visit: pause, look, read, then log.
+          </p>
+
+          <h2>How to Read This Grid</h2>
+          <p>Hover over a painting to see my note in this format:</p>
+          <p>
+            <strong>Date · Title · Artist · Year · Medium · Movement · Country · Source</strong>
+          </p>
+          <p>
+            On mobile, tap once to reveal the note, then tap again to open the link
+            (usually to DailyArt, a museum page, or a reference site).
+          </p>
+
+          <h2>Future Stats</h2>
+          <p>
+            Later I’ll surface patterns here: most visited artists, favorite periods, countries, and
+            streaks powered by my Google Sheets logs.
+          </p>
+        </section>
       </div>
-    )}
-  </main>
-  <Footer />
+
+      {art.length === 0 ? (
+        <div class="empty">No art found in this collection.</div>
+      ) : (
+        <div class="grid fullbleed" id="grid" role="list">
+          {art.map(a => (
+            <a
+              class="card"
+              role="listitem"
+              href={a.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={a.title}
+              data-title={a.title.toLowerCase()}
+              data-note={(a.note || '').toLowerCase()}
+            >
+              <img class="thumb" src={a.cover} alt={a.title} loading="lazy" decoding="async"
+                   sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw" />
+              <div class="title">{a.title}</div>
+              {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
+            </a>
+          ))}
+        </div>
+      )}
+    </main>
+    <Footer />
+  </VideoBg>
 
   <script>
     (function(){
@@ -306,3 +318,4 @@ const art = await fetchAllRaindrops();
   </script>
 </body>
 </html>
+```
