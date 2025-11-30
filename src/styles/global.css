@@ -224,40 +224,32 @@ hr {
   }
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  position: relative;
+}
+
+/* LifeLoggerz background waves */
 video.lifeloggerz-bg-video {
   position: fixed;
   inset: 0;
   width: 100vw;
-
-  /* Mobile viewport quirks */
   height: 100vh;
-  height: 100dvh;         /* modern browsers use this */
-
+  height: 100dvh;       /* mobile-friendly height */
   object-fit: cover;
   pointer-events: none;
-  z-index: 0;
-
-  /* Visual feel */
-  opacity: 0.18;          /* tweak to taste */
-  filter: grayscale(1);
+  z-index: -1;          /* behind all content */
+  opacity: 0.22;        /* tweak later for subtlety */
 }
 
-/* Make sure your page shell sits above the video */
-.lifeloggerz-page-shell {
-  position: relative;
-  z-index: 1;
-}
-
-/* Slightly stronger on mobile if you like */
-@media (max-width: 768px) {
-  video.lifeloggerz-bg-video {
-    opacity: 0.24;
-  }
-}
-
-/* Respect “Reduce motion” */
+/* OPTIONAL: if you *really* want reduced-motion handling, add later.
 @media (prefers-reduced-motion: reduce) {
   video.lifeloggerz-bg-video {
-    opacity: 0 !important;   /* invisible but still there */
+    opacity: 0.05;
   }
 }
+*/
