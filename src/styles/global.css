@@ -240,7 +240,7 @@ body {
   overflow: hidden;
 }
 
-/* 🔧 Bulletproof background video rules */
+/* 🔧 Background video: subtle + animated, desktop + mobile */
 .page-with-video-bg > video.page-with-video-bg__video {
   position: fixed !important;
   top: 0 !important;
@@ -249,17 +249,53 @@ body {
   height: 100vh !important;
   height: 100dvh !important;
   object-fit: cover !important;
-
   pointer-events: none !important;
 
-  /* make it *definitely* visible for now */
   z-index: 0 !important;
-  opacity: 1 !important;
-  background: black !important;
+
+  /* start invisible, fade to subtle */
+  opacity: 0;
+  background: transparent !important;
+  animation: lifeloggerzBgFade 1.4s ease-out forwards;
 }
 
 /* Content sits above the video */
 .page-with-video-bg__content {
   position: relative;
   z-index: 1;
+}
+
+/* 🎬 Fade-in animation */
+@keyframes lifeloggerzBgFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.22; /* tweak this if you want more/less intensity */
+  }
+}
+
+/* 📱 Slightly softer on small screens (optional but nice) */
+@media (max-width: 600px) {
+  .page-with-video-bg > video.page-with-video-bg__video {
+    /* same animation, just a lower final opacity */
+    animation: lifeloggerzBgFadeMobile 1.4s ease-out forwards;
+  }
+
+  @keyframes lifeloggerzBgFadeMobile {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 0.16;
+    }
+  }
+}
+
+/* 🧘 Reduced motion: no animation, very subtle texture */
+@media (prefers-reduced-motion: reduce) {
+  .page-with-video-bg > video.page-with-video-bg__video {
+    animation: none !important;
+    opacity: 0.05 !important;
+  }
 }
