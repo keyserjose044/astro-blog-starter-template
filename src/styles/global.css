@@ -234,10 +234,5 @@ video.lifeloggerz-bg-video {
   pointer-events: none !important;
   background: rgba(255, 0, 0, 0.3) !important;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .lifeloggerz-bg-video {
-    display: none !important;
-  }
 }
 
