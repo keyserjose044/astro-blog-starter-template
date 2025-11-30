@@ -224,4 +224,20 @@ hr {
   }
 }
 
+.lifeloggerz-bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lifeloggerz-bg-video {
+    display: none !important;
+  }
+}
 
