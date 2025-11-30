@@ -225,12 +225,21 @@ hr {
 }
 
 video.lifeloggerz-bg-video {
-  /* keep this minimal while debugging; most styling is inline for now */
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0.18;         /* adjust to taste */
+  pointer-events: none;
+  z-index: -1;           /* behind all content */
+  background: #ffffff;   /* just in case video is slow to load */
 }
 
+/* TEMP: disable reduced-motion override
 @media (prefers-reduced-motion: reduce) {
   .lifeloggerz-bg-video {
-    opacity: 0 !important;  /* invisible but not display:none */
+    opacity: 0 !important;
   }
 }
-
+*/
