@@ -276,101 +276,99 @@ const hasCustomHero = Astro.slots.has('hero');
   </head>
 
   <body>
+    <!-- Background video -->
     <video
-      src="/backgrounds/waves.mp4"
+      class="lifeloggerz-bg-video"
       autoplay
       muted
       loop
       playsinline
       preload="auto"
-      class="lifeloggerz-bg-video"
-      style="
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover;
-        background: rgba(255, 0, 0, 0.4);
-        opacity: 0.8;
-        pointer-events: none;
-        z-index: 9999;
-      "
-    ></video>
+    >
+      <source src="/backgrounds/waves.mp4" type="video/mp4" />
+    </video>
 
-    <Header />
-    <main>
-      <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
-        {hasCustomHero ? (
-          <div class="hero-image">
-            <slot name="hero" />
-          </div>
-        ) : heroVideo ? (
-          <div class="hero-image hero-video-wrap">
-            <video
-              class="hero-video"
-              autoplay
-              muted
-              loop
-              playsinline
-              preload="auto"
-              data-hero-video
-            >
-              <source src={heroVideo} type="video/mp4" />
-            </video>
+    <!-- EVERYTHING above the background video -->
+    <div class="lifeloggerz-page-shell">
+      <Header />
 
-            <button
-              class="hero-audio-toggle"
-              type="button"
-              aria-label="Unmute video"
-              data-muted="true"
-            >
-              <span>🔇</span>
-            </button>
-          </div>
-        ) : heroImage ? (
-          <div class="hero-image">
-            <img
-              src={heroImage}
-              alt={title}
-              loading="eager"
-              sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
-              style={heroImageStyle}
-              onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
-            />
-          </div>
-        ) : null}
+      <main>
+        <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
+          {hasCustomHero ? (
+            <div class="hero-image">
+              <slot name="hero" />
+            </div>
+          ) : heroVideo ? (
+            <div class="hero-image hero-video-wrap">
+              <video
+                class="hero-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="auto"
+                data-hero-video
+              >
+                <source src={heroVideo} type="video/mp4" />
+              </video>
 
-        <div class="prose">
-          <div class="title">
-            {(hasPub || hasUpd) && (
-              <div class="date">
-                {hasPub && (
-                  <>
-                    <FormattedDate date={pub!} />
-                    {showViews && (
-                      <>
-                        <span class="meta-sep"> | </span>
-                        <ViewCounter path={Astro.url.pathname} />
-                      </>
-                    )}
-                  </>
-                )}
-                {hasUpd && (
-                  <div class="last-updated-on">
-                    Last updated on <FormattedDate date={upd!} />
-                  </div>
-                )}
-              </div>
-            )}
-            <h1>{title}</h1>
-            <hr />
-          </div>
-          <slot />
-        </div>
-      </article>
-    </main>
-    <Footer />
+              <button
+                class="hero-audio-toggle"
+                type="button"
+                aria-label="Unmute video"
+                data-muted="true"
+              >
+                <span>🔇</span>
+              </button>
+            </div>
+          ) : heroImage ? (
+            <div class="hero-image">
+              <img
+                src={heroImage}
+                alt={title}
+                loading="eager"
+                sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
+                style={heroImageStyle}
+                onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
+              />
+            </div>
+          ) : null}
 
+          <div class="prose">
+            <div class="title">
+              {(hasPub || hasUpd) && (
+                <div class="date">
+                  {hasPub && (
+                    <>
+                      <FormattedDate date={pub!} />
+                      {showViews && (
+                        <>
+                          <span class="meta-sep"> | </span>
+                          <ViewCounter path={Astro.url.pathname} />
+                        </>
+                      )}
+                    </>
+                  )}
+                  {hasUpd && (
+                    <div class="last-updated-on">
+                      Last updated on <FormattedDate date={upd!} />
+                    </div>
+                  )}
+                </div>
+              )}
+              <h1>{title}</h1>
+              <hr />
+            </div>
+
+            <slot />
+          </div>
+        </article>
+      </main>
+
+      <Footer />
+    </div>
+
+    <!-- Hero video button logic -->
     <script is:inline>
       (function () {
         const wrap = document.querySelector('.hero-video-wrap');
@@ -391,7 +389,6 @@ const hasCustomHero = Astro.slots.has('hero');
         btn.addEventListener('click', () => {
           video.muted = !video.muted;
 
-          // if autoplay was blocked or user paused, ensure playback resumes
           if (video.paused) {
             const p = video.play();
             if (p && typeof p.catch === 'function') p.catch(() => {});
@@ -400,7 +397,6 @@ const hasCustomHero = Astro.slots.has('hero');
           updateButton();
         });
 
-        // initial state: muted
         updateButton();
       })();
     </script>
