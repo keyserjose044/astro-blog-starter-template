@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import VideoBg from '../components/VideoBg.astro';
 import { SITE_TITLE } from '../consts';
 
 // Hardcoded per your current page
@@ -23,7 +24,10 @@ async function fetchAllRaindrops() {
     if (batch.length < perPage) break;
     page++;
   }
-  items.sort((a,b)=> new Date(b.created||b.lastUpdate||0).getTime() - new Date(a.created||a.lastUpdate||0).getTime());
+  items.sort(
+    (a,b)=> new Date(b.created||b.lastUpdate||0).getTime()
+           - new Date(a.created||a.lastUpdate||0).getTime()
+  );
   const placeholder = '/images/album-placeholder.png';
   return items.map((it)=>({
     id: it._id,
@@ -40,7 +44,10 @@ const guitar = await fetchAllRaindrops();
 <!doctype html>
 <html lang="en">
 <head>
-  <BaseHead title={`${SITE_TITLE} — Guitar`} description="Guitar links powered by Raindrop — auto-updated from my collection." />
+  <BaseHead
+    title={`${SITE_TITLE} — Guitar`}
+    description="Guitar links powered by Raindrop — auto-updated from my collection."
+  />
 
   <style>
     :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
@@ -153,177 +160,184 @@ const guitar = await fetchAllRaindrops();
 </head>
 
 <body>
-  <Header />
+  <VideoBg>
+    <Header />
 
-  <!-- HERO VIDEO SECTION -->
-  <div class="hero-video">
-    <video
-      autoplay
-      muted
-      loop
-      playsinline
-      preload="auto"
-    >
-      <source src="/videos/guitar.mp4" type="video/mp4" />
-    </video>
+    <!-- HERO VIDEO SECTION -->
+    <div class="hero-video">
+      <video
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+      >
+        <source src="/videos/guitar.mp4" type="video/mp4" />
+      </video>
 
-    <div class="hero-overlay">
-      <h1>🎸 Guitar</h1>
-      <p>Licks, lessons, gear & inspiration — collected over time.</p>
-    </div>
-
-    <!-- MUTE / UNMUTE BUTTON -->
-    <button
-      class="hero-audio-toggle"
-      type="button"
-      aria-label="Unmute video"
-      data-muted="true"
-    >
-      <span>🔇</span>
-    </button>
-  </div>
-
-  <main class="wrap wrap--wide">
-    <div class="toolbar">
-      <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter guitar items" />
-    </div>
-
-    {guitar.length === 0 ? (
-      <div class="empty">No guitar items found in this collection.</div>
-    ) : (
-      <div class="grid fullbleed" id="grid" role="list">
-        {guitar.map(g => (
-          <a
-            class="card"
-            role="listitem"
-            href={g.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={g.title}
-            data-title={g.title.toLowerCase()}
-            data-note={(g.note || '').toLowerCase()}
-          >
-            <img class="thumb" src={g.cover} alt={g.title} loading="lazy" decoding="async"
-                 sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw" />
-            <div class="title">{g.title}</div>
-            {g.note ? <div class="note-bubble" role="tooltip">{g.note}</div> : null}
-          </a>
-        ))}
+      <div class="hero-overlay">
+        <h1>🎸 Guitar</h1>
+        <p>Licks, lessons, gear & inspiration — collected over time.</p>
       </div>
-    )}
-  </main>
 
-  <Footer />
+      <!-- MUTE / UNMUTE BUTTON -->
+      <button
+        class="hero-audio-toggle"
+        type="button"
+        aria-label="Unmute video"
+        data-muted="true"
+      >
+        <span>🔇</span>
+      </button>
+    </div>
 
-  <script>
-    (function(){
-      const $ = (sel,root=document)=>root.querySelector(sel);
-      const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+    <main class="wrap wrap--wide">
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter guitar items" />
+      </div>
 
-      /* HERO VIDEO AUDIO LOGIC */
-      const heroVideo  = $('.hero-video video');
-      const audioBtn   = $('.hero-audio-toggle');
+      {guitar.length === 0 ? (
+        <div class="empty">No guitar items found in this collection.</div>
+      ) : (
+        <div class="grid fullbleed" id="grid" role="list">
+          {guitar.map(g => (
+            <a
+              class="card"
+              role="listitem"
+              href={g.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={g.title}
+              data-title={g.title.toLowerCase()}
+              data-note={(g.note || '').toLowerCase()}
+            >
+              <img
+                class="thumb"
+                src={g.cover}
+                alt={g.title}
+                loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw"
+              />
+              <div class="title">{g.title}</div>
+              {g.note ? <div class="note-bubble" role="tooltip">{g.note}</div> : null}
+            </a>
+          ))}
+        </div>
+      )}
+    </main>
 
-      if (heroVideo) {
-        const tryPlay = () => {
-          const p = heroVideo.play();
-          if (p && typeof p.catch === 'function') {
-            p.catch(() => {
-              // If autoplay is blocked, we'll just rely on the user clicking the button.
-            });
-          }
-        };
+    <Footer />
 
-        if (heroVideo.readyState >= 2) {
-          tryPlay();
-        } else {
-          heroVideo.addEventListener('canplay', tryPlay, { once: true });
-        }
+    <script>
+      (function(){
+        const $ = (sel,root=document)=>root.querySelector(sel);
+        const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
-        if (audioBtn) {
-          const updateButton = () => {
-            const isMuted = heroVideo.muted;
-            audioBtn.dataset.muted = String(isMuted);
-            audioBtn.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
-            const span = audioBtn.querySelector('span');
-            if (span) span.textContent = isMuted ? '🔇' : '🔊';
+        /* HERO VIDEO AUDIO LOGIC */
+        const heroVideo  = $('.hero-video video');
+        const audioBtn   = $('.hero-audio-toggle');
+
+        if (heroVideo) {
+          const tryPlay = () => {
+            const p = heroVideo.play();
+            if (p && typeof p.catch === 'function') {
+              p.catch(() => {
+                // If autoplay is blocked, we'll just rely on the user clicking the button.
+              });
+            }
           };
 
-          audioBtn.addEventListener('click', () => {
-            heroVideo.muted = !heroVideo.muted;
-            // If autoplay was blocked earlier, ensure playback starts now
-            if (heroVideo.paused) {
-              const p = heroVideo.play();
-              if (p && typeof p.catch === 'function') p.catch(()=>{});
-            }
+          if (heroVideo.readyState >= 2) {
+            tryPlay();
+          } else {
+            heroVideo.addEventListener('canplay', tryPlay, { once: true });
+          }
+
+          if (audioBtn) {
+            const updateButton = () => {
+              const isMuted = heroVideo.muted;
+              audioBtn.dataset.muted = String(isMuted);
+              audioBtn.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+              const span = audioBtn.querySelector('span');
+              if (span) span.textContent = isMuted ? '🔇' : '🔊';
+            };
+
+            audioBtn.addEventListener('click', () => {
+              heroVideo.muted = !heroVideo.muted;
+              // If autoplay was blocked earlier, ensure playback starts now
+              if (heroVideo.paused) {
+                const p = heroVideo.play();
+                if (p && typeof p.catch === 'function') p.catch(()=>{});
+              }
+              updateButton();
+            });
+
+            // Initial state
             updateButton();
-          });
-
-          // Initial state
-          updateButton();
+          }
         }
-      }
 
-      const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
-      const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
+        const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-      const grid = $('#grid'), input = $('#q');
-      if (!grid || !input) return;
+        const grid = $('#grid'), input = $('#q');
+        if (!grid || !input) return;
 
-      const cards = $$('.card', grid);
-      const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+        const cards = $$('.card', grid);
+        const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
 
-      function filter() {
-        const s = norm(input.value.trim());
-        if (!s) { cards.forEach(c=>c.style.display=''); return; }
-        const words = s.split(/\s+/);
-        cards.forEach(c => c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none');
-      }
-      input.addEventListener('input', debounce(filter, 80));
+        function filter() {
+          const s = norm(input.value.trim());
+          if (!s) { cards.forEach(c=>c.style.display=''); return; }
+          const words = s.split(/\s+/);
+          cards.forEach(c => c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none');
+        }
+        input.addEventListener('input', debounce(filter, 80));
 
-      window.addEventListener('keydown', e => {
-        if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
-        else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
-      });
-      filter();
+        window.addEventListener('keydown', e => {
+          if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
+          else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+        });
+        filter();
 
-      function adjust(bubble){
-        if (!bubble) return;
-        bubble.style.setProperty('--shift','0px');
-        const r = bubble.getBoundingClientRect(), m = 8;
-        let shift = 0;
-        if (r.left < m) shift = m - r.left;
-        else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
-        if (shift) bubble.style.setProperty('--shift', `${shift}px`);
-      }
+        function adjust(bubble){
+          if (!bubble) return;
+          bubble.style.setProperty('--shift','0px');
+          const r = bubble.getBoundingClientRect(), m = 8;
+          let shift = 0;
+          if (r.left < m) shift = m - r.left;
+          else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
+          if (shift) bubble.style.setProperty('--shift', `${shift}px`);
+        }
 
-      grid.addEventListener('mouseenter', e=>{
-        const b = e.target.closest('.card')?.querySelector('.note-bubble');
-        if (!b) return;
-        requestAnimationFrame(()=>adjust(b));
-      }, true);
+        grid.addEventListener('mouseenter', e=>{
+          const b = e.target.closest('.card')?.querySelector('.note-bubble');
+          if (!b) return;
+          requestAnimationFrame(()=>adjust(b));
+        }, true);
 
-      grid.addEventListener('focusin', e=>{
-        const b = e.target.closest('.card')?.querySelector('.note-bubble');
-        if (!b) return;
-        requestAnimationFrame(()=>adjust(b));
-      });
+        grid.addEventListener('focusin', e=>{
+          const b = e.target.closest('.card')?.querySelector('.note-bubble');
+          if (!b) return;
+          requestAnimationFrame(()=>adjust(b));
+        });
 
-      addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
+        addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
-      document.addEventListener('click', e=>{
-        const card = e.target.closest('.card');
-        if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
-        if (!card.querySelector('.note-bubble')) return;
-        if (card.classList.contains('show-note')) return;
-        e.preventDefault();
-        cards.forEach(c=>c.classList.remove('show-note'));
-        card.classList.add('show-note');
-        requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
-        setTimeout(()=>card.classList.remove('show-note'), 2500);
-      }, true);
-    })();
-  </script>
-
+        document.addEventListener('click', e=>{
+          const card = e.target.closest('.card');
+          if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+          if (!card.querySelector('.note-bubble')) return;
+          if (card.classList.contains('show-note')) return;
+          e.preventDefault();
+          cards.forEach(c=>c.classList.remove('show-note'));
+          card.classList.add('show-note');
+          requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
+          setTimeout(()=>card.classList.remove('show-note'), 2500);
+        }, true);
+      })();
+    </script>
+  </VideoBg>
 </body>
 </html>
