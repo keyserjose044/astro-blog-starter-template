@@ -1,5 +1,6 @@
 ---
 import HeaderLink from './HeaderLink.astro';
+import NavTooltipLink from './NavTooltipLink.astro';
 import { SITE_TITLE } from '../consts';
 
 const rawBase = import.meta.env.BASE_URL || '/';
@@ -21,16 +22,36 @@ const iconSrc = `${base}favicon.svg`;
     </h2>
 
     <div class="internal-links" id="desktop-links">
-      <HeaderLink href={link('')} exact>Home</HeaderLink>
-      <HeaderLink href={link('blog/')}>Blog</HeaderLink>
-      <HeaderLink href={link('templates/')}>Templates</HeaderLink>
-      <HeaderLink href={link('stats/')}>Stats</HeaderLink>
-      <HeaderLink href={link('books/')}>Books</HeaderLink>
-      <HeaderLink href={link('albums/')}>Albums</HeaderLink>
-      <HeaderLink href={link('art/')}>Art</HeaderLink>
-      <HeaderLink href={link('guitar/')}>Guitar</HeaderLink>
-      <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
-      <HeaderLink href={link('about/')}>About</HeaderLink>
+      <NavTooltipLink href={link('')} exact tip="Start here: overview and latest from the blog.">
+        Home
+      </NavTooltipLink>
+      <NavTooltipLink href={link('blog/')} tip="Essays on systems, stats, and experiments.">
+        Blog
+      </NavTooltipLink>
+      <NavTooltipLink href={link('templates/')} tip="Downloadable tools and Google Sheets systems.">
+        Templates
+      </NavTooltipLink>
+      <NavTooltipLink href={link('stats/')} tip="Live graphs and metrics from my Raw Data logs.">
+        Stats
+      </NavTooltipLink>
+      <NavTooltipLink href={link('books/')} tip="Every book I’ve read, with genres and notes.">
+        Books
+      </NavTooltipLink>
+      <NavTooltipLink href={link('albums/')} tip="Albums and listening history, powered by Raindrop.">
+        Albums
+      </NavTooltipLink>
+      <NavTooltipLink href={link('art/')} tip="Art I’ve logged that shaped my thinking.">
+        Art
+      </NavTooltipLink>
+      <NavTooltipLink href={link('guitar/')} tip="My guitar journey, pieces, and practice logs.">
+        Guitar
+      </NavTooltipLink>
+      <NavTooltipLink href={link('inspirations/')} tip="Ideas and people influencing LifeLoggerz.">
+        Inspirations
+      </NavTooltipLink>
+      <NavTooltipLink href={link('about/')} tip="What LifeLoggerz is and who’s behind it.">
+        About
+      </NavTooltipLink>
     </div>
 
     <!-- Socials + Contact -->
