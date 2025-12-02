@@ -1,62 +1,421 @@
 ---
+// src/layouts/AboutLayout.astro
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import ViewCounter from '../components/ViewCounter.astro';
+import VideoBg from '../components/VideoBg.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  pubDate?: Date | string;
+  updatedDate?: Date | string;
+  heroImage?: string;
+  wide?: boolean;
+  heroImageStyle?: string;
+  showViews?: boolean;
+  heroVideo?: string; // optional hero video
+}
 
 const {
   title,
   description,
   pubDate,
+  updatedDate,
+  heroImage,
   wide = false,
-  showViews = false
-} = Astro.props;
----
+  heroImageStyle,
+  showViews = true,
+  heroVideo
+} = Astro.props as Props;
 
+// ---------- helpers ----------
+function toValidDate(v: unknown): Date | null {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  const d = new Date(String(v));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+const pub = toValidDate(pubDate);
+const upd = toValidDate(updatedDate);
+const hasPub = !!pub;
+const hasUpd = !!upd;
+
+// ---------- SEO base ----------
+const SITE = 'https://lifeloggerz.com';
+const canonical = new URL(Astro.url.pathname, SITE).toString();
+const abs = (p?: string) => (p ? new URL(p, SITE).toString() : undefined);
+
+const defaultOgPath = '/about-lifeloggerz.png';
+const ogImagePath = heroImage ?? defaultOgPath;
+const ogImage = abs(ogImagePath);
+
+// ✅ MUST BE HERE BEFORE jsonLdString
+const publishedISO = hasPub ? pub!.toISOString() : undefined;
+const modifiedISO = (hasUpd ? upd : pub)?.toISOString();
+
+const jsonLdString = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: title,
+  description: description ?? undefined,
+  mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+  url: canonical,
+  image: ogImage ?? undefined,
+  datePublished: publishedISO,
+  dateModified: modifiedISO,
+  author: { "@type": "Person", name: "LifeLoggerz" },
+  publisher: { "@type": "Organization", name: "LifeLoggerz" }
+}).replace(/</g, '\\u003c');
+
+const hasCustomHero = Astro.slots.has('hero');
+---
 <html lang="en">
   <head>
-    <BaseHead title={title} description={description} />
+    <BaseHead
+      title={title}
+      description={description ?? ''}
+      image={ogImagePath}
+    />
+
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content="index,follow" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    {description && <meta name="twitter:description" content={description} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <script type="application/ld+json" is:inline set:html={jsonLdString}></script>
+
+    <style>
+      :root {
+        --prose-max: 68ch;
+        --shadow: 0 4px 16px rgba(0,0,0,0.08);
+        --step--1: clamp(0.95rem, 0.9rem + 0.1vw, 1rem);
+        --step-0: clamp(1rem, 0.98rem + 0.2vw, 1.08rem);
+        --step-3: clamp(1.45rem, 1.15rem + 1.4vw, 1.9rem);
+      }
+
+      @media (min-width: 900px) {
+        :root { --prose-max: clamp(60ch, 90vw, 1100px); }
+      }
+      @media (min-width: 1200px) {
+        .prose--wide { --prose-max: clamp(60ch, 90vw, 1280px); }
+      }
+
+      html, body {
+        background: #ffffff;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      main { width: 100%; margin: 0; }
+
+      .wrap {
+        width: 100%;
+        max-width: var(--prose-max);
+        margin: 0 auto;
+        padding: 0 1rem 2.25rem;
+        box-sizing: border-box;
+      }
+      @media (max-width: 360px) {
+        .wrap { padding-inline: 0.75rem; }
+      }
+
+      .hero-image {
+        width: 100%;
+        margin: 0 auto 1rem;
+        text-align: center;
+        position: relative;
+      }
+      .hero-image img,
+      .hero-image video {
+        display: block;
+        margin: 0 auto;
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        max-width: 1100px;
+        transition: all 0.3s ease;
+      }
+      @media (min-width: 900px) {
+        .hero-image img.portrait {
+          width: auto;
+          max-width: 100%;
+          max-height: 80vh;
+          object-fit: contain;
+        }
+        .hero-image img.landscape {
+          width: auto;
+          max-width: 100%;
+          max-height: 90vh;
+          object-fit: contain;
+          background-color: #ffffff;
+          padding: 0.5rem;
+          border-radius: 12px;
+        }
+      }
+      @media (max-width: 899px) {
+        .hero-image img,
+        .hero-image video {
+          width: 100%;
+          height: auto;
+          object-fit: contain;
+          max-height: none;
+        }
+      }
+
+      /* hero video + audio toggle */
+      .hero-image.hero-video-wrap {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-video {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero-audio-toggle {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.6);
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #fff;
+        font-size: 1.2rem;
+        z-index: 5;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        backdrop-filter: blur(6px);
+        transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+      }
+
+      .hero-audio-toggle:hover {
+        transform: translateY(-1px);
+        background: rgba(0,0,0,0.75);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+      }
+
+      .hero-audio-toggle span {
+        pointer-events: none;
+      }
+
+      .prose {
+        max-width: var(--prose-max);
+        margin: 0 auto;
+        color: #111827;
+        line-height: 1.7;
+        font-size: var(--step-0);
+      }
+
+      .title {
+        margin-bottom: 0.75em;
+        padding: 0.85em 0;
+        text-align: center;
+        line-height: 1;
+      }
+      .title h1 {
+        margin: 0 0 0.4em 0;
+        font-size: var(--step-3);
+      }
+      .date { margin-bottom: 0.25em; color: #6b7280; }
+      .last-updated-on { font-style: italic; }
+
+      .meta-line {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        color: #6b7280;
+        font-size: 0.95rem;
+      }
+      .meta-sep { opacity: 0.6; }
+
+      .prose img, .prose video { max-width: 100%; height: auto; }
+      .prose table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .prose pre {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .prose code { font-size: var(--step--1); }
+      .prose hr { margin: 1.25rem 0; }
+
+      @media (max-width: 768px) {
+        :root { --post-pad: clamp(16px, 4vw, 24px); --read-max: 72ch; }
+
+        article.wrap,
+        .prose {
+          width: 100%;
+          max-width: var(--read-max);
+          margin-inline: auto !important;
+          padding-inline: var(--post-pad) !important;
+          box-sizing: border-box;
+        }
+
+        .title h1 { font-size: clamp(2rem, 7vw, 2.4rem); }
+        .prose h2 { font-size: clamp(1.6rem, 6vw, 2rem); }
+        img, figure, video {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          margin-inline: auto;
+        }
+      }
+
+      /* 🗨️ bubble overlay container */
+      .hero-image.hero-with-bubble {
+        position: relative;
+      }
+      .hero-image.hero-with-bubble [data-about-bubble] {
+        position: absolute;
+        inset: 0;
+        pointer-events: none; /* bubble component can override if needed */
+      }
+    </style>
   </head>
 
   <body>
-    <Header />
+    <VideoBg>
+      <Header />
+      <main>
+        <article class={`wrap ${wide ? 'prose--wide' : ''}`}>
+          {
+            /* ✅ HERO AREA WITH OPTIONAL BUBBLE OVERLAY */
+          }
+          {hasCustomHero ? (
+            <div class="hero-image hero-with-bubble">
+              <slot name="hero" />
+              <slot name="hero-bubble" />
+            </div>
+          ) : heroVideo ? (
+            <div class="hero-image hero-video-wrap hero-with-bubble">
+              <video
+                class="hero-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="auto"
+                data-hero-video
+              >
+                <source src={heroVideo} type="video/mp4" />
+              </video>
 
-    <!-- PAGE WRAPPER -->
-    <main class={`post-layout ${wide ? 'post-layout--wide' : ''}`}>
-      <article class="post">
+              <button
+                class="hero-audio-toggle"
+                type="button"
+                aria-label="Unmute video"
+                data-muted="true"
+              >
+                <span>🔇</span>
+              </button>
 
-        <!-- ✅ 1. HERO SLOT (IMAGE + SPEECH BUBBLE GOES HERE) -->
-        <div class="post-hero">
-          <slot name="hero" />
-        </div>
+              <slot name="hero-bubble" />
+            </div>
+          ) : heroImage ? (
+            <div class="hero-image hero-with-bubble">
+              <img
+                src={heroImage}
+                alt={title}
+                loading="eager"
+                sizes="(max-width: 600px) 100vw, (max-width: 1100px) 90vw, 1100px"
+                style={heroImageStyle}
+                onload="this.classList.add(this.naturalWidth > this.naturalHeight ? 'landscape' : 'portrait');"
+              />
+              <slot name="hero-bubble" />
+            </div>
+          ) : null}
 
-        <!-- ✅ 2. HEADER (DATE + TITLE) COMES *AFTER* HERO -->
-        <header class="post-header">
-          {pubDate && (
-            <p class="post-date">
-              {new Date(pubDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: '2-digit'
-              })}
-            </p>
-          )}
-          <h1 class="post-title">{title}</h1>
-        </header>
+          <div class="prose">
+            <div class="title">
+              {(hasPub || hasUpd) && (
+                <div class="date">
+                  {hasPub && (
+                    <>
+                      <FormattedDate date={pub!} />
+                      {showViews && (
+                        <>
+                          <span class="meta-sep"> | </span>
+                          <ViewCounter path={Astro.url.pathname} />
+                        </>
+                      )}
+                    </>
+                  )}
+                  {hasUpd && (
+                    <div class="last-updated-on">
+                      Last updated on <FormattedDate date={upd!} />
+                    </div>
+                  )}
+                </div>
+              )}
+              <h1>{title}</h1>
+              <hr />
+            </div>
 
-        <!-- ✅ 3. BODY CONTENT -->
-        <section class="post-content">
-          <slot />
-        </section>
+            <slot />
+          </div>
+        </article>
+      </main>
 
-        <!-- Optional footer/meta -->
-        {showViews && (
-          <footer class="post-footer">
-            <slot name="footer" />
-          </footer>
-        )}
-      </article>
-    </main>
+      <Footer />
+    </VideoBg>
 
-    <Footer />
+    <!-- Hero video button logic -->
+    <script is:inline>
+      (function () {
+        const wrap = document.querySelector('.hero-video-wrap');
+        if (!wrap) return;
+
+        const video = wrap.querySelector('[data-hero-video]');
+        const btn   = wrap.querySelector('.hero-audio-toggle');
+        if (!video || !btn) return;
+
+        function updateButton() {
+          const isMuted = video.muted;
+          btn.dataset.muted = String(isMuted);
+          btn.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+          const span = btn.querySelector('span');
+          if (span) span.textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        btn.addEventListener('click', () => {
+          video.muted = !video.muted;
+
+          if (video.paused) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          }
+
+          updateButton();
+        });
+
+        updateButton();
+      })();
+    </script>
   </body>
 </html>
