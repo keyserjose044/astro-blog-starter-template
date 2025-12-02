@@ -334,4 +334,34 @@ const iconSrc = `${base}favicon.svg`;
     .desktop-nav { display: none; }
     .mobile-nav { display: flex; }
   }
+
+  /* === Contact button pulse === */
+  @keyframes lifeloggerzContactPulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0px rgba(37, 99, 235, 0.0);
+    }
+    40% {
+      transform: scale(1.05);
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.45);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0px rgba(37, 99, 235, 0.0);
+    }
+  }
+
+  /* Use :global so Astro doesn’t scope this away */
+  :global(.contact-button a.contact-pulse) {
+    animation: lifeloggerzContactPulse 1.2s ease-in-out 0s infinite;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.contact-button a.contact-pulse) {
+      animation: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+  }
 </style>
