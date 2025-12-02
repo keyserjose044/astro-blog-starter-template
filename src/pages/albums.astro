@@ -13,28 +13,51 @@ const COLLECTION_ID =
 
 async function fetchAllRaindrops() {
   const perPage = 50;
-  let page = 0,
-    items: any[] = [];
-  while (true) {
-    const res = await fetch(
-      `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
-      { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
-    );
-    if (!res.ok)
-      throw new Error(
-        `Raindrop fetch failed (${res.status}): ${await res.text()}`
+  let page = 0;
+  const items: any[] = [];
+
+  try {
+    while (true) {
+      const res = await fetch(
+        `https://api.raindrop.io/rest/v1/raindrops/${COLLECTION_ID}?perpage=${perPage}&page=${page}`,
+        { headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` } }
       );
-    const batch = (await res.json())?.items ?? [];
-    if (!batch.length) break;
-    items.push(...batch);
-    if (batch.length < perPage) break;
-    page++;
+
+      if (!res.ok) {
+        // Log and bail out gracefully instead of killing the build
+        let snippet = '';
+        try {
+          const text = await res.text();
+          snippet = text.slice(0, 200);
+        } catch {
+          // ignore text read errors
+        }
+        console.warn(
+          `Raindrop fetch failed (${res.status}) while building albums: ${snippet}`
+        );
+        break;
+      }
+
+      const json = await res.json();
+      const batch = json?.items ?? [];
+      if (!batch.length) break;
+
+      items.push(...batch);
+      if (batch.length < perPage) break;
+
+      page++;
+    }
+  } catch (err) {
+    console.warn('Raindrop fetch error (network/502/etc) while building albums:', err);
   }
+
+  // Same post-processing as before
   items.sort(
     (a, b) =>
       new Date(b.created || b.lastUpdate || 0).getTime() -
       new Date(a.created || a.lastUpdate || 0).getTime()
   );
+
   const placeholder = '/images/album-placeholder.png';
   return items.map((it) => ({
     id: it._id,
@@ -47,6 +70,7 @@ async function fetchAllRaindrops() {
     tags: it.tags ?? [],
   }));
 }
+
 const albums = await fetchAllRaindrops();
 ---
 
@@ -217,7 +241,9 @@ const albums = await fetchAllRaindrops();
     </div>
 
     {albums.length === 0 ? (
-      <div class="empty">No albums found in this collection.</div>
+      <div class="empty">
+        Albums are temporarily unavailable — either Raindrop returned no items or its API hiccuped during build.
+      </div>
     ) : (
       <div class="grid fullbleed" id="grid" role="list">
         {albums.map((a) => (
