@@ -1,0 +1,62 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const {
+  title,
+  description,
+  pubDate,
+  wide = false,
+  showViews = false
+} = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+
+  <body>
+    <Header />
+
+    <!-- PAGE WRAPPER -->
+    <main class={`post-layout ${wide ? 'post-layout--wide' : ''}`}>
+      <article class="post">
+
+        <!-- ✅ 1. HERO SLOT (IMAGE + SPEECH BUBBLE GOES HERE) -->
+        <div class="post-hero">
+          <slot name="hero" />
+        </div>
+
+        <!-- ✅ 2. HEADER (DATE + TITLE) COMES *AFTER* HERO -->
+        <header class="post-header">
+          {pubDate && (
+            <p class="post-date">
+              {new Date(pubDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit'
+              })}
+            </p>
+          )}
+          <h1 class="post-title">{title}</h1>
+        </header>
+
+        <!-- ✅ 3. BODY CONTENT -->
+        <section class="post-content">
+          <slot />
+        </section>
+
+        <!-- Optional footer/meta -->
+        {showViews && (
+          <footer class="post-footer">
+            <slot name="footer" />
+          </footer>
+        )}
+      </article>
+    </main>
+
+    <Footer />
+  </body>
+</html>
