@@ -1,0 +1,62 @@
+---
+import HeaderLink from './HeaderLink.astro';
+
+interface Props {
+  href: string;
+  tip?: string;
+  exact?: boolean;
+}
+
+const { href, tip = '', exact = false } = Astro.props;
+---
+
+<span class="nav-tooltip-wrapper">
+  <HeaderLink href={href} exact={exact}>
+    <slot />
+  </HeaderLink>
+
+  {tip && (
+    <span class="nav-tooltip" role="tooltip">
+      {tip}
+    </span>
+  )}
+</span>
+
+<style>
+  .nav-tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+  }
+
+  .nav-tooltip {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 110%);
+    bottom: -0.2rem;
+    background: rgba(15, 18, 25, 0.92);
+    color: #fff;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 10;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    transition: opacity 0.16s ease-out, transform 0.16s ease-out;
+  }
+
+  .nav-tooltip-wrapper:hover .nav-tooltip {
+    opacity: 1;
+    transform: translate(-50%, 95%);
+  }
+
+  /* No tooltips on small screens */
+  @media (max-width: 900px) {
+    .nav-tooltip {
+      display: none;
+    }
+  }
+</style>
