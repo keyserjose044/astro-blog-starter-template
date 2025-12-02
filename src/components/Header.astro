@@ -161,20 +161,48 @@ const iconSrc = `${base}favicon.svg`;
   .brand-link { display: inline-flex; align-items: center; gap: .4rem; }
   .brandmark { display: block; width: 20px; height: 20px; }
   .site-title { line-height: 1; }
-
+  
   .desktop-nav .internal-links {
     display: flex;
     flex-wrap: nowrap;
     gap: .25rem;
   }
+  
+  /* Base link styles */
   .desktop-nav .internal-links :global(a) {
+    position: relative;
     padding: 1em .5em;
     color: var(--black, #0e121b);
-    border-bottom: 4px solid transparent;
     text-decoration: none;
+    transition: transform 0.15s ease-out;
   }
-  .desktop-nav .internal-links :global(a.active) {
-    border-bottom-color: var(--accent, #405cf5);
+  
+  /* Underline pseudo-element (starts hidden) */
+  .desktop-nav .internal-links :global(a)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0.35rem; /* tweak if you want the line closer/farther */
+    width: 100%;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--accent, #405cf5);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.15s ease-out;
+  }
+  
+  /* Hover / focus / active – slide the underline in */
+  .desktop-nav .internal-links :global(a:hover)::after,
+  .desktop-nav .internal-links :global(a:focus-visible)::after,
+  .desktop-nav .internal-links :global(a.active)::after {
+    transform: scaleX(1);
+  }
+  
+  /* Optional tiny 'bump' on hover – remove if you dislike it */
+  .desktop-nav .internal-links :global(a:hover),
+  .desktop-nav .internal-links :global(a:focus-visible) {
+    transform: translateY(-1px);
   }
 
   /* Contact + Social area */
