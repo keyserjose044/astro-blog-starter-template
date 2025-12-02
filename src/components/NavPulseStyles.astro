@@ -1,0 +1,36 @@
+---
+/**
+ * Global nav / contact micro-animations for LifeLoggerz
+ * Keeps Header.astro lean and reusable.
+ */
+---
+<style is:global>
+  /* === Contact Button Pulse Animation (desktop only) === */
+  @keyframes lifeloggerzContactPulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0px rgba(37, 99, 235, 0.0);
+    }
+    40% {
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0px rgba(37, 99, 235, 0.0);
+    }
+  }
+
+  /* Apply pulse every 5s */
+  .contact-pulse {
+    animation: lifeloggerzContactPulse 1.2s ease-in-out 5s infinite;
+    transform-origin: center;
+  }
+
+  /* Respect reduced-motion users */
+  @media (prefers-reduced-motion: reduce) {
+    .contact-pulse {
+      animation: none !important;
+    }
+  }
+</style>
