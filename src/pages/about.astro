@@ -17,14 +17,13 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   title="About Me"
   description="Civil engineering PhD, systems builder, and data-driven life logger."
   pubDate="2025-10-14"
-  heroImage="/images/about-lifeloggerz.gif"
+  heroImage="/images/about-lifeloggerz.gif"  <!-- used for OG image/SEO -->
   wide
   showViews={false}
 >
-  <!-- 🗨️ Little José speech-bubble hero overlay -->
+  <!-- 🗨️ Little José hero (image + bubble in one component) -->
   <AboutPhotoBubble
-    slot="hero-bubble"
-    data-about-bubble
+    slot="hero"
     src="/images/about-lifeloggerz.gif"
     alt="Family gathered while young José draws at the table."
     bubbleText="A ver si se me quitan..."
@@ -55,7 +54,7 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
     <p>
       Check out the <strong>2023, 2024, and 2025 raw data sheets</strong> for insight into how these systems evolved.
       I had <strong>no professional experience with Excel or Google Sheets before</strong>, so I learned formula by
-      formula. Formulas gave way to formatting, and then I learned how to use Google Apps Script and APIs to automate processes.
+      formula. Formulas gave way to formatting, and then I learned how to use Google Apps Script and APIs to automate processes. 
       It only takes <strong>5 minutes</strong> for me to log my essential stats, and my diary log can take much longer.
       However, logging has become second-nature. Doesn't matter how beat or tired I am — <strong>it's gotta get done.</strong>
     </p>
