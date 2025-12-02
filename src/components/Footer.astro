@@ -15,6 +15,11 @@ const today = new Date();
     background: linear-gradient(var(--gray-gradient)) no-repeat;
     color: rgb(var(--gray));
     text-align: center;
+    transition: opacity 0.3s ease;   /* combined here */
+  }
+
+  footer:hover {
+    opacity: 0.96;
   }
 
   .footer-links {
@@ -29,14 +34,6 @@ const today = new Date();
 
   .footer-links a:hover {
     color: rgb(var(--gray-dark));
-  }
-  
-  footer {
-    transition: opacity 0.3s ease;
-  }
-  
-  footer:hover {
-    opacity: 0.96;
   }
 
   .copyright {
