@@ -3,10 +3,17 @@ const today = new Date();
 ---
 
 <footer>
-  <div class="footer-links">
-    <p>Contact: <a href="mailto:lifeloggerz.official@gmail.com">lifeloggerz.official@gmail.com</a></p>
-  </div>
-  <p class="copyright">&copy; {today.getFullYear()} LifeLoggerz. All rights reserved.</p>
+  <p class="footer-links">
+    Contact:
+    <a class="footer-email" href="mailto:lifeloggerz.official@gmail.com">
+      lifeloggerz.official@gmail.com
+    </a>
+    <span class="footer-easter">Track your life. Master your time.</span>
+  </p>
+
+  <p class="copyright">
+    &copy; {today.getFullYear()} LifeLoggerz. All rights reserved.
+  </p>
 </footer>
 
 <style>
@@ -15,7 +22,7 @@ const today = new Date();
     background: linear-gradient(var(--gray-gradient)) no-repeat;
     color: rgb(var(--gray));
     text-align: center;
-    transition: opacity 0.3s ease;   /* combined here */
+    transition: opacity 0.3s ease;
   }
 
   footer:hover {
@@ -26,14 +33,29 @@ const today = new Date();
     margin-bottom: 0.5em;
   }
 
-  .footer-links a {
+  .footer-email {
     color: rgb(var(--gray));
     text-decoration: underline;
     font-weight: 500;
+    position: relative;
   }
 
-  .footer-links a:hover {
+  .footer-email:hover {
     color: rgb(var(--gray-dark));
+  }
+
+  /* Hidden easter egg quote */
+  .footer-easter {
+    margin-left: 0.5em;
+    font-size: 0.8em;
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Reveal only on email hover */
+  .footer-email:hover + .footer-easter {
+    opacity: 1;
   }
 
   .copyright {
