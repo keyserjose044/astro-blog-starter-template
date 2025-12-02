@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
+import AboutPhotoBubble from '../components/AboutPhotoBubble.astro';
 
 // Server-side fallback for SEO / no-JS users
 const start = new Date('2023-01-01T00:00:00');
@@ -16,10 +17,22 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   title="About Me"
   description="Civil engineering PhD, systems builder, and data-driven life logger."
   pubDate="2025-10-14"
-  heroImage="/images/about-lifeloggerz.gif"
   wide
   showViews={false}
 >
+  <!-- 🗨️ Little José speech-bubble hero -->
+  <AboutPhotoBubble
+    src="/images/about-lifeloggerz.gif"
+    alt="Family gathered while young José draws at the table."
+    bubbleText="Track your life. Master your time."
+    hotspotBottom="8%"
+    hotspotLeft="27%"
+    hotspotWidth="24%"
+    hotspotHeight="32%"
+    bubbleBottom="40%"
+    bubbleLeft="45%"
+  />
+
   <div class="about">
     <p>
       Welcome! I’m <strong>José</strong> — the kid sitting down with pen and paper in the photo above. I'm an engineering grad student and the guy behind
