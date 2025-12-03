@@ -28,11 +28,7 @@ const today = new Date();
   }
 
   footer:hover {
-    opacity: 0.95; /* make it a bit more noticeable; adjust later if you want */
-  }
-
-  .footer-links a:hover {
-    color: rgb(var(--gray-dark));
+    opacity: 0.95;
   }
 
   /* Hidden easter egg quote */
@@ -42,7 +38,6 @@ const today = new Date();
     transition: opacity 0.25s ease;
   }
 
-  /* Reveal quote when hovering anywhere over the contact area */
   .footer-links:hover .footer-easter {
     opacity: 1;
   }
@@ -52,36 +47,47 @@ const today = new Date();
     opacity: 0.8;
   }
 
-/* Premium micro-interactions just for footer links */
-footer .footer-links a {
-  position: relative;
-  display: inline-block;
-  color: rgb(var(--gray));
-  text-decoration: none;
-  font-weight: 800;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
+  /* Premium micro-interactions just for footer links */
+  footer .footer-links a {
+    position: relative;
+    display: inline-block;
+    color: rgb(var(--gray));
+    text-decoration: none;
+    font-weight: 500;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
 
-/* Underline animation (stays inside footer scope) */
-footer .footer-links a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 0%;
-  height: 1px;
-  background: rgba(var(--gray), 0.6);
-  transition: width 0.2s ease 0.1s; /* <-- includes 0.1s delay */
-}
+  /* Underline animation */
+  footer .footer-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0%;
+    height: 1px;
+    background: rgba(var(--gray), 0.6);
+    transition: width 0.2s ease 0.1s;
+  }
 
-/* Hover state (slide + darker color) */
-footer .footer-links a:hover {
-  transform: translateX(2px);
-  color: rgb(var(--gray-dark));
-}
+  /* Hover state for all footer links */
+  footer .footer-links a:hover {
+    transform: translateX(2px);
+    color: rgb(var(--gray-dark));
+  }
 
-footer .footer-links a:hover::after {
-  width: 100%;
-}
+  footer .footer-links a:hover::after {
+    width: 100%;
+  }
 
+  /* Only bold the email link on hover */
+  footer .footer-links a.footer-email:hover {
+    font-weight: 600; /* or 700 */
+  }
+
+  /* Smooth font-weight transition only for the email link */
+  footer .footer-links a.footer-email {
+    transition: transform 0.2s ease,
+                color 0.2s ease,
+                font-weight 0.15s ease;
+  }
 </style>
