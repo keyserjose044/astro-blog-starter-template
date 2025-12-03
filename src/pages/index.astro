@@ -5,6 +5,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import VideoBg from '../components/VideoBg.astro';   // ← NEW
+import HeroTitleRipple from '../components/HeroTitleRipple.astro';
 import { SITE_TITLE } from '../consts';
 
 // Load non-draft posts and sort newest → oldest
@@ -34,9 +35,13 @@ const posts = rawPosts
       <main>
         <!-- Hero -->
         <section style="text-align:center; margin: 3rem 0 2rem;">
-          <h1 style="font-size:clamp(2rem,4vw,3rem); margin:0 0 .5rem;">
+          <HeroTitleRipple
+            as="h1"
+            style="font-size:clamp(2rem,4vw,3rem); margin:0 0 .5rem; display:inline-block;"
+          >
             LifeLoggerz
-          </h1>
+          </HeroTitleRipple>
+        
           <p style="opacity:.8; font-size:1.125rem;">
             Systems, templates, and experiments in hyper-efficient living
           </p>
