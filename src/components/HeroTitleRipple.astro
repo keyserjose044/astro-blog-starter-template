@@ -1,0 +1,56 @@
+---
+// src/components/HeroTitleRipple.astro
+
+export interface Props {
+  as?: string;      // h1, h2, div, span, etc.
+  class?: string;   // extra classes from parent
+}
+
+const { as = 'h1', class: className = '', ...rest } = Astro.props;
+const Tag = as as keyof HTMLElementTagNameMap;
+---
+
+<Tag
+  class={`hero-title-ripple ${className}`.trim()}
+  tabindex="0"
+  {...rest}
+>
+  <slot />
+</Tag>
+
+<style>
+  .hero-title-ripple {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden; /* hides ripple edges */
+  }
+
+  .hero-title-ripple::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8rem;
+    height: 8rem;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(255,255,255,0.6) 0, rgba(255,255,255,0) 60%);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 0.45s ease-out,
+      opacity 0.45s ease-out;
+  }
+
+  /* Mouse / touch press */
+  .hero-title-ripple:active::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  /* Keyboard focus hint */
+  .hero-title-ripple:focus-visible::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
+  }
+</style>
