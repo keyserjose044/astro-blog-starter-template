@@ -54,10 +54,14 @@ const today = new Date();
     color: rgb(var(--gray));
     text-decoration: none;
     font-weight: 500;
-    transition: transform 0.2s ease, color 0.2s ease;
+
+    /* SMOOTH, GLIDING TRANSITIONS */
+    transition:
+      transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+      color 0.25s ease-out;
   }
 
-  /* Underline animation */
+  /* Underline animation (smooth + gliding) */
   footer .footer-links a::after {
     content: "";
     position: absolute;
@@ -66,10 +70,12 @@ const today = new Date();
     width: 0%;
     height: 1px;
     background: rgba(var(--gray), 0.6);
-    transition: width 0.2s ease 0.1s;
+
+    /* smoother, longer, no delay */
+    transition: width 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
-  /* Hover state for all footer links */
+  /* Hover state (slide + color) */
   footer .footer-links a:hover {
     transform: translateX(2px);
     color: rgb(var(--gray-dark));
@@ -81,13 +87,14 @@ const today = new Date();
 
   /* Only bold the email link on hover */
   footer .footer-links a.footer-email:hover {
-    font-weight: 600; /* or 700 */
+    font-weight: 600;
   }
 
-  /* Smooth font-weight transition only for the email link */
+  /* Smooth font-weight transition for email only */
   footer .footer-links a.footer-email {
-    transition: transform 0.2s ease,
-                color 0.2s ease,
-                font-weight 0.15s ease;
+    transition:
+      transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+      color 0.25s ease-out,
+      font-weight 0.2s ease-out;
   }
 </style>
