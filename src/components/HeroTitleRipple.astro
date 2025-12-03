@@ -83,27 +83,4 @@ const Tag = as as keyof HTMLElementTagNameMap;
       opacity: 0;
     }
   }
-
-  /* Click “jolt” + light shake on outer wrapper */
-  .hero-title-ripple:active {
-    animation: hero-shake 0.22s ease-out;
-  }
-
-  @keyframes hero-shake {
-    0% {
-      transform: translateX(0);
-    }
-    25% {
-      transform: translateX(-2px);
-    }
-    50% {
-      transform: translateX(2px);
-    }
-    75% {
-      transform: translateX(-1px);
-    }
-    100% {
-      transform: translateX(0);
-    }
-  }
 </style>
