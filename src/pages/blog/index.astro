@@ -52,7 +52,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           padding-inline: 1rem;
         }
       }
-      
+
       .intro {
         text-align: center;
         margin-bottom: 2rem;
@@ -61,31 +61,55 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       .intro h1 {
         font-size: clamp(2.3rem, 3vw, 2.8rem);
         font-weight: 700;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1.2rem;
       }
       
+      /* Center the search bar container */
       .toolbar {
+        display: flex;
         justify-content: center;
         align-items: center;
+        margin-bottom: 1rem;
       }
       
+      /* LL classic search bar */
       .toolbar input[type='search'] {
-        min-width: min(360px, 90%);
+        width: 100%;
+        max-width: 420px;
+        padding: 12px 16px;
+      
+        border-radius: 16px;
+        border: 1px solid var(--border);
+      
+        background: #ffffff;
+        color: #111111;
+      
         font-size: 1rem;
+        line-height: 1.4;
+      
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
       
+      .toolbar input[type='search']::placeholder {
+        color: #9ca3af;
+      }
+      
+      .toolbar input[type='search']:focus {
+        outline: none;
+        border-color: #38bdf8;
+        box-shadow:
+          0 0 0 1px rgba(56, 189, 248, 0.7),
+          0 0 18px rgba(56, 189, 248, 0.25);
+      }
+      
+      /* Remove leftover spacing for the small tag if it exists */
       .toolbar small {
-        text-align: center;
-        margin-top: 0.5rem;
-        max-width: 480px;
+        display: none;
       }
 
-      .empty {
-        display: none;
-        margin: 2rem 0;
-        color: #6b7280;
-        font-style: italic;
-      }
 
       /* ====== GRID LAYOUT (same behavior as old "cards" view) ====== */
 
@@ -124,7 +148,6 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
                 placeholder="Search"
                 aria-label="Filter blog posts"
               />
-              <small>Press "/" to focus search, "Esc" to clear.</small>
             </div>
           </div>
 
