@@ -26,7 +26,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
     <BaseHead title={`${SITE_TITLE} — Blog`} description={SITE_DESCRIPTION} />
     <style>
       :root {
-        --list-max: clamp(60ch, 90vw, 1100px); /* desktop container */
+        --list-max: clamp(70ch, 96vw, 1280px); /* desktop container */
         --read-max: 72ch;                      /* phone container */
         --border: #e6e9ef;
         --thumb-radius: 16px;
@@ -143,8 +143,8 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
       @media (min-width: 900px) {
         ul#grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+          gap: 1.75rem;
         }
       
         /* Ensure grid items size correctly */
