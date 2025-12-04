@@ -6,6 +6,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import VideoBg from '../components/VideoBg.astro';   // ← NEW
 import HeroTitleRipple from '../components/HeroTitleRipple.astro';
+import SeeAllPill from '../components/SeeAllPill.astro';
 import { SITE_TITLE } from '../consts';
 
 // Load non-draft posts and sort newest → oldest
@@ -49,9 +50,9 @@ const posts = rawPosts
 
         <!-- Latest posts -->
         <section>
-          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem;">
-            <h2 style="margin:0;">Latest from the Blog</h2>
-            <a href="/blog" style="font-weight:700; text-decoration:underline; text-underline-offset:3px;">See all →</a>
+          <div class="home-section-header">
+            <h2 class="home-section-title">Latest from the Blog</h2>
+            <SeeAllPill href="/blog" />
           </div>
 
           {posts.length === 0 ? (
@@ -122,4 +123,26 @@ const posts = rawPosts
   }
   .card h3 { margin: 0.75rem 1rem 0.25rem; font-size:1.25rem; }
   .card time { display: block; margin: 0 1rem 1rem; opacity: .7; }
+
+  .home-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .home-section-title {
+    margin: 0;
+  }
+
+  /* Mobile: stack + center */
+  @media (max-width: 639px) {
+    .home-section-header {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+  }
+
 </style>
