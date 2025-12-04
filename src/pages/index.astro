@@ -20,7 +20,7 @@ const posts = rawPosts
     return { ...p, _pub: validDate };
   })
   .sort((a, b) => (b._pub?.getTime?.() ?? 0) - (a._pub?.getTime?.() ?? 0))
-  .slice(0, 3);
+  .slice(0, 4);
 ---
 
 <!doctype html>
