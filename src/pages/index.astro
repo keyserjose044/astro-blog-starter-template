@@ -108,6 +108,7 @@ const posts = rawPosts
   
   /* CARD BASE */
   .card a {
+    position: relative;
     display: block;
     text-decoration: none;
     color: inherit;
@@ -122,14 +123,20 @@ const posts = rawPosts
       transform 160ms ease-out,
       box-shadow 160ms ease-out,
       filter 160ms ease-out;
+    will-change: transform, box-shadow;
   }
   
+  /* Image / video: slight depth on hover */
   .card img,
   .card video {
     width: 100%;
     height: 180px;
     object-fit: cover;
     display: block;
+    transition:
+      transform 220ms ease-out,
+      filter 220ms ease-out;
+    will-change: transform;
   }
   
   .card h3 {
@@ -143,13 +150,51 @@ const posts = rawPosts
     opacity: .7;
   }
   
+  /* Gradient shine overlay (like LL title gleam) */
+  .card a::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255,255,255,0.05) 35%,
+        rgba(255,255,255,0.55) 50%,
+        rgba(255,255,255,0.05) 65%,
+        transparent 100%
+      );
+    transform: translateX(-120%);
+    opacity: 0;
+    transition:
+      transform 650ms ease-out,
+      opacity 200ms ease-out;
+  }
+  
   /* HOVER / FOCUS LIFT */
   .card a:hover,
   .card a:focus-visible {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 16px 40px rgba(0,0,0,.18);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 16px 40px rgba(0,0,0,.2);
     filter: brightness(1.02);
     outline: none;
+  }
+  
+  /* Extra zoom on media when card is active */
+  .card a:hover img,
+  .card a:hover video,
+  .card a:focus-visible img,
+  .card a:focus-visible video {
+    transform: scale(1.04);
+    filter: brightness(1.03);
+  }
+  
+  /* Trigger the shine sweep */
+  .card a:hover::before,
+  .card a:focus-visible::before {
+    transform: translateX(120%);
+    opacity: 1;
   }
   
   /* Keyboard focus ring (accessibility) */
@@ -157,17 +202,30 @@ const posts = rawPosts
     box-shadow:
       0 0 0 2px rgba(255,255,255,0.9),
       0 0 0 4px rgba(94, 234, 212, 0.8),
-      0 18px 40px rgba(0,0,0,.2);
+      0 20px 44px rgba(0,0,0,.22);
   }
   
   /* Respect reduced-motion */
   @media (prefers-reduced-motion: reduce) {
     .card a {
       transition: box-shadow 160ms ease-out;
+      transform: none;
     }
+  
     .card a:hover,
     .card a:focus-visible {
       transform: none;
+      filter: none;
+    }
+  
+    .card img,
+    .card video {
+      transition: none;
+      transform: none;
+    }
+  
+    .card a::before {
+      display: none;
     }
   }
   
