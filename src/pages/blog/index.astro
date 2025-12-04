@@ -6,6 +6,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
 import FormattedDate from '../../components/FormattedDate.astro';
 import VideoBg from '../../components/VideoBg.astro';
+import BlogCard from '../../components/BlogCard.astro';
+
 
 // Exclude drafts and sort safely
 const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
@@ -326,7 +328,7 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           </div>
 
           <div class="empty" id="empty">No posts match your search.</div>
-
+          
           <ul id="grid">
             {posts.map((post) => {
               const title = post.data.title ?? '';
@@ -336,59 +338,21 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
                 (post.data as any).description ||
                 (post.data as any).summary ||
                 '';
-
+          
               return (
-                <li data-title={title.toLowerCase()}>
-                  <a href={`/blog/${post.slug}/`}>
-                    {(heroImage || heroVideo) && (
-                      <div class="thumb-frame">
-                        {heroImage ? (
-                          <img
-                            class="thumb-media"
-                            src={heroImage}
-                            alt=""
-                            loading="lazy"
-                          />
-                        ) : heroVideo ? (
-                          <video
-                            class="thumb-media"
-                            autoplay
-                            muted
-                            loop
-                            playsinline
-                            preload="auto"
-                          >
-                            <source src={heroVideo} type="video/mp4" />
-                          </video>
-                        ) : null}
-                      </div>
-                    )}
-
-                    <div class="card-body">
-                      <h2>{title}</h2>
-                      <div class="card-meta">
-                        {post._pub ? (
-                          <time datetime={post._pub.toISOString()}>
-                            {post._pub.toLocaleDateString(undefined, {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </time>
-                        ) : (
-                          <time aria-hidden="true">Undated</time>
-                        )}
-                        <span>
-                          <FormattedDate date={post._pub ?? new Date()} />
-                        </span>
-                      </div>
-                      {desc && <p class="card-tagline">{desc}</p>}
-                    </div>
-                  </a>
-                </li>
+                <BlogCard
+                  href={`/blog/${post.slug}/`}
+                  title={title}
+                  pubDate={post._pub}
+                  heroImage={heroImage}
+                  heroVideo={heroVideo}
+                  data-title={title.toLowerCase()}
+                />
               );
             })}
           </ul>
+
+
         </section>
       </main>
       <Footer />
