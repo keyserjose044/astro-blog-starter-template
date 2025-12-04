@@ -82,12 +82,12 @@ const formattedDate =
     opacity: 0.7;
   }
 
-  /* Hero-style gleam across the card */
+  /* === HERO-STYLE GLEAM ACROSS THE WHOLE CARD === */
   .blog-card a::before {
     content: "";
     position: absolute;
     top: 0;
-    left: -150%;
+    left: 0;
     width: 70%;
     height: 100%;
     pointer-events: none;
@@ -99,24 +99,47 @@ const formattedDate =
       rgba(255, 255, 255, 0) 100%
     );
     opacity: 0;
-    transform: skewX(-20deg);
+    transform: translateX(-150%) skewX(-20deg);
+    transition:
+      transform 0.7s ease-out,
+      opacity 0.2s ease-out;
   }
 
-  /* Blue perimeter glow (simple + cross-browser) */
+  /* === BLUE PERIMETER RING (CLOCKWISE SWEEP) === */
   .blog-card a::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 16px;
     pointer-events: none;
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+
+    /* border-only via mask */
+    padding: 2px;
+    background: linear-gradient(
+      120deg,
+      rgba(56, 189, 248, 0) 0%,
+      rgba(56, 189, 248, 1) 20%,
+      rgba(37, 99, 235, 1) 50%,
+      rgba(56, 189, 248, 1) 80%,
+      rgba(56, 189, 248, 0) 100%
+    );
+    background-size: 250% 250%;
+    background-position: 0% 50%;
     opacity: 0;
+
     transition:
       opacity 0.2s ease-out,
-      box-shadow 0.2s ease-out;
+      background-position 0.6s ease-out;
+
+    /* Mask center so only the ring shows */
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
 
-  /* POP like the LL title, but on the whole card */
+  /* === POP + SHADOW ON HOVER/FOCUS === */
   .blog-card a:hover,
   .blog-card a:focus-visible {
     transform: translateY(-6px) scale(1.05);
@@ -125,18 +148,18 @@ const formattedDate =
     outline: none;
   }
 
-  /* Trigger gleam + border glow */
+  /* Trigger gleam: slide shine left → right */
   .blog-card a:hover::before,
   .blog-card a:focus-visible::before {
-    animation: card-gleam 0.7s ease-out;
+    opacity: 1;
+    transform: translateX(150%) skewX(-20deg);
   }
 
+  /* Trigger border ring: gradient sweep clockwise */
   .blog-card a:hover::after,
   .blog-card a:focus-visible::after {
     opacity: 1;
-    box-shadow:
-      0 0 0 2px rgba(56, 189, 248, 0.95),
-      0 0 18px 6px rgba(59, 130, 246, 0.9);
+    background-position: 200% 50%;
   }
 
   /* Keyboard focus ring stacked with glow */
@@ -146,39 +169,6 @@ const formattedDate =
       0 0 0 4px rgba(94, 234, 212, 0.9),
       0 18px 40px rgba(0, 0, 0, 0.25);
   }
-
-  @keyframes card-gleam {
-    0% {
-      left: -150%;
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    60% {
-      opacity: 0.9;
-    }
-    100% {
-      left: 150%;
-      opacity: 0;
-    }
-  }
-
-  /* Optional: if you *really* want to respect reduced motion,
-     just tone down the pop but don't kill it entirely */
-  @media (prefers-reduced-motion: reduce) {
-    .blog-card a {
-      transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-    }
-    .blog-card a:hover,
-    .blog-card a:focus-visible {
-      transform: translateY(-3px) scale(1.02);
-    }
-    .blog-card a:hover::before,
-    .blog-card a:focus-visible::before {
-      animation: none;
-      opacity: 0;
-    }
-  }
 </style>
+
 
