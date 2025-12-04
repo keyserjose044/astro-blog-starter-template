@@ -26,33 +26,68 @@ const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
 
 <script is:inline>
   if (typeof window !== 'undefined') {
-    const ensureVideoPlaying = () => {
-      const video = document.querySelector<HTMLVideoElement>('.page-with-video-bg__video');
+    const getVideo = () =>
+      document.querySelector('.page-with-video-bg__video');
+
+    const ensurePlaying = () => {
+      const video = getVideo();
       if (!video) return;
 
-      // If browser restored a paused frame, nudge it
-      if (video.paused) {
+      // If browser has enough data and it's paused, try to play
+      if (video.readyState >= 2 && video.paused) {
         video.play().catch(() => {
-          // Ignore autoplay errors (e.g. mobile rules)
+          // Ignore autoplay failures (mobile, user gesture rules, etc.)
         });
       }
     };
 
-    // Initial load
-    window.addEventListener('load', ensureVideoPlaying);
+    let guardianId = null;
 
-    // Coming back via Back / bfcache restore
-    window.addEventListener('pageshow', (event) => {
-      // event.persisted === true => restored from bfcache
-      // but we can safely call this either way
-      ensureVideoPlaying();
+    const startGuardian = () => {
+      if (guardianId !== null) return;
+      // Check twice a second while visible
+      guardianId = window.setInterval(() => {
+        if (document.visibilityState !== 'visible') return;
+        ensurePlaying();
+      }, 500);
+    };
+
+    const stopGuardian = () => {
+      if (guardianId !== null) {
+        clearInterval(guardianId);
+        guardianId = null;
+      }
+    };
+
+    // Kick it immediately on script run
+    ensurePlaying();
+    startGuardian();
+
+    // When coming back via Back / bfcache
+    window.addEventListener('pageshow', () => {
+      ensurePlaying();
+      startGuardian();
     });
 
-    // If some global code pauses on hidden, resume on visible
+    // When tab becomes visible again
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        ensureVideoPlaying();
+        ensurePlaying();
+        startGuardian();
+      } else {
+        // optional: stopGuardian();  // you can leave it running too
       }
+    });
+
+    // Clean up on unload
+    window.addEventListener('beforeunload', () => {
+      stopGuardian();
+    });
+
+    // (Optional) Also respond to focus events, just in case
+    window.addEventListener('focus', () => {
+      ensurePlaying();
+      startGuardian();
     });
   }
 </script>
