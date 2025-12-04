@@ -1,5 +1,4 @@
 ---
-// src/components/BlogCard.astro
 export interface Props {
   href: string;
   title: string;
@@ -8,7 +7,8 @@ export interface Props {
   heroVideo?: string;
 }
 
-const { href, title, pubDate, heroImage, heroVideo } = Astro.props;
+// ⬅️ Capture all extra props (including data-title)
+const { href, title, pubDate, heroImage, heroVideo, ...rest } = Astro.props;
 
 const formattedDate =
   pubDate &&
@@ -19,7 +19,8 @@ const formattedDate =
   });
 ---
 
-<li class="blog-card">
+<!-- ⬅️ Spread {...rest} to ensure data-title gets applied -->
+<li class="blog-card" {...rest}>
   <a href={href} aria-label={title}>
     {heroImage ? (
       <img src={heroImage} alt="" loading="lazy" />
@@ -113,7 +114,6 @@ const formattedDate =
     border-radius: 16px;
     pointer-events: none;
 
-    /* border-only via mask */
     padding: 2px;
     background: linear-gradient(
       120deg,
@@ -131,7 +131,6 @@ const formattedDate =
       opacity 0.2s ease-out,
       background-position 0.6s ease-out;
 
-    /* Mask center so only the ring shows */
     -webkit-mask:
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
@@ -148,21 +147,21 @@ const formattedDate =
     outline: none;
   }
 
-  /* Trigger gleam: slide shine left → right */
+  /* Trigger gleam */
   .blog-card a:hover::before,
   .blog-card a:focus-visible::before {
     opacity: 1;
     transform: translateX(150%) skewX(-20deg);
   }
 
-  /* Trigger border ring: gradient sweep clockwise */
+  /* Trigger border ring */
   .blog-card a:hover::after,
   .blog-card a:focus-visible::after {
     opacity: 1;
     background-position: 200% 50%;
   }
 
-  /* Keyboard focus ring stacked with glow */
+  /* Keyboard focus ring */
   .blog-card a:focus-visible {
     box-shadow:
       0 0 0 2px rgba(255, 255, 255, 0.9),
@@ -170,41 +169,52 @@ const formattedDate =
       0 18px 40px rgba(0, 0, 0, 0.25);
   }
 
-  /* ⬇️ Add/replace just your hover blocks in BlogCard.astro with this */
-  
-  /* Desktop / pointer devices → full effect */
+  /* Desktop only: full effects */
   @media (hover: hover) and (pointer: fine) {
     .blog-card a:hover,
     .blog-card a:focus-visible {
       transform: translateY(-6px) scale(1.05);
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
       filter: brightness(1.02);
-      outline: none;
     }
-  
+
     .blog-card a:hover::before,
     .blog-card a:focus-visible::before {
       opacity: 1;
       transform: translateX(150%) skewX(-20deg);
     }
-  
+
     .blog-card a:hover::after,
     .blog-card a:focus-visible::after {
       animation: border-pulse 0.6s ease-out;
     }
   }
-  
-  /* Mobile / touch → simplified, no gleam/ring, just a soft tap effect */
+
+  /* Mobile: simplified (no gleam/ring) */
   @media (hover: none) and (pointer: coarse) {
     .blog-card a {
       transition: box-shadow 0.15s ease-out;
     }
-  
+
     .blog-card a:active {
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
     }
   }
 
+  @keyframes border-pulse {
+    0% {
+      opacity: 0;
+      background-position: 0% 50%;
+    }
+    15% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+      background-position: 200% 50%;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
 </style>
-
-
