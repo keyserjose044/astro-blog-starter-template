@@ -23,3 +23,36 @@ const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
     <slot />
   </div>
 </div>
+
+<script is:inline>
+  if (typeof window !== 'undefined') {
+    const ensureVideoPlaying = () => {
+      const video = document.querySelector<HTMLVideoElement>('.page-with-video-bg__video');
+      if (!video) return;
+
+      // If browser restored a paused frame, nudge it
+      if (video.paused) {
+        video.play().catch(() => {
+          // Ignore autoplay errors (e.g. mobile rules)
+        });
+      }
+    };
+
+    // Initial load
+    window.addEventListener('load', ensureVideoPlaying);
+
+    // Coming back via Back / bfcache restore
+    window.addEventListener('pageshow', (event) => {
+      // event.persisted === true => restored from bfcache
+      // but we can safely call this either way
+      ensureVideoPlaying();
+    });
+
+    // If some global code pauses on hidden, resume on visible
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        ensureVideoPlaying();
+      }
+    });
+  }
+</script>
