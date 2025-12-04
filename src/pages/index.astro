@@ -7,6 +7,7 @@ import Footer from '../components/Footer.astro';
 import VideoBg from '../components/VideoBg.astro';   // ← NEW
 import HeroTitleRipple from '../components/HeroTitleRipple.astro';
 import SeeAllPill from '../components/SeeAllPill.astro';
+import BlogCard from '../components/BlogCard.astro';
 import { SITE_TITLE } from '../consts';
 
 // Load non-draft posts and sort newest → oldest
@@ -60,31 +61,13 @@ const posts = rawPosts
           ) : (
             <ul class="post-grid">
               {posts.map((post) => (
-                <li class="card">
-                  <a href={`/blog/${post.slug}/`} aria-label={post.data.title}>
-                    {post.data.heroImage ? (
-                      <img src={post.data.heroImage} alt="" loading="lazy" />
-                    ) : post.data.heroVideo ? (
-                      <video autoplay muted loop playsinline preload="auto">
-                        <source src={post.data.heroVideo} type="video/mp4" />
-                      </video>
-                    ) : null}
-
-                    <h3>{post.data.title}</h3>
-
-                    {post._pub ? (
-                      <time datetime={post._pub.toISOString()}>
-                        {post._pub.toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    ) : (
-                      <time aria-hidden="true">Undated</time>
-                    )}
-                  </a>
-                </li>
+                <BlogCard
+                  href={`/blog/${post.slug}/`}
+                  title={post.data.title}
+                  pubDate={post._pub}
+                  heroImage={post.data.heroImage}
+                  heroVideo={post.data.heroVideo}
+                />
               ))}
             </ul>
           )}
@@ -105,131 +88,7 @@ const posts = rawPosts
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
   }
-  
-  /* CARD BASE */
-  .card a {
-    position: relative;
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 8px 24px rgba(0,0,0,.08);
-  
-    /* Animation foundation */
-    transform: translateY(0) scale(1);
-    transition:
-      transform 160ms ease-out,
-      box-shadow 160ms ease-out,
-      filter 160ms ease-out;
-    will-change: transform, box-shadow;
-  }
-  
-  /* Image / video: slight depth on hover */
-  .card img,
-  .card video {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    display: block;
-    transition:
-      transform 220ms ease-out,
-      filter 220ms ease-out;
-    will-change: transform;
-  }
-  
-  .card h3 {
-    margin: 0.75rem 1rem 0.25rem;
-    font-size: 1.25rem;
-  }
-  
-  .card time {
-    display: block;
-    margin: 0 1rem 1rem;
-    opacity: .7;
-  }
-  
-  /* Gradient shine overlay (like LL title gleam) */
-  .card a::before {
-    content: "";
-    position: absolute;
-    inset: -40%;
-    pointer-events: none;
-    background:
-      linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255,255,255,0.05) 35%,
-        rgba(255,255,255,0.55) 50%,
-        rgba(255,255,255,0.05) 65%,
-        transparent 100%
-      );
-    transform: translateX(-120%);
-    opacity: 0;
-    transition:
-      transform 650ms ease-out,
-      opacity 200ms ease-out;
-  }
-  
-  /* HOVER / FOCUS LIFT */
-  .card a:hover,
-  .card a:focus-visible {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 16px 40px rgba(0,0,0,.2);
-    filter: brightness(1.02);
-    outline: none;
-  }
-  
-  /* Extra zoom on media when card is active */
-  .card a:hover img,
-  .card a:hover video,
-  .card a:focus-visible img,
-  .card a:focus-visible video {
-    transform: scale(1.04);
-    filter: brightness(1.03);
-  }
-  
-  /* Trigger the shine sweep */
-  .card a:hover::before,
-  .card a:focus-visible::before {
-    transform: translateX(120%);
-    opacity: 1;
-  }
-  
-  /* Keyboard focus ring (accessibility) */
-  .card a:focus-visible {
-    box-shadow:
-      0 0 0 2px rgba(255,255,255,0.9),
-      0 0 0 4px rgba(94, 234, 212, 0.8),
-      0 20px 44px rgba(0,0,0,.22);
-  }
-  
-  /* Respect reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    .card a {
-      transition: box-shadow 160ms ease-out;
-      transform: none;
-    }
-  
-    .card a:hover,
-    .card a:focus-visible {
-      transform: none;
-      filter: none;
-    }
-  
-    .card img,
-    .card video {
-      transition: none;
-      transform: none;
-    }
-  
-    .card a::before {
-      display: none;
-    }
-  }
-  
-  /* Section header styling */
+
   .home-section-header {
     display: flex;
     justify-content: space-between;
@@ -237,12 +96,11 @@ const posts = rawPosts
     gap: 1rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .home-section-title {
     margin: 0;
   }
-  
-  /* Mobile adjustments */
+
   @media (max-width: 639px) {
     .home-section-header {
       flex-direction: column;
@@ -251,5 +109,5 @@ const posts = rawPosts
       text-align: center;
     }
   }
-
 </style>
+
