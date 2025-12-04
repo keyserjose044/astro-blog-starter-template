@@ -83,7 +83,7 @@ const formattedDate =
     opacity: 0.7;
   }
 
-  /* === HERO-STYLE GLEAM ACROSS THE WHOLE CARD === */
+  /* Gleam base (disabled until desktop hover turns it on) */
   .blog-card a::before {
     content: "";
     position: absolute;
@@ -106,7 +106,7 @@ const formattedDate =
       opacity 0.2s ease-out;
   }
 
-  /* === BLUE PERIMETER RING (CLOCKWISE SWEEP) === */
+  /* Blue perimeter ring base */
   .blog-card a::after {
     content: "";
     position: absolute;
@@ -138,69 +138,6 @@ const formattedDate =
     mask-composite: exclude;
   }
 
-  /* === POP + SHADOW ON HOVER/FOCUS === */
-  .blog-card a:hover,
-  .blog-card a:focus-visible {
-    transform: translateY(-6px) scale(1.05);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-    filter: brightness(1.02);
-    outline: none;
-  }
-
-  /* Trigger gleam */
-  .blog-card a:hover::before,
-  .blog-card a:focus-visible::before {
-    opacity: 1;
-    transform: translateX(150%) skewX(-20deg);
-  }
-
-  /* Trigger border ring */
-  .blog-card a:hover::after,
-  .blog-card a:focus-visible::after {
-    opacity: 1;
-    background-position: 200% 50%;
-  }
-
-  /* Keyboard focus ring */
-  .blog-card a:focus-visible {
-    box-shadow:
-      0 0 0 2px rgba(255, 255, 255, 0.9),
-      0 0 0 4px rgba(94, 234, 212, 0.9),
-      0 18px 40px rgba(0, 0, 0, 0.25);
-  }
-
-  /* Desktop only: full effects */
-  @media (hover: hover) and (pointer: fine) {
-    .blog-card a:hover,
-    .blog-card a:focus-visible {
-      transform: translateY(-6px) scale(1.05);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-      filter: brightness(1.02);
-    }
-
-    .blog-card a:hover::before,
-    .blog-card a:focus-visible::before {
-      opacity: 1;
-      transform: translateX(150%) skewX(-20deg);
-    }
-
-    .blog-card a:hover::after,
-    .blog-card a:focus-visible::after {
-      animation: border-pulse 0.6s ease-out;
-    }
-  }
-
-  /* Mobile: simplified (no gleam/ring) */
-  @media (hover: none) and (pointer: coarse) {
-    .blog-card a {
-      transition: box-shadow 0.15s ease-out;
-    }
-
-    .blog-card a:active {
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-    }
-  }
-
   @keyframes border-pulse {
     0% {
       opacity: 0;
@@ -215,6 +152,63 @@ const formattedDate =
     }
     100% {
       opacity: 0;
+    }
+  }
+
+  /* =======================
+     DESKTOP (full effect)
+     ======================= */
+  @media (hover: hover) and (pointer: fine) {
+    /* Pop + shadow */
+    .blog-card a:hover,
+    .blog-card a:focus-visible {
+      transform: translateY(-6px) scale(1.05);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+      filter: brightness(1.02);
+      outline: none;
+    }
+
+    /* Gleam slide */
+    .blog-card a:hover::before,
+    .blog-card a:focus-visible::before {
+      opacity: 1;
+      transform: translateX(150%) skewX(-20deg);
+    }
+
+    /* Border ring pulse */
+    .blog-card a:hover::after,
+    .blog-card a:focus-visible::after {
+      animation: border-pulse 0.6s ease-out;
+    }
+
+    /* Focus ring stacked with glow */
+    .blog-card a:focus-visible {
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.9),
+        0 0 0 4px rgba(94, 234, 212, 0.9),
+        0 18px 40px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  /* =======================
+     MOBILE / TOUCH (no FX)
+     ======================= */
+  @media (hover: none) and (pointer: coarse) {
+    .blog-card a {
+      /* keep it simple: no transform animation */
+      transition: box-shadow 0.15s ease-out;
+      transform: none;
+    }
+
+    /* Kill gleam + ring entirely on touch */
+    .blog-card a::before,
+    .blog-card a::after {
+      display: none;
+    }
+
+    /* Optional: light "pressed" feedback only */
+    .blog-card a:active {
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
     }
   }
 </style>
