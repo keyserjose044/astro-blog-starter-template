@@ -19,82 +19,67 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-blog-layout="cards">
   <head>
     <BaseHead title={`${SITE_TITLE} — Blog`} description={SITE_DESCRIPTION} />
     <style>
       :root {
-        /* Use more of the screen, but not as crazy-wide as Books */
-        --list-max: min(96vw, 1200px);
+        --list-max: clamp(60ch, 90vw, 1100px); /* same as old file */
         --border: #e6e9ef;
       }
 
-      html, body {
+      html,
+      body {
         max-width: 100%;
         overflow-x: hidden;
       }
 
       main {
-        min-height: 100vh;
+        width: 100%;
+        margin: 0;
       }
 
       .wrap {
+        width: 100%;
         max-width: var(--list-max);
-        margin: 0 auto;
-        padding: 4rem 1.5rem 5rem;
+        margin: 0 auto 2.5rem;
+        padding: 1rem 1.25rem 2.5rem;
+        box-sizing: border-box;
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 480px) {
         .wrap {
-          padding-inline: 1.25rem;
-          padding-top: 3.25rem;
-          padding-bottom: 4rem;
+          padding-inline: 1rem;
         }
+      }
+
+      .intro {
+        padding: 2.2rem 0 1.5rem;
       }
 
       .intro h1 {
-        font-size: clamp(2rem, 4vw, 2.4rem);
         margin: 0 0 0.5rem;
-        letter-spacing: -0.03em;
+        font-size: clamp(2rem, 4vw, 2.5rem);
       }
 
       .toolbar {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: flex-start;
-        margin-top: 0.75rem;
-      }
-
-      @media (min-width: 640px) {
-        .toolbar {
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
-        }
+        margin: 1.25rem 0 0;
       }
 
       .toolbar input[type='search'] {
-        border-radius: 999px;
+        width: 100%;
+        max-width: 520px;
+        padding: 12px 40px 12px 14px;
+        border-radius: 12px;
         border: 1px solid var(--border);
-        padding: 0.5rem 0.9rem;
-        font-size: 0.9rem;
-        min-width: min(260px, 100%);
-        background: #ffffff;
-        color: #111111;
-        box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+        background: #fff;
+        color: #0e121b;
+        font-size: 0.95rem;
+        box-sizing: border-box;
       }
 
       .toolbar input[type='search']::placeholder {
-        color: #666;
-      }
-
-      .toolbar input[type='search']:focus {
-        outline: none;
-        border-color: #38bdf8;
-        box-shadow:
-          0 0 0 1px rgba(56, 189, 248, 0.7),
-          0 0 32px rgba(56, 189, 248, 0.3);
+        color: #9ca3af;
       }
 
       .toolbar small {
@@ -110,34 +95,23 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         font-style: italic;
       }
 
-      /* ------- GRID LAYOUT (hard-coded 1 / 2 / 3 columns) ------- */
+      /* ====== GRID LAYOUT (same behavior as old "cards" view) ====== */
 
       ul#grid {
         list-style: none;
         padding: 0;
         margin: 1.75rem 0 0;
-        display: grid;
-        gap: 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
       }
 
-      /* Mobile: 1 card per row */
-      @media (max-width: 767px) {
-        ul#grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Tablet / small laptop: 2 cards per row */
-      @media (min-width: 768px) and (max-width: 1199px) {
-        ul#grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-
-      /* Desktop: 3 cards per row (matches old layout) */
-      @media (min-width: 1200px) {
-        ul#grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+      /* Desktop: auto-fill 3-ish cards per row using more of the screen */
+      @media (min-width: 900px) {
+        html[data-blog-layout='cards'] ul#grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1.5rem;
         }
       }
     </style>
@@ -171,16 +145,14 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
               const heroVideo = (post.data as any).heroVideo;
 
               return (
-                <li>
-                  <BlogCard
-                    href={`/blog/${post.slug}/`}
-                    title={title}
-                    pubDate={post._pub}
-                    heroImage={heroImage}
-                    heroVideo={heroVideo}
-                    data-title={title.toLowerCase()}
-                  />
-                </li>
+                <BlogCard
+                  href={`/blog/${post.slug}/`}
+                  title={title}
+                  pubDate={post._pub}
+                  heroImage={heroImage}
+                  heroVideo={heroVideo}
+                  data-title={title.toLowerCase()}
+                />
               );
             })}
           </ul>
