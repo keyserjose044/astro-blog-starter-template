@@ -4,10 +4,8 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
-import FormattedDate from '../../components/FormattedDate.astro';
 import VideoBg from '../../components/VideoBg.astro';
 import BlogCard from '../../components/BlogCard.astro';
-
 
 // Exclude drafts and sort safely
 const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
@@ -26,15 +24,12 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
     <BaseHead title={`${SITE_TITLE} — Blog`} description={SITE_DESCRIPTION} />
     <style>
       :root {
-        --list-max: clamp(70ch, 96vw, 1280px); /* desktop container */
-        --read-max: 72ch;                      /* phone container */
+        /* Use more of the screen, but not as crazy-wide as Books */
+        --list-max: min(96vw, 1200px);
         --border: #e6e9ef;
-        --thumb-radius: 16px;
-        --thumb-shadow: 0 10px 30px rgba(0,0,0,.12);
       }
 
-      html,
-      body {
+      html, body {
         max-width: 100%;
         overflow-x: hidden;
       }
@@ -63,13 +58,6 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         letter-spacing: -0.03em;
       }
 
-      .intro p {
-        max-width: 38rem;
-        color: #4b5563;
-        margin: 0 0 1.75rem;
-        font-size: 0.95rem;
-      }
-
       .toolbar {
         display: flex;
         flex-direction: column;
@@ -85,24 +73,22 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           justify-content: space-between;
         }
       }
-      
+
       .toolbar input[type='search'] {
         border-radius: 999px;
         border: 1px solid var(--border);
         padding: 0.5rem 0.9rem;
         font-size: 0.9rem;
         min-width: min(260px, 100%);
-      
-        /* Restore original LL look */
         background: #ffffff;
         color: #111111;
         box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
       }
-      
+
       .toolbar input[type='search']::placeholder {
-        color: #666666; /* light grey placeholder */
+        color: #666;
       }
-      
+
       .toolbar input[type='search']:focus {
         outline: none;
         border-color: #38bdf8;
@@ -123,7 +109,9 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         color: #6b7280;
         font-style: italic;
       }
-      
+
+      /* ------- GRID LAYOUT (hard-coded 1 / 2 / 3 columns) ------- */
+
       ul#grid {
         list-style: none;
         padding: 0;
@@ -131,28 +119,27 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         display: grid;
         gap: 1.75rem;
       }
-      
+
       /* Mobile: 1 card per row */
       @media (max-width: 767px) {
         ul#grid {
           grid-template-columns: 1fr;
         }
       }
-      
+
       /* Tablet / small laptop: 2 cards per row */
       @media (min-width: 768px) and (max-width: 1199px) {
         ul#grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
-      
-      /* Desktop: 3 cards per row */
+
+      /* Desktop: 3 cards per row (matches old layout) */
       @media (min-width: 1200px) {
         ul#grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
       }
-
     </style>
   </head>
 
@@ -173,37 +160,30 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
               />
               <small>Press "/" to focus search, "Esc" to clear.</small>
             </div>
-
-
           </div>
 
           <div class="empty" id="empty">No posts match your search.</div>
-          
+
           <ul id="grid">
             {posts.map((post) => {
               const title = post.data.title ?? '';
               const heroImage = post.data.heroImage;
-              const heroVideo = (post.data as any).heroVideo; // optional
-              const desc =
-                (post.data as any).description ||
-                (post.data as any).summary ||
-                '';
-          
+              const heroVideo = (post.data as any).heroVideo;
+
               return (
-               <li>
-                <BlogCard
-                  href={`/blog/${post.slug}/`}
-                  title={title}
-                  pubDate={post._pub}
-                  heroImage={heroImage}
-                  heroVideo={heroVideo}
-                  data-title={title.toLowerCase()}
-                />
-              </li>
+                <li>
+                  <BlogCard
+                    href={`/blog/${post.slug}/`}
+                    title={title}
+                    pubDate={post._pub}
+                    heroImage={heroImage}
+                    heroVideo={heroVideo}
+                    data-title={title.toLowerCase()}
+                  />
+                </li>
               );
             })}
           </ul>
-
         </section>
       </main>
       <Footer />
@@ -225,8 +205,6 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
             t = setTimeout(() => fn(...a), ms);
           };
         };
-
-        /* ====== SEARCH ====== */
 
         const input = $('#q');
         const empty = $('#empty');
@@ -271,7 +249,6 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         }
 
         applyFilter();
-
       })();
     </script>
   </body>
