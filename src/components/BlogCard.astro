@@ -1,4 +1,5 @@
 ---
+// src/components/BlogCard.astro
 export interface Props {
   href: string;
   title: string;
@@ -43,7 +44,7 @@ const formattedDate =
     list-style: none;
   }
 
-  /* CARD BASE */
+  /* Base card */
   .blog-card a {
     position: relative;
     display: block;
@@ -52,13 +53,13 @@ const formattedDate =
     border-radius: 16px;
     overflow: hidden;
     background: #fff;
-    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 
     transform: translateY(0) scale(1);
     transition:
-      transform 160ms ease-out,
-      box-shadow 160ms ease-out,
-      filter 160ms ease-out;
+      transform 0.2s ease-out,
+      box-shadow 0.2s ease-out,
+      filter 0.2s ease-out;
     will-change: transform, box-shadow;
   }
 
@@ -68,10 +69,6 @@ const formattedDate =
     height: 180px;
     object-fit: cover;
     display: block;
-    transition:
-      transform 220ms ease-out,
-      filter 220ms ease-out;
-    will-change: transform;
   }
 
   .blog-card h3 {
@@ -82,68 +79,118 @@ const formattedDate =
   .blog-card time {
     display: block;
     margin: 0 1rem 1rem;
-    opacity: .7;
+    opacity: 0.7;
   }
 
-  /* Gradient shine overlay */
+  /* Inner gleam (like LL title) */
   .blog-card a::before {
     content: "";
     position: absolute;
-    inset: -40%;
+    top: 0;
+    left: -150%;
+    width: 70%;
+    height: 100%;
     pointer-events: none;
-    background:
-      linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255,255,255,0.05) 35%,
-        rgba(255,255,255,0.55) 50%,
-        rgba(255,255,255,0.05) 65%,
-        transparent 100%
-      );
-    transform: translateX(-120%);
+    background: linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.95) 35%,
+      rgba(255, 255, 255, 0.6) 55%,
+      rgba(255, 255, 255, 0) 100%
+    );
     opacity: 0;
-    transition:
-      transform 650ms ease-out,
-      opacity 200ms ease-out;
+    transform: skewX(-20deg);
   }
 
-  /* Hover / focus lift */
+  /* Blue perimeter surge */
+  .blog-card a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    pointer-events: none;
+    /* “border-only” via mask */
+    padding: 2px;
+    background: linear-gradient(
+      120deg,
+      rgba(56, 189, 248, 0) 0%,
+      rgba(56, 189, 248, 1) 25%,
+      rgba(37, 99, 235, 1) 50%,
+      rgba(56, 189, 248, 1) 75%,
+      rgba(56, 189, 248, 0) 100%
+    );
+    background-size: 250% 250%;
+    opacity: 0;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Pop like hero title + stronger shadow */
   .blog-card a:hover,
   .blog-card a:focus-visible {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 16px 40px rgba(0,0,0,.2);
+    transform: translateY(-6px) scale(1.04);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
     filter: brightness(1.02);
     outline: none;
   }
 
-  /* Extra zoom on media */
-  .blog-card a:hover img,
-  .blog-card a:hover video,
-  .blog-card a:focus-visible img,
-  .blog-card a:focus-visible video {
-    transform: scale(1.04);
-    filter: brightness(1.03);
-  }
-
-  /* Trigger shine sweep */
+  /* Trigger gleam + perimeter surge */
   .blog-card a:hover::before,
   .blog-card a:focus-visible::before {
-    transform: translateX(120%);
-    opacity: 1;
+    animation: card-gleam 0.7s ease-out;
   }
 
-  /* Keyboard focus ring */
+  .blog-card a:hover::after,
+  .blog-card a:focus-visible::after {
+    animation: border-surge 0.6s ease-out;
+  }
+
+  /* Keyboard focus ring on top of the glow */
   .blog-card a:focus-visible {
     box-shadow:
-      0 0 0 2px rgba(255,255,255,0.9),
-      0 0 0 4px rgba(94, 234, 212, 0.8),
-      0 20px 44px rgba(0,0,0,.22);
+      0 0 0 2px rgba(255, 255, 255, 0.9),
+      0 0 0 4px rgba(94, 234, 212, 0.9),
+      0 18px 40px rgba(0, 0, 0, 0.25);
   }
 
-  /* Respect reduced-motion */
+  @keyframes card-gleam {
+    0% {
+      left: -150%;
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    60% {
+      opacity: 0.9;
+    }
+    100% {
+      left: 150%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes border-surge {
+    0% {
+      opacity: 0;
+      background-position: 0% 50%;
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      background-position: 200% 50%;
+    }
+  }
+
+  /* Reduced motion: keep pop subtle, no sweeps */
   @media (prefers-reduced-motion: reduce) {
     .blog-card a {
-      transition: box-shadow 160ms ease-out;
+      transition: box-shadow 0.15s ease-out;
       transform: none;
     }
 
@@ -153,14 +200,10 @@ const formattedDate =
       filter: none;
     }
 
-    .blog-card img,
-    .blog-card video {
-      transition: none;
-      transform: none;
-    }
-
-    .blog-card a::before {
-      display: none;
+    .blog-card a::before,
+    .blog-card a::after {
+      animation: none !important;
+      opacity: 0;
     }
   }
 </style>
