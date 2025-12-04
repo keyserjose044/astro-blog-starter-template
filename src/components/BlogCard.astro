@@ -82,7 +82,7 @@ const formattedDate =
     opacity: 0.7;
   }
 
-  /* Inner gleam (like LL title) */
+  /* Hero-style gleam across the card */
   .blog-card a::before {
     content: "";
     position: absolute;
@@ -102,42 +102,30 @@ const formattedDate =
     transform: skewX(-20deg);
   }
 
-  /* Blue perimeter surge */
+  /* Blue perimeter glow (simple + cross-browser) */
   .blog-card a::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 16px;
     pointer-events: none;
-    /* “border-only” via mask */
-    padding: 2px;
-    background: linear-gradient(
-      120deg,
-      rgba(56, 189, 248, 0) 0%,
-      rgba(56, 189, 248, 1) 25%,
-      rgba(37, 99, 235, 1) 50%,
-      rgba(56, 189, 248, 1) 75%,
-      rgba(56, 189, 248, 0) 100%
-    );
-    background-size: 250% 250%;
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
     opacity: 0;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
+    transition:
+      opacity 0.2s ease-out,
+      box-shadow 0.2s ease-out;
   }
 
-  /* Pop like hero title + stronger shadow */
+  /* POP like the LL title, but on the whole card */
   .blog-card a:hover,
   .blog-card a:focus-visible {
-    transform: translateY(-6px) scale(1.04);
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
     filter: brightness(1.02);
     outline: none;
   }
 
-  /* Trigger gleam + perimeter surge */
+  /* Trigger gleam + border glow */
   .blog-card a:hover::before,
   .blog-card a:focus-visible::before {
     animation: card-gleam 0.7s ease-out;
@@ -145,10 +133,13 @@ const formattedDate =
 
   .blog-card a:hover::after,
   .blog-card a:focus-visible::after {
-    animation: border-surge 0.6s ease-out;
+    opacity: 1;
+    box-shadow:
+      0 0 0 2px rgba(56, 189, 248, 0.95),
+      0 0 18px 6px rgba(59, 130, 246, 0.9);
   }
 
-  /* Keyboard focus ring on top of the glow */
+  /* Keyboard focus ring stacked with glow */
   .blog-card a:focus-visible {
     box-shadow:
       0 0 0 2px rgba(255, 255, 255, 0.9),
@@ -173,37 +164,21 @@ const formattedDate =
     }
   }
 
-  @keyframes border-surge {
-    0% {
-      opacity: 0;
-      background-position: 0% 50%;
-    }
-    20% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      background-position: 200% 50%;
-    }
-  }
-
-  /* Reduced motion: keep pop subtle, no sweeps */
+  /* Optional: if you *really* want to respect reduced motion,
+     just tone down the pop but don't kill it entirely */
   @media (prefers-reduced-motion: reduce) {
     .blog-card a {
-      transition: box-shadow 0.15s ease-out;
-      transform: none;
+      transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
     }
-
     .blog-card a:hover,
     .blog-card a:focus-visible {
-      transform: none;
-      filter: none;
+      transform: translateY(-3px) scale(1.02);
     }
-
-    .blog-card a::before,
-    .blog-card a::after {
-      animation: none !important;
+    .blog-card a:hover::before,
+    .blog-card a:focus-visible::before {
+      animation: none;
       opacity: 0;
     }
   }
 </style>
+
