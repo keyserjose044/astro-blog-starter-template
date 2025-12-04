@@ -1,0 +1,62 @@
+---
+// src/components/SeeAllPill.astro
+export interface Props {
+  href: string;
+  label?: string;
+  ariaLabel?: string;
+}
+
+const { href, label = 'See all posts', ariaLabel } = Astro.props;
+---
+
+<a
+  href={href}
+  class="see-all-pill"
+  aria-label={ariaLabel ?? label}
+>
+  <span>{label}</span>
+  <span class="see-all-arrow">→</span>
+</a>
+
+<style>
+  .see-all-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 76, 255, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    color: #0f4cff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .see-all-pill:hover {
+    background: #0f4cff;
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .see-all-pill:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  }
+
+  .see-all-arrow {
+    font-size: 1.1em;
+    line-height: 1;
+  }
+</style>
