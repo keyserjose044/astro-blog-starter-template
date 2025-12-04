@@ -105,6 +105,8 @@ const posts = rawPosts
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
   }
+  
+  /* CARD BASE */
   .card a {
     display: block;
     text-decoration: none;
@@ -113,7 +115,15 @@ const posts = rawPosts
     overflow: hidden;
     background: #fff;
     box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  
+    /* Animation foundation */
+    transform: translateY(0) scale(1);
+    transition:
+      transform 160ms ease-out,
+      box-shadow 160ms ease-out,
+      filter 160ms ease-out;
   }
+  
   .card img,
   .card video {
     width: 100%;
@@ -121,9 +131,47 @@ const posts = rawPosts
     object-fit: cover;
     display: block;
   }
-  .card h3 { margin: 0.75rem 1rem 0.25rem; font-size:1.25rem; }
-  .card time { display: block; margin: 0 1rem 1rem; opacity: .7; }
-
+  
+  .card h3 {
+    margin: 0.75rem 1rem 0.25rem;
+    font-size: 1.25rem;
+  }
+  
+  .card time {
+    display: block;
+    margin: 0 1rem 1rem;
+    opacity: .7;
+  }
+  
+  /* HOVER / FOCUS LIFT */
+  .card a:hover,
+  .card a:focus-visible {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(0,0,0,.18);
+    filter: brightness(1.02);
+    outline: none;
+  }
+  
+  /* Keyboard focus ring (accessibility) */
+  .card a:focus-visible {
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.9),
+      0 0 0 4px rgba(94, 234, 212, 0.8),
+      0 18px 40px rgba(0,0,0,.2);
+  }
+  
+  /* Respect reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .card a {
+      transition: box-shadow 160ms ease-out;
+    }
+    .card a:hover,
+    .card a:focus-visible {
+      transform: none;
+    }
+  }
+  
+  /* Section header styling */
   .home-section-header {
     display: flex;
     justify-content: space-between;
@@ -131,12 +179,12 @@ const posts = rawPosts
     gap: 1rem;
     margin-bottom: 0.5rem;
   }
-
+  
   .home-section-title {
     margin: 0;
   }
-
-  /* Mobile: stack + center */
+  
+  /* Mobile adjustments */
   @media (max-width: 639px) {
     .home-section-header {
       flex-direction: column;
