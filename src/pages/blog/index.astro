@@ -229,6 +229,12 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         }
       }
 
+      /* NEW: ensure cards behave like grid items */
+      ul#grid > li {
+        width: 100%;
+      }
+    }
+
       /* Mobile keeps things simple, one column either way */
       @media (max-width: 900px) {
         ul#grid {
