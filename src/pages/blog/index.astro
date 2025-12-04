@@ -128,16 +128,29 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
         list-style: none;
         padding: 0;
         margin: 1.75rem 0 0;
-      
-        /* Always use CSS grid; it will naturally collapse to 1 column on small screens */
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 1.75rem;
       }
       
-      /* Ensure grid items size correctly */
-      ul#grid > li {
-        width: 100%;
+      /* Mobile: 1 card per row */
+      @media (max-width: 767px) {
+        ul#grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      
+      /* Tablet / small laptop: 2 cards per row */
+      @media (min-width: 768px) and (max-width: 1199px) {
+        ul#grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      
+      /* Desktop: 3 cards per row */
+      @media (min-width: 1200px) {
+        ul#grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
       }
 
     </style>
