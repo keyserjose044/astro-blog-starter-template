@@ -85,22 +85,24 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
           justify-content: space-between;
         }
       }
-
+      
       .toolbar input[type='search'] {
         border-radius: 999px;
         border: 1px solid var(--border);
         padding: 0.5rem 0.9rem;
         font-size: 0.9rem;
         min-width: min(260px, 100%);
-        background: rgba(15, 23, 42, 0.92);
-        color: #e5e7eb;
-        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.5);
+      
+        /* Restore original LL look */
+        background: #ffffff;
+        color: #111111;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
       }
-
+      
       .toolbar input[type='search']::placeholder {
-        color: #9ca3af;
+        color: #666666; /* light grey placeholder */
       }
-
+      
       .toolbar input[type='search']:focus {
         outline: none;
         border-color: #38bdf8;
