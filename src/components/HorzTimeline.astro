@@ -1,459 +1,432 @@
 ---
 // src/components/HorzTimeline.astro
 
-// Simple data model — tweak the copy here.
-// You can keep all 12 months even if some have short blurbs.
-type MonthKey =
-  | 'jan' | 'feb' | 'mar' | 'apr'
-  | 'may' | 'jun' | 'jul' | 'aug'
-  | 'sep' | 'oct' | 'nov' | 'dec';
-
-interface MonthContent {
-  key: MonthKey;
+export interface TimelineItem {
+  /** e.g. "jan" */
+  id?: string;
+  /** e.g. "JAN" */
   label: string;
-  headline: string;
-  phase: string;
+  /** e.g. "GS Expansion" */
+  title?: string;
+  /** e.g. "Google Sheets systems" */
   tag?: string;
-  summary: string;
-  bullets: string[];
+  /** Optional small phase/secondary line */
+  phase?: string;
+  /** Main paragraph text */
+  description?: string;
+  /** Bullet points */
+  bullets?: string[];
 }
 
-const months: MonthContent[] = [
-  {
-    key: 'jan',
-    label: 'JAN',
-    headline: 'GS Expansion',
-    phase: 'Google Sheets systems',
-    tag: 'Foundations',
-    summary:
-      'Laid the foundation of the 2025 Google Sheets systems — Raw Data, stats, and routines started locking into place.',
-    bullets: [
-      'Tuned daily tracking inside Raw Data instead of scattered sheets.',
-      'Simplified categories and color-coding for long-term use.',
-      'Started thinking of Sheets as the operating system for your life.',
-    ],
-  },
-  {
-    key: 'feb',
-    label: 'FEB',
-    headline: 'Systems tightening',
-    phase: 'Raw Data + routines',
-    summary:
-      'Refined the daily loop and started seeing the first compounding benefits of consistent logging.',
-    bullets: [
-      'Smoothed out friction points in the morning and evening routines.',
-      'Began separating “noise” stats from truly useful signals.',
-    ],
-  },
-  // TODO: fill in the rest of the year with your actual copy
-  {
-    key: 'mar',
-    label: 'MAR',
-    headline: 'Momentum month',
-    phase: 'GS + routine',
-    summary:
-      'Momentum building — the new GS structure felt natural enough that you could focus on actual work again.',
-    bullets: [
-      'Less energy spent remembering where things live.',
-      'More trust that “if it matters, it’s logged somewhere”.',
-    ],
-  },
-  {
-    key: 'apr',
-    label: 'APR',
-    headline: 'Pre-Python stretch',
-    phase: 'Last pure GS focus',
-    summary:
-      'Final month before the Python wave — you doubled down on polishing Sheets so code could plug in cleanly later.',
-    bullets: [
-      'Clarified naming conventions and folder structure.',
-      'Trimmed a few half-baked sheets that were no longer needed.',
-    ],
-  },
-  {
-    key: 'may',
-    label: 'MAY',
-    headline: 'Python ignition',
-    phase: 'Automation kickoff',
-    summary:
-      'Python entered the chat. First lab scripts, little helpers, and the feeling that “oh, this can scale.”',
-    bullets: [
-      'Automated early calorimetry / data-wrangling tasks.',
-      'Started thinking in terms of reusable modules instead of one-off files.',
-    ],
-  },
-  {
-    key: 'jun',
-    label: 'JUN',
-    headline: 'Automation ramp-up',
-    phase: 'Lab pipelines',
-    summary:
-      'More experiments, more data — and more reasons to automate the boring parts.',
-    bullets: [
-      'Refined script structure and naming.',
-      'Hooked more of the lab workflow into Python.',
-    ],
-  },
-  {
-    key: 'jul',
-    label: 'JUL',
-    headline: 'Full Python sprint',
-    phase: 'Deep build season',
-    summary:
-      'Several major tools clicked into place; your coding confidence jumped a tier.',
-    bullets: [
-      'Iterated on Load-CMOD + TGA style apps.',
-      'Began thinking seriously about UI/UX for lab tools.',
-    ],
-  },
-  {
-    key: 'aug',
-    label: 'AUG',
-    headline: 'Guitar mastery phase',
-    phase: 'Technique + hours',
-    summary:
-      'Switched focus from pure code to the fretboard — big chunk of the year’s guitar hours land here.',
-    bullets: [
-      'Daily practice felt non-negotiable instead of optional.',
-      'Technique, tone, and musicality all made visible jumps.',
-    ],
-  },
-  {
-    key: 'sep',
-    label: 'SEP',
-    headline: 'Bridge month',
-    phase: 'Guitar → Web',
-    summary:
-      'Guitar still strong, but web design and LifeLoggerz concepts began occupying more brain cycles.',
-    bullets: [
-      'Sketched layouts and interaction ideas.',
-      'Started translating your systems philosophy into website form.',
-    ],
-  },
-  {
-    key: 'oct',
-    label: 'OCT',
-    headline: 'Web design era',
-    phase: 'LifeLoggerz build',
-    summary:
-      'Astro, components, background video, hero ripple, stats, templates — the site started looking like “you”.',
-    bullets: [
-      'Built out core navigation and page set.',
-      'Dialed in the visual language and motion.',
-    ],
-  },
-  {
-    key: 'nov',
-    label: 'NOV',
-    headline: 'Polish + depth',
-    phase: 'UI refinement',
-    summary:
-      'Small UX flourishes, better copy, and the idea of templates/downloads as a serious offering.',
-    bullets: [
-      'Improved mobile behaviour and performance.',
-      'Clarified how LifeLoggerz can help other people (not just future you).',
-    ],
-  },
-  {
-    key: 'dec',
-    label: 'DEC',
-    headline: 'Web design era',
-    phase: 'Consolidation',
-    tag: 'Wrap-up',
-    summary:
-      'Year-end wrap: finishing passes on design, documenting what worked, and planning the next year.',
-    bullets: [
-      'Closed loops on key UI tasks.',
-      'Captured 2025 lessons to guide 2026 builds.',
-    ],
-  },
-];
+export interface Props {
+  year?: number | string;
+  heading?: string;
+  subheading?: string;
+  items: TimelineItem[];
+}
 
-let activeKey: MonthKey = 'jan';
+const {
+  year,
+  heading = '',
+  subheading = '',
+  items = [],
+} = Astro.props as Props;
 
-const activeMonth = () => months.find((m) => m.key === activeKey) ?? months[0];
+const safeItems = items.map((item, index) => ({
+  ...item,
+  _id: item.id ?? `item-${index}`,
+}));
 ---
 
 <section class="horz-timeline">
   <div class="horz-timeline__inner">
-    <header class="horz-timeline__header">
-      <p class="horz-timeline__eyebrow">Year in review</p>
-      <h2 class="horz-timeline__title">2025 at a glance</h2>
-      <p class="horz-timeline__subtitle">
-        Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design —
-        stitched together month by month.
-      </p>
-    </header>
-
-    <div class="horz-timeline__track-wrap">
-      <div class="horz-timeline__track">
-        {months.map((month) => (
-          <button
-            type="button"
-            class={`horz-timeline__point ${
-              month.key === activeKey ? 'horz-timeline__point--active' : ''
-            }`}
-            aria-pressed={month.key === activeKey}
-            on:click={() => (activeKey = month.key)}
-          >
-            <span class="horz-timeline__point-dot"></span>
-            <span class="horz-timeline__point-label">{month.label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-
-    <div class="horz-timeline__card">
-      <p class="horz-timeline__card-month">
-        {activeMonth().label} 2025
-      </p>
-      <h3 class="horz-timeline__card-headline">
-        {activeMonth().headline}
-      </h3>
-      <p class="horz-timeline__card-phase">
-        {activeMonth().phase}
-        {activeMonth().tag && (
-          <span class="horz-timeline__card-tag">{activeMonth().tag}</span>
+    {(heading || year || subheading) && (
+      <header class="horz-timeline__header">
+        {heading && (
+          <p class="horz-timeline__eyebrow">
+            {heading}
+          </p>
         )}
-      </p>
-      <p class="horz-timeline__card-summary">
-        {activeMonth().summary}
-      </p>
-      <ul class="horz-timeline__card-list">
-        {activeMonth().bullets.map((b) => (
-          <li>{b}</li>
-        ))}
-      </ul>
-    </div>
+        {year && (
+          <h2 class="horz-timeline__title">
+            {year} at a glance
+          </h2>
+        )}
+        {subheading && (
+          <p class="horz-timeline__subtitle">
+            {subheading}
+          </p>
+        )}
+      </header>
+    )}
+
+    {safeItems.length > 0 && (
+      <>
+        <div class="horz-timeline__track-wrap">
+          <div class="horz-timeline__track">
+            {safeItems.map((item, index) => {
+              const isActive = index === 0;
+              return (
+                <button
+                  type="button"
+                  class={`horz-timeline__point ${
+                    isActive ? 'horz-timeline__point--active' : ''
+                  }`}
+                  data-id={item._id}
+                  aria-pressed={isActive}
+                >
+                  <span class="horz-timeline__point-dot" aria-hidden="true" />
+                  <span class="horz-timeline__point-label">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div class="horz-timeline__panels">
+          {safeItems.map((item, index) => {
+            const isActive = index === 0;
+            return (
+              <article
+                id={`horz-panel-${item._id}`}
+                class={`horz-timeline__panel ${
+                  isActive ? 'horz-timeline__panel--active' : ''
+                }`}
+              >
+                <p class="horz-timeline__panel-month">
+                  {item.label}
+                  {year && ` ${year}`}
+                </p>
+
+                {item.title && (
+                  <h3 class="horz-timeline__panel-title">
+                    {item.title}
+                  </h3>
+                )}
+
+                {(item.tag || item.phase) && (
+                  <p class="horz-timeline__panel-phase">
+                    {item.tag && (
+                      <span class="horz-timeline__panel-tag">
+                        {item.tag}
+                      </span>
+                    )}
+                    {item.phase && (
+                      <span class="horz-timeline__panel-phase-text">
+                        {item.phase}
+                      </span>
+                    )}
+                  </p>
+                )}
+
+                {item.description && (
+                  <p class="horz-timeline__panel-description">
+                    {item.description}
+                  </p>
+                )}
+
+                {item.bullets && item.bullets.length > 0 && (
+                  <ul class="horz-timeline__panel-list">
+                    {item.bullets.map((b) => <li>{b}</li>)}
+                  </ul>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </>
+    )}
   </div>
-</section>
 
-<style>
-  .horz-timeline {
-    width: 100%;
-    margin: 0 auto 4rem;
-    padding: 0 1.25rem 3.5rem;
-    box-sizing: border-box;
-  }
+  <script is:inline>
+    const timelines = document.querySelectorAll('.horz-timeline');
 
-  .horz-timeline__inner {
-    max-width: min(1160px, 100%);
-    margin: 0 auto;
-  }
+    timelines.forEach((root) => {
+      const points = root.querySelectorAll('.horz-timeline__point');
+      const panels = root.querySelectorAll('.horz-timeline__panel');
 
-  .horz-timeline__header {
-    text-align: center;
-    margin-bottom: 1.75rem;
-  }
+      points.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          if (!id) return;
 
-  .horz-timeline__eyebrow {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.16em;
-    color: rgb(var(--gray));
-    margin: 0 0 0.35rem;
-  }
+          // toggle active dot
+          points.forEach((b) => {
+            const isActive = b === btn;
+            b.classList.toggle('horz-timeline__point--active', isActive);
+            b.setAttribute('aria-pressed', String(isActive));
+          });
 
-  .horz-timeline__title {
-    margin: 0 0 0.6rem;
-    font-size: clamp(2.1rem, 2vw + 1.8rem, 2.6rem);
-  }
+          // toggle active panel
+          panels.forEach((panel) => {
+            panel.classList.toggle(
+              'horz-timeline__panel--active',
+              panel.id === `horz-panel-${id}`,
+            );
+          });
+        });
+      });
+    });
+  </script>
 
-  .horz-timeline__subtitle {
-    margin: 0;
-    font-size: 0.98rem;
-    color: rgb(var(--gray));
-    max-width: 640px;
-    margin-inline: auto;
-  }
-
-  .horz-timeline__track-wrap {
-    margin-top: 2.25rem;
-    margin-bottom: 1.75rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
-
-  .horz-timeline__track {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 0.25rem;
-    align-items: flex-start;
-    padding-inline: 0.25rem;
-  }
-
-  .horz-timeline__track::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 18px;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      rgba(35, 55, 255, 0.2),
-      rgba(35, 55, 255, 0.5),
-      rgba(35, 55, 255, 0.2)
-    );
-    pointer-events: none;
-  }
-
-  .horz-timeline__point {
-    position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: inherit;
-    font: inherit;
-  }
-
-  .horz-timeline__point-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 999px;
-    border: 2px solid rgba(0, 0, 0, 0.18);
-    background: #f2f3f8;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
-    transition:
-      background 0.18s ease,
-      border-color 0.18s ease,
-      transform 0.18s ease,
-      box-shadow 0.18s ease;
-  }
-
-  .horz-timeline__point-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgb(var(--gray-dark));
-    opacity: 0.85;
-    transition: color 0.18s ease, opacity 0.18s ease;
-  }
-
-  .horz-timeline__point:hover .horz-timeline__point-dot,
-  .horz-timeline__point:focus-visible .horz-timeline__point-dot {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    box-shadow: 0 4px 12px rgba(35, 55, 255, 0.3);
-  }
-
-  .horz-timeline__point:hover .horz-timeline__point-label,
-  .horz-timeline__point:focus-visible .horz-timeline__point-label {
-    color: var(--accent-dark);
-    opacity: 1;
-  }
-
-  .horz-timeline__point--active .horz-timeline__point-dot {
-    background: radial-gradient(circle at 30% 0%, #ffffff, var(--accent));
-    border-color: var(--accent-dark);
-    box-shadow:
-      0 0 0 3px rgba(35, 55, 255, 0.12),
-      0 10px 24px rgba(35, 55, 255, 0.4);
-    transform: translateY(-3px) scale(1.05);
-  }
-
-  .horz-timeline__point--active .horz-timeline__point-label {
-    color: var(--accent-dark);
-    opacity: 1;
-    font-weight: 700;
-  }
-
-  .horz-timeline__card {
-    margin-top: 1.5rem;
-    max-width: min(1080px, 100%);
-    margin-inline: auto;
-    padding: 1.75rem 2.1rem 1.9rem;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.76);
-    box-shadow:
-      0 18px 45px rgba(0, 0, 0, 0.13),
-      0 0 0 1px rgba(0, 0, 0, 0.03);
-    backdrop-filter: blur(18px);
-  }
-
-  .horz-timeline__card-month {
-    margin: 0 0 0.4rem;
-    font-size: 0.82rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgb(var(--gray));
-  }
-
-  .horz-timeline__card-headline {
-    margin: 0 0 0.4rem;
-    font-size: 1.25rem;
-  }
-
-  .horz-timeline__card-phase {
-    margin: 0 0 0.9rem;
-    font-size: 0.98rem;
-    color: rgb(var(--gray-dark));
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .horz-timeline__card-tag {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    padding: 0.18rem 0.55rem;
-    border-radius: 999px;
-    border: 1px solid rgba(35, 55, 255, 0.25);
-    background: rgba(35, 55, 255, 0.06);
-    color: var(--accent-dark);
-  }
-
-  .horz-timeline__card-summary {
-    margin: 0 0 0.9rem;
-    font-size: 0.98rem;
-  }
-
-  .horz-timeline__card-list {
-    margin: 0;
-    padding-left: 1.2rem;
-    font-size: 0.95rem;
-  }
-
-  .horz-timeline__card-list li + li {
-    margin-top: 0.25rem;
-  }
-
-  @media (max-width: 900px) {
+  <style>
     .horz-timeline {
-      padding-inline: clamp(14px, 4vw, 22px);
+      width: 100%;
+      padding: 0 1.25rem 3.5rem;
+      box-sizing: border-box;
+    }
+
+    .horz-timeline__inner {
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .horz-timeline__header {
-      margin-top: 0.25rem;
-      margin-bottom: 1.4rem;
+      text-align: center;
+      margin-top: 0.75rem;
+      margin-bottom: 1.75rem;
     }
 
+    .horz-timeline__eyebrow {
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      color: rgb(var(--gray));
+      margin: 0 0 0.35rem;
+    }
+
+    .horz-timeline__title {
+      margin: 0 0 0.6rem;
+      font-size: clamp(2.1rem, 2vw + 1.8rem, 2.6rem);
+    }
+
+    .horz-timeline__subtitle {
+      margin: 0;
+      font-size: 0.98rem;
+      color: rgb(var(--gray));
+      max-width: 640px;
+      margin-inline: auto;
+    }
+
+    /* TRACK */
+
     .horz-timeline__track-wrap {
-      margin-top: 1.6rem;
-      margin-bottom: 1.2rem;
+      margin-top: 1.9rem;
+      margin-bottom: 1.5rem;
+      padding: 0.2rem 0 0.7rem;
+      overflow-x: auto;
+    }
+
+    .horz-timeline__track {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 0.4rem;
+      align-items: flex-start;
+      padding-inline: 0.25rem;
+      min-height: 60px;
+    }
+
+    .horz-timeline__track::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 26px;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        rgba(35, 55, 255, 0.2),
+        rgba(35, 55, 255, 0.55),
+        rgba(35, 55, 255, 0.2)
+      );
+      pointer-events: none;
+    }
+
+    .horz-timeline__point {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: inherit;
+      font: inherit;
     }
 
     .horz-timeline__point-dot {
-      width: 14px;
-      height: 14px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0.18);
+      background: #f5f6fb;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
     }
 
     .horz-timeline__point-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.14em;
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgb(var(--gray-dark));
+      opacity: 0.85;
+      transition: color 0.18s ease, opacity 0.18s ease;
     }
 
-    .horz-timeline__card {
-      padding: 1.4rem 1.4rem 1.6rem;
-      border-radius: 18px;
+    .horz-timeline__point:hover .horz-timeline__point-dot,
+    .horz-timeline__point:focus-visible .horz-timeline__point-dot {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(35, 55, 255, 0.3);
     }
-  }
-</style>
+
+    .horz-timeline__point:hover .horz-timeline__point-label,
+    .horz-timeline__point:focus-visible .horz-timeline__point-label {
+      color: var(--accent-dark);
+      opacity: 1;
+    }
+
+    .horz-timeline__point--active .horz-timeline__point-dot {
+      background: radial-gradient(circle at 30% 0%, #ffffff, var(--accent));
+      border-color: var(--accent-dark);
+      box-shadow:
+        0 0 0 3px rgba(35, 55, 255, 0.12),
+        0 10px 24px rgba(35, 55, 255, 0.4);
+      transform: translateY(-3px) scale(1.04);
+    }
+
+    .horz-timeline__point--active .horz-timeline__point-label {
+      color: var(--accent-dark);
+      opacity: 1;
+      font-weight: 700;
+    }
+
+    /* PANELS */
+
+    .horz-timeline__panels {
+      margin-top: 0.75rem;
+    }
+
+    .horz-timeline__panel {
+      display: none;
+      max-width: 1120px;
+      margin-inline: auto;
+      padding: 1.8rem 2.1rem 1.9rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.13),
+        0 0 0 1px rgba(0, 0, 0, 0.03);
+      backdrop-filter: blur(18px);
+      font-size: 0.97rem;
+      line-height: 1.55;
+      animation: horz-panel-in 0.18s ease-out;
+    }
+
+    .horz-timeline__panel--active {
+      display: block;
+    }
+
+    .horz-timeline__panel-month {
+      margin: 0 0 0.4rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgb(var(--gray));
+    }
+
+    .horz-timeline__panel-title {
+      margin: 0 0 0.35rem;
+      font-size: 1.25rem;
+    }
+
+    .horz-timeline__panel-phase {
+      margin: 0 0 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      font-size: 0.96rem;
+      color: rgb(var(--gray-dark));
+    }
+
+    .horz-timeline__panel-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(35, 55, 255, 0.25);
+      background: rgba(35, 55, 255, 0.06);
+      color: var(--accent-dark);
+    }
+
+    .horz-timeline__panel-phase-text {
+      opacity: 0.9;
+    }
+
+    .horz-timeline__panel-description {
+      margin: 0 0 0.9rem;
+    }
+
+    .horz-timeline__panel-list {
+      margin: 0;
+      padding-left: 1.2rem;
+      font-size: 0.95rem;
+    }
+
+    .horz-timeline__panel-list li + li {
+      margin-top: 0.25rem;
+    }
+
+    @keyframes horz-panel-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .horz-timeline {
+        padding-inline: clamp(14px, 4vw, 22px);
+      }
+
+      .horz-timeline__header {
+        margin-bottom: 1.4rem;
+      }
+
+      .horz-timeline__track-wrap {
+        margin-top: 1.6rem;
+        margin-bottom: 1.1rem;
+      }
+
+      .horz-timeline__point-dot {
+        width: 16px;
+        height: 16px;
+      }
+
+      .horz-timeline__point-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.14em;
+      }
+
+      .horz-timeline__panel {
+        padding: 1.4rem 1.4rem 1.6rem;
+        border-radius: 18px;
+      }
+    }
+  </style>
+</section>
