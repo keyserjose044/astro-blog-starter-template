@@ -1,498 +1,170 @@
 ---
-// src/components/Timeline.astro
+// src/pages/Timeline.astro
+
+import BlogPost from '../layouts/BlogPost.astro';
+import HorzTimeline from '../components/HorzTimeline.astro';
 
 const year = 2025;
 
-const months = [
-  { id: "jan", short: "Jan", label: "January" },
-  { id: "feb", short: "Feb", label: "February" },
-  { id: "mar", short: "Mar", label: "March" },
-  { id: "apr", short: "Apr", label: "April" },
-  { id: "may", short: "May", label: "May" },
-  { id: "jun", short: "Jun", label: "June" },
-  { id: "jul", short: "Jul", label: "July" },
-  { id: "aug", short: "Aug", label: "August" },
-  { id: "sep", short: "Sep", label: "September" },
-  { id: "oct", short: "Oct", label: "October" },
-  { id: "nov", short: "Nov", label: "November" },
-  { id: "dec", short: "Dec", label: "December" },
+// This is the ONLY place the 2025 content lives.
+// HorzTimeline is just layout + interaction.
+const items = [
+  {
+    id: 'jan',
+    label: 'Jan',
+    title: 'GS Expansion',
+    tag: 'Google Sheets systems',
+    description:
+      'Laid the foundation of the 2025 Google Sheets systems — Raw Data, stats, and routines started locking into place.',
+    bullets: [
+      'Tuned daily tracking inside Raw Data instead of scattered sheets.',
+      'Simplified categories and color-coding for long-term use.',
+    ],
+  },
+  {
+    id: 'feb',
+    label: 'Feb',
+    title: 'GS Expansion',
+    tag: 'Sheets refinement',
+    description:
+      'Continued refining the 2025 template and building comfort with formulas, references, and summaries.',
+    bullets: [
+      'Iterated on RD layouts and summary sheets.',
+      'Experimented with small quality-of-life automations.',
+    ],
+  },
+  {
+    id: 'mar',
+    label: 'Mar',
+    title: 'GS Expansion',
+    tag: 'Routines stabilizing',
+    description:
+      'More stability in routines and logging, less reinventing the sheet — systems started to feel natural.',
+    bullets: [
+      'Pruned unnecessary fields that created friction.',
+      'Strengthened the habit of logging every day.',
+    ],
+  },
+  {
+    id: 'apr',
+    label: 'Apr',
+    title: 'GS Expansion (Final Stretch)',
+    tag: 'GS before code',
+    description:
+      'Last big push of the pure-GS phase before code-heavy automation began.',
+    bullets: [
+      'Locked in the main 2025 RD structure.',
+      'Identified pain points that needed scripting to fix.',
+    ],
+  },
+  {
+    id: 'may',
+    label: 'May',
+    title: 'Bridge: GS → Python',
+    tag: 'GS + Python Automation',
+    description:
+      'The month where spreadsheets met code: still heavily Sheets, but Python and Apps Script started entering the picture.',
+    bullets: [
+      'First serious Apps Script / Python experiments.',
+      'Shift from “manual but beautiful” to “automated systems”.',
+    ],
+  },
+  {
+    id: 'jun',
+    label: 'Jun',
+    title: 'Python Automation Sprint',
+    tag: 'Lab & data automation',
+    description:
+      'Full dive into Python for lab workflows — scripts started turning into real tools.',
+    bullets: [
+      'Built/refined calorimetry and TGA pipelines.',
+      'Moved from one-off scripts to reusable modules.',
+    ],
+  },
+  {
+    id: 'jul',
+    label: 'Jul',
+    title: 'Python Automation Sprint',
+    tag: 'Integrated toolkit',
+    description:
+      'One of the heaviest Python months: multiple lab tools began to feel like an integrated toolkit.',
+    bullets: [
+      'Expanded automation to Load–CMOD and mechanical tests.',
+      'Improved graphing, Excel output, and batch processing.',
+    ],
+  },
+  {
+    id: 'aug',
+    label: 'Aug',
+    title: 'Python + Guitar',
+    tag: 'Automation & Guitar Mastery',
+    description:
+      'Automation was still moving, but focus started to split as guitar became a serious priority.',
+    bullets: [
+      'Finalized key Python tools to “good enough for now”.',
+      'Shifted more deliberate practice time into guitar technique.',
+    ],
+  },
+  {
+    id: 'sep',
+    label: 'Sep',
+    title: 'Guitar → Web Design',
+    tag: 'Transition month',
+    description:
+      'Transition from intense guitar practice into the Web Design era, especially after mid-September.',
+    bullets: [
+      'Consolidated guitar gains (barres, 7ths, repertoire).',
+      'Started experimenting with Astro layouts and components.',
+    ],
+  },
+  {
+    id: 'oct',
+    label: 'Oct',
+    title: 'Web Design Era',
+    tag: 'LifeLoggerz & client sites',
+    description:
+      'The Web Design sprint took over: Astro builds, layout experiments, and multiple websites in parallel.',
+    bullets: [
+      'Heavy sessions on LifeLoggerz structure & styling.',
+      'Iterated on academic and business sites.',
+    ],
+  },
+  {
+    id: 'nov',
+    label: 'Nov',
+    title: 'Web Design Era',
+    tag: 'Polish & depth',
+    description:
+      'Refinement month: micro-interactions, backgrounds, and the overall feel of your sites.',
+    bullets: [
+      'Tweaked animations, cards, and responsiveness.',
+      'Strengthened brand voice and visual identity.',
+    ],
+  },
+  {
+    id: 'dec',
+    label: 'Dec',
+    title: 'Web Design Era',
+    tag: 'Consolidation',
+    description:
+      'Year-end wrap: finishing passes on design, documenting what worked, and planning the next year.',
+    bullets: [
+      'Closed loops on key UI tasks where needed.',
+      'Captured 2025 lessons to guide 2026 builds.',
+    ],
+  },
 ];
-
-// Rough mapping of eras per month
-const monthMeta: Record<string, { era: string; tag: string; description: string; bullets: string[] }> = {
-  jan: {
-    era: "GS Expansion",
-    tag: "Google Sheets (Raw Data, systems)",
-    description:
-      "Laid the foundation of the 2025 Google Sheets systems — Raw Data, stats, and routines started locking into place.",
-    bullets: [
-      "Tuned daily tracking inside Raw Data instead of scattered sheets.",
-      "Simplified categories and color-coding for long-term use.",
-      "Started thinking of Sheets as the operating system for your life.",
-    ],
-  },
-  feb: {
-    era: "GS Expansion",
-    tag: "Google Sheets",
-    description:
-      "Continued refining the 2025 template and building comfort with formulas, references, and summaries.",
-    bullets: [
-      "Iterated on RD layouts and summary sheets.",
-      "Experimented with small quality-of-life automations.",
-      "Began seeing the patterns that would later become LifeLoggerz content.",
-    ],
-  },
-  mar: {
-    era: "GS Expansion",
-    tag: "Google Sheets",
-    description:
-      "More stability in routines and logging, less reinventing the sheet — systems started to feel natural.",
-    bullets: [
-      "Pruned unnecessary fields that created friction.",
-      "Strengthened the habit of logging every day without fail.",
-      "Started noting ideas for future blog posts about your systems.",
-    ],
-  },
-  apr: {
-    era: "GS Expansion",
-    tag: "Google Sheets",
-    description:
-      "Last big push of the pure-GS phase before code-heavy automation began.",
-    bullets: [
-      "Locked in the main 2025 RD structure.",
-      "Identified pain points that could only really be solved with actual scripts.",
-      "Began sketching automation ideas for Apps Script and Python.",
-    ],
-  },
-  may: {
-    era: "Bridge: GS → Python",
-    tag: "GS + Python Automation",
-    description:
-      "The month where spreadsheets met code: still heavily Google Sheets, but Python and Apps Script started entering the picture.",
-    bullets: [
-      "First serious Apps Script / Python experiments for automating data flows.",
-      "Shift from ‘manual-but-beautiful sheets’ to ‘automated systems’.",
-      "Defined the projects that would become the core of the Python sprint.",
-    ],
-  },
-  jun: {
-    era: "Python Automation Sprint",
-    tag: "Lab & data automation",
-    description:
-      "Full dive into Python for lab workflows — scripts started turning into real tools.",
-    bullets: [
-      "Built and refined calorimetry and TGA processing pipelines.",
-      "Learned to structure scripts, not just write one-off notebooks.",
-      "Started thinking in terms of reusable modules and apps.",
-    ],
-  },
-  jul: {
-    era: "Python Automation Sprint",
-    tag: "Lab & data automation",
-    description:
-      "One of the heaviest Python months: consolidating multiple lab tools and workflows.",
-    bullets: [
-      "Expanded automation to Load–CMOD and other mechanical tests.",
-      "Improved graphing, Excel output, and batch processing.",
-      "Began to see how these tools could save the whole lab real time.",
-    ],
-  },
-  aug: {
-    era: "Python + Guitar",
-    tag: "Automation & Guitar Mastery",
-    description:
-      "Automation was still moving, but focus started to split as Guitar-leveling became a serious priority.",
-    bullets: [
-      "Finalized key Python tools to a ‘good enough for now’ state.",
-      "Shifted more deliberate practice time into guitar technique.",
-      "Started logging practice and progress with the same rigor as lab work.",
-    ],
-  },
-  sep: {
-    era: "Guitar → Web Design",
-    tag: "Guitar & early Web Design",
-    description:
-      "Transition month: from intense guitar practice into the Web Design era, especially once mid-September hit.",
-    bullets: [
-      "Consolidated guitar gains: barres, shapes, and repertoire.",
-      "Began experimenting with web layouts, Astro, and components.",
-      "Planted the seed that would become the LifeLoggerz site.",
-    ],
-  },
-  oct: {
-    era: "Web Design Era",
-    tag: "LifeLoggerz & client sites",
-    description:
-      "The Web Design sprint took over: Astro builds, layout experiments, and multiple websites in parallel.",
-    bullets: [
-      "Invested long sessions into LifeLoggerz structure and styling.",
-      "Delivered or iterated on academic and business sites.",
-      "Learned the patterns you now reuse across all your pages.",
-    ],
-  },
-  nov: {
-    era: "Web Design Era",
-    tag: "Polish & depth",
-    description:
-      "Refinement month: micro-interactions, backgrounds, cards, and the overall ‘feel’ of your sites.",
-    bullets: [
-      "Tweaked animations, cards, and responsive behavior.",
-      "Strengthened the brand voice and visual identity.",
-      "Started seeing LifeLoggerz as a long-term platform, not just a project.",
-    ],
-  },
-  dec: {
-    era: "Web Design Era",
-    tag: "Consolidation",
-    description:
-      "Year-end wrap: finishing passes on design, documenting what worked, and planning the next year.",
-    bullets: [
-      "Closed loops on open UI tasks where necessary.",
-      "Captured 2025 lessons to guide 2026 builds.",
-      "Defined the idea of a ‘Year at a Glance’ as a recurring feature.",
-    ],
-  },
-};
 ---
 
-<section class="timeline" aria-labelledby="timeline-title">
-  <header class="timeline__header">
-    <p class="timeline__eyebrow">Year in review</p>
-    <h2 id="timeline-title" class="timeline__title">
-      {year} at a Glance
-    </h2>
-    <p class="timeline__subtitle">
-      Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month.
-    </p>
-
-    <div class="timeline__legend" aria-label="Phase legend">
-      <span class="timeline__legend-item timeline__legend-item--gs">GS (Jan–May)</span>
-      <span class="timeline__legend-item timeline__legend-item--py">Python (May–Aug)</span>
-      <span class="timeline__legend-item timeline__legend-item--gt">Guitar (Aug–mid-Sep)</span>
-      <span class="timeline__legend-item timeline__legend-item--web">Web Design (mid-Sep–Dec)</span>
-    </div>
-  </header>
-
-  <div class="timeline__track" role="tablist" aria-label={`${year} timeline`}>
-    {months.map((month, index) => {
-      const isActive = index === 0;
-      return (
-        <button
-          type="button"
-          class={`timeline__point ${isActive ? "is-active" : ""}`}
-          data-month={month.id}
-          role="tab"
-          aria-selected={isActive}
-          aria-controls={`panel-${month.id}`}
-        >
-          <span class="timeline__point-dot" aria-hidden="true"></span>
-          <span class="timeline__point-label">{month.short}</span>
-        </button>
-      );
-    })}
-  </div>
-
-  <div class="timeline__panels">
-    {months.map((month, index) => {
-      const isActive = index === 0;
-      const meta = monthMeta[month.id];
-      return (
-        <article
-          id={`panel-${month.id}`}
-          class={`timeline__panel ${isActive ? "is-active" : ""}`}
-          role="tabpanel"
-          aria-labelledby={`tab-${month.id}`}
-        >
-          <header class="timeline__panel-header">
-            <p class="timeline__panel-month">
-              {month.label} {year}
-            </p>
-            <p class="timeline__panel-era">{meta.era}</p>
-            <p class="timeline__panel-tag">{meta.tag}</p>
-          </header>
-          <p class="timeline__panel-description">
-            {meta.description}
-          </p>
-          <ul class="timeline__panel-list">
-            {meta.bullets.map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
-        </article>
-      );
-    })}
-  </div>
-
-  <script>
-    const root = document.currentScript.closest(".timeline");
-    if (root) {
-      const points = root.querySelectorAll<HTMLButtonElement>(".timeline__point");
-      const panels = root.querySelectorAll<HTMLElement>(".timeline__panel");
-
-      points.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const targetId = btn.dataset.month;
-          if (!targetId) return;
-
-          points.forEach((b) => b.classList.toggle("is-active", b === btn));
-          panels.forEach((panel) =>
-            panel.classList.toggle("is-active", panel.id === `panel-${targetId}`)
-          );
-        });
-      });
-    }
-  </script>
-
-  <style>
-    .timeline {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem 3rem;
-    }
-
-    .timeline__header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .timeline__eyebrow {
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0.75;
-      margin-bottom: 0.35rem;
-    }
-
-    .timeline__title {
-      font-size: clamp(1.75rem, 3vw, 2.25rem);
-      margin-bottom: 0.5rem;
-    }
-
-    .timeline__subtitle {
-      max-width: 38rem;
-      margin: 0.5rem auto 1.5rem;
-      font-size: 0.95rem;
-      opacity: 0.85;
-    }
-
-    .timeline__legend {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-    }
-
-    .timeline__legend-item {
-      border-radius: 999px;
-      padding: 0.35rem 0.75rem;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(6px);
-      white-space: nowrap;
-    }
-
-    .timeline__legend-item--gs {
-      border-color: rgba(46, 204, 113, 0.7);
-    }
-    .timeline__legend-item--py {
-      border-color: rgba(52, 152, 219, 0.7);
-    }
-    .timeline__legend-item--gt {
-      border-color: rgba(155, 89, 182, 0.7);
-    }
-    .timeline__legend-item--web {
-      border-color: rgba(231, 76, 60, 0.7);
-    }
-
-    /* Track */
-
-    .timeline__track {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.95rem;
-      padding-left: 1.75rem;
-      margin-bottom: 1.75rem;
-    }
-
-    .timeline__track::before {
-      content: "";
-      position: absolute;
-      left: 0.55rem;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: linear-gradient(
-        to bottom,
-        rgba(46, 204, 113, 0.85),
-        rgba(52, 152, 219, 0.85),
-        rgba(155, 89, 182, 0.85),
-        rgba(231, 76, 60, 0.9)
-      );
-      opacity: 0.9;
-    }
-
-    .timeline__point {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.9rem;
-      padding: 0.15rem 0.35rem 0.15rem 0;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: inherit;
-      opacity: 0.72;
-      transition: opacity 0.18s ease, transform 0.18s ease;
-    }
-
-    .timeline__point-dot {
-      width: 0.9rem;
-      height: 0.9rem;
-      border-radius: 999px;
-      border: 2px solid rgba(255, 255, 255, 0.9);
-      background: rgba(0, 0, 0, 0.7);
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
-      flex-shrink: 0;
-    }
-
-    .timeline__point-label {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.75rem;
-    }
-
-    .timeline__point.is-active {
-      opacity: 1;
-      transform: translateX(2px);
-    }
-
-    .timeline__point.is-active .timeline__point-dot {
-      background: #ffffff;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    }
-
-    .timeline__point:focus-visible {
-      outline: 2px solid currentColor;
-      outline-offset: 3px;
-    }
-
-    /* Panels */
-
-    .timeline__panels {
-      position: relative;
-    }
-
-    .timeline__panel {
-      display: none;
-      border-radius: 1rem;
-      padding: 1.3rem 1.3rem 1.1rem;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-      font-size: 0.95rem;
-      line-height: 1.55;
-      animation: timeline-panel-in 0.18s ease-out;
-    }
-
-    .timeline__panel.is-active {
-      display: block;
-    }
-
-    .timeline__panel-header {
-      margin-bottom: 0.65rem;
-    }
-
-    .timeline__panel-month {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      opacity: 0.85;
-    }
-
-    .timeline__panel-era {
-      font-weight: 600;
-      margin-top: 0.15rem;
-      margin-bottom: 0.1rem;
-    }
-
-    .timeline__panel-tag {
-      font-size: 0.8rem;
-      opacity: 0.8;
-    }
-
-    .timeline__panel-description {
-      margin: 0.6rem 0 0.5rem;
-    }
-
-    .timeline__panel-list {
-      margin: 0.35rem 0 0;
-      padding-left: 1.1rem;
-      font-size: 0.9rem;
-    }
-
-    .timeline__panel-list li + li {
-      margin-top: 0.2rem;
-    }
-
-    @keyframes timeline-panel-in {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Desktop: horizontal timeline */
-
-    @media (min-width: 900px) {
-      .timeline {
-        padding-inline: 0;
-      }
-
-      .timeline__track {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        padding-left: 0;
-        padding-inline: 0.5rem;
-        margin-bottom: 2rem;
-      }
-
-      .timeline__track::before {
-        top: 50%;
-        left: 0.75rem;
-        right: 0.75rem;
-        height: 2px;
-        width: auto;
-      }
-
-      .timeline__point {
-        flex-direction: column;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.25rem;
-        transform: translateY(0);
-      }
-
-      .timeline__point-label {
-        font-size: 0.7rem;
-      }
-
-      .timeline__point.is-active {
-        transform: translateY(-2px);
-      }
-
-      .timeline__panels {
-        margin-top: 0.5rem;
-      }
-    }
-  </style>
-</section>
+<BlogPost
+  title="2025 at a Glance"
+  description="A horizontal, clickable timeline of how 2025 unfolded: GS, Python automation, Guitar mastery, and Web Design."
+  pubDate={new Date('2025-12-31')}
+>
+  <HorzTimeline
+    year={year}
+    items={items}
+    heading="Year in review"
+    subheading="Click a month to see what phase you were in and what you were building."
+  />
+</BlogPost>
