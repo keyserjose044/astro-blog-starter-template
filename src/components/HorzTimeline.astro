@@ -125,24 +125,34 @@ const safeItems = items.map((item, i) => ({
     </>
   )}
 
-  <script>
-    const root = document.currentScript.closest('.horz-timeline');
-    if (!root) return;
+  <script lang="ts" is:inline>
+    const root = document.currentScript?.closest('.horz-timeline') as
+      | HTMLElement
+      | null;
 
-    const points = root.querySelectorAll<HTMLButtonElement>('.horz-timeline__point');
-    const panels = root.querySelectorAll<HTMLElement>('.horz-timeline__panel');
+    if (root) {
+      const points =
+        root.querySelectorAll<HTMLButtonElement>('.horz-timeline__point');
+      const panels =
+        root.querySelectorAll<HTMLElement>('.horz-timeline__panel');
 
-    points.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.id;
-        if (!id) return;
+      points.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          if (!id) return;
 
-        points.forEach((b) => b.classList.toggle('is-active', b === btn));
-        panels.forEach((panel) =>
-          panel.classList.toggle('is-active', panel.id === `horz-panel-${id}`)
-        );
+          points.forEach((b) =>
+            b.classList.toggle('is-active', b === btn),
+          );
+          panels.forEach((panel) =>
+            panel.classList.toggle(
+              'is-active',
+              panel.id === `horz-panel-${id}`,
+            ),
+          );
+        });
       });
-    });
+    }
   </script>
 
   <style>
