@@ -33,7 +33,126 @@ const items = [
       'Experimented with small quality-of-life automations.',
     ],
   },
-  // ...repeat for MAR–DEC
+  {
+    id: 'mar',
+    label: 'MAR',
+    title: 'GS Expansion',
+    tag: 'Routines stabilizing',
+    description:
+      'More stability in routines and logging, less reinventing the sheet — systems started to feel natural.',
+    bullets: [
+      'Pruned unnecessary fields that created friction.',
+      'Strengthened the habit of logging every day.',
+    ],
+  },
+  {
+    id: 'apr',
+    label: 'APR',
+    title: 'GS Expansion (final stretch)',
+    tag: 'GS before code',
+    description:
+      'Last big push of the pure-GS phase before code-heavy automation began.',
+    bullets: [
+      'Locked in the main 2025 RD structure.',
+      'Identified pain points that needed scripting to fix.',
+    ],
+  },
+  {
+    id: 'may',
+    label: 'MAY',
+    title: 'Bridge: GS → Python',
+    tag: 'GS + Python automation',
+    description:
+      'The month where spreadsheets met code: still heavily Sheets, but Python and Apps Script started entering the picture.',
+    bullets: [
+      'First serious Apps Script / Python experiments.',
+      'Shift from “manual but beautiful” to “automated systems”.',
+    ],
+  },
+  {
+    id: 'jun',
+    label: 'JUN',
+    title: 'Python automation sprint',
+    tag: 'Lab & data automation',
+    description:
+      'Full dive into Python for lab workflows — scripts started turning into real tools.',
+    bullets: [
+      'Built/refined calorimetry and TGA pipelines.',
+      'Moved from one-off scripts to reusable modules.',
+    ],
+  },
+  {
+    id: 'jul',
+    label: 'JUL',
+    title: 'Python automation sprint',
+    tag: 'Integrated toolkit',
+    description:
+      'One of the heaviest Python months: multiple lab tools began to feel like an integrated toolkit.',
+    bullets: [
+      'Expanded automation to Load–CMOD and mechanical tests.',
+      'Improved graphing, Excel output, and batch processing.',
+    ],
+  },
+  {
+    id: 'aug',
+    label: 'AUG',
+    title: 'Python + Guitar',
+    tag: 'Automation & guitar mastery',
+    description:
+      'Automation was still moving, but focus started to split as guitar became a serious priority.',
+    bullets: [
+      'Finalized key Python tools to “good enough for now”.',
+      'Shifted more deliberate practice time into guitar technique.',
+    ],
+  },
+  {
+    id: 'sep',
+    label: 'SEP',
+    title: 'Guitar → Web design',
+    tag: 'Transition month',
+    description:
+      'Transition from intense guitar practice into the Web Design era, especially after mid-September.',
+    bullets: [
+      'Consolidated guitar gains.',
+      'Started experimenting with Astro layouts and components.',
+    ],
+  },
+  {
+    id: 'oct',
+    label: 'OCT',
+    title: 'Web design era',
+    tag: 'LifeLoggerz & client sites',
+    description:
+      'The Web Design sprint took over: Astro builds, layout experiments, and multiple websites in parallel.',
+    bullets: [
+      'Heavy sessions on LifeLoggerz structure & styling.',
+      'Iterated on academic and business sites.',
+    ],
+  },
+  {
+    id: 'nov',
+    label: 'NOV',
+    title: 'Web design era',
+    tag: 'Polish & depth',
+    description:
+      'Refinement month: micro-interactions, backgrounds, and overall feel of the sites.',
+    bullets: [
+      'Tweaked animations, cards, and responsiveness.',
+      'Strengthened brand voice and visual identity.',
+    ],
+  },
+  {
+    id: 'dec',
+    label: 'DEC',
+    title: 'Web design era',
+    tag: 'Consolidation',
+    description:
+      'Year-end wrap: finishing passes on design, documenting what worked, and planning the next year.',
+    bullets: [
+      'Closed loops on key UI tasks.',
+      'Captured 2025 lessons to guide 2026 builds.',
+    ],
+  },
 ];
 ---
 
@@ -50,22 +169,12 @@ const items = [
     <Header />
 
     <main class="page">
-      <section class="post">
-        <header class="post-header">
-          <p class="post-meta">Year in review</p>
-          <h1 class="post-title">2025 at a Glance</h1>
-          <p class="post-description">
-            Click a month to see what phase you were in and what you were building.
-          </p>
-        </header>
-
-        <HorzTimeline
-          year={year}
-          items={items}
-          heading="Year in review"
-          subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
-        />
-      </section>
+      <HorzTimeline
+        year={year}
+        items={items}
+        heading="Year in review"
+        subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
+      />
     </main>
 
     <Footer />
