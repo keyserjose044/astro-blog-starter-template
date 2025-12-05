@@ -1,0 +1,334 @@
+---
+// src/components/HorzTimeline.astro
+
+export interface TimelineItem {
+  /** Unique id, e.g. "jan" (optional – falls back to index) */
+  id?: string;
+  /** Short label under the dot, e.g. "Jan" */
+  label: string;
+  /** Optional heading in the panel, e.g. "GS Expansion" */
+  title?: string;
+  /** Optional small tag/era label, e.g. "Google Sheets" */
+  tag?: string;
+  /** Main paragraph text for that month */
+  description?: string;
+  /** Bullet points list */
+  bullets?: string[];
+}
+
+export interface Props {
+  year?: number | string;
+  /** Items in chronological order */
+  items: TimelineItem[];
+  /** Optional heading above the timeline */
+  heading?: string;
+  /** Optional subheading under the heading */
+  subheading?: string;
+}
+
+const {
+  year,
+  items = [],
+  heading = '',
+  subheading = ''
+} = Astro.props as Props;
+
+const hasHeader = heading || subheading || year;
+const safeItems = items.map((item, i) => ({
+  ...item,
+  _id: item.id ?? `item-${i}`,
+}));
+---
+
+<section class="horz-timeline" aria-label={year ? `${year} timeline` : 'Timeline'}>
+  {hasHeader && (
+    <header class="horz-timeline__header">
+      {heading && <p class="horz-timeline__eyebrow">{heading}</p>}
+      {year && (
+        <h2 class="horz-timeline__title">
+          {year} at a glance
+        </h2>
+      )}
+      {subheading && (
+        <p class="horz-timeline__subtitle">
+          {subheading}
+        </p>
+      )}
+    </header>
+  )}
+
+  {safeItems.length > 0 && (
+    <>
+      <div class="horz-timeline__track" role="tablist">
+        {safeItems.map((item, index) => {
+          const isActive = index === 0;
+          return (
+            <button
+              type="button"
+              class={`horz-timeline__point ${isActive ? 'is-active' : ''}`}
+              data-id={item._id}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`horz-panel-${item._id}`}
+            >
+              <span class="horz-timeline__point-dot" aria-hidden="true"></span>
+              <span class="horz-timeline__point-label">
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div class="horz-timeline__panels">
+        {safeItems.map((item, index) => {
+          const isActive = index === 0;
+          return (
+            <article
+              id={`horz-panel-${item._id}`}
+              class={`horz-timeline__panel ${isActive ? 'is-active' : ''}`}
+              role="tabpanel"
+            >
+              <header class="horz-timeline__panel-header">
+                {item.label && (
+                  <p class="horz-timeline__panel-label">
+                    {item.label}{year ? ` ${year}` : ''}
+                  </p>
+                )}
+                {item.title && (
+                  <p class="horz-timeline__panel-title">
+                    {item.title}
+                  </p>
+                )}
+                {item.tag && (
+                  <p class="horz-timeline__panel-tag">
+                    {item.tag}
+                  </p>
+                )}
+              </header>
+
+              {item.description && (
+                <p class="horz-timeline__panel-description">
+                  {item.description}
+                </p>
+              )}
+
+              {item.bullets && item.bullets.length > 0 && (
+                <ul class="horz-timeline__panel-list">
+                  {item.bullets.map((b) => <li>{b}</li>)}
+                </ul>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </>
+  )}
+
+  <script>
+    const root = document.currentScript.closest('.horz-timeline');
+    if (!root) return;
+
+    const points = root.querySelectorAll<HTMLButtonElement>('.horz-timeline__point');
+    const panels = root.querySelectorAll<HTMLElement>('.horz-timeline__panel');
+
+    points.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+
+        points.forEach((b) => b.classList.toggle('is-active', b === btn));
+        panels.forEach((panel) =>
+          panel.classList.toggle('is-active', panel.id === `horz-panel-${id}`)
+        );
+      });
+    });
+  </script>
+
+  <style>
+    /* 👇 Desktop-only; you’ll pair this with a VertTimeline mobile component */
+    @media (max-width: 899px) {
+      .horz-timeline {
+        display: none;
+      }
+    }
+
+    .horz-timeline {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 3rem;
+    }
+
+    .horz-timeline__header {
+      text-align: center;
+      margin-bottom: 2.25rem;
+    }
+
+    .horz-timeline__eyebrow {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-bottom: 0.35rem;
+    }
+
+    .horz-timeline__title {
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      margin-bottom: 0.5rem;
+    }
+
+    .horz-timeline__subtitle {
+      max-width: 38rem;
+      margin: 0.5rem auto 0;
+      font-size: 0.95rem;
+      opacity: 0.85;
+    }
+
+    /* Track */
+
+    .horz-timeline__track {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      padding: 0 0.75rem;
+      margin-top: 2.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .horz-timeline__track::before {
+      content: '';
+      position: absolute;
+      left: 0.75rem;
+      right: 0.75rem;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(
+        to right,
+        rgba(46, 204, 113, 0.9),
+        rgba(52, 152, 219, 0.9),
+        rgba(155, 89, 182, 0.9),
+        rgba(231, 76, 60, 0.95)
+      );
+      opacity: 0.9;
+    }
+
+    .horz-timeline__point {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.3rem 0.35rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: inherit;
+      opacity: 0.7;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .horz-timeline__point-dot {
+      width: 0.9rem;
+      height: 0.9rem;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      background: rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .horz-timeline__point.is-active {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+
+    .horz-timeline__point.is-active .horz-timeline__point-dot {
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    }
+
+    .horz-timeline__point:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 3px;
+    }
+
+    .horz-timeline__point-label {
+      font-size: 0.7rem;
+    }
+
+    /* Panels */
+
+    .horz-timeline__panels {
+      margin-top: 0.5rem;
+    }
+
+    .horz-timeline__panel {
+      display: none;
+      border-radius: 1rem;
+      padding: 1.3rem 1.4rem 1.1rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      animation: horz-timeline-panel-in 0.18s ease-out;
+    }
+
+    .horz-timeline__panel.is-active {
+      display: block;
+    }
+
+    .horz-timeline__panel-header {
+      margin-bottom: 0.6rem;
+    }
+
+    .horz-timeline__panel-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.85;
+    }
+
+    .horz-timeline__panel-title {
+      font-weight: 600;
+      margin-top: 0.2rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .horz-timeline__panel-tag {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .horz-timeline__panel-description {
+      margin: 0.6rem 0 0.5rem;
+    }
+
+    .horz-timeline__panel-list {
+      margin: 0.35rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.9rem;
+    }
+
+    .horz-timeline__panel-list li + li {
+      margin-top: 0.2rem;
+    }
+
+    @keyframes horz-timeline-panel-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</section>
