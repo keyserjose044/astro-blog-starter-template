@@ -165,18 +165,39 @@ const items = [
     />
   </head>
   <body>
-    <VideoBg />
-    <Header />
+    <VideoBg>
+      <Header />
 
-    <main class="page">
-      <HorzTimeline
-        year={year}
-        items={items}
-        heading="Year in review"
-        subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
-      />
-    </main>
+      <main class="page">
+        <HorzTimeline
+          year={year}
+          items={items}
+          heading="Year in review"
+          subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
+        />
+      </main>
 
-    <Footer />
+      <Footer />
+    </VideoBg>
   </body>
 </html>
+
+As long as your HorzTimeline.astro script is the new one that does:
+
+<script is:inline>
+  const timelines = document.querySelectorAll('.horz-timeline');
+  timelines.forEach((root) => {
+    const points = root.querySelectorAll('.horz-timeline__point');
+    const panels = root.querySelectorAll('.horz-timeline__panel');
+    points.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+        points.forEach((b) => b.classList.toggle('is-active', b === btn));
+        panels.forEach((panel) =>
+          panel.classList.toggle('is-active', panel.id === `horz-panel-${id}`),
+        );
+      });
+    });
+  });
+</script>
