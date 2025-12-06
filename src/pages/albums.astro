@@ -111,6 +111,8 @@ const albums = await fetchAllRaindrops();
     box-shadow:0 1px 2px rgba(0,0,0,.03);
   }
 
+  .toolbar select{flex:0 0 auto;min-width:150px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+
   .info-toggle{
     width:40px;
     height:40px;
@@ -189,7 +191,7 @@ const albums = await fetchAllRaindrops();
       <p class="hint">
         My life in {(albums.length).toLocaleString('en-US')} albums — every listen logged and displayed here.
       </p>
-
+      
       <div class="toolbar">
         <input
           id="q"
@@ -197,6 +199,9 @@ const albums = await fetchAllRaindrops();
           placeholder="Search title or note…"
           aria-label="Filter albums"
         />
+        <select id="genre-filter" aria-label="Filter by style">
+          <option value="">All styles</option>
+        </select>
         <button
           type="button"
           id="info-toggle"
@@ -256,6 +261,7 @@ const albums = await fetchAllRaindrops();
             title={a.title}
             data-title={a.title.toLowerCase()}
             data-note={(a.note || '').toLowerCase()}
+            data-note-raw={a.note || ''}
           >
             <img
               class="thumb"
@@ -283,31 +289,133 @@ const albums = await fetchAllRaindrops();
   (function(){
     const $ = (sel,root=document)=>root.querySelector(sel);
     const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
-
     const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
     const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-    const grid = $('#grid'), input = $('#q');
+    const grid = $('#grid');
+    const input = $('#q');
+    const genreSelect = $('#genre-filter');
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
     const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
 
-    function filter() {
-      const s = norm(input.value.trim());
-      if (!s) { cards.forEach(c=>c.style.display=''); return; }
-      const words = s.split(/\s+/);
-      cards.forEach(c => {
-        c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none';
+    // 🔹 Canonical style list (order matters)
+    const CANONICAL_STYLES = [
+      'Pop',
+      'Rock',
+      'Hip-Hop/Rap',
+      'R&B/Soul',
+      'Electronic/Dance',
+      'Jazz',
+      'Classical',
+      'Country',
+      'Folk/Acoustic',
+      'Blues',
+      'Metal',
+      'Reggae/Ska',
+      'Latin',
+      'World/Global',
+      'Punk',
+      'Funk',
+      'Gospel/Christian',
+      'Soundtrack/Film Score',
+      'New Age/Ambient',
+      'Experimental/Avant-Garde',
+    ];
+
+    // 🔹 Alias map in case Raindrop notes use slightly different punctuation
+    const STYLE_ALIAS_MAP = {};
+    STYLE_ALIAS_MAP[norm('Hip Hop/Rap')] = 'Hip-Hop/Rap';
+    STYLE_ALIAS_MAP[norm('Hip-Hop/Rap')] = 'Hip-Hop/Rap';
+    STYLE_ALIAS_MAP[norm('R&B / Soul')] = 'R&B/Soul';
+    STYLE_ALIAS_MAP[norm('R&amp;B/Soul')] = 'R&B/Soul';
+    STYLE_ALIAS_MAP[norm('Electronic / Dance')] = 'Electronic/Dance';
+    STYLE_ALIAS_MAP[norm('EDM/Electronic')] = 'Electronic/Dance';
+    STYLE_ALIAS_MAP[norm('Folk')] = 'Folk/Acoustic';
+    STYLE_ALIAS_MAP[norm('Acoustic/Folk')] = 'Folk/Acoustic';
+    STYLE_ALIAS_MAP[norm('Reggae & Ska')] = 'Reggae/Ska';
+    STYLE_ALIAS_MAP[norm('World')] = 'World/Global';
+    STYLE_ALIAS_MAP[norm('Global/World')] = 'World/Global';
+    STYLE_ALIAS_MAP[norm('Gospel / Christian')] = 'Gospel/Christian';
+    STYLE_ALIAS_MAP[norm('Film Score/Soundtrack')] = 'Soundtrack/Film Score';
+    STYLE_ALIAS_MAP[norm('Soundtrack')] = 'Soundtrack/Film Score';
+    STYLE_ALIAS_MAP[norm('New Age / Ambient')] = 'New Age/Ambient';
+    STYLE_ALIAS_MAP[norm('Ambient/New Age')] = 'New Age/Ambient';
+    STYLE_ALIAS_MAP[norm('Experimental')] = 'Experimental/Avant-Garde';
+    STYLE_ALIAS_MAP[norm('Avant-Garde')] = 'Experimental/Avant-Garde';
+
+    const stylesInUse = new Set();
+
+    // 🔹 Extract style from note (5th field) and attach to each card
+    // Note format: Date · Album · Artist · Year · Style · Country · Length · Context
+    cards.forEach(c => {
+      const raw = c.dataset.noteRaw || '';
+      const parts = raw.split('·').map(s => s.trim());
+      if (parts.length < 5) return;
+
+      const rawStyle = parts[4];
+      const rawNorm = norm(rawStyle);
+
+      // Exact match first
+      let canonical = CANONICAL_STYLES.find(g => norm(g) === rawNorm);
+
+      // Fallback to alias map
+      if (!canonical && STYLE_ALIAS_MAP[rawNorm]) {
+        canonical = STYLE_ALIAS_MAP[rawNorm];
+      }
+
+      if (!canonical) return; // ignore weird styles
+
+      const styleKey = norm(canonical);
+      c.dataset.genre = canonical;
+      c.dataset.genreKey = styleKey;
+      stylesInUse.add(canonical);
+    });
+
+    // 🔹 Populate dropdown using canonical order, but only styles actually present
+    if (genreSelect) {
+      const used = CANONICAL_STYLES.filter(g => stylesInUse.has(g));
+      used.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        genreSelect.appendChild(opt);
       });
     }
+
+    function filter() {
+      const s = norm(input.value.trim());
+      const selected = genreSelect ? genreSelect.value : '';
+      const selectedKey = norm(selected);
+
+      cards.forEach(c => {
+        const textMatches = !s || s.split(/\s+/).every(w => haystack.get(c).includes(w));
+        const styleMatches = !selected || (c.dataset.genreKey && c.dataset.genreKey === selectedKey);
+        c.style.display = (textMatches && styleMatches) ? '' : 'none';
+      });
+    }
+
     input.addEventListener('input', debounce(filter, 80));
+    if (genreSelect) {
+      genreSelect.addEventListener('change', filter);
+    }
+
     window.addEventListener('keydown', e => {
-      if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
-      else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+      if (e.key==='Escape'){
+        input.value='';
+        if (genreSelect) genreSelect.value = '';
+        filter();
+        input.focus();
+      } else if (e.key==='/' && e.target===document.body){
+        e.preventDefault();
+        input.focus();
+      }
     });
+
     filter();
 
+    // Tooltip positioning (unchanged)
     function adjust(bubble){
       if (!bubble) return;
       bubble.style.setProperty('--shift','0px');
@@ -327,6 +435,7 @@ const albums = await fetchAllRaindrops();
     });
     addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
+    // Mobile tap-to-show tooltip (unchanged)
     document.addEventListener('click', e=>{
       const card = e.target.closest('.card');
       if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
@@ -354,3 +463,4 @@ const albums = await fetchAllRaindrops();
     }
   })();
 </script>
+
