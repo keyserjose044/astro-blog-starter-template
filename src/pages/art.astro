@@ -87,6 +87,8 @@ const art = await fetchAllRaindrops();
     box-shadow:0 1px 2px rgba(0,0,0,.03);
   }
 
+  .toolbar select{flex:0 0 auto;min-width:180px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+
   .info-toggle{
     width:40px;
     height:40px;
@@ -180,11 +182,14 @@ const art = await fetchAllRaindrops();
           placeholder="Search title or note…"
           aria-label="Filter art"
         />
+        <select id="movement-filter" aria-label="Filter by movement">
+          <option value="">All movements</option>
+        </select>
         <button
           type="button"
           id="info-toggle"
           class="info-toggle"
-          aria-label="About my art habit"
+          aria-label="About my art viewing"
           aria-expanded="false"
           aria-pressed="false"
         >
@@ -237,6 +242,7 @@ const art = await fetchAllRaindrops();
             title={a.title}
             data-title={a.title.toLowerCase()}
             data-note={(a.note || '').toLowerCase()}
+            data-note-raw={a.note || ''}
           >
             <img
               class="thumb"
@@ -244,7 +250,7 @@ const art = await fetchAllRaindrops();
               alt={a.title}
               loading="lazy"
               decoding="async"
-              sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw"
+              sizes="(min-width: 1800px) 260px, (min-width: 900px) 20vw, 40vw"
             />
             <div class="title">{a.title}</div>
             {a.note ? (
@@ -264,62 +270,173 @@ const art = await fetchAllRaindrops();
   (function(){
     const $ = (sel,root=document)=>root.querySelector(sel);
     const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+    const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-    const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
-    const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const grid = $('#grid');
+    const input = $('#q');
+    const movementSelect = $('#movement-filter');
 
-    const grid = $('#grid'), input = $('#q');
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
-    const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+    const haystack = new Map(
+      cards.map(c => [c, norm((c.dataset.title||'') + ' ' + (c.dataset.note||''))])
+    );
 
-    function filter() {
-      const s = norm(input.value.trim());
-      if (!s) { cards.forEach(c=>c.style.display=''); return; }
-      const words = s.split(/\s+/);
-      cards.forEach(c => {
-        c.style.display = words.every(w => haystack.get(c).includes(w)) ? '' : 'none';
+    // 🔹 Canonical movement list (ordered: primary, secondary, then Other)
+    const CANONICAL_MOVEMENTS = [
+      'Impressionism',
+      'Post-Impressionism',
+      'Expressionism',
+      'Realism',
+      'Cubism',
+      'Symbolism',
+      'Mannerism',
+      'Neoclassicism',
+      'Romanticism',
+      'Ukiyo-e / Rinpa',
+      'Dutch Golden Age',
+      'Modernism',
+      'Northern Renaissance',
+      'Italian Renaissance',
+      'Baroque',
+      'Fauvism',
+      'Contemporary',
+      'Abstract Expressionism',
+      'Surrealism',
+      'Pointillism',
+      'Art Nouveau',
+      'Flemish Baroque',
+      'Proto-Renaissance',
+      'Minimalism',
+      'Other',
+    ];
+
+    // 🔹 Alias map (extend if you notice variant labels)
+    const MOVEMENT_ALIAS_MAP = {};
+    MOVEMENT_ALIAS_MAP[norm('Ukiyo-e/Rinpa')] = 'Ukiyo-e / Rinpa';
+    MOVEMENT_ALIAS_MAP[norm('Dutch Golden Age Painting')] = 'Dutch Golden Age';
+    MOVEMENT_ALIAS_MAP[norm('Proto Renaissance')] = 'Proto-Renaissance';
+
+    const movementsInUse = new Set();
+
+    // 🔹 Extract movement from note and attach to each card
+    // Note format: Date · Title · Artist · Country · Medium · Movement/Type · Year
+    cards.forEach(c => {
+      const raw = c.dataset.noteRaw || '';
+      const parts = raw.split('·').map(s => s.trim());
+      if (parts.length < 6) return;
+
+      const rawMovement = parts[5];          // 6th field
+      const rawNorm = norm(rawMovement);
+
+      // Try exact canonical match
+      let canonical = CANONICAL_MOVEMENTS.find(m => norm(m) === rawNorm);
+
+      // Try alias map
+      if (!canonical && MOVEMENT_ALIAS_MAP[rawNorm]) {
+        canonical = MOVEMENT_ALIAS_MAP[rawNorm];
+      }
+
+      // If still unknown, group into "Other"
+      if (!canonical) {
+        canonical = 'Other';
+      }
+
+      const key = norm(canonical);
+      c.dataset.movement = canonical;
+      c.dataset.movementKey = key;
+      movementsInUse.add(canonical);
+    });
+
+    // 🔹 Populate dropdown (only movements that actually appear)
+    if (movementSelect) {
+      const options = CANONICAL_MOVEMENTS.filter(m => movementsInUse.has(m));
+      options.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        movementSelect.appendChild(opt);
       });
     }
+
+    function filter(){
+      const s = norm(input.value.trim());
+      const selectedMovement = movementSelect ? movementSelect.value : '';
+      const selectedKey = norm(selectedMovement);
+
+      cards.forEach(c => {
+        const textMatches = !s || s.split(/\s+/).every(w => haystack.get(c).includes(w));
+        const movementMatches =
+          !selectedMovement ||
+          (c.dataset.movementKey && c.dataset.movementKey === selectedKey);
+
+        c.style.display = (textMatches && movementMatches) ? '' : 'none';
+      });
+    }
+
     input.addEventListener('input', debounce(filter, 80));
+    if (movementSelect) {
+      movementSelect.addEventListener('change', filter);
+    }
+
     window.addEventListener('keydown', e => {
-      if (e.key==='Escape'){ input.value=''; filter(); input.focus(); }
-      else if (e.key==='/' && e.target===document.body){ e.preventDefault(); input.focus(); }
+      if (e.key === 'Escape') {
+        input.value = '';
+        if (movementSelect) movementSelect.value = '';
+        filter();
+        input.focus();
+      } else if (e.key === '/' && e.target === document.body) {
+        e.preventDefault();
+        input.focus();
+      }
     });
+
     filter();
 
+    // Tooltip positioning (same pattern as Books/Albums)
     function adjust(bubble){
       if (!bubble) return;
-      bubble.style.setProperty('--shift','0px');
+      bubble.style.setProperty('--shift', '0px');
       const r = bubble.getBoundingClientRect(), m = 8;
       let shift = 0;
       if (r.left < m) shift = m - r.left;
       else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
       if (shift) bubble.style.setProperty('--shift', `${shift}px`);
     }
-    grid.addEventListener('mouseenter', e=>{
-      const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
-      requestAnimationFrame(()=>adjust(b));
-    }, true);
-    grid.addEventListener('focusin', e=>{
-      const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
-      requestAnimationFrame(()=>adjust(b));
-    });
-    addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
-    document.addEventListener('click', e=>{
+    grid.addEventListener('mouseenter', e => {
+      const b = e.target.closest('.card')?.querySelector('.note-bubble');
+      if (!b) return;
+      requestAnimationFrame(() => adjust(b));
+    }, true);
+
+    grid.addEventListener('focusin', e => {
+      const b = e.target.closest('.card')?.querySelector('.note-bubble');
+      if (!b) return;
+      requestAnimationFrame(() => adjust(b));
+    });
+
+    addEventListener('resize', () => $$('.note-bubble').forEach(adjust));
+
+    // Mobile tap-to-show tooltip
+    document.addEventListener('click', e => {
       const card = e.target.closest('.card');
-      if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+      if (!card){
+        cards.forEach(c => c.classList.remove('show-note'));
+        return;
+      }
       if (!card.querySelector('.note-bubble')) return;
       if (card.classList.contains('show-note')) return;
       e.preventDefault();
-      cards.forEach(c=>c.classList.remove('show-note'));
+      cards.forEach(c => c.classList.remove('show-note'));
       card.classList.add('show-note');
-      requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
-      setTimeout(()=>card.classList.remove('show-note'), 2500);
+      requestAnimationFrame(() => adjust(card.querySelector('.note-bubble')));
+      setTimeout(() => card.classList.remove('show-note'), 2500);
     }, true);
 
+    // Info panel toggle
     const infoBtn = $('#info-toggle');
     const infoPanel = $('#art-info');
     if (infoBtn && infoPanel){
