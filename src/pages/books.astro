@@ -246,25 +246,70 @@ const books = await fetchAllRaindrops();
       cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))])
     );
 
+    // 🔹 Canonical genre list (order is important)
+    const CANONICAL_GENRES = [
+      'Psychological Fiction',
+      'Science Fiction',
+      'Satire/Comedy',
+      'Gothic Fiction',
+      'Adventure',
+      'Political/Philosophical',
+      'Crime/Mystery',
+      'Self-Help',
+      'Romantic Fiction',
+      "Children's Literature",
+      'Poetry',
+      'Coming of Age',
+      'Biography',
+      'Fantasy',
+      'War Fiction',
+      'Nonfiction',
+      'History',
+    ];
+  
+    // 🔹 Handle messy / alternate labels from Raindrop
+    const GENRE_ALIAS_MAP = {};
+    GENRE_ALIAS_MAP[norm('Coming-of-Age')] = 'Coming of Age';
+    GENRE_ALIAS_MAP[norm('Coming-of Age')] = 'Coming of Age';
+    GENRE_ALIAS_MAP[norm('Self-Help & Nonfiction')] = 'Self-Help';
+    GENRE_ALIAS_MAP[norm('Self-Help and Nonfiction')] = 'Self-Help';
+    GENRE_ALIAS_MAP[norm('Satire')] = 'Satire/Comedy';
+    GENRE_ALIAS_MAP[norm('Comedy')] = 'Satire/Comedy';
+    GENRE_ALIAS_MAP[norm('Politics/Philosophy')] = 'Political/Philosophical';
+    GENRE_ALIAS_MAP[norm('Politics & Philosophy')] = 'Political/Philosophical';
+  
+    const genresInUse = new Set();
+  
     // 🔹 Extract genres from note structure and attach to each card
     // note format:
     // Date · Title · Author · Year · Genre · Subgenre · Form · Language · Country · Length
-    const genreSet = new Set();
     cards.forEach(c => {
       const raw = c.dataset.noteRaw || '';
       const parts = raw.split('·').map(s => s.trim());
-      if (parts.length >= 5) {
-        const genre = parts[4];          // 5th entry
-        const genreKey = norm(genre);    // normalized for filtering
-        c.dataset.genre = genre;
-        c.dataset.genreKey = genreKey;
-        if (genre) genreSet.add(genre);
+      if (parts.length < 5) return;
+  
+      const rawGenre = parts[4];
+      const rawNorm = norm(rawGenre);
+  
+      // Try exact canonical match first
+      let canonical = CANONICAL_GENRES.find(g => norm(g) === rawNorm);
+  
+      // Fall back to alias map
+      if (!canonical && GENRE_ALIAS_MAP[rawNorm]) {
+        canonical = GENRE_ALIAS_MAP[rawNorm];
       }
+  
+      if (!canonical) return; // ignore weird/temporary genres
+  
+      const genreKey = norm(canonical);
+      c.dataset.genre = canonical;
+      c.dataset.genreKey = genreKey;
+      genresInUse.add(canonical);
     });
-
-    // 🔹 Populate the dropdown from the genres actually present
-    if (genreSelect && genreSet.size) {
-      const genres = Array.from(genreSet).sort((a,b)=>a.localeCompare(b));
+  
+    // 🔹 Populate the dropdown using canonical order, but only for genres actually present
+    if (genreSelect) {
+      const genres = CANONICAL_GENRES.filter(g => genresInUse.has(g));
       genres.forEach(g => {
         const opt = document.createElement('option');
         opt.value = g;
