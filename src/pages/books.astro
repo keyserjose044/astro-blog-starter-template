@@ -62,11 +62,9 @@ const books = await fetchAllRaindrops();
   h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
   .hint{color:var(--muted);margin:6px 0 20px}
   .toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 18px;flex-wrap:wrap}
-  .toolbar input[type="search"]{
-    flex:1 1 260px;width:100%;max-width:520px;margin-inline:0;padding:12px 14px;
-    border-radius:12px;border:1px solid var(--border);background:var(--surface);
-    color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);
-  }
+  .toolbar input[type="search"]{flex:1 1 260px;width:100%;max-width:520px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .toolbar select{flex:0 0 auto;min-width:150px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+
   .info-toggle{
     width:40px;height:40px;border-radius:999px;border:1px solid #838796;background:#a8adbd;
     display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;
@@ -133,6 +131,10 @@ const books = await fetchAllRaindrops();
 
       <div class="toolbar">
         <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter books" />
+        <select id="genre-filter" aria-label="Filter by genre">
+          <option value="">All genres</option>
+          <!-- Options will be filled in by JS -->
+        </select>
         <button
           type="button"
           id="info-toggle"
@@ -204,6 +206,7 @@ const books = await fetchAllRaindrops();
             title={a.title}
             data-title={a.title.toLowerCase()}
             data-note={(a.note || '').toLowerCase()}
+            data-note-raw={a.note || ''}
           >
             <img
               class="thumb"
@@ -230,26 +233,71 @@ const books = await fetchAllRaindrops();
     const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
     const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-    const grid = $('#grid'), input = $('#q');
+    const grid = $('#grid'),
+          input = $('#q'),
+          genreSelect = $('#genre-filter');
+
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
-    const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+
+    // Build search haystack (already there)
+    const haystack = new Map(
+      cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))])
+    );
+
+    // 🔹 Extract genres from note structure and attach to each card
+    // note format:
+    // Date · Title · Author · Year · Genre · Subgenre · Form · Language · Country · Length
+    const genreSet = new Set();
+    cards.forEach(c => {
+      const raw = c.dataset.noteRaw || '';
+      const parts = raw.split('·').map(s => s.trim());
+      if (parts.length >= 5) {
+        const genre = parts[4];          // 5th entry
+        const genreKey = norm(genre);    // normalized for filtering
+        c.dataset.genre = genre;
+        c.dataset.genreKey = genreKey;
+        if (genre) genreSet.add(genre);
+      }
+    });
+
+    // 🔹 Populate the dropdown from the genres actually present
+    if (genreSelect && genreSet.size) {
+      const genres = Array.from(genreSet).sort((a,b)=>a.localeCompare(b));
+      genres.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        genreSelect.appendChild(opt);
+      });
+    }
 
     function filter(){
       const s = norm(input.value.trim());
-      if (!s){ cards.forEach(c=>c.style.display=''); return; }
-      const words = s.split(/\s+/);
-      cards.forEach(c=>{
-        c.style.display = words.every(w=>haystack.get(c).includes(w)) ? '' : 'none';
+      const selectedGenre = genreSelect ? genreSelect.value : '';
+      const selectedKey = norm(selectedGenre);
+
+      cards.forEach(c => {
+        const textMatches = !s || s.split(/\s+/).every(w => haystack.get(c).includes(w));
+        const genreMatches =
+          !selectedGenre || (c.dataset.genreKey && c.dataset.genreKey === selectedKey);
+        c.style.display = (textMatches && genreMatches) ? '' : 'none';
       });
     }
 
     input.addEventListener('input', debounce(filter, 80));
+    if (genreSelect) {
+      genreSelect.addEventListener('change', filter);
+    }
 
+    // Keyboard shortcuts (unchanged)
     window.addEventListener('keydown', e=>{
       if (e.key==='Escape'){
-        input.value=''; filter(); input.focus();
+        input.value='';
+        if (genreSelect) genreSelect.value = '';
+        filter();
+        input.focus();
       } else if (e.key==='/' && e.target===document.body){
         e.preventDefault(); input.focus();
       }
@@ -257,6 +305,7 @@ const books = await fetchAllRaindrops();
 
     filter();
 
+    // Tooltip positioning (unchanged)
     function adjust(bubble){
       if (!bubble) return;
       bubble.style.setProperty('--shift','0px');
@@ -279,6 +328,7 @@ const books = await fetchAllRaindrops();
 
     addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
+    // Mobile click-to-show tooltip (unchanged)
     document.addEventListener('click', e=>{
       const card = e.target.closest('.card');
       if (!card){
@@ -294,6 +344,7 @@ const books = await fetchAllRaindrops();
       setTimeout(()=>card.classList.remove('show-note'), 2500);
     }, true);
 
+    // Info panel toggle (unchanged)
     const infoBtn = $('#info-toggle');
     const infoPanel = $('#reading-info');
     if (infoBtn && infoPanel){
