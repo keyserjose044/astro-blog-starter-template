@@ -1,11 +1,9 @@
 ---
-// src/components/VertTimeline.astro
-
 export interface TimelineItem {
-  id?: string;          // e.g. "jan"
-  label: string;        // e.g. "JAN"
-  title?: string;       // e.g. "GS Expansion"
-  tag?: string;         // e.g. "Google Sheets systems"
+  id?: string;
+  label: string;
+  title?: string;
+  tag?: string;
   phase?: string;
   description?: string;
   bullets?: string[];
@@ -36,19 +34,13 @@ const safeItems = items.map((item, index) => ({
     {(heading || year || subheading) && (
       <header class="vert-timeline__header">
         {heading && (
-          <p class="vert-timeline__eyebrow">
-            {heading}
-          </p>
+          <p class="vert-timeline__eyebrow">{heading}</p>
         )}
         {year && (
-          <h2 class="vert-timeline__title">
-            {year} at a glance
-          </h2>
+          <h2 class="vert-timeline__title">{year} at a glance</h2>
         )}
         {subheading && (
-          <p class="vert-timeline__subtitle">
-            {subheading}
-          </p>
+          <p class="vert-timeline__subtitle">{subheading}</p>
         )}
       </header>
     )}
@@ -58,38 +50,28 @@ const safeItems = items.map((item, index) => ({
         {safeItems.map((item) => (
           <li class="vert-timeline__item">
             <div class="vert-timeline__dot" aria-hidden="true" />
-
             <article class="vert-timeline__content">
               <p class="vert-timeline__month">
-                {item.label}
-                {year && ` ${year}`}
+                {item.label} {year}
               </p>
 
               {item.title && (
-                <h3 class="vert-timeline__title-item">
-                  {item.title}
-                </h3>
+                <h3 class="vert-timeline__title-item">{item.title}</h3>
               )}
 
               {(item.tag || item.phase) && (
                 <p class="vert-timeline__meta">
                   {item.tag && (
-                    <span class="vert-timeline__tag">
-                      {item.tag}
-                    </span>
+                    <span class="vert-timeline__tag">{item.tag}</span>
                   )}
                   {item.phase && (
-                    <span class="vert-timeline__phase">
-                      {item.phase}
-                    </span>
+                    <span class="vert-timeline__phase">{item.phase}</span>
                   )}
                 </p>
               )}
 
               {item.description && (
-                <p class="vert-timeline__description">
-                  {item.description}
-                </p>
+                <p class="vert-timeline__description">{item.description}</p>
               )}
 
               {item.bullets && item.bullets.length > 0 && (
@@ -107,7 +89,7 @@ const safeItems = items.map((item, index) => ({
   <style>
     .vert-timeline {
       width: 100%;
-      padding: 0 1.1rem 3rem;
+      padding: 0 1.1rem 2.25rem;
       box-sizing: border-box;
     }
 
@@ -145,40 +127,39 @@ const safeItems = items.map((item, index) => ({
 
     .vert-timeline__list {
       position: relative;
-      margin: 1.2rem 0 0;
+      margin: 1.6rem 0 0;
       padding: 0;
       list-style: none;
     }
 
-    /* vertical spine */
     .vert-timeline__list::before {
       content: '';
       position: absolute;
-      left: 0.55rem;
-      top: 0;
-      bottom: 0;
+      left: 0.6rem;
+      top: 0.4rem;
+      bottom: 0.8rem;
       width: 3px;
       border-radius: 999px;
       background: linear-gradient(
         to bottom,
-        rgba(35, 55, 255, 0.75),
-        rgba(35, 55, 255, 0.8)
+        rgba(35, 55, 255, 0.7),
+        rgba(35, 55, 255, 0.85)
       );
     }
 
     .vert-timeline__item {
       position: relative;
-      padding-left: 2.1rem;
-      margin-bottom: 1.75rem;
+      padding-left: 2.4rem;
+      margin-bottom: 1.6rem;
     }
 
     .vert-timeline__dot {
       position: absolute;
-      left: 0.55rem;
+      left: 0.6rem;
       top: 0.7rem;
       transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       border-radius: 999px;
       border: 2px solid var(--accent-dark);
       background: #ffffff;
@@ -186,15 +167,14 @@ const safeItems = items.map((item, index) => ({
     }
 
     .vert-timeline__content {
-      /* no glass card – just clean text like CV timeline */
       padding: 0.1rem 0 0;
       font-size: 0.98rem;
       line-height: 1.55;
     }
 
     .vert-timeline__month {
-      margin: 0 0 0.25rem;
-      font-size: 0.82rem;
+      margin: 0 0 0.15rem;
+      font-size: 0.8rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: rgb(var(--gray));
@@ -203,6 +183,7 @@ const safeItems = items.map((item, index) => ({
     .vert-timeline__title-item {
       margin: 0 0 0.25rem;
       font-size: 1.15rem;
+      font-weight: 600;
     }
 
     .vert-timeline__meta {
@@ -231,19 +212,20 @@ const safeItems = items.map((item, index) => ({
     }
 
     .vert-timeline__description {
-      margin: 0 0 0.7rem;
+      margin: 0 0 0.6rem;
     }
 
     .vert-timeline__bullets {
       margin: 0;
       padding-left: 1.2rem;
-      font-size: 0.95rem;
+      font-size: 0.94rem;
     }
 
     .vert-timeline__bullets li + li {
       margin-top: 0.25rem;
     }
 
+    /* Tablet / Desktop refinements */
     @media (min-width: 768px) {
       .vert-timeline {
         padding-inline: 1.5rem;
@@ -252,14 +234,16 @@ const safeItems = items.map((item, index) => ({
       .vert-timeline__inner {
         max-width: 780px;
       }
+    }
 
-      /* ADD THIS HERE ↓↓↓ */
+    /* MOBILE READABILITY BOOST */
+    @media (max-width: 900px) {
       .vert-timeline__content,
       .vert-timeline__description,
       .vert-timeline__bullets li {
         font-weight: 500;
       }
-    
+
       .vert-timeline__title-item {
         font-weight: 650;
       }
