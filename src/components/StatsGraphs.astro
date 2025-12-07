@@ -1,0 +1,185 @@
+---
+const metrics = [
+  {
+    key: 'runningMiles',
+    label: 'Running',
+    icon: '🏃‍♂️',
+    // later: point this to your GAS web app with the running graph
+    iframeSrc: 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec?metric=runningMiles'
+  },
+  {
+    key: 'diaryWords',
+    label: 'Diary Words',
+    icon: '📔',
+    iframeSrc: 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec?metric=diaryWords'
+  },
+  {
+    key: 'guitarHours',
+    label: 'Guitar Hours',
+    icon: '🎸',
+    iframeSrc: 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec?metric=guitarHours'
+  },
+  {
+    key: 'booksCount',
+    label: 'Books Finished',
+    icon: '📚',
+    iframeSrc: 'https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec?metric=booksCount'
+  }
+];
+
+const initialKey = metrics[0].key;
+---
+
+<section class="section" aria-labelledby="graphs-heading">
+  <h2 id="graphs-heading">📈 Detailed Stat Graphs</h2>
+  <p class="section-hint">
+    Toggle between metrics to see how each one has evolved over time.
+  </p>
+
+  <div class="graphs-root" data-graphs-root>
+    <div class="graph-tabs">
+      {metrics.map((m) => (
+        <button
+          type="button"
+          class={`graph-tab ${m.key === initialKey ? 'is-active' : ''}`}
+          data-graph-key={m.key}
+        >
+          <span class="graph-tab__icon">{m.icon}</span>
+          <span class="graph-tab__label">{m.label}</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="graph-panels">
+      {metrics.map((m) => (
+        <div
+          class={`graph-panel ${m.key === initialKey ? 'is-active' : ''}`}
+          data-graph-panel={m.key}
+        >
+          <div class="graph-panel__inner">
+            <iframe
+              src={m.iframeSrc}
+              loading="lazy"
+              title={`${m.label} graph`}
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.querySelector('[data-graphs-root]');
+      if (!root) return;
+
+      const tabs = Array.from(root.querySelectorAll('[data-graph-key]'));
+      const panels = Array.from(root.querySelectorAll('[data-graph-panel]'));
+
+      function activate(key) {
+        tabs.forEach((btn) => {
+          btn.classList.toggle('is-active', btn.dataset.graphKey === key);
+        });
+
+        panels.forEach((panel) => {
+          panel.classList.toggle('is-active', panel.dataset.graphPanel === key);
+        });
+      }
+
+      // Tab clicks
+      tabs.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.graphKey;
+          if (key) activate(key);
+        });
+      });
+
+      // Snapshot card clicks (shortcut to the same graphs)
+      document.querySelectorAll('.card--stat[data-stat-key]').forEach((card) => {
+        card.addEventListener('click', () => {
+          const key = card.getAttribute('data-stat-key');
+          if (!key) return;
+          activate(key);
+          root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    })();
+  </script>
+
+  <style>
+    .graphs-root {
+      margin-top: 1.75rem;
+    }
+
+    .graph-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .graph-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 6px 12px;
+      background: #ffffff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #374151;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease,
+        border-color 0.15s ease;
+    }
+
+    .graph-tab__icon {
+      font-size: 1.1rem;
+    }
+
+    .graph-tab.is-active {
+      background: #0f172a;
+      color: #f9fafb;
+      border-color: #0f172a;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .graph-panels {
+      margin-top: 0.5rem;
+    }
+
+    .graph-panel {
+      display: none;
+    }
+
+    .graph-panel.is-active {
+      display: block;
+    }
+
+    .graph-panel__inner {
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      padding: 0.75rem;
+    }
+
+    .graph-panel__inner iframe {
+      display: block;
+      width: 100%;
+      height: 420px;
+      border: none;
+      border-radius: 12px;
+      background: #020617;
+    }
+
+    @media (max-width: 640px) {
+      .graph-panel__inner iframe {
+        height: 360px;
+      }
+    }
+  </style>
+</section>
