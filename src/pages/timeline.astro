@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import VideoBg from '../components/VideoBg.astro';
 import HorzTimeline from '../components/HorzTimeline.astro';
+import VertTimeline from '../components/VertTimeline.astro';
 
 const year = 2025;
 
@@ -168,19 +169,49 @@ const items = [
     <VideoBg>
       <Header />
 
-      <main class="page">
-        <HorzTimeline
-          year={year}
-          items={items}
-          heading="Year in review"
-          subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
-        />
+      <main class="page page--timeline">
+        <div class="timeline-shell">
+          <div class="timeline-shell__desktop">
+            <HorzTimeline
+              year={year}
+              items={items}
+              heading="Year in review"
+              subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
+            />
+          </div>
+
+          <div class="timeline-shell__mobile">
+            <VertTimeline
+              year={year}
+              items={items}
+              heading="Year in review"
+              subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
+            />
+          </div>
+        </div>
       </main>
 
       <Footer />
     </VideoBg>
   </body>
 </html>
+
+
+<style>
+  .timeline-shell__mobile {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .timeline-shell__desktop {
+      display: none;
+    }
+
+    .timeline-shell__mobile {
+      display: block;
+    }
+  }
+</style>
 
 <script is:inline>
   const timelines = document.querySelectorAll('.horz-timeline');
