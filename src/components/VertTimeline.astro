@@ -1,0 +1,263 @@
+---
+// src/components/VertTimeline.astro
+
+export interface TimelineItem {
+  id?: string;          // e.g. "jan"
+  label: string;        // e.g. "JAN"
+  title?: string;       // e.g. "GS Expansion"
+  tag?: string;         // e.g. "Google Sheets systems"
+  phase?: string;
+  description?: string;
+  bullets?: string[];
+}
+
+export interface Props {
+  year?: number | string;
+  heading?: string;
+  subheading?: string;
+  items: TimelineItem[];
+}
+
+const {
+  year,
+  heading = '',
+  subheading = '',
+  items = [],
+} = Astro.props as Props;
+
+const safeItems = items.map((item, index) => ({
+  ...item,
+  _id: item.id ?? `item-${index}`,
+}));
+---
+
+<section class="vert-timeline">
+  <div class="vert-timeline__inner">
+    {(heading || year || subheading) && (
+      <header class="vert-timeline__header">
+        {heading && (
+          <p class="vert-timeline__eyebrow">
+            {heading}
+          </p>
+        )}
+        {year && (
+          <h2 class="vert-timeline__title">
+            {year} at a glance
+          </h2>
+        )}
+        {subheading && (
+          <p class="vert-timeline__subtitle">
+            {subheading}
+          </p>
+        )}
+      </header>
+    )}
+
+    {safeItems.length > 0 && (
+      <ol class="vert-timeline__list">
+        {safeItems.map((item) => (
+          <li class="vert-timeline__item">
+            <div class="vert-timeline__dot" aria-hidden="true" />
+            <article class="vert-timeline__panel">
+              <p class="vert-timeline__panel-month">
+                {item.label}
+                {year && ` ${year}`}
+              </p>
+
+              {item.title && (
+                <h3 class="vert-timeline__panel-title">
+                  {item.title}
+                </h3>
+              )}
+
+              {(item.tag || item.phase) && (
+                <p class="vert-timeline__panel-phase">
+                  {item.tag && (
+                    <span class="vert-timeline__panel-tag">
+                      {item.tag}
+                    </span>
+                  )}
+                  {item.phase && (
+                    <span class="vert-timeline__panel-phase-text">
+                      {item.phase}
+                    </span>
+                  )}
+                </p>
+              )}
+
+              {item.description && (
+                <p class="vert-timeline__panel-description">
+                  {item.description}
+                </p>
+              )}
+
+              {item.bullets && item.bullets.length > 0 && (
+                <ul class="vert-timeline__panel-list">
+                  {item.bullets.map((b) => <li>{b}</li>)}
+                </ul>
+              )}
+            </article>
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+
+  <style>
+    .vert-timeline {
+      width: 100%;
+      padding: 0 1.25rem 3.5rem;
+      box-sizing: border-box;
+    }
+
+    .vert-timeline__inner {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .vert-timeline__header {
+      text-align: center;
+      margin-top: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .vert-timeline__eyebrow {
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      color: rgb(var(--gray));
+      margin: 0 0 0.35rem;
+    }
+
+    .vert-timeline__title {
+      margin: 0 0 0.6rem;
+      font-size: clamp(2rem, 2vw + 1.6rem, 2.4rem);
+    }
+
+    .vert-timeline__subtitle {
+      margin: 0;
+      font-size: 0.98rem;
+      color: rgb(var(--gray));
+      max-width: 640px;
+      margin-inline: auto;
+    }
+
+    .vert-timeline__list {
+      position: relative;
+      margin: 1.4rem 0 0;
+      padding: 0 0 0 1.6rem;
+      list-style: none;
+    }
+
+    .vert-timeline__list::before {
+      content: '';
+      position: absolute;
+      left: 0.4rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(
+        to bottom,
+        rgba(35, 55, 255, 0.15),
+        rgba(35, 55, 255, 0.6),
+        rgba(35, 55, 255, 0.15)
+      );
+    }
+
+    .vert-timeline__item {
+      position: relative;
+      margin-bottom: 1.4rem;
+    }
+
+    .vert-timeline__dot {
+      position: absolute;
+      left: 0.4rem;
+      top: 1.4rem;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0.18);
+      background: #f5f6fb;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      background-image: radial-gradient(circle at 30% 0%, #ffffff, var(--accent));
+      border-color: var(--accent-dark);
+      box-shadow:
+        0 0 0 3px rgba(35, 55, 255, 0.12),
+        0 10px 24px rgba(35, 55, 255, 0.4);
+    }
+
+    .vert-timeline__panel {
+      margin-left: 1.9rem;
+      padding: 1.4rem 1.5rem 1.5rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.13),
+        0 0 0 1px rgba(0, 0, 0, 0.03);
+      backdrop-filter: blur(16px);
+      font-size: 0.97rem;
+      line-height: 1.55;
+    }
+
+    .vert-timeline__panel-month {
+      margin: 0 0 0.4rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgb(var(--gray));
+    }
+
+    .vert-timeline__panel-title {
+      margin: 0 0 0.35rem;
+      font-size: 1.25rem;
+    }
+
+    .vert-timeline__panel-phase {
+      margin: 0 0 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      font-size: 0.96rem;
+      color: rgb(var(--gray-dark));
+    }
+
+    .vert-timeline__panel-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(35, 55, 255, 0.25);
+      background: rgba(35, 55, 255, 0.06);
+      color: var(--accent-dark);
+    }
+
+    .vert-timeline__panel-phase-text {
+      opacity: 0.9;
+    }
+
+    .vert-timeline__panel-description {
+      margin: 0 0 0.9rem;
+    }
+
+    .vert-timeline__panel-list {
+      margin: 0;
+      padding-left: 1.2rem;
+      font-size: 0.95rem;
+    }
+
+    .vert-timeline__panel-list li + li {
+      margin-top: 0.25rem;
+    }
+
+    @media (min-width: 900px) {
+      /* normally hidden on desktop via page-level wrapper,
+         but keep it looking OK if ever shown */
+      .vert-timeline__inner {
+        max-width: 880px;
+      }
+    }
+  </style>
+</section>
