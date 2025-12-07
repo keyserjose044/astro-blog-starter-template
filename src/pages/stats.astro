@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
-import StatsGraphs from '../components/StatsGraphs.astro';
 
 const stats = [
   {
@@ -73,13 +72,13 @@ const projects = [
       </p>
       <div class="stats-grid">
         {stats.map((item) => (
-          <article
-            class="card card--stat"
-            data-stat-key={item.key}
-          >
+          <article class="card card--stat">
             <div class="icon-bubble">{item.icon}</div>
             <div class="stat-label">{item.label}</div>
-            <div class="stat-value">
+            <div
+              class="stat-value"
+              data-stat-key={item.key}
+            >
               {item.value}
             </div>
             {item.note && <p class="muted">{item.note}</p>}
@@ -87,8 +86,6 @@ const projects = [
         ))}
       </div>
     </section>
-
-    <StatsGraphs />
 
     <section class="section" aria-labelledby="prohibitions-heading">
       <h2 id="prohibitions-heading">🚫 Prohibitions</h2>
