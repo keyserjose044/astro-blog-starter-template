@@ -196,7 +196,6 @@ const items = [
   </body>
 </html>
 
-
 <style>
   .timeline-shell__mobile {
     display: none;
@@ -212,21 +211,3 @@ const items = [
     }
   }
 </style>
-
-<script is:inline>
-  const timelines = document.querySelectorAll('.horz-timeline');
-  timelines.forEach((root) => {
-    const points = root.querySelectorAll('.horz-timeline__point');
-    const panels = root.querySelectorAll('.horz-timeline__panel');
-    points.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.id;
-        if (!id) return;
-        points.forEach((b) => b.classList.toggle('is-active', b === btn));
-        panels.forEach((panel) =>
-          panel.classList.toggle('is-active', panel.id === `horz-panel-${id}`),
-        );
-      });
-    });
-  });
-</script>
