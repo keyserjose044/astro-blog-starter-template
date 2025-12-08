@@ -148,10 +148,10 @@ const metricLabel = 'Guitar Hours';
 
       function drawChart(year, data, container, d3) {
         const yearData = monthOrder.map((m) => {
-          const match = data.find(
-            (d) => d.year === year && d.month === m
-          );
-          return { month: m, value: match ? match.value : 0 };
+          const match = data.find((d) => d.year === year && d.month === m);
+          const raw = match ? match.value : 0;
+          const value = Math.round(raw);  // 👈 round here (or Math.round(raw * 10)/10 for 1 decimal)
+          return { month: m, value };
         });
 
         const margin = { top: 24, right: 24, bottom: 40, left: 48 };
@@ -246,7 +246,7 @@ const metricLabel = 'Guitar Hours';
           .attr("text-anchor", "middle")
           .style("font-size", "10px")
           .style("fill", "#9ca3af")
-          .text((d) => (d.value ? d.value : ""));
+          .text((d) => (d.value ? d3.format("d")(d.value) : ""));
       }
     })();
   </script>
