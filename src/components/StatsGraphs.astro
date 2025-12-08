@@ -191,16 +191,6 @@ const defaultMetricKey = "guitar";
             )
           ).sort((a, b) => a - b);
         }
-        
-        function getYearsForMetric(metricKey) {
-          return Array.from(
-            new Set(
-              allData
-                .filter((d) => d.metric === metricKey)
-                .map((d) => d.year)
-            )
-          ).sort((a, b) => a - b);
-}
 
         function updateTitle(metricKey) {
           const cfg = METRICS[metricKey] || METRICS.guitar;
