@@ -24,9 +24,13 @@ const metricLabel = 'Guitar Hours';
     </div>
 
     <div class="graph-card__body">
+      <p id="guitar-year-total" class="graph-card__year-total">
+        <!-- Filled by JS -->
+      </p>
       <div id="guitar-chart" class="graph-card__chart">
-        <!-- Initial skeleton while JS loads / fetches -->
-        <div class="chart-skeleton" aria-hidden="true"></div>
+        <div class="graph-card__fallback">
+          Loading chart…
+        </div>
       </div>
     </div>
 
@@ -156,6 +160,15 @@ const metricLabel = 'Guitar Hours';
         const value = Math.round(raw);
         return { month: m, value };
       });
+
+      // 👉 New: year total
+      const totalHours = yearData.reduce((sum, d) => sum + d.value, 0);
+      const totalEl = document.getElementById("guitar-year-total");
+      if (totalEl) {
+        totalEl.innerHTML =
+          `Year total for <strong>${year}</strong>: ` +
+          `<strong>${totalHours}</strong> hours`;
+      }
 
       const margin = { top: 24, right: 24, bottom: 40, left: 48 };
       const width = container.clientWidth || 800;
@@ -352,7 +365,18 @@ const metricLabel = 'Guitar Hours';
         background-position: -200% 0;
       }
     }
-    
+
+    .graph-card__year-total {
+      font-size: 0.9rem;
+      color: #6b7280;        /* muted gray */
+      margin-bottom: 0.5rem;
+    }
+
+    .graph-card__year-total strong {
+      color: #111827;        /* darker for emphasis */
+      font-weight: 600;
+    }
+
     @media (max-width: 640px) {
       .graph-card {
         padding: 1.25rem;
