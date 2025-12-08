@@ -197,14 +197,16 @@ const metricLabel = 'Guitar Hours';
           .attr("transform", `translate(0, ${height - margin.bottom})`)
           .call(d3.axisBottom(x))
           .selectAll("text")
-          .style("font-size", "10px");
+          .style("font-size", "12px")
+          .style("fill", "#4b5563")   // darker gray for better contrast;
 
         svg
           .append("g")
           .attr("transform", `translate(${margin.left},0)`)
           .call(d3.axisLeft(y).ticks(6).tickFormat(d3.format("~s")))
           .selectAll("text")
-          .style("font-size", "10px");
+          .style("font-size", "12px")
+          .style("fill", "#4b5563")   // darker gray for better contrast;
 
         // Area fill
         svg
@@ -244,8 +246,9 @@ const metricLabel = 'Guitar Hours';
           .attr("x", (d) => x(d.month))
           .attr("y", (d) => y(d.value) - 8)
           .attr("text-anchor", "middle")
-          .style("font-size", "10px")
-          .style("fill", "#9ca3af")
+          .style("font-size", "14px")
+          .style("font-weight", "600")
+          .style("fill", "#1e293b")  // dark slate
           .text((d) => (d.value ? d3.format("d")(d.value) : ""));
       }
     })();
@@ -289,14 +292,28 @@ const metricLabel = 'Guitar Hours';
       gap: 0.5rem;
       font-size: 0.875rem;
     }
-
+    
     .graph-card__control select {
       border-radius: 999px;
-      padding: 4px 10px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: #f9fafb;                /* light pill background */
-      color: #e5e7eb;
-      font-size: 0.875rem;
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    
+    .graph-card__control select:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    
+    .graph-card__control select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
     }
 
     .graph-card__body {
