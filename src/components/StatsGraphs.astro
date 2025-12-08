@@ -1,4 +1,7 @@
 ---
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbwwwRh_cplVt-ZprMrs7oxbFI9UEf--yNNF1PAdNq2NmGXO2luEkmqNiuMIhzN2gMbq/exec";
+
 const metrics = [
   { key: "guitar", label: "Guitar Hours", icon: "🎸" },
   { key: "audiobooks", label: "Audiobook Hours", icon: "📚" },
@@ -156,27 +159,28 @@ const defaultMetricKey = "guitar";
         }
 
         // Normalize everything into a single array – we keep ALL metrics here
-        const allData = rawData
+        const allData = (Array.isArray(rawData) ? rawData : Object.values(rawData || {}))
           .map((d) => ({
-            metric: String(d.metric || "").toLowerCase(),
+            metric: String(d.metric || "").toLowerCase(), // 'guitar', 'running', etc.
             year: Number(d.year),
             month: String(d.month),
             value: Number(d.value) || 0,
           }))
           .filter((d) => d.metric && d.year && d.month);
-      
+        
         if (!allData.length) {
           console.warn("No data points found:", rawData);
           container.innerHTML =
             '<div class="graph-card__fallback">No data found.</div>';
           return;
         }
-      
-        let activeMetricKey = "guitar"; // default metric
+        
+        let activeMetricKey = "guitar";   // default tab
         let currentYear = null;
-      
+        
         const titleText = document.getElementById("graph-title-text");
         const titleIcon = document.getElementById("graph-title-icon");
+        const totalEl   = document.getElementById("guitar-year-total");
       
         function getYearsForMetric(metricKey) {
           return Array.from(
@@ -187,7 +191,17 @@ const defaultMetricKey = "guitar";
             )
           ).sort((a, b) => a - b);
         }
-      
+        
+        function getYearsForMetric(metricKey) {
+          return Array.from(
+            new Set(
+              allData
+                .filter((d) => d.metric === metricKey)
+                .map((d) => d.year)
+            )
+          ).sort((a, b) => a - b);
+}
+
         function updateTitle(metricKey) {
           const cfg = METRICS[metricKey] || METRICS.guitar;
           if (titleText) titleText.textContent = cfg.label;
@@ -213,47 +227,49 @@ const defaultMetricKey = "guitar";
             .join("");
       
           currentYear = years[years.length - 1];
+          select.value = String(currentYear);   // <- make sure the year text shows
         }
       
+
         function drawCurrent() {
           if (activeMetricKey && currentYear) {
             drawChart(activeMetricKey, currentYear, allData, container, d3);
           }
         }
-      
+
         // Year dropdown
         select.addEventListener("change", () => {
           currentYear = Number(select.value);
           drawCurrent();
         });
-      
+        
         // Metric tabs
         const tabButtons = Array.from(
           tabsContainer.querySelectorAll("[data-metric]")
         );
-      
+        
         tabButtons.forEach((btn) => {
           btn.addEventListener("click", () => {
             const metricKey = btn.getAttribute("data-metric");
             if (!metricKey || metricKey === activeMetricKey) return;
-      
+        
             activeMetricKey = metricKey;
-      
+        
             tabButtons.forEach((b) =>
               b.classList.toggle("metrics-tab--active", b === btn)
             );
-      
+        
             updateTitle(activeMetricKey);
             updateYearOptions(activeMetricKey);
             drawCurrent();
           });
         });
-      
+        
         // Initial render
         updateTitle(activeMetricKey);
         updateYearOptions(activeMetricKey);
         drawCurrent();
-      
+        
         window.addEventListener("resize", () =>
           drawChart(activeMetricKey, Number(select.value), allData, container, d3)
         );
