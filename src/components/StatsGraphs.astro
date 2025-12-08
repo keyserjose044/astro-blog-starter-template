@@ -1,18 +1,41 @@
 ---
-// For now we only wire Guitar Hours; other metrics can be added later.
-const metricLabel = 'Guitar Hours';
+const metrics = [
+  { key: "guitar", label: "Guitar Hours", icon: "🎸" },
+  { key: "running", label: "Miles Ran", icon: "🏃‍♂️" },
+  { key: "diary", label: "Average Diary Words", icon: "📓" },
+  { key: "audiobooks", label: "Audiobook Hours", icon: "📚" },
+];
+
+const defaultMetricKey = "guitar";
 ---
 
 <section class="section" aria-labelledby="graphs-heading">
   <h2 id="graphs-heading">📈 Detailed Stat Graphs</h2>
   <p class="section-hint">
-    Explore how key stats evolve over time. Start with monthly Guitar Hours, powered by your Archive sheet.
+    Explore how key stats evolve over time. Toggle between metrics and years, powered by your Archive sheet.
   </p>
+
+  <!-- Metric tabs -->
+  <div class="metrics-tabs" id="metrics-tabs">
+    {metrics.map((m) => (
+      <button
+        type="button"
+        class={`metrics-tab ${
+          m.key === defaultMetricKey ? "metrics-tab--active" : ""
+        }`}
+        data-metric={m.key}
+      >
+        <span class="metrics-tab__icon">{m.icon}</span>
+        <span class="metrics-tab__label">{m.label}</span>
+      </button>
+    ))}
+  </div>
 
   <div class="graph-card">
     <div class="graph-card__header">
       <div class="graph-card__title">
-        🎸 {metricLabel} by Month
+        <span id="graph-title-icon">🎸</span>
+        <span id="graph-title-text">Guitar Hours by Month</span>
       </div>
 
       <div class="graph-card__controls">
@@ -25,7 +48,7 @@ const metricLabel = 'Guitar Hours';
 
     <div class="graph-card__body">
       <p id="guitar-year-total" class="graph-card__year-total">
-        <!-- Filled by JS -->
+        <!-- filled by JS -->
       </p>
       <div id="guitar-chart" class="graph-card__chart">
         <div class="graph-card__fallback">
@@ -33,6 +56,7 @@ const metricLabel = 'Guitar Hours';
         </div>
       </div>
     </div>
+  </div>
 
   <!-- D3 from CDN -->
   <script
@@ -41,274 +65,407 @@ const metricLabel = 'Guitar Hours';
   ></script>
 
   <!-- Client-side script to fetch data + draw chart -->
-<script>
-  (function () {
-    const API_URL =
-      "https://script.google.com/macros/s/AKfycbwwwRh_cplVt-ZprMrs7oxbFI9UEf--yNNF1PAdNq2NmGXO2luEkmqNiuMIhzN2gMbq/exec";
-    const metricKey = "guitar";
-    const monthOrder = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
+  <script>
+    (function () {
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbwwwRh_cplVt-ZprMrs7oxbFI9UEf--yNNF1PAdNq2NmGXO2luEkmqNiuMIhzN2gMbq/exec";
 
-    function whenReady(fn) {
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", fn);
-      } else {
-        fn();
+      const monthOrder = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      // Metric config for JS (units + labels)
+      const METRICS = {
+        guitar: {
+          label: "Guitar Hours by Month",
+          icon: "🎸",
+          unit: "hours",
+        },
+        running: {
+          label: "Miles Ran by Month",
+          icon: "🏃‍♂️",
+          unit: "miles",
+        },
+        diary: {
+          label: "Average Diary Words by Month",
+          icon: "📓",
+          unit: "words/day",
+        },
+        audiobooks: {
+          label: "Audiobook Hours by Month",
+          icon: "📚",
+          unit: "hours",
+        },
+      };
+
+      function whenReady(fn) {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", fn);
+        } else {
+          fn();
+        }
       }
-    }
 
-    whenReady(() => {
-      function start() {
-        const d3 = window.d3;
-        const container = document.getElementById("guitar-chart");
-        const select = document.getElementById("guitar-year-select");
+      whenReady(() => {
+        function start() {
+          const d3 = window.d3;
+          const container = document.getElementById("guitar-chart");
+          const select = document.getElementById("guitar-year-select");
+          const tabsContainer = document.getElementById("metrics-tabs");
 
-        if (!d3 || !container || !select) {
-          // try again shortly until everything exists
-          return setTimeout(start, 50);
+          if (!d3 || !container || !select || !tabsContainer) {
+            return setTimeout(start, 50);
+          }
+
+          initChart(d3, container, select, tabsContainer);
         }
 
-        initChart(d3, container, select);
-      }
-
-      start();
-    });
-
-    async function initChart(d3, container, select) {
-      // show skeleton immediately
-      container.innerHTML =
-        '<div class="chart-skeleton" aria-hidden="true"></div>';
-
-      let rawData;
-
-      try {
-        const res = await fetch(API_URL);
-        rawData = await res.json();
-      } catch (err) {
-        console.error("Error fetching graph data:", err);
-        container.innerHTML =
-          '<div class="graph-card__fallback">Error loading data from GAS.</div>';
-        return;
-      }
-
-      // Ensure we have an array
-      if (!Array.isArray(rawData)) {
-        rawData = Object.values(rawData || {});
-      }
-
-      // Expect objects like { metric: "guitar", year: 2024, month: "Jan", value: 4 }
-      const data = rawData
-        .filter(
-          (d) => !metricKey || String(d.metric).toLowerCase() === metricKey
-        )
-        .map((d) => ({
-          metric: d.metric,
-          year: Number(d.year),
-          month: String(d.month),
-          value: Number(d.value) || 0,
-        }));
-
-      if (!data.length) {
-        console.warn("No data points found for guitar:", rawData);
-        container.innerHTML =
-          '<div class="graph-card__fallback">No guitar data found.</div>';
-        return;
-      }
-
-      const years = Array.from(new Set(data.map((d) => d.year))).sort(
-        (a, b) => a - b
-      );
-
-      // Populate year dropdown (latest year selected by default)
-      select.innerHTML = years
-        .map(
-          (y, idx) =>
-            `<option value="${y}" ${
-              idx === years.length - 1 ? "selected" : ""
-            }>${y}</option>`
-        )
-        .join("");
-
-      select.addEventListener("change", () =>
-        drawChart(Number(select.value), data, container, d3)
-      );
-
-      const initialYear = years[years.length - 1];
-      drawChart(initialYear, data, container, d3);
-
-      window.addEventListener("resize", () =>
-        drawChart(Number(select.value), data, container, d3)
-      );
-    }
-
-    function drawChart(year, data, container, d3) {
-      const yearData = monthOrder.map((m) => {
-        const match = data.find((d) => d.year === year && d.month === m);
-        const raw = match ? match.value : 0;
-        const value = Math.round(raw);
-        return { month: m, value };
+        start();
       });
 
-      // 👉 New: year total
-      const totalHours = yearData.reduce((sum, d) => sum + d.value, 0);
-      const totalEl = document.getElementById("guitar-year-total");
-      if (totalEl) {
-        totalEl.innerHTML =
-          `Year total for <strong>${year}</strong>: ` +
-          `<strong>${totalHours}</strong> hours`;
+      async function initChart(d3, container, select, tabsContainer) {
+        // show skeleton immediately
+        container.innerHTML =
+          '<div class="chart-skeleton" aria-hidden="true"></div>';
+
+        let rawData;
+
+        try {
+          const res = await fetch(API_URL);
+          rawData = await res.json();
+        } catch (err) {
+          console.error("Error fetching graph data:", err);
+          container.innerHTML =
+            '<div class="graph-card__fallback">Error loading data from GAS.</div>';
+          return;
+        }
+
+        if (!Array.isArray(rawData)) {
+          rawData = Object.values(rawData || {});
+        }
+
+        // Normalize
+        const data = rawData
+          .map((d) => ({
+            metric: String(d.metric || "").toLowerCase(),
+            year: Number(d.year),
+            month: String(d.month),
+            value: Number(d.value) || 0,
+          }))
+          .filter((d) => d.metric && d.year && d.month);
+
+        if (!data.length) {
+          console.warn("No data points found:", rawData);
+          container.innerHTML =
+            '<div class="graph-card__fallback">No data found.</div>';
+          return;
+        }
+
+        let currentMetric = "guitar";
+        let currentYear = null;
+
+        const titleText = document.getElementById("graph-title-text");
+        const titleIcon = document.getElementById("graph-title-icon");
+
+        function getYearsForMetric(metricKey) {
+          const yrs = Array.from(
+            new Set(
+              data
+                .filter((d) => d.metric === metricKey)
+                .map((d) => d.year)
+            )
+          ).sort((a, b) => a - b);
+          return yrs;
+        }
+
+        function updateTitle(metricKey) {
+          const cfg = METRICS[metricKey] || METRICS.guitar;
+          if (titleText) titleText.textContent = cfg.label;
+          if (titleIcon) titleIcon.textContent = cfg.icon;
+        }
+
+        function updateYearOptions(metricKey) {
+          const years = getYearsForMetric(metricKey);
+          if (!years.length) {
+            select.innerHTML = "";
+            container.innerHTML =
+              '<div class="graph-card__fallback">No data for this metric.</div>';
+            return;
+          }
+
+          select.innerHTML = years
+            .map(
+              (y, idx) =>
+                `<option value="${y}" ${
+                  idx === years.length - 1 ? "selected" : ""
+                }>${y}</option>`
+            )
+            .join("");
+
+          currentYear = years[years.length - 1];
+        }
+
+        function drawCurrent() {
+          if (currentMetric && currentYear) {
+            drawChart(currentMetric, currentYear, data, container, d3);
+          }
+        }
+
+        // Wire year select
+        select.addEventListener("change", () => {
+          currentYear = Number(select.value);
+          drawCurrent();
+        });
+
+        // Wire metric tabs
+        const tabButtons = Array.from(
+          tabsContainer.querySelectorAll("[data-metric]")
+        );
+
+        tabButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const metricKey = btn.getAttribute("data-metric");
+            if (!metricKey || metricKey === currentMetric) return;
+
+            currentMetric = metricKey;
+
+            // active class
+            tabButtons.forEach((b) =>
+              b.classList.toggle(
+                "metrics-tab--active",
+                b === btn
+              )
+            );
+
+            updateTitle(currentMetric);
+            updateYearOptions(currentMetric);
+            drawCurrent();
+          });
+        });
+
+        // Initial state
+        updateTitle(currentMetric);
+        updateYearOptions(currentMetric);
+        drawCurrent();
+
+        window.addEventListener("resize", () =>
+          drawChart(currentMetric, Number(select.value), data, container, d3)
+        );
       }
 
-      const margin = { top: 24, right: 24, bottom: 40, left: 48 };
-      const width = container.clientWidth || 800;
-      const height = 360;
+      function drawChart(metricKey, year, data, container, d3) {
+        const cfg = METRICS[metricKey] || METRICS.guitar;
 
-      // clear skeleton / previous chart
-      container.innerHTML = "";
+        const yearData = monthOrder.map((m) => {
+          const match = data.find(
+            (d) => d.metric === metricKey && d.year === year && d.month === m
+          );
+          const raw = match ? match.value : 0;
+          const value = Math.round(raw);
+          return { month: m, value };
+        });
 
-      const svg = d3
-        .select(container)
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .style("overflow", "visible");
+        const totalValue = yearData.reduce((sum, d) => sum + d.value, 0);
+        const totalEl = document.getElementById("guitar-year-total");
+        if (totalEl) {
+          totalEl.innerHTML =
+            `<strong>${year}</strong> total: ` +
+            `<strong>${totalValue}</strong> ${cfg.unit}`;
+        }
 
-      const x = d3
-        .scalePoint()
-        .domain(monthOrder)
-        .range([margin.left, width - margin.right])
-        .padding(0.5);
+        const margin = { top: 24, right: 24, bottom: 40, left: 48 };
+        const width = container.clientWidth || 800;
+        const height = 360;
 
-      const maxY = d3.max(yearData, (d) => d.value) || 1;
+        container.innerHTML = "";
 
-      const y = d3
-        .scaleLinear()
-        .domain([0, maxY * 1.1])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
+        const svg = d3
+          .select(container)
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .style("overflow", "visible");
 
-      const xAxis = (g) =>
-        g
-          .attr("transform", `translate(0,${height - margin.bottom})`)
-          .call(d3.axisBottom(x).tickSizeOuter(0))
-          .selectAll("text")
-          .style("font-size", "12px")
-          .style("fill", "#6b7280");
+        const x = d3
+          .scalePoint()
+          .domain(monthOrder)
+          .range([margin.left, width - margin.right])
+          .padding(0.5);
 
-      const yAxis = (g) =>
-        g
-          .attr("transform", `translate(${margin.left},0)`)
-          .call(d3.axisLeft(y).ticks(6))
-          .call((g2) => g2.select(".domain").remove())
-          .selectAll("text")
-          .style("font-size", "12px")
-          .style("fill", "#6b7280");
+        const maxY = d3.max(yearData, (d) => d.value) || 1;
 
-      svg.append("g").call(xAxis);
-      svg.append("g").call(yAxis);
+        const y = d3
+          .scaleLinear()
+          .domain([0, maxY * 1.1])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
 
-      const line = d3
-        .line()
-        .x((d) => x(d.month))
-        .y((d) => y(d.value))
-        .curve(d3.curveMonotoneX);
+        const xAxis = (g) =>
+          g
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).tickSizeOuter(0))
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", "#6b7280");
 
-      const area = d3
-        .area()
-        .x((d) => x(d.month))
-        .y0(y(0))
-        .y1((d) => y(d.value))
-        .curve(d3.curveMonotoneX);
+        const yAxis = (g) =>
+          g
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y).ticks(6))
+            .call((g2) => g2.select(".domain").remove())
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", "#6b7280");
 
-      svg
-        .append("path")
-        .datum(yearData)
-        .attr("fill", "rgba(59, 130, 246, 0.12)")
-        .attr("d", area);
+        svg.append("g").call(xAxis);
+        svg.append("g").call(yAxis);
 
-      svg
-        .append("path")
-        .datum(yearData)
-        .attr("fill", "none")
-        .attr("stroke", "#2563eb")
-        .attr("stroke-width", 2.5)
-        .attr("d", line);
+        const line = d3
+          .line()
+          .x((d) => x(d.month))
+          .y((d) => y(d.value))
+          .curve(d3.curveMonotoneX);
 
-      const points = svg
-        .selectAll(".point")
-        .data(yearData)
-        .enter()
-        .append("g")
-        .attr("class", "point");
+        const area = d3
+          .area()
+          .x((d) => x(d.month))
+          .y0(y(0))
+          .y1((d) => y(d.value))
+          .curve(d3.curveMonotoneX);
 
-      points
-        .append("circle")
-        .attr("cx", (d) => x(d.month))
-        .attr("cy", (d) => y(d.value))
-        .attr("r", 4)
-        .attr("fill", "#2563eb");
+        svg
+          .append("path")
+          .datum(yearData)
+          .attr("fill", "rgba(59, 130, 246, 0.12)")
+          .attr("d", area);
 
-      points
-        .append("text")
-        .attr("x", (d) => x(d.month))
-        .attr("y", (d) => y(d.value) - 8)
-        .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .style("fill", "#111827")
-        .text((d) => d.value);
-    }
-  })();
-</script>
+        svg
+          .append("path")
+          .datum(yearData)
+          .attr("fill", "none")
+          .attr("stroke", "#2563eb")
+          .attr("stroke-width", 2.5)
+          .attr("d", line);
+
+        const points = svg
+          .selectAll(".point")
+          .data(yearData)
+          .enter()
+          .append("g")
+          .attr("class", "point");
+
+        points
+          .append("circle")
+          .attr("cx", (d) => x(d.month))
+          .attr("cy", (d) => y(d.value))
+          .attr("r", 4)
+          .attr("fill", "#2563eb");
+
+        points
+          .append("text")
+          .attr("x", (d) => x(d.month))
+          .attr("y", (d) => y(d.value) - 8)
+          .attr("text-anchor", "middle")
+          .style("font-size", "11px")
+          .style("fill", "#111827")
+          .text((d) => d.value);
+      }
+    })();
+  </script>
 
   <style>
+    .metrics-tabs {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .metrics-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #4b5563;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      transition: background 0.15s ease, color 0.15s ease,
+        border-color 0.15s ease, box-shadow 0.15s ease,
+        transform 0.1s ease;
+    }
+
+    .metrics-tab__icon {
+      font-size: 1rem;
+    }
+
+    .metrics-tab--active {
+      background: #111827;
+      color: #f9fafb;
+      border-color: #111827;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .metrics-tab:hover:not(.metrics-tab--active) {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+
     .graph-card {
-      margin-top: 3rem;
+      margin-top: 2rem;
       padding: 1.5rem;
       border-radius: 1rem;
       background: #ffffff;
       border: 1px solid #e5e7eb;
       box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
     }
-    
+
     .graph-card__header {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
       color: #111827;
     }
-    
+
     .graph-card__title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 1.25rem;
       font-weight: 600;
     }
-    
+
     .graph-card__controls {
       margin-left: auto;
       display: flex;
       gap: 0.75rem;
       align-items: center;
     }
-    
+
     .graph-card__control {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
       font-size: 0.875rem;
     }
-    
+
     .graph-card__control select {
       border-radius: 999px;
       padding: 6px 12px;
@@ -320,28 +477,38 @@ const metricLabel = 'Guitar Hours';
       cursor: pointer;
       transition: background 0.15s ease, border-color 0.15s ease;
     }
-    
+
     .graph-card__control select:hover {
       background: #f1f5f9;
       border-color: #94a3b8;
     }
-    
+
     .graph-card__control select:focus {
       outline: none;
       border-color: #3b82f6;
       box-shadow: 0 0 0 1px #3b82f6;
     }
-    
+
     .graph-card__body {
       margin-top: 0.5rem;
     }
-    
+
     .graph-card__chart {
       width: 100%;
       min-height: 260px;
     }
-    
-    /* Skeleton loader */
+
+    .graph-card__year-total {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .graph-card__year-total strong {
+      color: #111827;
+      font-weight: 600;
+    }
+
     .chart-skeleton {
       width: 100%;
       height: 260px;
@@ -356,7 +523,7 @@ const metricLabel = 'Guitar Hours';
       animation: skeleton-shimmer 1.25s infinite;
       margin-top: 1rem;
     }
-    
+
     @keyframes skeleton-shimmer {
       0% {
         background-position: 200% 0;
@@ -366,24 +533,17 @@ const metricLabel = 'Guitar Hours';
       }
     }
 
-    .graph-card__year-total {
-      font-size: 0.9rem;
-      color: #6b7280;        /* muted gray */
-      margin-bottom: 0.5rem;
-    }
-
-    .graph-card__year-total strong {
-      color: #111827;        /* darker for emphasis */
-      font-weight: 600;
-    }
-
     @media (max-width: 640px) {
       .graph-card {
         padding: 1.25rem;
       }
-    
+
       .graph-card__controls {
         margin-left: 0;
+      }
+
+      .metrics-tabs {
+        margin-top: 1.5rem;
       }
     }
   </style>
