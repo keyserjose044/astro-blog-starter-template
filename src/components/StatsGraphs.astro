@@ -43,217 +43,218 @@ const metricKey = 'guitar';
   ></script>
 
   <!-- Client-side script to fetch data + draw chart -->
-  <script type="module">
-    const API_URL = `${API_URL}`;
-    const metricKey = `${metricKey}`;
-    const monthOrder = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
+  <script>
+    (function () {
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbwwwRh_cplVt-ZprMrs7oxbFI9UEf--yNNF1PAdNq2NmGXO2luEkmqNiuMIhzN2gMbq/exec";
+      const metricKey = "guitar";
+      const monthOrder = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
 
-    function ready(fn) {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fn);
-      } else {
-        fn();
-      }
-    }
-
-    ready(async () => {
-      const container = document.getElementById('guitar-chart');
-      const select = document.getElementById('guitar-year-select');
-
-      if (!container || !select) return;
-
-      // Wait until D3 is available from CDN
-      const waitForD3 = () =>
-        new Promise((resolve) => {
-          const check = () => {
-            if (window.d3) resolve(window.d3);
-            else requestAnimationFrame(check);
-          };
-          check();
-        });
-
-      const d3 = await waitForD3();
-
-      let rawData;
-      try {
-        const res = await fetch(API_URL);
-        rawData = await res.json();
-      } catch (err) {
-        container.innerHTML =
-          '<div class="graph-card__fallback">Error loading data from GAS.</div>';
-        console.error('Fetch error:', err);
-        return;
+      function whenReady(fn) {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", fn);
+        } else {
+          fn();
+        }
       }
 
-      // Expect objects like { metric, year, month, value }
-      const data = rawData
-        .filter((d) => d.metric === metricKey)
-        .map((d) => ({
-          metric: d.metric,
-          year: +d.year,
-          month: d.month,
-          value: +d.value
-        }));
+      whenReady(() => {
+        // wait for D3 + DOM
+        function start() {
+          const d3 = window.d3;
+          const container = document.getElementById("guitar-chart");
+          const select = document.getElementById("guitar-year-select");
 
-      if (!data.length) {
-        container.innerHTML =
-          '<div class="graph-card__fallback">No data received for guitar.</div>';
-        return;
-      }
+          if (!d3 || !container || !select) {
+            // try again shortly until everything exists
+            return setTimeout(start, 50);
+          }
 
-      const years = Array.from(new Set(data.map((d) => d.year))).sort(
-        (a, b) => a - b
-      );
+          initChart(d3, container, select);
+        }
 
-      // Populate year dropdown (latest year selected by default)
-      select.innerHTML = years
-        .map(
-          (y, idx) =>
-            `<option value="${y}" ${
-              idx === years.length - 1 ? 'selected' : ''
-            }>${y}</option>`
-        )
-        .join('');
-
-      select.addEventListener('change', () =>
-        drawChart(+select.value, data, container, d3)
-      );
-
-      // Initial render
-      const initialYear = years[years.length - 1];
-      drawChart(initialYear, data, container, d3);
-
-      // Make chart responsive on resize
-      window.addEventListener('resize', () =>
-        drawChart(+select.value, data, container, d3)
-      );
-    });
-
-    function drawChart(year, data, container, d3) {
-      const yearData = monthOrder.map((m) => {
-        const match = data.find(
-          (d) => d.year === year && d.month === m
-        );
-        return {
-          month: m,
-          value: match ? match.value : 0
-        };
+        start();
       });
 
-      const margin = { top: 24, right: 24, bottom: 40, left: 48 };
-      const width = container.clientWidth || 800;
-      const height = 360;
+      async function initChart(d3, container, select) {
+        let rawData;
 
-      // Clear previous SVG
-      container.innerHTML = '';
+        try {
+          const res = await fetch(API_URL);
+          rawData = await res.json();
+        } catch (err) {
+          console.error("Error fetching graph data:", err);
+          container.innerHTML =
+            '<div class="graph-card__fallback">Error loading data from GAS.</div>';
+          return;
+        }
 
-      const svg = d3
-        .select(container)
-        .append('svg')
-        .attr('viewBox', `0 0 ${width} ${height}`)
-        .attr('preserveAspectRatio', 'xMidYMid meet');
+        // Ensure we have an array
+        if (!Array.isArray(rawData)) {
+          rawData = Object.values(rawData || {});
+        }
 
-      const x = d3
-        .scalePoint()
-        .domain(monthOrder)
-        .range([margin.left, width - margin.right])
-        .padding(0.5);
+        // Expect objects like { metric: "guitar", year: 2024, month: "Jan", value: 4 }
+        const data = rawData
+          .filter((d) => !metricKey || String(d.metric).toLowerCase() === metricKey)
+          .map((d) => ({
+            metric: d.metric,
+            year: Number(d.year),
+            month: String(d.month),
+            value: Number(d.value) || 0,
+          }));
 
-      const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(yearData, (d) => d.value) || 1])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
+        if (!data.length) {
+          console.warn("No data points found for guitar:", rawData);
+          container.innerHTML =
+            '<div class="graph-card__fallback">No guitar data found.</div>';
+          return;
+        }
 
-      const area = d3
-        .area()
-        .x((d) => x(d.month))
-        .y0(height - margin.bottom)
-        .y1((d) => y(d.value))
-        .curve(d3.curveMonotoneX);
+        const years = Array.from(new Set(data.map((d) => d.year))).sort(
+          (a, b) => a - b
+        );
 
-      const line = d3
-        .line()
-        .x((d) => x(d.month))
-        .y((d) => y(d.value))
-        .curve(d3.curveMonotoneX);
+        // Populate year dropdown (latest year selected by default)
+        select.innerHTML = years
+          .map(
+            (y, idx) =>
+              `<option value="${y}" ${
+                idx === years.length - 1 ? "selected" : ""
+              }>${y}</option>`
+          )
+          .join("");
 
-      // Axes
-      const xAxis = d3.axisBottom(x);
-      const yAxis = d3.axisLeft(y).ticks(6).tickFormat(d3.format('~s'));
+        select.addEventListener("change", () =>
+          drawChart(Number(select.value), data, container, d3)
+        );
 
-      svg
-        .append('g')
-        .attr(
-          'transform',
-          `translate(0, ${height - margin.bottom})`
-        )
-        .call(xAxis)
-        .selectAll('text')
-        .style('font-size', '10px');
+        const initialYear = years[years.length - 1];
+        drawChart(initialYear, data, container, d3);
 
-      svg
-        .append('g')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(yAxis)
-        .selectAll('text')
-        .style('font-size', '10px');
+        window.addEventListener("resize", () =>
+          drawChart(Number(select.value), data, container, d3)
+        );
+      }
 
-      // Area
-      svg
-        .append('path')
-        .datum(yearData)
-        .attr('fill', '#1d4ed81a') // translucent blue
-        .attr('d', area);
+      function drawChart(year, data, container, d3) {
+        const yearData = monthOrder.map((m) => {
+          const match = data.find(
+            (d) => d.year === year && d.month === m
+          );
+          return { month: m, value: match ? match.value : 0 };
+        });
 
-      // Line
-      svg
-        .append('path')
-        .datum(yearData)
-        .attr('fill', 'none')
-        .attr('stroke', '#2563eb')
-        .attr('stroke-width', 2)
-        .attr('d', line);
+        const margin = { top: 24, right: 24, bottom: 40, left: 48 };
+        const width = container.clientWidth || 800;
+        const height = 360;
 
-      // Points + labels
-      svg
-        .selectAll('.point')
-        .data(yearData)
-        .enter()
-        .append('circle')
-        .attr('class', 'point')
-        .attr('cx', (d) => x(d.month))
-        .attr('cy', (d) => y(d.value))
-        .attr('r', 3)
-        .attr('fill', '#2563eb');
+        container.innerHTML = "";
 
-      svg
-        .selectAll('.label')
-        .data(yearData)
-        .enter()
-        .append('text')
-        .attr('class', 'label')
-        .attr('x', (d) => x(d.month))
-        .attr('y', (d) => y(d.value) - 8)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '10px')
-        .style('fill', '#64748b')
-        .text((d) => (d.value ? d.value : ''));
-    }
+        const svg = d3
+          .select(container)
+          .append("svg")
+          .attr("viewBox", `0 0 ${width} ${height}`)
+          .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const x = d3
+          .scalePoint()
+          .domain(monthOrder)
+          .range([margin.left, width - margin.right])
+          .padding(0.5);
+
+        const y = d3
+          .scaleLinear()
+          .domain([0, d3.max(yearData, (d) => d.value) || 1])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+
+        const area = d3
+          .area()
+          .x((d) => x(d.month))
+          .y0(height - margin.bottom)
+          .y1((d) => y(d.value))
+          .curve(d3.curveMonotoneX);
+
+        const line = d3
+          .line()
+          .x((d) => x(d.month))
+          .y((d) => y(d.value))
+          .curve(d3.curveMonotoneX);
+
+        // Axes
+        svg
+          .append("g")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(d3.axisBottom(x))
+          .selectAll("text")
+          .style("font-size", "10px");
+
+        svg
+          .append("g")
+          .attr("transform", `translate(${margin.left},0)`)
+          .call(d3.axisLeft(y).ticks(6).tickFormat(d3.format("~s")))
+          .selectAll("text")
+          .style("font-size", "10px");
+
+        // Area fill
+        svg
+          .append("path")
+          .datum(yearData)
+          .attr("fill", "#1d4ed81a")
+          .attr("d", area);
+
+        // Line
+        svg
+          .append("path")
+          .datum(yearData)
+          .attr("fill", "none")
+          .attr("stroke", "#2563eb")
+          .attr("stroke-width", 2)
+          .attr("d", line);
+
+        // Points
+        svg
+          .selectAll(".point")
+          .data(yearData)
+          .enter()
+          .append("circle")
+          .attr("class", "point")
+          .attr("cx", (d) => x(d.month))
+          .attr("cy", (d) => y(d.value))
+          .attr("r", 3)
+          .attr("fill", "#2563eb");
+
+        // Labels
+        svg
+          .selectAll(".label")
+          .data(yearData)
+          .enter()
+          .append("text")
+          .attr("class", "label")
+          .attr("x", (d) => x(d.month))
+          .attr("y", (d) => y(d.value) - 8)
+          .attr("text-anchor", "middle")
+          .style("font-size", "10px")
+          .style("fill", "#9ca3af")
+          .text((d) => (d.value ? d.value : ""));
+      }
+    })();
   </script>
+
 
   <style>
     .graph-card {
