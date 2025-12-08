@@ -155,8 +155,8 @@ const defaultMetricKey = "guitar";
           rawData = Object.values(rawData || {});
         }
 
-        // Normalize
-        const data = rawData
+        // Normalize everything into a single array – we keep ALL metrics here
+        const allData = rawData
           .map((d) => ({
             metric: String(d.metric || "").toLowerCase(),
             year: Number(d.year),
@@ -164,37 +164,36 @@ const defaultMetricKey = "guitar";
             value: Number(d.value) || 0,
           }))
           .filter((d) => d.metric && d.year && d.month);
-
-        if (!data.length) {
+      
+        if (!allData.length) {
           console.warn("No data points found:", rawData);
           container.innerHTML =
             '<div class="graph-card__fallback">No data found.</div>';
           return;
         }
-
-        let currentMetric = "guitar";
+      
+        let activeMetricKey = "guitar"; // default metric
         let currentYear = null;
-
+      
         const titleText = document.getElementById("graph-title-text");
         const titleIcon = document.getElementById("graph-title-icon");
-
+      
         function getYearsForMetric(metricKey) {
-          const yrs = Array.from(
+          return Array.from(
             new Set(
-              data
+              allData
                 .filter((d) => d.metric === metricKey)
                 .map((d) => d.year)
             )
           ).sort((a, b) => a - b);
-          return yrs;
         }
-
+      
         function updateTitle(metricKey) {
           const cfg = METRICS[metricKey] || METRICS.guitar;
           if (titleText) titleText.textContent = cfg.label;
           if (titleIcon) titleIcon.textContent = cfg.icon;
         }
-
+      
         function updateYearOptions(metricKey) {
           const years = getYearsForMetric(metricKey);
           if (!years.length) {
@@ -203,7 +202,7 @@ const defaultMetricKey = "guitar";
               '<div class="graph-card__fallback">No data for this metric.</div>';
             return;
           }
-
+      
           select.innerHTML = years
             .map(
               (y, idx) =>
@@ -212,55 +211,51 @@ const defaultMetricKey = "guitar";
                 }>${y}</option>`
             )
             .join("");
-
+      
           currentYear = years[years.length - 1];
         }
-
+      
         function drawCurrent() {
-          if (currentMetric && currentYear) {
-            drawChart(currentMetric, currentYear, data, container, d3);
+          if (activeMetricKey && currentYear) {
+            drawChart(activeMetricKey, currentYear, allData, container, d3);
           }
         }
-
-        // Wire year select
+      
+        // Year dropdown
         select.addEventListener("change", () => {
           currentYear = Number(select.value);
           drawCurrent();
         });
-
-        // Wire metric tabs
+      
+        // Metric tabs
         const tabButtons = Array.from(
           tabsContainer.querySelectorAll("[data-metric]")
         );
-
+      
         tabButtons.forEach((btn) => {
           btn.addEventListener("click", () => {
             const metricKey = btn.getAttribute("data-metric");
-            if (!metricKey || metricKey === currentMetric) return;
-
-            currentMetric = metricKey;
-
-            // active class
+            if (!metricKey || metricKey === activeMetricKey) return;
+      
+            activeMetricKey = metricKey;
+      
             tabButtons.forEach((b) =>
-              b.classList.toggle(
-                "metrics-tab--active",
-                b === btn
-              )
+              b.classList.toggle("metrics-tab--active", b === btn)
             );
-
-            updateTitle(currentMetric);
-            updateYearOptions(currentMetric);
+      
+            updateTitle(activeMetricKey);
+            updateYearOptions(activeMetricKey);
             drawCurrent();
           });
         });
-
-        // Initial state
-        updateTitle(currentMetric);
-        updateYearOptions(currentMetric);
+      
+        // Initial render
+        updateTitle(activeMetricKey);
+        updateYearOptions(activeMetricKey);
         drawCurrent();
-
+      
         window.addEventListener("resize", () =>
-          drawChart(currentMetric, Number(select.value), data, container, d3)
+          drawChart(activeMetricKey, Number(select.value), allData, container, d3)
         );
       }
 
