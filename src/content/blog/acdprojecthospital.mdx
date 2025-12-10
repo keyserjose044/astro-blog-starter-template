@@ -7,426 +7,127 @@ heroImage: "/images/hospital.jpg"
 draft: false
 ---
 
-# 🏥 3-Story Hospital Opening in Kerrville, TX — Is it Structurally Sound?
+# 🏥 3-Story Reinforced Concrete Hospital in Kerrville, TX — Final Structural Design Summary
 
-This post documents our structural concept and design workflow for a **3-story hospital** in **Kerrville, Texas**. I’ll outline the building geometry, loading, analysis approach (RISA/ETABS), the **critical member designs** for the second-floor ceiling (slab, beams, columns), and then zoom in on a **hand-designed reinforced-concrete corbel** that supports a precast beam.
+This post summarizes the major outcomes of our structural analysis and design of a **three-story reinforced concrete hospital** located in Kerrville, Texas. The work was completed using **ETABS modeling**, **ACI 318-19 provisions**, and **ASCE 7-22** load requirements.
 
-> **Specs at a Glance**
->
-> - Plan: A = 125 ft, B = 125 ft  
-> - Stories: 3, with a story height of 18 ft  
-> - System: Cast-in-place reinforced concrete frame  
-> - One interior panel is designed as a **two-way slab**  
-> - One second-floor beam is **precast** and supported by **concrete corbels**  
-> - Concrete: f'c = 5,000 psi (normal-weight)  
-> - Steel: fy = 60,000 psi  
-> - Location: Kerrville, TX (hospital occupancy, higher importance)  
-> - Alternate design: same framing, but **beam width and depth interchanged**
+This facility is an **essential structure (Risk Category IV)**, which governs its loading, lateral system selection, and reliability expectations. The full engineering report covers member design, lateral mechanics, serviceability, and a hand-designed reinforced-concrete corbel.
 
 ---
 
-## 🧭 Site, Occupancy, and Plan
+## 📍 Site, Function, and Construction
 
-- **Occupancy**: Hospital (higher importance / risk category).  
-- **Location**: Kerrville, Texas.  
-- **Loading standard**: ASCE 7 for gravity and wind, ACI 318 for reinforced-concrete design.
+- **Location:** Kerrville, Texas — low seismicity, Exposure B wind terrain  
+- **Total floors:** 3  
+- **Story height:** 18 ft → total building height 54 ft  
+- **Construction type:** I-A (noncombustible RC)  
+- **Use:** Full-scale hospital with patient rooms, ICU, surgery, labs  
 
-The plan has two main wings running in the “B” direction and a central spine. Both overall dimensions are:
+Each floor uses an **8-inch reinforced two-way slab** acting as a rigid diaphragm, transferring loads efficiently to columns and shear walls. Columns throughout are **18 in × 18 in**, using **5000-psi concrete** and **Grade-60 steel**.
 
-- A = 125 ft  
-- B = 125 ft  
+---
 
-There is also a **cantilever balcony** on all floors on one side of the building.
+## 📐 Building Layout & Lateral System
 
-*(Screenshots or plan images can go here, for example:)*
+- **First floor:** emergency care & imaging  
+- **Second floor:** surgery & intensive care  
+- **Third floor:** inpatient rooms & admin  
 
-```md
-![Plan of 3-story hospital, A=B=125', with central spine and balcony](/images/hospital-kerrville/plan.png)
+An elevator core participates in lateral resistance. The hybrid system uses **moment-resisting RC frames** in one direction and **shear walls** in the other.
 
-🧱 Structural Layout (Second-Floor “Design Ceiling”)
+**Wind-induced drift:**
+- Max story drift = **0.42 in**
+- Limit for essential facilities = **0.96 in**
+- Performance = **~44% of allowable** (excellent stiffness)
 
-The project instructions ask us to:
+---
 
-    Choose a column, beam, joist, and slab layout such that at least one slab is two-way.
-    Make sure the column is slender.
+## 📦 Loading & Design Standards
 
-    Assume one beam on the designated floor is precast and rests on corbels.
+All loads follow **ASCE 7-22**; design provisions follow **ACI 318-19**.
 
-    Provide detailed hand calculations only for the corbel, while the other members can be designed using software.
+### Gravity Loads
+- **Floor dead load:** 139 psf  
+- **Live load (patient areas):** 100 psf (non-reducible)
 
-What we chose
+### Wind Loads
+- **Basic wind speed:** 99 mph  
+- **Enhanced (Risk Category IV):** 115 mph  
+- Story pressures applied directionally in ETABS
 
-    Slab: 8-in cast-in-place RC slab.
+### Seismic Loads
+- Kerrville = **very low seismicity**
+- **Seismic Design Category:** A/B  
+- **Seismic effects did not govern**
 
-        At least one interior panel has Ly/Lx ≤ 2, so it can be designed as a two-way slab.
+---
 
-    Beams / Joists:
+## 🧮 ETABS Modeling & Critical Member Identification
 
-        Primary beams along the main grid lines.
+The second floor governed because of:
+- cumulative gravity effects  
+- diaphragm participation  
 
-        Secondary beams or joists in the short direction to reduce slab spans.
+**Critical members identified:**
+- Column C2 (second floor)  
+- Beam B1 (adjacent to corbel)  
+- Two-way slab strip  
+- Corbel supporting a precast beam  
 
-    Columns: 18 in × 18 in.
+Linear-elastic analysis with cracked-section modifiers was used.
 
-        Story height = 18 ft → slenderness ratio is large enough to consider slender column effects.
+---
 
-    Precast beam:
+## 🔍 Member Design Highlights
 
-        One beam on the second floor is taken as precast.
+### 🔸 Critical Column (C2)
+- Section: **18 in × 18 in**
+- Passed **Pu-Mu interaction**
+- Adequate reinforcement for axial + biaxial bending
 
-        Its end reactions at columns are carried by reinforced concrete corbels.
+### 🔸 Critical Beam
+- Baseline: **24 in × 18 in**
+- Alternate: **18 in × 24 in**
+- Result: negligible design change; effective depth varied
 
-Alternate beam design
+### 🔸 Slab Strip
+- Rigid diaphragm action
+- Minimum ACI steel satisfied
+- Punching shear acceptable
 
-For extra comparison, we define an alternate design where the beam width and depth are interchanged. For example:
+---
 
-    Base: 12 in wide × 24 in deep
+## 🧷 Corbel Supporting Precast Beam — Hand Design
 
-    Alternate: 24 in wide × 12 in deep
+Designed using **ACI 318-19 Strut-and-Tie**.
 
-We use the analysis program (RISA or ETABS) to see how this affects:
+**Final requirements:**
+- Primary tension steel: **1.23 in² → 2-#8 bars**
+- Shear friction steel: **0.48 in²**
+- Closed confinement: **3-leg #3 hoops @ 6 in**
+- Development length into column: **≈ 73 in**
 
-    Bending moments and shears
+A follow-up "AI-generated" design was produced, but its geometry was **not code-compliant**, so the hand design remained authoritative.
 
-    Deflections and drift
+---
 
-    Required reinforcement and overall weight
+## 💡 Observations & Project Lessons
 
-📦 Loads (Conceptual Summary)
+- Wind governed; seismic negligible  
+- Diaphragm rigidity made internal force transfer clean  
+- Hybrid system controlled drift effectively  
+- Uniform sizes simplified design; optimization possible in real-world work
 
-The detailed numbers live in the project report; here is the structure of what was used:
+---
 
-    Dead load (DL)
+## 🔚 Conclusions
 
-        Slab self-weight (8 in RC)
+The final structural system:
+- Meets **all strength and serviceability requirements**
+- Performs **extremely well** under Risk Category IV wind
+- Maintains **comfortable drift reserve**
 
-        Superimposed dead load: partitions, ceiling, mechanical, finishes
+Corbel design was the standout hands-on component, and ETABS results aligned cleanly with hand calculations.
 
-    Live load (LL)
+> **Bottom line:** YES — it is structurally sound and achieves robust safety margins.
 
-        Hospital occupancy loads from ASCE 7 (patient areas, corridors, etc.)
-
-    Roof loads
-
-        Roof dead load
-
-        Roof live load or snow (as required)
-
-    Wind loads
-
-        Directional wind pressures in X and Y per ASCE 7
-
-        Applied as lateral loads at each floor level
-
-All of these are combined in standard strength and service combinations such as:
-
-    1.2 DL + 1.6 LL
-
-    1.2 DL + 1.0 LL + 1.0 Wind
-
-    0.9 DL ± 1.0 Wind
-
-These combinations are defined directly in the analysis software.
-🧮 Analysis Workflow (RISA / ETABS)
-1. Build the model
-
-    3 stories, each 18 ft high
-
-    Column lines and bay dimensions taken from the architectural plan (A = B = 125 ft)
-
-    Beams assigned along grid lines; slab as a 8-in thick plate or as equivalent frame, depending on the software workflow
-
-2. Assign member properties
-
-    Columns: 18 in × 18 in
-
-    Beams: base dimensions (for example, 12×24 in)
-
-    Slab: 8 in thick
-
-    Alternate model: same geometry but beam sections have b and h swapped
-
-3. Apply loads
-
-    Area loads on slabs for DL and LL
-
-    Roof loads on top level
-
-    Wind loads as equivalent lateral forces at floor levels
-
-4. Run analysis
-
-The main outputs of interest for the second floor (our “design ceiling”) are:
-
-    Design moments MxMx​ and MyMy​ in the critical two-way slab panel
-
-    Envelope bending moments and shears in the critical beams
-
-    Axial force and biaxial bending in the critical columns
-
-    The factored end reaction of the precast beam at the corbel support
-
-📐 Design of Critical Members (Second Floor)
-
-Even though only the corbel requires full hand calculations, it is still important to show that the other members are properly designed.
-Two-Way Slab
-
-For the chosen interior panel:
-
-    Use the program’s strip design results, or apply the Direct Design / Equivalent Frame Method.
-
-    From factored design moments in each direction (Mx and My), compute steel areas using standard beam design formulas.
-
-    Provide top and bottom reinforcement in each direction, including negative steel over supports and positive steel at midspan.
-
-Beams
-
-For the critical second-floor beam:
-
-    Take the maximum positive and negative factored bending moments from the analysis.
-
-    Compute the required steel area As from:
-
-        As ≈ Mu / (phi * fy * jd) for a quick check, or
-
-        The more exact rectangular-stress-block relation if needed.
-
-    Check shear with Vu and design stirrups accordingly.
-
-    Confirm serviceability (deflection) using span-to-depth and software deflection output.
-
-Columns
-
-For a critical second-floor column:
-
-    From the model, obtain Pu (factored axial load) and bending moments about both axes.
-
-    Use ACI column interaction diagrams (charts or software) to determine the required longitudinal steel ratio.
-
-    Specify bar pattern and tie spacing, ensuring code minimums are satisfied.
-
-    Note that with an 18-ft story height and 18-in column, slenderness effects may need to be considered (moment magnification).
-
-These designs are summarized in the report and drawings; the corbel design below is shown in full detail.
-🧷 Hand-Designed Corbel Supporting a Precast Beam
-
-One of the second-floor beams is modeled as precast. At each supporting column the beam’s end reaction is carried by a reinforced concrete corbel.
-
-The analysis model gives:
-
-    Factored vertical reaction at the corbel:
-
-        Vu (kips) at a distance a (inches) from the column face
-
-    The vertical dimension h of the corbel (for example, 18 in)
-
-    The column / corbel width bw (for example, 14 in)
-
-We assume a small horizontal tension force at the top of the corbel, Nuc, to account for effects such as creep and shrinkage between the beam and column.
-
-    Note: In the classroom example this horizontal force was taken as
-    Nuc = 0.2 × (service dead reaction) × 1.6.
-    The same approach can be used here, or as directed by the instructor.
-
-Below is the design checklist for the corbel.
-1) Geometry and Applicability
-
-    Choose corbel overall depth h (for example, 18 in).
-
-    Place the main tension steel approximately 1 in from the top surface → effective depth d ≈ h − 1 in.
-
-    Check:
-
-        a / d < 1.0
-
-        Depth of concrete at the corbel face under the bearing plate ≥ 0.5 d
-
-If these are satisfied, the ACI 318 corbel provisions are applicable.
-2) Concrete Shear Limit
-
-The code places an upper bound on the nominal shear strength Vn. Compute these three expressions:
-
-    V1 = 0.2 × f'c × bw × d
-
-    V2 = 1600 × bw × d
-
-    V3 = (480 + 0.08 × f'c) × bw × d
-
-Use f'c in psi, bw and d in inches, giving V in pounds.
-The smallest of V1, V2, V3 is Vn,max.
-
-Check:
-
-    phi × Vn,max ≥ Vu
-
-with phi = 0.75 for shear in this region.
-3) Shear-Friction Steel Avf
-
-To provide shear transfer across the corbel–column interface, we use the shear-friction concept:
-
-    Take coefficient of friction μ = 1.4 for a monolithically cast interface.
-
-    Required shear-friction steel area:
-
-        Avf = Vu / (phi × μ × fy)
-
-This area is usually provided by the same bars that serve as the main tension reinforcement, as long as they cross the assumed shear-friction plane and are properly anchored.
-4) Factored Moment at Column Face
-
-The corbel behaves like a short cantilever. The design moment at the column face is:
-
-    Mu = Vu × a + Nuc × (h − d)
-
-The second term is often small if h − d is about 1 in, but it is included for completeness.
-5) Flexural Steel for Mu (Af)
-
-For a quick and accurate classroom design, the required steel ratio can be approximated as:
-
-    ρ ≈ Mu / (phi × fy × bw × d²)
-
-where:
-
-    Mu is in in-kips (convert to in-lb if needed),
-
-    bw and d are in inches,
-
-    fy is in psi,
-
-    phi is the flexural strength reduction factor (often 0.9 for flexure, or 0.75 in some corbel examples).
-
-Then:
-
-    Af = ρ × bw × d
-
-Af is the steel area needed to resist the bending moment.
-6) Extra Steel for Horizontal Tension (An)
-
-To resist the axial tension Nuc at the top:
-
-    An = Nuc / (phi × fy)
-
-This area is added to the flexural requirement.
-7) Total Main Steel Asc
-
-ACI requires the total main tension steel Asc to be at least the largest of three expressions:
-
-    Af + An
-
-    (2 / 3) × Avf + An
-
-    0.04 × (f'c / fy) × bw × d
-
-Compute all three, then take:
-
-    Asc,required = maximum of (1, 2, 3)
-
-Choose a convenient bar arrangement (for example 2 #6 bars, or 3 #7 bars) such that:
-
-    Asc,provided ≥ Asc,required
-
-These bars run near the top of the corbel, welded or otherwise anchored to the bearing plate or angle at the tip and extended into the column.
-8) Closed Hoops (Ah)
-
-The corbel also needs closed hoop reinforcement whose legs are parallel to the main tension bars.
-ACI gives:
-
-    Ah = 0.5 × (Asc − An)
-
-Important detail: for each closed stirrup, both legs parallel to the main bars count.
-For example, a #3 bar has area 0.11 in².
-One closed #3 hoop has two such legs → 0.22 in² contributing to Ah.
-
-Provide enough hoops such that:
-
-    Ah,provided ≥ Ah,required
-
-Place these hoops within approximately the upper two-thirds of the depth measured from the tension steel. Spacings around 3 to 4 in are typical.
-Small “framing bars” in the corner can be added to improve anchorage and detailing.
-9) Development and Anchorage of Main Bars
-
-The main bars must develop their tensile force within the column:
-
-    Use ACI development-length rules for hooked bars in tension.
-
-    For a given bar size and f'c = 5 ksi, a tabulated basic hooked-bar development length can be used (for example, values from CRSI or design aids).
-
-    If the provided steel area is greater than required, ACI allows the development length to be reduced in proportion (down to a prescribed minimum factor).
-
-In practice, this means extending the bars well into the column with a standard 90-degree hook and ensuring enough straight length plus hook is available inside the column core.
-10) Bearing Under the Plate
-
-Finally, check that the bearing plate does not overstress the concrete:
-
-    Let A1 be the area of the bearing plate in contact with the concrete.
-
-    Let A2 be the effective supporting area behind that bearing (often the column area under the plate).
-
-    Nominal bearing strength:
-
-        Pn = 0.85 × f'c × A1 × sqrt(A2 / A1)
-
-    Design strength: phi × Pn, with phi for bearing (commonly 0.65 or as specified).
-
-Check:
-
-    phi × Pn ≥ Vu
-
-If needed, adjust the plate size or provide local confinement.
-
-Plate thickness and welds/anchors are then checked using simple steel design principles.
-🔁 Alternate Beam Design: Width/Depth Swapped
-
-To earn extra credit and compare performance, an alternate model is created where beam width and depth are interchanged:
-
-    Example: 12 in wide × 24 in deep → 24 in wide × 12 in deep
-
-For this scheme:
-
-    Re-run the analysis.
-
-    Compare:
-
-        Bending moments and shears
-
-        Required steel in beams and columns
-
-        Floor deflections and overall drift
-
-        Self-weight and approximate cost
-
-    Note any changes in the precast beam end reaction and comment on how sensitive the corbel design is to those changes.
-
-This comparison goes into the project report and can be summarized in a small table in the blog post.
-📐 Drawings and Final Deliverables
-
-For the course project, the final package includes:
-
-    Framing plans: columns, beams, joists, and slab layout.
-
-    Sections through critical beams and columns.
-
-    A detailed corbel reinforcement drawing showing:
-
-        Main bars (sizes, number, and anchorage)
-
-        Closed hoops (size and spacing)
-
-        Bearing plate dimensions
-
-        Concrete cover and dimensions
-
-    A short summary of slab, beam, and column designs at the second-floor ceiling.
-
-    The full hand calculation sheet for the corbel.
-
-On the website, this post serves as the readable, story-like version of that design process, answering the question:
-
-    “Is this 3-story hospital in Kerrville structurally sound?”
-
-The short answer: Yes—provided the members and corbel are detailed and constructed according to the design shown here and in the full report.
-
-
-If you’d like, next I can:
-
-- Help you make a **tiny comparison table** (baseline vs alternate beam sections) to paste into the post once you have RISA/ETABS results, or  
-- Draft a separate short page just for the **corbel hand-calc PDF** with download links.
