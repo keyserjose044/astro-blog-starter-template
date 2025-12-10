@@ -298,9 +298,10 @@ const defaultMetricKey = "guitar";
         
         const totalEl = document.getElementById("guitar-year-total");
         if (totalEl) {
-          totalEl.innerHTML =
-            `<strong>${year}</strong> total: ` +
-            `<span class="graph-pill">${totalValue} ${cfg.unit}</span>`;
+          totalEl.innerHTML = `
+            <span class="year-label"><strong>${year}</strong> total:</span>
+            <span class="graph-pill">${totalValue} ${cfg.unit}</span>
+          `;
         }
 
         const margin = { top: 24, right: 24, bottom: 40, left: 48 };
