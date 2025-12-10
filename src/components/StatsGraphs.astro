@@ -433,8 +433,11 @@ const defaultMetricKey = "guitar";
       font-size: 0.9rem;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-      transition: background 0.15s ease, color 0.15s ease,
-        border-color 0.15s ease, box-shadow 0.15s ease,
+      transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
         transform 0.1s ease;
     }
 
@@ -527,39 +530,39 @@ const defaultMetricKey = "guitar";
       min-height: 260px;
     }
 
+    /* 🔥 Unified + enlarged year total line */
     .graph-card__year-total {
-      font-size: 0.9rem;
-      color: #6b7280;
-      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 0.8rem;
+
+      font-size: 1.1rem;
+      color: #111827;
+      font-weight: 600;
     }
 
     .graph-card__year-total strong {
       color: #111827;
-      font-weight: 600;
-    }
-
-    .graph-pill {
-      color: #111827 !important;
-      display: inline-block;
-      background: #f1f5f9;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-left: 6px;   /* 👈 THIS makes it pop */
-    }
-    
-    .graph-card__year-total {
-      display: flex;
-      align-items: center;
-      gap: 6px;  /* consistent spacing */
-      margin-bottom: 1rem;
+      font-weight: 700;
     }
 
     .year-label {
       color: #111827;
+      font-size: 1.1rem;
+      font-weight: 700;
     }
 
+    .graph-pill {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #111827;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-left: 0; /* spacing handled by flex gap */
+    }
 
     .chart-skeleton {
       width: 100%;
@@ -600,3 +603,5 @@ const defaultMetricKey = "guitar";
     }
   </style>
 </section>
+
+  
