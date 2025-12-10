@@ -300,7 +300,7 @@ const defaultMetricKey = "guitar";
         if (totalEl) {
           totalEl.innerHTML =
             `<strong>${year}</strong> total: ` +
-            `<strong>${totalValue}</strong> ${cfg.unit}`;
+            `<span class="graph-pill">${totalValue} ${cfg.unit}</span>`;
         }
 
         const margin = { top: 24, right: 24, bottom: 40, left: 48 };
@@ -535,6 +535,16 @@ const defaultMetricKey = "guitar";
     .graph-card__year-total strong {
       color: #111827;
       font-weight: 600;
+    }
+
+    .graph-pill {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #111827;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
     }
 
     .chart-skeleton {
