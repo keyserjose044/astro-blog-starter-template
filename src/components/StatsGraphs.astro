@@ -73,6 +73,8 @@ const defaultMetricKey = "guitar";
       const API_URL =
         "https://script.google.com/macros/s/AKfycbw2o8bsw-UGn-qizyftLnuFSUwqR_5RITxhmqkBBCS9YoGkMhIsx97wkzUtv99DoNBJsw/exec";
 
+      const CURRENT_YEAR = new Date().getFullYear();  // ⬅️ add this
+
       const monthOrder = [
         "Jan",
         "Feb",
@@ -186,7 +188,7 @@ const defaultMetricKey = "guitar";
           return Array.from(
             new Set(
               allData
-                .filter((d) => d.metric === metricKey)
+                .filter((d) => d.metric === metricKey && d.year <= CURRENT_YEAR)
                 .map((d) => d.year)
             )
           ).sort((a, b) => a - b);
@@ -200,26 +202,29 @@ const defaultMetricKey = "guitar";
       
         function updateYearOptions(metricKey) {
           const years = getYearsForMetric(metricKey);
+        
           if (!years.length) {
             select.innerHTML = "";
             container.innerHTML =
               '<div class="graph-card__fallback">No data for this metric.</div>';
+            currentYear = null;
             return;
           }
-      
+        
           select.innerHTML = years
-            .map(
-              (y, idx) =>
-                `<option value="${y}" ${
-                  idx === years.length - 1 ? "selected" : ""
-                }>${y}</option>`
-            )
+            .map((y) => `<option value="${y}">${y}</option>`)
             .join("");
-      
-          currentYear = years[years.length - 1];
-          select.value = String(currentYear);   // <- make sure the year text shows
+        
+          // Prefer current calendar year if it exists in this metric’s data
+          if (years.includes(CURRENT_YEAR)) {
+            currentYear = CURRENT_YEAR;
+          } else {
+            // Fallback: latest year with data
+            currentYear = years[years.length - 1];
+          }
+        
+          select.value = String(currentYear);
         }
-      
 
         function drawCurrent() {
           if (activeMetricKey && currentYear) {
