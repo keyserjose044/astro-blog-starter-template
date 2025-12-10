@@ -282,7 +282,20 @@ const defaultMetricKey = "guitar";
           return { month: m, value };
         });
 
-        const totalValue = yearData.reduce((sum, d) => sum + d.value, 0);
+        let totalValue;
+        
+        // Diary uses the AVERAGE of the 12 monthly averages
+        if (metricKey === "diary") {
+          const vals = yearData.map(d => d.value);
+          const valid = vals.filter(v => v > 0);
+          totalValue = valid.length
+            ? Math.round(valid.reduce((s, v) => s + v, 0) / valid.length)
+            : 0;
+        } else {
+          // Other metrics use the sum
+          totalValue = yearData.reduce((sum, d) => sum + d.value, 0);
+        }
+        
         const totalEl = document.getElementById("guitar-year-total");
         if (totalEl) {
           totalEl.innerHTML =
