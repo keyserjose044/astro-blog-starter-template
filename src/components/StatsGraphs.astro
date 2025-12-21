@@ -9,7 +9,6 @@ const metrics = [
   { key: "diary", label: "Average Diary Words", icon: "📓" },
 ];
 
-const defaultMetricKey = "guitar";
 ---
 
 <section
@@ -411,7 +410,7 @@ const defaultMetricKey = "guitar";
             })
             .selectAll("text")
             .style("font-size", "12px")
-            .style("fill", "##111827");
+            .style("fill", "#111827");
 
 
         svg.append("g").call(xAxis);
