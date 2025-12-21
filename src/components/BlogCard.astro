@@ -23,7 +23,7 @@ const formattedDate =
 <li class="blog-card" {...rest}>
   <a href={href} aria-label={title}>
     {heroImage ? (
-      <img src={heroImage} alt="" loading="lazy" />
+      <img src={heroImage} alt="" loading={rest['data-lcp'] ? 'eager' : 'lazy'} fetchpriority={rest['data-lcp'] ? 'high' : 'auto'} />
     ) : heroVideo ? (
       <video autoplay muted loop playsinline preload="auto">
         <source src={heroVideo} type="video/mp4" />
