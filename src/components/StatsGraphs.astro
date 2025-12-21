@@ -7,6 +7,7 @@ const metrics = [
   { key: "audiobooks", label: "Audiobook Hours", icon: "📚" },
   { key: "running", label: "Miles Ran", icon: "🏃‍♂️" },
   { key: "diary", label: "Average Diary Words", icon: "📓" },
+  { key: "music", label: "Music Hours", icon: "🎵" },
 ];
 
 ---
@@ -110,13 +111,17 @@ const metrics = [
           icon: "📓",
           unit: "words/day",
         },
+        music: {
+          label: "Music Hours by Month",
+          icon: "🎵",
+          unit: "hours",
+        },
         audiobooks: {
           label: "Audiobook Hours by Month",
           icon: "📚",
           unit: "hours",
         },
       };
-
 
       function scrollToGraphsIfRequested() {
         if (window.location.hash === "#graphs") {
