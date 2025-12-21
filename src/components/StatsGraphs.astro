@@ -129,6 +129,20 @@ const defaultMetricKey = "guitar";
         }
       }
 
+      function getInitialFromUrl(METRICS, CURRENT_YEAR) {
+        const params = new URLSearchParams(window.location.search || "");
+        const metricParam = (params.get("metric") || "").toLowerCase();
+        const yearParam = params.get("year") || "";
+      
+        const metric = METRICS[metricParam] ? metricParam : "guitar";
+      
+        let year = null;
+        if (yearParam === "current") year = CURRENT_YEAR;
+        else if (yearParam && !Number.isNaN(Number(yearParam))) year = Number(yearParam);
+      
+        return { metric, year };
+      }
+
       function whenReady(fn) {
         if (document.readyState === "loading") {
           document.addEventListener("DOMContentLoaded", fn);
@@ -194,8 +208,10 @@ const defaultMetricKey = "guitar";
           return;
         }
         
-        let activeMetricKey = "guitar";   // default tab
-        let currentYear = null;
+        const initial = getInitialFromUrl(METRICS, CURRENT_YEAR);
+        
+        let activeMetricKey = initial.metric;   // ✅ from URL (e.g., audiobooks)
+        let currentYear = null;                 // set by updateYearOptions()
         
         const titleText = document.getElementById("graph-title-text");
         const titleIcon = document.getElementById("graph-title-icon");
@@ -232,16 +248,18 @@ const defaultMetricKey = "guitar";
             .map((y) => `<option value="${y}">${y}</option>`)
             .join("");
         
-          // Prefer current calendar year if it exists in this metric’s data
-          if (years.includes(CURRENT_YEAR)) {
+          // URL override → current year → fallback
+          if (initial.year && years.includes(initial.year)) {
+            currentYear = initial.year;
+          } else if (years.includes(CURRENT_YEAR)) {
             currentYear = CURRENT_YEAR;
           } else {
-            // Fallback: latest year with data
             currentYear = years[years.length - 1];
           }
         
           select.value = String(currentYear);
         }
+
 
         function drawCurrent() {
           if (activeMetricKey && currentYear) {
@@ -259,7 +277,14 @@ const defaultMetricKey = "guitar";
         const tabButtons = Array.from(
           tabsContainer.querySelectorAll("[data-metric]")
         );
-        
+
+        tabButtons.forEach((b) => {
+          b.classList.toggle(
+            "metrics-tab--active",
+            b.getAttribute("data-metric") === activeMetricKey
+          );
+        });
+
         tabButtons.forEach((btn) => {
           btn.addEventListener("click", () => {
             const metricKey = btn.getAttribute("data-metric");
