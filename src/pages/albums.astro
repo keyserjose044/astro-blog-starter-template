@@ -202,6 +202,7 @@ const albums = await fetchAllRaindrops();
         <select id="genre-filter" aria-label="Filter by style">
           <option value="">All styles</option>
         </select>
+      
         <button
           type="button"
           id="info-toggle"
@@ -212,6 +213,15 @@ const albums = await fetchAllRaindrops();
         >
           <span>?</span>
         </button>
+      
+        <a
+          href="/stats/?metric=music&year=current#graphs"
+          class="info-toggle"
+          aria-label="View music stats"
+          title="View music stats"
+        >
+          📊
+        </a>
       </div>
 
       <section id="albums-info" class="info-panel" hidden>
