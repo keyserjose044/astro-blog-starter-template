@@ -12,7 +12,11 @@ const metrics = [
 const defaultMetricKey = "guitar";
 ---
 
-<section class="section" aria-labelledby="graphs-heading">
+<section
+  id="graphs"
+  class="section"
+  aria-labelledby="graphs-heading"
+>
   <h2 id="graphs-heading">📈 Detailed Stat Graphs</h2>
   <p class="section-hint">
     Explore how key stats evolve over time. Toggle between metrics and years, powered by your Archive sheet.
@@ -114,6 +118,17 @@ const defaultMetricKey = "guitar";
         },
       };
 
+
+      function scrollToGraphsIfRequested() {
+        if (window.location.hash === "#graphs") {
+          const target = document.getElementById("graphs");
+          if (!target) return;
+          setTimeout(() => {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 150);
+        }
+      }
+
       function whenReady(fn) {
         if (document.readyState === "loading") {
           document.addEventListener("DOMContentLoaded", fn);
@@ -123,6 +138,8 @@ const defaultMetricKey = "guitar";
       }
 
       whenReady(() => {
+        scrollToGraphsIfRequested(); // ✅ add this line
+
         function start() {
           const d3 = window.d3;
           const container = document.getElementById("guitar-chart");
