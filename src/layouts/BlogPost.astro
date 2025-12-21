@@ -48,7 +48,7 @@ const SITE = 'https://lifeloggerz.com';
 const canonical = new URL(Astro.url.pathname, SITE).toString();
 const abs = (p?: string) => (p ? new URL(p, SITE).toString() : undefined);
 
-const defaultOgPath = '/about-lifeloggerz.png';
+const defaultOgPath = '/about-lifeloggerz.webp';
 const ogImagePath = heroImage ?? defaultOgPath;
 const ogImage = abs(ogImagePath);
 

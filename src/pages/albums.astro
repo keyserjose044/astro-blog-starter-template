@@ -58,7 +58,7 @@ async function fetchAllRaindrops() {
       new Date(a.created || a.lastUpdate || 0).getTime()
   );
 
-  const placeholder = '/images/album-placeholder.png';
+  const placeholder = '/images_webp/album-placeholder.webp';
   return items.map((it) => ({
     id: it._id,
     title: it.title ?? 'Untitled',

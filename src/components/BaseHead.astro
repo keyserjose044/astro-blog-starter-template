@@ -9,7 +9,7 @@ interface Props {
   image?: string; // path or absolute URL
 }
 
-const { title, description, image = '/about-lifeloggerz.png' } = Astro.props;
+const { title, description, image = '/about-lifeloggerz.webp' } = Astro.props;
 
 // Build absolute URLs for canonical + social tags
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -26,9 +26,9 @@ const base = import.meta.env.BASE_URL || '/';
 
 <!-- Favicon & app icons -->
 <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-<link rel="alternate icon" type="image/png" href={`${base}favicon.png`} />
+<link rel="alternate icon" type="image/png" href={`${base}favicon.webp`} />
 <link rel="shortcut icon" href={`${base}favicon.ico`} />
-<link rel="apple-touch-icon" href={`${base}favicon.png`} />
+<link rel="apple-touch-icon" href={`${base}favicon.webp`} />
 <meta name="theme-color" content="#ffffff" />
 
 <!-- Font preloads (prefer woff2 if available) -->
