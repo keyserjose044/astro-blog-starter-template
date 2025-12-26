@@ -10,6 +10,17 @@ const metrics = [
   { key: "music", label: "Music Hours", icon: "🎵" },
 ];
 
+const YEAR_COLORS = [
+  "#2563eb", // bright blue
+  "#f97316", // orange
+  "#22c55e", // green
+  "#e11d48", // red
+  "#a855f7", // purple
+  "#14b8a6", // teal
+  "#facc15", // yellow
+  "#64748b", // slate
+];
+
 const defaultMetricKey = "guitar";
 ---
 
@@ -622,30 +633,31 @@ const defaultMetricKey = "guitar";
         
           // Draw one line per year with varying opacity / hue
           seriesByYear.forEach((series, idx) => {
-            const color = `hsl(${210 + idx * 15}, 80%, 50%)`;
-        
+            const color = YEAR_COLORS[idx % YEAR_COLORS.length];
+          
             svg
               .append("path")
               .datum(series.values)
               .attr("fill", "none")
               .attr("stroke", color)
               .attr("stroke-width", 2)
-              .attr("opacity", 0.9)
+              .attr("opacity", 0.95)
               .attr("d", line);
           });
-        
+
+      
           // Simple legend (year labels) in the top-right corner
           const legend = svg
             .append("g")
             .attr("transform", `translate(${width - margin.right - 80}, ${margin.top})`);
-        
+
           seriesByYear.forEach((series, idx) => {
-            const color = `hsl(${210 + idx * 15}, 80%, 50%)`;
-        
+            const color = YEAR_COLORS[idx % YEAR_COLORS.length];
+          
             const row = legend
               .append("g")
               .attr("transform", `translate(0, ${idx * 16})`);
-        
+          
             row
               .append("line")
               .attr("x1", 0)
@@ -654,7 +666,7 @@ const defaultMetricKey = "guitar";
               .attr("y2", 6)
               .attr("stroke", color)
               .attr("stroke-width", 2);
-        
+          
             row
               .append("text")
               .attr("x", 20)
@@ -663,7 +675,6 @@ const defaultMetricKey = "guitar";
               .attr("fill", "#111827")
               .text(series.year);
           });
-        }
 
         // ----------- SMART X SCALE (reduced whitespace) -----------
         const x = d3
