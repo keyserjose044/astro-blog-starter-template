@@ -249,9 +249,10 @@ const defaultMetricKey = "guitar";
             return;
           }
         
-          select.innerHTML = years
-            .map((y) => `<option value="${y}">${y}</option>`)
-            .join("");
+          // 👇 Add "All years" before the numeric options
+          select.innerHTML =
+            `<option value="all">All years</option>` +
+            years.map((y) => `<option value="${y}">${y}</option>`).join("");
         
           // URL override → current year → fallback
           if (initial.year && years.includes(initial.year)) {
@@ -265,16 +266,22 @@ const defaultMetricKey = "guitar";
           select.value = String(currentYear);
         }
 
-
         function drawCurrent() {
-          if (activeMetricKey && currentYear) {
+          if (!activeMetricKey) return;
+        
+          if (currentYear === null) {
+            // All years overlay
+            drawChartAllYears(activeMetricKey, allData, container, d3);
+          } else {
+            // Single year (existing behavior)
             drawChart(activeMetricKey, currentYear, allData, container, d3);
           }
         }
 
         // Year dropdown
         select.addEventListener("change", () => {
-          currentYear = Number(select.value);
+          const val = select.value;
+          currentYear = (val === "all") ? null : Number(val);
           drawCurrent();
         });
         
@@ -363,7 +370,191 @@ const defaultMetricKey = "guitar";
           .attr("width", width)
           .attr("height", height)
           .style("overflow", "visible");
-        
+
+
+      function drawChartAllYears(metricKey, data, container, d3) {
+        const cfg = METRICS[metricKey] || METRICS.guitar;
+      
+        // Filter to this metric only
+        const metricData = data.filter((d) => d.metric === metricKey);
+      
+        // Unique years for this metric
+        const years = Array.from(
+          new Set(metricData.map((d) => d.year).filter(Boolean))
+        ).sort((a, b) => a - b);
+      
+        if (!years.length) {
+          container.innerHTML =
+            '<div class="graph-card__fallback">No data for this metric.</div>';
+          const totalEl = document.getElementById("guitar-year-total");
+          if (totalEl) {
+            totalEl.innerHTML =
+              '<span class="year-label"><strong>All years</strong> total:</span>' +
+              '<span class="graph-pill">No data</span>';
+          }
+          return;
+        }
+      
+        // Build series: one array of {month, value} per year
+        const seriesByYear = years.map((year) => {
+          const values = monthOrder.map((m) => {
+            const match = metricData.find(
+              (d) => d.year === year && d.month === m
+            );
+            const raw = match ? match.value : 0;
+            const value = Math.round(raw);
+            return { month: m, value };
+          });
+          return { year, values };
+        });
+      
+        // Flatten all values to compute y-scale
+        const flatValues = seriesByYear.flatMap((s) =>
+          s.values.map((v) => v.value)
+        );
+        const maxY = flatValues.length ? Math.max(...flatValues) : 1;
+      
+        let step;
+        if (maxY <= 10) step = 1;
+        else if (maxY <= 50) step = 5;
+        else if (maxY <= 100) step = 10;
+        else if (maxY <= 500) step = 50;
+        else if (maxY <= 1000) step = 100;
+        else step = 250;
+      
+        const niceMaxY = Math.ceil(maxY / step) * step;
+      
+        // Update total line for "All years"
+        const totalEl = document.getElementById("guitar-year-total");
+        if (totalEl) {
+          let totalValue;
+      
+          if (metricKey === "diary") {
+            // Average across all non-zero monthly diary values
+            const vals = flatValues.filter((v) => v > 0);
+            totalValue = vals.length
+              ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
+              : 0;
+          } else {
+            // Sum across all years
+            totalValue = flatValues.reduce((s, v) => s + v, 0);
+          }
+      
+          totalEl.innerHTML = `
+            <span class="year-label"><strong>All years</strong> total:</span>
+            <span class="graph-pill">${totalValue} ${cfg.unit}</span>
+          `;
+        }
+      
+        const margin = { top: 24, right: 24, bottom: 40, left: 48 };
+        const width = container.clientWidth || 800;
+        const height = 360;
+      
+        container.innerHTML = "";
+      
+        const svg = d3
+          .select(container)
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .style("overflow", "visible");
+      
+        // Same x-scale as single-year chart
+        const x = d3
+          .scalePoint()
+          .domain(monthOrder)
+          .range([margin.left, width - margin.right])
+          .padding(0.15);
+      
+        const y = d3
+          .scaleLinear()
+          .domain([0, niceMaxY])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
+      
+        // X axis
+        const xAxis = (g) =>
+          g
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).tickSizeOuter(0))
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", "#111827");
+      
+        // Y axis
+        const yAxis = (g) =>
+          g
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y).ticks(6))
+            .call((g2) => {
+              g2.select(".domain").remove();
+              g2
+                .append("line")
+                .attr("x1", 0)
+                .attr("x2", 0)
+                .attr("y1", y(0))
+                .attr("y2", y(niceMaxY))
+                .attr("stroke", "#6b7280")
+                .attr("stroke-width", 1.25);
+            })
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", "#111827");
+      
+        svg.append("g").call(xAxis);
+        svg.append("g").call(yAxis);
+      
+        const line = d3
+          .line()
+          .x((d) => x(d.month))
+          .y((d) => y(d.value))
+          .curve(d3.curveMonotoneX);
+      
+        // Draw one line per year with varying opacity / hue
+        seriesByYear.forEach((series, idx) => {
+          const color = `hsl(${210 + idx * 15}, 80%, 50%)`;
+      
+          svg
+            .append("path")
+            .datum(series.values)
+            .attr("fill", "none")
+            .attr("stroke", color)
+            .attr("stroke-width", 2)
+            .attr("opacity", 0.9)
+            .attr("d", line);
+        });
+      
+        // Simple legend (year labels) in the top-right corner
+        const legend = svg
+          .append("g")
+          .attr("transform", `translate(${width - margin.right - 80}, ${margin.top})`);
+      
+        seriesByYear.forEach((series, idx) => {
+          const color = `hsl(${210 + idx * 15}, 80%, 50%)`;
+      
+          const row = legend
+            .append("g")
+            .attr("transform", `translate(0, ${idx * 16})`);
+      
+          row
+            .append("line")
+            .attr("x1", 0)
+            .attr("x2", 16)
+            .attr("y1", 6)
+            .attr("y2", 6)
+            .attr("stroke", color)
+            .attr("stroke-width", 2);
+      
+          row
+            .append("text")
+            .attr("x", 20)
+            .attr("y", 9)
+            .attr("font-size", 11)
+            .attr("fill", "#111827")
+            .text(series.year);
+        });
+      }
+
         // ----------- SMART X SCALE (reduced whitespace) -----------
         const x = d3
           .scalePoint()
