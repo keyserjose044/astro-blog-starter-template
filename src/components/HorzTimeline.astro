@@ -296,13 +296,12 @@ const phaseBands =
       max-width: 640px;
       margin-inline: auto;
     }
-
-    /* TRACK */
-
+    
+    /* TRACK WRAP */
     .horz-timeline__track-wrap {
-      margin-top: 2.3rem;
+      margin-top: 2rem;        /* you can tweak this */
       margin-bottom: 1.5rem;
-      padding: 0.2rem 0 0.7rem;
+      padding: 22px 0 0.7rem;  /* ⬅ add top padding so bands sit “above” the line */
       overflow-x: auto;
     }
 
@@ -331,14 +330,13 @@ const phaseBands =
       );
       pointer-events: none;
     }
-
-    /* PHASE BANDS */
-
+    
+    /* PHASE BANDS CONTAINER */
     .horz-timeline__phases {
       position: absolute;
       left: 0;
       right: 0;
-      top: -32px;
+      top: 4px;                /* ⬅ no longer negative; sits within the padded area */
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 0.4rem;
