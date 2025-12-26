@@ -306,7 +306,7 @@ const guitar = await fetchAllRaindrops();
       <div class="help-inline-wrapper">
         <section
           id="guitar-help"
-          class="help-inline"
+          class="help-inline hidden"
           aria-label="How I practice & track guitar"
         >
           <h2>How I Practice & Track</h2>
@@ -495,8 +495,6 @@ const guitar = await fetchAllRaindrops();
         }
 
         if (helpBtn && helpBox){
-          // open by default (like Books)
-          openHelp();
 
           helpBtn.addEventListener('click', () => {
             const isHidden = helpBox.classList.contains('hidden');
