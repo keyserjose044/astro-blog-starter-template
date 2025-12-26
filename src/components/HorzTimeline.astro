@@ -84,6 +84,12 @@ const phaseBands =
         return null;
       }
 
+      // Tag all items in this phase range with the phase variant index
+      for (let i = startIndex; i <= endIndex; i += 1) {
+        // eslint-disable-next-line no-param-reassign
+        (safeItems[i] as any)._phaseVariant = index;
+      }
+
       return {
         ...phase,
         startCol: startIndex + 1,
@@ -162,6 +168,11 @@ const phaseBands =
         <div class="horz-timeline__panels">
           {safeItems.map((item, index) => {
             const isActive = index === 0;
+            const phaseVariant =
+              typeof (item as any)._phaseVariant === 'number'
+                ? (item as any)._phaseVariant
+                : 'default';
+
             return (
               <article
                 id={`horz-panel-${item._id}`}
@@ -183,7 +194,9 @@ const phaseBands =
                 {(item.tag || item.phase) && (
                   <p class="horz-timeline__panel-phase">
                     {item.tag && (
-                      <span class="horz-timeline__panel-tag">
+                      <span
+                        class={`horz-timeline__panel-tag phase-tag--${phaseVariant}`}
+                      >
                         {item.tag}
                       </span>
                     )}
@@ -291,15 +304,15 @@ const phaseBands =
       max-width: 640px;
       margin-inline: auto;
     }
-    
+
     /* TRACK WRAP */
     .horz-timeline__track-wrap {
       margin-top: 2.1rem;
       margin-bottom: 1.5rem;
-      padding: 32px 0 0.7rem;   /* extra top “ceiling” for the ovals */
+      padding: 32px 0 0.7rem; /* extra top “ceiling” for the ovals */
       overflow-x: auto;
     }
-    
+
     .horz-timeline__track {
       position: relative;
       display: grid;
@@ -325,26 +338,26 @@ const phaseBands =
       );
       pointer-events: none;
     }
-    
+
     /* PHASE BANDS CONTAINER */
     .horz-timeline__phases {
       position: absolute;
       left: 0;
       right: 0;
-      top: -32px;       /* floats above the bubbles */
+      top: -32px; /* floats above the bubbles, per your setting */
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 0.4rem;
       pointer-events: none;
     }
-    
+
     .horz-timeline__phase-band {
       pointer-events: auto;
       border: none;
       cursor: pointer;
       border-radius: 999px;
       padding: 0 0.9rem;
-      min-height: 20px;    /* thin oval */
+      min-height: 20px; /* thin oval */
       background: var(--phase-bg, rgba(255, 255, 255, 0.9));
       box-shadow:
         0 4px 10px rgba(0, 0, 0, 0.08),
@@ -358,7 +371,7 @@ const phaseBands =
         box-shadow 0.16s ease,
         background 0.16s ease;
     }
-    
+
     .horz-timeline__phase-label {
       font-size: 0.68rem;
       text-transform: uppercase;
@@ -378,38 +391,38 @@ const phaseBands =
 
     /* 0: GS Systems – cool blue */
     .horz-timeline__phase-band--0 {
-      --phase-bg: rgba(237, 242, 255, 0.95);      /* #edf2ff */
-      --phase-border: rgba(59, 130, 246, 0.35);   /* blue-500 */
+      --phase-bg: rgba(237, 242, 255, 0.95); /* #edf2ff */
+      --phase-border: rgba(59, 130, 246, 0.35); /* blue-500 */
       --phase-border-strong: rgba(59, 130, 246, 0.7);
       --phase-shadow: rgba(59, 130, 246, 0.35);
-      --phase-text: #1d4ed8;                      /* blue-700 */
+      --phase-text: #1d4ed8; /* blue-700 */
     }
 
     /* 1: Python Automation – green */
     .horz-timeline__phase-band--1 {
-      --phase-bg: rgba(236, 253, 245, 0.95);      /* #ecfdf3 */
-      --phase-border: rgba(34, 197, 94, 0.35);    /* green-500 */
+      --phase-bg: rgba(236, 253, 245, 0.95); /* #ecfdf3 */
+      --phase-border: rgba(34, 197, 94, 0.35); /* green-500 */
       --phase-border-strong: rgba(34, 197, 94, 0.7);
       --phase-shadow: rgba(34, 197, 94, 0.35);
-      --phase-text: #15803d;                      /* green-700 */
+      --phase-text: #15803d; /* green-700 */
     }
 
     /* 2: Guitar Focus – amber/orange */
     .horz-timeline__phase-band--2 {
-      --phase-bg: rgba(255, 251, 235, 0.95);      /* #fffbeb */
-      --phase-border: rgba(245, 158, 11, 0.4);    /* amber-500 */
+      --phase-bg: rgba(255, 251, 235, 0.95); /* #fffbeb */
+      --phase-border: rgba(245, 158, 11, 0.4); /* amber-500 */
       --phase-border-strong: rgba(245, 158, 11, 0.8);
       --phase-shadow: rgba(245, 158, 11, 0.35);
-      --phase-text: #b45309;                      /* amber-700 */
+      --phase-text: #b45309; /* amber-700 */
     }
 
     /* 3: LifeLoggerz / Web – magenta/violet */
     .horz-timeline__phase-band--3 {
-      --phase-bg: rgba(253, 242, 255, 0.95);      /* #fdf2ff */
-      --phase-border: rgba(236, 72, 153, 0.4);    /* pink-500 */
+      --phase-bg: rgba(253, 242, 255, 0.95); /* #fdf2ff */
+      --phase-border: rgba(236, 72, 153, 0.4); /* pink-500 */
       --phase-border-strong: rgba(236, 72, 153, 0.8);
       --phase-shadow: rgba(236, 72, 153, 0.35);
-      --phase-text: #be185d;                      /* pink-700 */
+      --phase-text: #be185d; /* pink-700 */
     }
 
     /* POINTS */
@@ -537,6 +550,32 @@ const phaseBands =
       border: 1px solid rgba(35, 55, 255, 0.25);
       background: rgba(35, 55, 255, 0.06);
       color: var(--accent-dark);
+    }
+
+    /* Phase-colored tag overrides */
+
+    .phase-tag--0 {
+      border-color: rgba(59, 130, 246, 0.6);
+      background: rgba(237, 242, 255, 0.9);
+      color: #1d4ed8;
+    }
+
+    .phase-tag--1 {
+      border-color: rgba(34, 197, 94, 0.6);
+      background: rgba(236, 253, 245, 0.9);
+      color: #15803d;
+    }
+
+    .phase-tag--2 {
+      border-color: rgba(245, 158, 11, 0.6);
+      background: rgba(255, 251, 235, 0.9);
+      color: #b45309;
+    }
+
+    .phase-tag--3 {
+      border-color: rgba(236, 72, 153, 0.6);
+      background: rgba(253, 242, 255, 0.9);
+      color: #be185d;
     }
 
     .horz-timeline__panel-phase-text {
