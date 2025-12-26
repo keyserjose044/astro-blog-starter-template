@@ -495,7 +495,9 @@ const defaultMetricKey = "guitar";
         function drawChartAllYears(metricKey, data, container, d3) {
           const cfg = METRICS[metricKey] || METRICS.guitar;
         
-          const metricData = data.filter((d) => d.metric === metricKey);
+          const metricData = data.filter(
+            (d) => d.metric === metricKey && d.year && d.year <= CURRENT_YEAR
+          );
           const years = Array.from(
             new Set(metricData.map((d) => d.year).filter(Boolean))
           ).sort((a, b) => a - b);
