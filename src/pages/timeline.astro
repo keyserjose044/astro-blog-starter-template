@@ -155,13 +155,41 @@ const items = [
     ],
   },
 ];
+
+// Four high-level eras for the horizontal phase bands
+const phases = [
+  {
+    label: 'GS Systems',
+    subtitle: 'Jan – Apr',
+    startId: 'jan',
+    endId: 'apr',
+  },
+  {
+    label: 'Python Automation',
+    subtitle: 'May – Jul',
+    startId: 'may',
+    endId: 'jul',
+  },
+  {
+    label: 'Guitar Focus',
+    subtitle: 'Aug – Sep',
+    startId: 'aug',
+    endId: 'sep',
+  },
+  {
+    label: 'LifeLoggerz / Web',
+    subtitle: 'Oct – Dec',
+    startId: 'oct',
+    endId: 'dec',
+  },
+];
 ---
 
 <html lang="en">
   <head>
     <BaseHead
       title="2025 at a Glance"
-      description="A horizontal, clickable timeline of how 2025 unfolded: GS, Python automation, Guitar mastery, and Web Design."
+      description="A timeline of how 2025 unfolded: Google Sheets expansion, Python automation, Guitar focus, and LifeLoggerz web design."
       image="/about-lifeloggerz.webp"
     />
   </head>
@@ -175,6 +203,7 @@ const items = [
             <HorzTimeline
               year={year}
               items={items}
+              phases={phases}
               heading="Year in review"
               subheading="Four main phases — Google Sheets, Python automation, Guitar mastery, and Web design — stitched together month by month."
             />
