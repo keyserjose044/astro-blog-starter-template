@@ -130,7 +130,7 @@ const guitar = await fetchAllRaindrops();
       align-items:center;
       justify-content:center;
       gap:12px;
-      margin:6px auto 32px;
+      margin:6px auto 16px;
       padding-inline:clamp(16px,3vw,48px);
       max-width:960px;
       width:100%;
@@ -151,7 +151,6 @@ const guitar = await fetchAllRaindrops();
       display:flex;
       align-items:center;
       gap:8px;
-      position:relative;
     }
     .pill-icon{
       width:40px;
@@ -173,6 +172,48 @@ const guitar = await fetchAllRaindrops();
       background:#e3e7f0;
       box-shadow:0 4px 10px rgba(15,23,42,0.16);
       transform:translateY(-1px);
+    }
+
+    /* INLINE HELP PANEL (Books-style) */
+    .help-inline-wrapper{
+      display:flex;
+      justify-content:center;
+      padding-inline:clamp(16px,3vw,48px);
+      margin-bottom:24px;
+    }
+    .help-inline{
+      max-width:960px;
+      width:100%;
+      background:#ffffff;
+      border-radius:18px;
+      border:1px solid var(--border);
+      box-shadow:0 18px 40px rgba(15,23,42,0.12);
+      padding:18px 20px 16px;
+      font-size:.95rem;
+      line-height:1.6;
+    }
+    .help-inline.hidden{
+      display:none;
+    }
+    .help-inline h2{
+      margin:0 0 6px;
+      font-size:1rem;
+      font-weight:600;
+    }
+    .help-inline p{
+      margin:0 0 8px;
+      color:var(--ink);
+    }
+    .help-inline ul{
+      margin:0 0 8px 18px;
+      padding:0;
+      color:var(--muted);
+    }
+    .help-inline small{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.8rem;
     }
 
     .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
@@ -201,45 +242,6 @@ const guitar = await fetchAllRaindrops();
     }
 
     .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
-
-    /* HELP DROPDOWN */
-    .help-panel{
-      position:absolute;
-      top:110%;
-      right:0;
-      width:min(340px,80vw);
-      background:#ffffff;
-      border-radius:14px;
-      border:1px solid var(--border);
-      box-shadow:0 18px 40px rgba(15,23,42,0.25);
-      padding:12px 14px 12px;
-      font-size:.9rem;
-      line-height:1.5;
-      color:var(--ink);
-      z-index:30;
-      display:none;
-    }
-    .help-panel.is-open{
-      display:block;
-    }
-    .help-panel h2{
-      margin:0 0 4px;
-      font-size:.95rem;
-      font-weight:600;
-    }
-    .help-panel p{
-      margin:0 0 8px;
-      color:var(--muted);
-    }
-    .help-panel ul{
-      margin:0 0 6px 18px;
-      padding:0;
-      color:var(--muted);
-    }
-    .help-panel small{
-      color:var(--muted);
-      font-size:.8rem;
-    }
   </style>
 </head>
 
@@ -277,14 +279,19 @@ const guitar = await fetchAllRaindrops();
 
     <main class="wrap wrap--wide">
       <div class="toolbar">
-        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter guitar items" />
+        <input
+          id="q"
+          type="search"
+          placeholder="Search title or note…"
+          aria-label="Filter guitar items"
+        />
         <div class="toolbar-actions">
           <button
             class="pill-icon"
             type="button"
             id="guitar-help-btn"
             aria-label="How I practice & track guitar"
-            aria-expanded="false"
+            aria-expanded="true"
           >?</button>
 
           <a
@@ -292,34 +299,34 @@ const guitar = await fetchAllRaindrops();
             href="/stats?metric=guitar#graphs"
             aria-label="View guitar stats & graphs"
           >📊</a>
-
-          <!-- dropdown help panel -->
-          <div
-            class="help-panel"
-            id="guitar-help-panel"
-            role="region"
-            aria-label="How I practice & track guitar"
-            aria-hidden="true"
-          >
-            <h2>How I Practice & Track</h2>
-            <p>
-              This page is a log of how I’ve built guitar over time using
-              <strong>consistent, low-friction practice</strong>.
-            </p>
-            <ul>
-              <li><strong>10-minute rule:</strong> play every day, no exceptions.</li>
-              <li><strong>Two streams:</strong> Technique/Acquisition and Song/Composition.</li>
-              <li><strong>Date-based logging:</strong> every learning event is written into Google Sheets.</li>
-              <li><strong>Boredom = signal:</strong> when repeats feel stale, I add new techniques instead of stopping.</li>
-              <li><strong>Burnout-safe:</strong> load can drop, but I keep the daily floor to avoid reset.</li>
-            </ul>
-            <p>
-              Together with the graphs on the Stats page, this becomes a
-              <strong>map of learning</strong> rather than a random list of guitar videos.
-            </p>
-            <small>Same LifeLoggerz philosophy: track, adjust, compound.</small>
-          </div>
         </div>
+      </div>
+
+      <!-- INLINE HELP PANEL (Books-style, between toolbar & gallery) -->
+      <div class="help-inline-wrapper">
+        <section
+          id="guitar-help"
+          class="help-inline"
+          aria-label="How I practice & track guitar"
+        >
+          <h2>How I Practice & Track</h2>
+          <p>
+            This page is a log of how I’ve built guitar over time using
+            <strong>consistent, low-friction practice.</strong>
+          </p>
+          <ul>
+            <li><strong>10-minute rule:</strong> play every day, no exceptions.</li>
+            <li><strong>Two streams:</strong> Technique/Acquisition and Song/Composition.</li>
+            <li><strong>Date-based logging:</strong> every learning event is written into Google Sheets.</li>
+            <li><strong>Boredom = signal:</strong> when repeats feel stale, I add new techniques instead of stopping.</li>
+            <li><strong>Burnout-safe:</strong> load can drop, but I keep the daily floor to avoid reset.</li>
+          </ul>
+          <p>
+            Together with the graphs on the Stats page, this becomes a
+            <strong>map of learning</strong> rather than a random list of guitar videos.
+          </p>
+          <small>Same LifeLoggerz philosophy: track, adjust, compound.</small>
+        </section>
       </div>
 
       {guitar.length === 0 ? (
@@ -357,7 +364,7 @@ const guitar = await fetchAllRaindrops();
 
     <script>
       (function(){
-        const $ = (sel,root=document)=>root.querySelector(sel);
+        const $  = (sel,root=document)=>root.querySelector(sel);
         const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
         /* HERO VIDEO AUDIO LOGIC */
@@ -368,9 +375,7 @@ const guitar = await fetchAllRaindrops();
           const tryPlay = () => {
             const p = heroVideo.play();
             if (p && typeof p.catch === 'function') {
-              p.catch(() => {
-                // Autoplay blocked — user will have to click.
-              });
+              p.catch(() => { /* autoplay may be blocked */ });
             }
           };
 
@@ -419,49 +424,15 @@ const guitar = await fetchAllRaindrops();
         }
         input.addEventListener('input', debounce(filter, 80));
 
-        /* HELP DROPDOWN LOGIC */
-        const helpBtn   = $('#guitar-help-btn');
-        const helpPanel = $('#guitar-help-panel');
-
-        const openHelp = () => {
-          if (!helpPanel || !helpBtn) return;
-          helpPanel.classList.add('is-open');
-          helpPanel.setAttribute('aria-hidden','false');
-          helpBtn.setAttribute('aria-expanded','true');
-        };
-        const closeHelp = () => {
-          if (!helpPanel || !helpBtn) return;
-          helpPanel.classList.remove('is-open');
-          helpPanel.setAttribute('aria-hidden','true');
-          helpBtn.setAttribute('aria-expanded','false');
-        };
-
-        if (helpBtn && helpPanel) {
-          helpBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (helpPanel.classList.contains('is-open')) {
-              closeHelp();
-            } else {
-              openHelp();
-            }
-          });
-
-          document.addEventListener('click', (e) => {
-            if (!helpPanel.classList.contains('is-open')) return;
-            const target = e.target;
-            if (helpPanel.contains(target) || helpBtn.contains(target)) return;
-            closeHelp();
-          });
-        }
-
+        // Books-style keyboard helpers
         window.addEventListener('keydown', e => {
           if (e.key==='Escape'){
             input.value='';
             filter();
             input.focus();
+            // also collapse help panel on Esc
             closeHelp();
-          }
-          else if (e.key==='/' && e.target===document.body){
+          } else if (e.key==='/' && e.target===document.body){
             e.preventDefault();
             input.focus();
           }
@@ -495,7 +466,10 @@ const guitar = await fetchAllRaindrops();
 
         document.addEventListener('click', e=>{
           const card = e.target.closest('.card');
-          if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+          if (!card){
+            cards.forEach(c=>c.classList.remove('show-note'));
+            return;
+          }
           if (!card.querySelector('.note-bubble')) return;
           if (card.classList.contains('show-note')) return;
           e.preventDefault();
@@ -504,9 +478,33 @@ const guitar = await fetchAllRaindrops();
           requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
           setTimeout(()=>card.classList.remove('show-note'), 2500);
         }, true);
+
+        /* INLINE HELP TOGGLE (Books-style) */
+        const helpBtn  = $('#guitar-help-btn');
+        const helpBox  = $('#guitar-help');
+
+        function openHelp(){
+          if (!helpBox || !helpBtn) return;
+          helpBox.classList.remove('hidden');
+          helpBtn.setAttribute('aria-expanded','true');
+        }
+        function closeHelp(){
+          if (!helpBox || !helpBtn) return;
+          helpBox.classList.add('hidden');
+          helpBtn.setAttribute('aria-expanded','false');
+        }
+
+        if (helpBtn && helpBox){
+          // open by default (like Books)
+          openHelp();
+
+          helpBtn.addEventListener('click', () => {
+            const isHidden = helpBox.classList.contains('hidden');
+            if (isHidden) openHelp(); else closeHelp();
+          });
+        }
       })();
     </script>
   </VideoBg>
 </body>
 </html>
-
