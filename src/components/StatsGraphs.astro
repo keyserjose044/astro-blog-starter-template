@@ -369,7 +369,12 @@ const defaultMetricKey = "guitar";
               <span class="graph-pill">${totalValue} ${cfg.unit}</span>
             `;
           }
-        
+          
+          if (titleText) {
+            titleText.textContent = `${cfg.label} (All years overlay)`;
+          }
+
+
           const margin = { top: 24, right: 24, bottom: 40, left: 48 };
           const width = container.clientWidth || 800;
           const height = 360;
