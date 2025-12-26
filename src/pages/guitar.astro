@@ -215,6 +215,20 @@ const guitar = await fetchAllRaindrops();
       color:var(--muted);
       font-size:.8rem;
     }
+    .help-inline figure{
+      margin:8px 0 10px;
+    }
+    .help-inline img{
+      width:100%;
+      border-radius:10px;
+      display:block;
+      box-shadow:0 8px 20px rgba(15,23,42,0.18);
+    }
+    .help-inline figcaption{
+      margin-top:4px;
+      font-size:.8rem;
+      color:var(--muted);
+    }
 
     .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
 
@@ -321,6 +335,20 @@ const guitar = await fetchAllRaindrops();
             <li><strong>Boredom = signal:</strong> when repeats feel stale, I add new techniques instead of stopping.</li>
             <li><strong>Burnout-safe:</strong> load can drop, but I keep the daily floor to avoid reset.</li>
           </ul>
+        
+          <figure>
+            <img
+              src="/images_webp/guitartracking.webp"
+              alt="Guitar practice log showing dates, techniques and songs tracked in Google Sheets"
+              loading="lazy"
+              decoding="async"
+            />
+            <figcaption>
+              A slice of my guitar tracking sheet — each row is a dated learning event with
+              technique on the left and song or composition on the right.
+            </figcaption>
+          </figure>
+        
           <p>
             Together with the graphs on the Stats page, this becomes a
             <strong>map of learning</strong> rather than a random list of guitar videos.
