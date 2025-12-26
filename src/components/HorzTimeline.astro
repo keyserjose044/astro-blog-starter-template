@@ -133,11 +133,6 @@ const phaseBands =
                     <span class="horz-timeline__phase-label">
                       {phase.label}
                     </span>
-                    {phase.subtitle && (
-                      <span class="horz-timeline__phase-subtitle">
-                        {phase.subtitle}
-                      </span>
-                    )}
                   </button>
                 ))}
               </div>
@@ -299,12 +294,12 @@ const phaseBands =
     
     /* TRACK WRAP */
     .horz-timeline__track-wrap {
-      margin-top: 2rem;        /* you can tweak this */
+      margin-top: 2.1rem;
       margin-bottom: 1.5rem;
-      padding: 22px 0 0.7rem;  /* ⬅ add top padding so bands sit “above” the line */
+      padding: 28px 0 0.7rem;   /* extra top “ceiling” for the ovals */
       overflow-x: auto;
     }
-
+    
     .horz-timeline__track {
       position: relative;
       display: grid;
@@ -336,37 +331,38 @@ const phaseBands =
       position: absolute;
       left: 0;
       right: 0;
-      top: 4px;                /* ⬅ no longer negative; sits within the padded area */
+      top: -6px;       /* floats above the bubbles */
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 0.4rem;
       pointer-events: none;
     }
-
+    
     .horz-timeline__phase-band {
       pointer-events: auto;
       border: none;
       cursor: pointer;
       border-radius: 999px;
-      padding: 0.22rem 0.6rem;
+      padding: 0 0.9rem;
+      min-height: 20px;    /* thin oval */
       background: var(--phase-bg, rgba(255, 255, 255, 0.9));
       box-shadow:
-        0 8px 18px rgba(0, 0, 0, 0.08),
+        0 4px 10px rgba(0, 0, 0, 0.08),
         0 0 0 1px var(--phase-border, rgba(35, 55, 255, 0.14));
-      display: flex;
-      flex-direction: column;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      min-height: 26px;
       transition:
         transform 0.16s ease,
         box-shadow 0.16s ease,
         background 0.16s ease;
     }
-
-    .horz-timeline__phase-label,
-    .horz-timeline__phase-subtitle {
+    
+    .horz-timeline__phase-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
       color: var(--phase-text, var(--accent-dark));
     }
 
