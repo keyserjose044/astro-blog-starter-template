@@ -10,7 +10,7 @@ export interface TimelineItem {
   title?: string;
   /** e.g. "Google Sheets systems" */
   tag?: string;
-  /** Optional small phase/secondary line */
+  /** Optional small phase/secondary line inside the panel */
   phase?: string;
   /** Main paragraph text */
   description?: string;
@@ -18,11 +18,24 @@ export interface TimelineItem {
   bullets?: string[];
 }
 
+export interface Phase {
+  /** e.g. "GS Systems" */
+  label: string;
+  /** e.g. "jan" */
+  startId: string;
+  /** e.g. "apr" */
+  endId: string;
+  /** Optional subtitle like "Jan – Apr" */
+  subtitle?: string;
+}
+
 export interface Props {
   year?: number | string;
   heading?: string;
   subheading?: string;
   items: TimelineItem[];
+  /** Optional bands that group months into eras */
+  phases?: Phase[];
 }
 
 const {
@@ -30,12 +43,55 @@ const {
   heading = '',
   subheading = '',
   items = [],
+  phases = [],
 } = Astro.props as Props;
 
+// Normalize items and guarantee a stable internal id
 const safeItems = items.map((item, index) => ({
   ...item,
-  _id: item.id ?? `item-${index}`,
+  _id: item.id ?? item.label.toLowerCase() ?? `item-${index}`,
 }));
+
+// Build phase bands that span the underlying 12-column grid
+const normalize = (v: string | undefined | null) =>
+  (v ?? '').toString().toLowerCase().trim();
+
+const phaseBands =
+  phases
+    ?.map((phase) => {
+      const startKey = normalize(phase.startId);
+      const endKey = normalize(phase.endId);
+
+      const startIndex = safeItems.findIndex((i) => {
+        const idCandidates = [
+          normalize(i._id),
+          normalize(i.id),
+          normalize(i.label),
+        ];
+        return idCandidates.includes(startKey);
+      });
+
+      const endIndex = safeItems.findIndex((i) => {
+        const idCandidates = [
+          normalize(i._id),
+          normalize(i.id),
+          normalize(i.label),
+        ];
+        return idCandidates.includes(endKey);
+      });
+
+      if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+        return null;
+      }
+
+      return {
+        ...phase,
+        startCol: startIndex + 1,
+        endCol: endIndex + 2, // end is exclusive in CSS grid
+        anchorId: safeItems[startIndex]._id,
+      };
+    })
+    .filter(Boolean) ?? [];
 ---
 
 <section class="horz-timeline">
@@ -64,6 +120,28 @@ const safeItems = items.map((item, index) => ({
       <>
         <div class="horz-timeline__track-wrap">
           <div class="horz-timeline__track">
+            {phaseBands.length > 0 && (
+              <div class="horz-timeline__phases">
+                {phaseBands.map((phase) => (
+                  <button
+                    type="button"
+                    class="horz-timeline__phase-band"
+                    style={`grid-column: ${phase.startCol} / ${phase.endCol};`}
+                    data-target-id={phase.anchorId}
+                  >
+                    <span class="horz-timeline__phase-label">
+                      {phase.label}
+                    </span>
+                    {phase.subtitle && (
+                      <span class="horz-timeline__phase-subtitle">
+                        {phase.subtitle}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {safeItems.map((item, index) => {
               const isActive = index === 0;
               return (
@@ -146,26 +224,34 @@ const safeItems = items.map((item, index) => ({
     timelines.forEach((root) => {
       const points = root.querySelectorAll('.horz-timeline__point');
       const panels = root.querySelectorAll('.horz-timeline__panel');
+      const phaseBands = root.querySelectorAll('.horz-timeline__phase-band');
+
+      const activateById = (id) => {
+        if (!id) return;
+
+        points.forEach((b) => {
+          const isActive = b.dataset.id === id;
+          b.classList.toggle('horz-timeline__point--active', isActive);
+          b.setAttribute('aria-pressed', String(isActive));
+        });
+
+        panels.forEach((panel) => {
+          panel.classList.toggle(
+            'horz-timeline__panel--active',
+            panel.id === `horz-panel-${id}`,
+          );
+        });
+      };
 
       points.forEach((btn) => {
         btn.addEventListener('click', () => {
-          const id = btn.dataset.id;
-          if (!id) return;
+          activateById(btn.dataset.id);
+        });
+      });
 
-          // toggle active dot
-          points.forEach((b) => {
-            const isActive = b === btn;
-            b.classList.toggle('horz-timeline__point--active', isActive);
-            b.setAttribute('aria-pressed', String(isActive));
-          });
-
-          // toggle active panel
-          panels.forEach((panel) => {
-            panel.classList.toggle(
-              'horz-timeline__panel--active',
-              panel.id === `horz-panel-${id}`,
-            );
-          });
+      phaseBands.forEach((band) => {
+        band.addEventListener('click', () => {
+          activateById(band.dataset.targetId);
         });
       });
     });
@@ -213,7 +299,7 @@ const safeItems = items.map((item, index) => ({
     /* TRACK */
 
     .horz-timeline__track-wrap {
-      margin-top: 1.9rem;
+      margin-top: 2.3rem; /* slightly more room for phase bands */
       margin-bottom: 1.5rem;
       padding: 0.2rem 0 0.7rem;
       overflow-x: auto;
@@ -244,6 +330,64 @@ const safeItems = items.map((item, index) => ({
       );
       pointer-events: none;
     }
+
+    /* PHASE BANDS */
+
+    .horz-timeline__phases {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -32px;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 0.4rem;
+      pointer-events: none;
+    }
+
+    .horz-timeline__phase-band {
+      pointer-events: auto;
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 0.22rem 0.6rem;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(35, 55, 255, 0.14);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 26px;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease;
+    }
+
+    .horz-timeline__phase-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-dark);
+    }
+
+    .horz-timeline__phase-subtitle {
+      margin-top: 0.05rem;
+      font-size: 0.7rem;
+      opacity: 0.8;
+    }
+
+    .horz-timeline__phase-band:hover,
+    .horz-timeline__phase-band:focus-visible {
+      transform: translateY(-1px);
+      box-shadow:
+        0 10px 24px rgba(35, 55, 255, 0.35),
+        0 0 0 1px rgba(35, 55, 255, 0.45);
+    }
+
+    /* POINTS */
 
     .horz-timeline__point {
       position: relative;
@@ -409,7 +553,7 @@ const safeItems = items.map((item, index) => ({
       }
 
       .horz-timeline__track-wrap {
-        margin-top: 1.6rem;
+        margin-top: 2rem;
         margin-bottom: 1.1rem;
       }
 
@@ -421,6 +565,11 @@ const safeItems = items.map((item, index) => ({
       .horz-timeline__point-label {
         font-size: 0.7rem;
         letter-spacing: 0.14em;
+      }
+
+      .horz-timeline__phase-label,
+      .horz-timeline__phase-subtitle {
+        font-size: 0.68rem;
       }
 
       .horz-timeline__panel {
