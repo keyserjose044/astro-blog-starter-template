@@ -17,6 +17,7 @@ interface Props {
   heroImageStyle?: string;
   showViews?: boolean;
   heroVideo?: string; // optional hero video
+  showDate?: boolean; // 👈 ADD THIS
 }
 
 const {
@@ -29,6 +30,7 @@ const {
   heroImageStyle,
   showViews = false,
   heroVideo
+  showDate = true, // 👈 ADD THIS
 } = Astro.props as Props;
 
 // ---------- helpers ----------
@@ -353,7 +355,7 @@ const hasCustomHero = Astro.slots.has('hero');
 
           <div class="prose">
             <div class="title">
-              {(hasPub || hasUpd) && (
+              {showDate && (hasPub || hasUpd) && (
                 <div class="date">
                   {hasPub && (
                     <>
