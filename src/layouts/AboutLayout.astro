@@ -17,7 +17,6 @@ interface Props {
   heroImageStyle?: string;
   showViews?: boolean;
   heroVideo?: string; // optional hero video
-  showDate?: boolean; // 👈 ADD THIS
 }
 
 const {
@@ -30,7 +29,6 @@ const {
   heroImageStyle,
   showViews = false,
   heroVideo
-  showDate = true, // 👈 ADD THIS
 } = Astro.props as Props;
 
 // ---------- helpers ----------
