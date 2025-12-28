@@ -355,26 +355,6 @@ const hasCustomHero = Astro.slots.has('hero');
 
           <div class="prose">
             <div class="title">
-              {showDate && (hasPub || hasUpd) && (
-                <div class="date">
-                  {hasPub && (
-                    <>
-                      <FormattedDate date={pub!} />
-                      {showViews && (
-                        <>
-                          <span class="meta-sep"> | </span>
-                          <ViewCounter path={Astro.url.pathname} />
-                        </>
-                      )}
-                    </>
-                  )}
-                  {hasUpd && (
-                    <div class="last-updated-on">
-                      Last updated on <FormattedDate date={upd!} />
-                    </div>
-                  )}
-                </div>
-              )}
               <h1>{title}</h1>
               <hr />
             </div>
