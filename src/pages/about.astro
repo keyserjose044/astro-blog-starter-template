@@ -1,4 +1,3 @@
----
 import AboutLayout from '../layouts/AboutLayout.astro';
 import AboutPhotoBubble from '../components/AboutPhotoBubble.astro';
 
@@ -21,7 +20,7 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
   showViews={false}
 >
 
-  <!-- 🗨️ Little José hero (image + bubble in one component) -->
+  <!-- 🗨️ Little José hero -->
   <AboutPhotoBubble
     slot="hero"
     src="/images/about-lifeloggerz.gif"
@@ -37,16 +36,14 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
 
   <div class="about">
     <p>
-      Welcome! I’m <strong>José</strong> ,the kid sitting down with pen and paper in the photo above. I'm an
-      engineering grad student and the guy behind <strong>LifeLoggerz</strong>. I’m obsessed with optimizing my time and
-      turning messy actions into repeatable systems. When I'm not working or pursuing my other hobbies, I
-      build <strong>Google Sheets dashboards, Python tools, and routines that make research and life run smoother.</strong>
+      I’m <strong>José</strong>, the kid sitting with a pen and paper in the photo above. I’m an engineering grad student and the guy behind <strong>LifeLoggerz</strong>.
+      I’m obsessed with optimizing my time and turning messy actions into repeatable systems. I build <strong>Google Sheets dashboards, Python tools, and routines that make research and life run smoother.</strong>
     </p>
 
     <h2>🎓 How Did This All Start?</h2>
     <p>
       You can explore the <strong>2023, 2024, and 2025 raw data sheets</strong> to see how these systems evolved.
-      I had <strong>no prior experience with Excel or Google Sheets</strong>, so I learned one formula at a time, then moved into formatting and automation with Apps Script and APIs. 
+      I had <strong>no prior experience with Excel or Google Sheets</strong>, so I learned one formula at a time, then moved into formatting and automation with Apps Script and APIs.
       Today, logging my essential stats takes about <strong>5 minutes</strong>, though my diary entries take longer.
       No matter how tired I am, <strong>I still log it.</strong>
     </p>
@@ -62,17 +59,17 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
     <h2>🛠 Tools & Systems I Share</h2>
     <ul class="centered-list">
       <li>Google Sheets templates and dashboards for daily life and research</li>
-      <li>Python apps for analysis, visualization, and exports (Excel/PowerPoint)</li>
+      <li>Python apps for analysis, visualization, and exports (Excel and PowerPoint)</li>
       <li>Templates and routines that remove decision fatigue</li>
     </ul>
 
-    <h2>🎸 And Just What Do You Actually Do With The Time Gained From All This Optimization?</h2>
+    <h2>🎸 What Do I Do With the Time Gained?</h2>
     <p>
       For a while, this was my only hobby. <strong>Nothing else mattered.</strong> Every spare minute went into improving these systems.
-      Eventually, I hit diminishing returns. There’s a limit to how much you should track, and I reached it around May 2025.
-      My systems didn’t need constant upgrading, so I stepped back.
+      Eventually, I hit diminishing returns. There is a limit to how much you should track, and I reached it around May 2025.
+      My systems did not need constant upgrading, so I stepped back.
     </p>
-    
+
     <p>
       Now I keep things stable and use the time I gained. I practice flamenco guitar, listen to audiobooks while I drive or do chores,
       run, learn languages, and spend time with family.
@@ -81,16 +78,15 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
 
     <h2>🌱 Why This Blog Exists</h2>
     <p>
-      For the past <span id="years-since" data-start="2023-01-01">{yearsLabel}</span>, I've given impromptu demos of my
-      systems to people. <strong>Publishing them here allows you to interact with these systems directly.</strong>
-      If you’re curious about tracking your habits, streamlining research, or building your own life-OS, you’re in the
-      right place.
+      For the past <span id="years-since" data-start="2023-01-01">{yearsLabel}</span>, I have been showing these systems to people.
+      This site makes them easy to explore and use.
+      If you are curious about tracking your habits, streamlining research, or building your own life system, you are in the right place.
     </p>
 
     <h2>📬 Get in Touch</h2>
     <p class="centered-email">
       Have a question or suggestion about a template or script?<br />
-      Tell me what you’re building or what you’d like to see next — I’d love to hear from you.
+      Tell me what you are building or what you would like to see next. I would love to hear from you.
       <br /><br />
       📧 <strong>lifeloggerz.official@gmail.com</strong>
     </p>
