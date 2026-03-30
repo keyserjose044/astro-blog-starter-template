@@ -1,3 +1,4 @@
+---
 import Layout from '../layouts/BlogPost.astro';
 import StatsGraphs from '../components/StatsGraphs.astro';
 
@@ -107,7 +108,7 @@ const projects = [
   description="A numbers-first snapshot of who I am, what I track, and the systems I use."
   pubDate="2025-11-17"
   heroImage="/images_webp/stilllife.webp"
-  wide
+  wide={true}
   showViews={false}
 >
   <div class="stats-page">
@@ -126,10 +127,8 @@ const projects = [
           <article class="card card--stat">
             <div class="icon-bubble">{item.icon}</div>
             <div class="stat-label">{item.label}</div>
-            <div class="stat-value" data-stat-key={item.key}>
-              {item.value}
-            </div>
-            {item.note && <p class="muted">{item.note}</p>}
+            <div class="stat-value" data-stat-key={item.key}>{item.value}</div>
+            {item.note ? <p class="muted">{item.note}</p> : null}
           </article>
         ))}
       </div>
@@ -137,7 +136,7 @@ const projects = [
 
     <StatsGraphs />
 
-    {showProhibitions && (
+    {showProhibitions ? (
       <section class="section" aria-labelledby="prohibitions-heading">
         <h2 id="prohibitions-heading">🚫 Prohibitions</h2>
         <p class="section-hint">
@@ -159,9 +158,9 @@ const projects = [
           Over time, strong systems can create a lot of free capacity. The hard part then becomes choosing what matters most.
         </p>
       </section>
-    )}
+    ) : null}
 
-    {showProjects && (
+    {showProjects ? (
       <section class="section" aria-labelledby="projects-heading">
         <h2 id="projects-heading">🧪 Current Projects & Hobbies</h2>
         <p class="section-hint">
@@ -176,199 +175,191 @@ const projects = [
               </div>
               <h3>{project.title}</h3>
               <p class="muted">{project.blurb}</p>
-              {project.tags?.length > 0 && (
+              {project.tags && project.tags.length > 0 ? (
                 <p class="tags">#{project.tags.join('  #')}</p>
-              )}
+              ) : null}
             </article>
           ))}
         </div>
       </section>
-    )}
+    ) : null}
   </div>
 
-  <script>
+  <script is:inline>
     (() => {
       const url =
         'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
 
       async function loadStats() {
         try {
-          console.log('[Stats] Fetching from GAS...');
           const res = await fetch(url);
-
-          if (!res.ok) {
-            console.error('[Stats] Fetch failed with status', res.status);
-            return;
-          }
+          if (!res.ok) return;
 
           const data = await res.json();
-          console.log('[Stats] JSON received:', data);
-
           if (!data) return;
 
           const elements = document.querySelectorAll('[data-stat-key]');
-
-          for (const el of elements) {
+          elements.forEach((el) => {
             const key = el.getAttribute('data-stat-key');
             if (key && data[key] !== undefined && data[key] !== null) {
               el.textContent = String(data[key]);
             }
-          }
-        } catch (err) {
-          console.error('[Stats] Failed to load stats', err);
+          });
+        } catch (_err) {
+          // silently ignore fetch failures on build/runtime
         }
       }
 
       if (typeof window !== 'undefined') {
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          loadStats();
-        } else {
+        if (document.readyState === 'loading') {
           window.addEventListener('DOMContentLoaded', loadStats, { once: true });
+        } else {
+          loadStats();
         }
       }
     })();
   </script>
+</Layout>
 
-  <style is:global>
-    .stats-page {
-      max-width: 960px;
-      margin: 0 auto;
-    }
+<style is:global>
+  .stats-page {
+    max-width: 960px;
+    margin: 0 auto;
+  }
 
-    .stats-page .intro {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: #4b5563;
+  .stats-page .intro {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #4b5563;
+  }
+
+  .section {
+    margin-top: 3rem;
+  }
+
+  .section h2 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-hint {
+    text-align: center;
+    margin: 0 auto 1.75rem;
+    max-width: 640px;
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
     }
 
     .section {
-      margin-top: 3rem;
+      margin-top: 2.25rem;
     }
+  }
 
-    .section h2 {
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
+  .card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    padding: 18px 16px 16px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    width: 100%;
+    box-sizing: border-box;
+  }
 
-    .section-hint {
-      text-align: center;
-      margin: 0 auto 1.75rem;
-      max-width: 640px;
-      color: #6b7280;
-      font-size: 0.95rem;
-    }
+  .card--stat,
+  .card--prohibition {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
-    }
+  .icon-bubble {
+    width: 60px;
+    height: 60px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 0.35rem;
+    background: #0f172a;
+    color: #ffffff;
+  }
 
-    @media (max-width: 640px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
+  .stat-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
 
-      .section {
-        margin-top: 2.25rem;
-      }
-    }
+  .card--prohibition h3 {
+    margin: 0.25rem 0 0.1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
 
-    .card {
-      background: #ffffff;
-      border-radius: 18px;
-      border: 1px solid #e5e7eb;
-      padding: 18px 16px 16px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
-      width: 100%;
-      box-sizing: border-box;
-    }
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
 
-    .card--stat,
-    .card--prohibition {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
+  .subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin: 0;
+  }
 
-    .icon-bubble {
-      width: 60px;
-      height: 60px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      margin-bottom: 0.35rem;
-      background: #0f172a;
-      color: #ffffff;
-    }
+  .muted {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+    color: #4b5563;
+  }
 
-    .stat-label {
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
+  .warning {
+    margin-top: 2rem;
+    text-align: center;
+    font-style: italic;
+    color: #6b7280;
+    max-width: 640px;
+    margin-inline: auto;
+  }
 
-    .card--prohibition h3 {
-      margin: 0.25rem 0 0.1rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
+  .card--project h3 {
+    margin: 0.25rem 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
 
-    .stat-value {
-      font-size: 1.2rem;
-      font-weight: 800;
-    }
+  .tags {
+    margin: 0.35rem 0 0;
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
 
-    .subtitle {
-      font-size: 0.9rem;
-      color: #6b7280;
-      font-weight: 500;
-      margin: 0;
-    }
+  .project-header {
+    display: flex;
+    justify-content: flex-end;
+  }
 
-    .muted {
-      margin-top: 0.4rem;
-      font-size: 0.9rem;
-      color: #4b5563;
-    }
-
-    .warning {
-      margin-top: 2rem;
-      text-align: center;
-      font-style: italic;
-      color: #6b7280;
-      max-width: 640px;
-      margin-inline: auto;
-    }
-
-    .card--project h3 {
-      margin: 0.25rem 0 0.35rem;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .tags {
-      margin: 0.35rem 0 0;
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-
-    .project-header {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .status-badge {
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #e0ecff;
-      color: #1d4ed8;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-  </style>
-</Layout>
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e0ecff;
+    color: #1d4ed8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+</style>
