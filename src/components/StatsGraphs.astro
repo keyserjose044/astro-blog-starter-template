@@ -788,6 +788,13 @@ const defaultMetricKey = "guitar";
   </script>
 
   <style>
+    .graph-card,
+    .graph-card *,
+    .metric-story,
+    .metric-story * {
+      box-sizing: border-box;
+    }
+
     .metrics-tabs {
       display: inline-flex;
       flex-wrap: wrap;
@@ -896,7 +903,9 @@ const defaultMetricKey = "guitar";
     }
 
     .graph-card__body {
+      min-width: 0;
       margin-top: 0.5rem;
+      overflow-x: hidden;
     }
 
     .graph-card__chart {
@@ -925,12 +934,16 @@ const defaultMetricKey = "guitar";
     }
 
     .metric-story {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       margin-top: 2.25rem;
       padding: 1.5rem 1.6rem;
       border-radius: 0.85rem;
       border: 1px solid #e5e7eb;
       background: #f8fafc;
       color: #111827;
+      overflow-wrap: break-word;
     }
 
     .metric-story__title {
@@ -974,7 +987,7 @@ const defaultMetricKey = "guitar";
 
     @media (max-width: 640px) {
       .graph-card {
-        padding: 1.25rem;
+        padding: 1rem;
       }
 
       .graph-card__controls {
@@ -986,8 +999,14 @@ const defaultMetricKey = "guitar";
       }
 
       .metric-story {
+        width: 100%;
+        max-width: 100%;
         margin-top: 1.75rem;
-        padding: 1.25rem;
+        padding: 1rem;
+      }
+
+      .metric-story__title {
+        font-size: clamp(1.35rem, 7vw, 1.65rem);
       }
     }
   </style>
