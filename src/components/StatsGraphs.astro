@@ -64,7 +64,6 @@ const defaultMetricKey = "guitar";
       </div>
 
       <article id="metric-story" class="metric-story" aria-live="polite">
-        <p class="metric-story__eyebrow">Metric notes</p>
         <h3 class="metric-story__title">Guitar hours show the slow compound interest of practice.</h3>
         <p class="metric-story__body">
           This section updates with the selected graph so the numbers have context.
@@ -113,6 +112,14 @@ const defaultMetricKey = "guitar";
         "Dec",
       ];
 
+      function getMonthsForYear(year) {
+        // Do not show future months as zero for the current year.
+        if (year === CURRENT_YEAR) {
+          return monthOrder.slice(0, new Date().getMonth() + 1);
+        }
+        return monthOrder;
+      }
+
       // Metric config for JS (units + labels)
       const METRICS = {
         guitar: {
@@ -141,48 +148,24 @@ const defaultMetricKey = "guitar";
       // Edit these paragraphs as your own story develops.
       const METRIC_STORIES = {
         guitar: {
-          eyebrow: "Skill-building",
           title: "Guitar hours show the slow compound interest of practice.",
           body:
             "Guitar has been one of my clearest long-term skill investments. The graph is not just a practice log; it shows seasons of obsession, recovery, consistency, and renewed focus. Big jumps usually mean a new piece, technique, or musical goal caught fire. Troughs usually mean life shifted toward research, illness, travel, social activity, or other priorities.",
-          notes: [
-            "The important signal is not perfect daily practice; it is returning to the instrument over and over.",
-            "Spikes often reflect short periods where music became the main creative outlet.",
-            "Lower months still matter because they show where the habit survived instead of disappearing.",
-          ],
         },
         audiobooks: {
-          eyebrow: "Personal curriculum",
           title: "Audiobook hours are my background university.",
           body:
-            "Audiobooks let me keep learning while commuting, walking, cleaning, or doing low-focus tasks. This graph shows how much passive time has been converted into education, literature, history, philosophy, and general intellectual momentum.",
-          notes: [
-            "High months usually mean more commuting, walking, or routine tasks that pair well with listening.",
-            "Lower months may mean more music, social activity, research intensity, or silent thinking time.",
-            "The value is cumulative: hundreds of small listening sessions become a serious body of exposure.",
-          ],
+            "Audiobooks let me keep learning while commuting, walking, cleaning, or doing low-focus tasks. This graph shows how much passive time has been converted into education, literature, history, philosophy, and general intellectual momentum. High months usually mean more movement, chores, or travel time; lower months usually mean my attention shifted toward music, social life, research, or silence.",
         },
         running: {
-          eyebrow: "Physical baseline",
           title: "Running miles show how I maintain energy and resilience.",
           body:
-            "Running is one of the simplest physical metrics I track. The graph shows when fitness became a priority, when life crowded it out, and when I rebuilt momentum. It is less about athletic perfection and more about keeping a physical foundation under academic and creative life.",
-          notes: [
-            "Spikes often reflect training blocks or renewed motivation after a sedentary stretch.",
-            "Troughs can reveal busy academic periods, illness, weather, or a shift toward other activities.",
-            "Even modest mileage matters because consistency compounds more than heroic one-off efforts.",
-          ],
+            "Running is one of the simplest physical metrics I track. The graph shows when fitness became a priority, when life crowded it out, and when I rebuilt momentum. It is less about athletic perfection and more about keeping a physical foundation under academic and creative life. Spikes usually reflect training blocks or renewed motivation; troughs usually reflect illness, weather, deadlines, or a shift toward other activities.",
         },
         diary: {
-          eyebrow: "Reflection volume",
           title: "Diary words show how much life I am processing.",
           body:
-            "The diary metric is not just a writing statistic. It reflects how much I am documenting, interpreting, remembering, and making sense of life. Longer months can mean rich experiences, heavy reflection, complex decisions, or simply more time spent archiving the day.",
-          notes: [
-            "High word counts may signal intense seasons, meaningful experiences, or unusually active self-reflection.",
-            "Low word counts are not automatically bad; sometimes life is calmer or the entries are simply concise.",
-            "This is one of the most LifeLoggerz-native metrics because it preserves the qualitative side of life.",
-          ],
+            "The diary metric is not just a writing statistic. It reflects how much I am documenting, interpreting, remembering, and making sense of life. Longer months can mean rich experiences, heavy reflection, complex decisions, or simply more time spent archiving the day. Lower months are not automatically bad; sometimes life is calmer or the entries are simply more concise.",
         },
       };
 
@@ -283,22 +266,14 @@ const defaultMetricKey = "guitar";
 
         const story = METRIC_STORIES[metricKey] || METRIC_STORIES.guitar;
         const summary = summarizeMetric(metricKey, currentYear, data);
-        const notesHTML = story.notes
-          .map((note) => `<li>${escapeHTML(note)}</li>`)
-          .join("");
+        const summarySentence =
+          `In the selected view (${summary.label}), the chart shows ${summary.valueText}. ${summary.peakText}`;
 
         storyEl.innerHTML = `
-          <p class="metric-story__eyebrow">${escapeHTML(story.eyebrow)}</p>
           <h3 class="metric-story__title">${escapeHTML(story.title)}</h3>
-          <p class="metric-story__body">${escapeHTML(story.body)}</p>
-          <div class="metric-story__snapshot">
-            <span><strong>Current view:</strong> ${escapeHTML(summary.label)}</span>
-            <span><strong>Summary:</strong> ${escapeHTML(summary.valueText)}</span>
-            <span><strong>Peak:</strong> ${escapeHTML(summary.peakText)}</span>
-          </div>
-          <ul class="metric-story__notes">
-            ${notesHTML}
-          </ul>
+          <p class="metric-story__body">
+            ${escapeHTML(story.body)} ${escapeHTML(summarySentence)}
+          </p>
         `;
       }
 
@@ -475,7 +450,8 @@ const defaultMetricKey = "guitar";
         function drawChart(metricKey, year, data, container, d3) {
           const cfg = METRICS[metricKey] || METRICS.guitar;
 
-          const yearData = monthOrder.map((m) => {
+          const monthsForChart = getMonthsForYear(year);
+          const yearData = monthsForChart.map((m) => {
             const match = data.find(
               (d) => d.metric === metricKey && d.year === year && d.month === m
             );
@@ -498,8 +474,9 @@ const defaultMetricKey = "guitar";
 
           const totalEl = document.getElementById("guitar-year-total");
           if (totalEl) {
+            const totalLabel = metricKey === "diary" ? "average" : "total";
             totalEl.innerHTML = `
-              <span class="year-label"><strong>${year}</strong> total:</span>
+              <span class="year-label"><strong>${year}</strong> ${totalLabel}:</span>
               <span class="graph-pill">${totalValue} ${cfg.unit}</span>
             `;
           }
@@ -525,7 +502,7 @@ const defaultMetricKey = "guitar";
           // X scale
           const x = d3
             .scalePoint()
-            .domain(monthOrder)
+            .domain(monthsForChart)
             .range([margin.left, width - margin.right])
             .padding(0.15);
 
@@ -651,7 +628,8 @@ const defaultMetricKey = "guitar";
           }
 
           const seriesByYear = years.map((year) => {
-            const values = monthOrder.map((m) => {
+            const monthsForYear = getMonthsForYear(year);
+            const values = monthsForYear.map((m) => {
               const match = metricData.find(
                 (d) => d.year === year && d.month === m
               );
@@ -689,8 +667,9 @@ const defaultMetricKey = "guitar";
               totalValue = flatValues.reduce((s, v) => s + v, 0);
             }
 
+            const totalLabel = metricKey === "diary" ? "average" : "total";
             totalEl.innerHTML = `
-              <span class="year-label"><strong>All years</strong> total:</span>
+              <span class="year-label"><strong>All years</strong> ${totalLabel}:</span>
               <span class="graph-pill">${totalValue} ${cfg.unit}</span>
             `;
           }
@@ -966,15 +945,6 @@ const defaultMetricKey = "guitar";
       color: #111827;
     }
 
-    .metric-story__eyebrow {
-      margin: 0 0 0.35rem;
-      color: #64748b;
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
     .metric-story__title {
       margin: 0;
       font-size: 1.1rem;
@@ -985,33 +955,6 @@ const defaultMetricKey = "guitar";
       margin: 0.75rem 0 0;
       color: #374151;
       line-height: 1.65;
-    }
-
-    .metric-story__snapshot {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.65rem;
-      margin-top: 1rem;
-    }
-
-    .metric-story__snapshot span {
-      padding: 0.7rem 0.8rem;
-      border-radius: 0.75rem;
-      background: #f1f5f9;
-      color: #334155;
-      font-size: 0.9rem;
-      line-height: 1.45;
-    }
-
-    .metric-story__notes {
-      margin: 1rem 0 0;
-      padding-left: 1.1rem;
-      color: #374151;
-      line-height: 1.6;
-    }
-
-    .metric-story__notes li + li {
-      margin-top: 0.35rem;
     }
 
     .chart-skeleton {
@@ -1035,12 +978,6 @@ const defaultMetricKey = "guitar";
       }
       100% {
         background-position: -200% 0;
-      }
-    }
-
-    @media (max-width: 760px) {
-      .metric-story__snapshot {
-        grid-template-columns: 1fr;
       }
     }
 
