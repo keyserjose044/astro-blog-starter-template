@@ -68,6 +68,9 @@ const defaultMetricKey = "guitar";
         <p class="metric-story__body">
           This section updates with the selected graph so the numbers have context.
         </p>
+        <p class="metric-story__summary">
+          <span>Selected view: <strong>Loading…</strong></span>
+        </p>
       </article>
     </div>
   </div>
@@ -220,12 +223,14 @@ const defaultMetricKey = "guitar";
         });
 
         const label = currentYear === null ? "All tracked years" : String(currentYear);
+        const valueLabel = metricKey === "diary" ? "Average" : "Total";
 
         if (!metricData.length) {
           return {
             label,
+            valueLabel,
             valueText: `No ${cfg.unit} data yet`,
-            peakText: "No peak month yet",
+            peakText: "No peak yet",
           };
         }
 
@@ -249,15 +254,12 @@ const defaultMetricKey = "guitar";
           return best;
         }, null);
 
-        const valueText = metricKey === "diary"
-          ? `${value} ${cfg.unit} average`
-          : `${value} ${cfg.unit} total`;
-
+        const valueText = `${value} ${cfg.unit}`;
         const peakText = peak
-          ? `${peak.month}${currentYear === null ? ` ${peak.year}` : ""} was the highest point shown (${Math.round(peak.value)} ${cfg.unit}).`
-          : "No peak month yet.";
+          ? `${peak.month}${currentYear === null ? ` ${peak.year}` : ""}, ${Math.round(peak.value)} ${cfg.unit}`
+          : "No peak yet";
 
-        return { label, valueText, peakText };
+        return { label, valueLabel, valueText, peakText };
       }
 
       function updateMetricStory(metricKey, currentYear, data) {
@@ -266,13 +268,16 @@ const defaultMetricKey = "guitar";
 
         const story = METRIC_STORIES[metricKey] || METRIC_STORIES.guitar;
         const summary = summarizeMetric(metricKey, currentYear, data);
-        const summarySentence =
-          `In the selected view (${summary.label}), the chart shows ${summary.valueText}. ${summary.peakText}`;
 
         storyEl.innerHTML = `
           <h3 class="metric-story__title">${escapeHTML(story.title)}</h3>
           <p class="metric-story__body">
-            ${escapeHTML(story.body)} ${escapeHTML(summarySentence)}
+            ${escapeHTML(story.body)}
+          </p>
+          <p class="metric-story__summary">
+            <span>Selected view: <strong>${escapeHTML(summary.label)}</strong></span>
+            <span>${escapeHTML(summary.valueLabel)}: <strong>${escapeHTML(summary.valueText)}</strong></span>
+            <span>Peak: <strong>${escapeHTML(summary.peakText)}</strong></span>
           </p>
         `;
       }
@@ -961,6 +966,31 @@ const defaultMetricKey = "guitar";
       line-height: 1.7;
     }
 
+    .metric-story__summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.5rem;
+      max-width: 820px;
+      margin: 1.25rem 0 0;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+      color: #374151;
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .metric-story__summary span:not(:last-child)::after {
+      content: "·";
+      margin-left: 0.5rem;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    .metric-story__summary strong {
+      color: #111827;
+      font-weight: 800;
+    }
+
     .chart-skeleton {
       width: 100%;
       height: 260px;
@@ -1007,6 +1037,21 @@ const defaultMetricKey = "guitar";
 
       .metric-story__title {
         font-size: clamp(1.35rem, 7vw, 1.65rem);
+      }
+
+      .metric-story__summary {
+        display: block;
+        margin-top: 1rem;
+        padding-top: 0.85rem;
+      }
+
+      .metric-story__summary span {
+        display: block;
+      }
+
+      .metric-story__summary span:not(:last-child)::after {
+        content: "";
+        margin-left: 0;
       }
     }
   </style>
