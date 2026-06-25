@@ -73,6 +73,7 @@ const jsonLdString = JSON.stringify({
 }).replace(/</g, '\\u003c');
 
 const hasCustomHero = Astro.slots.has('hero');
+const showTitleBlock = !hideTitle || hasPub || hasUpd;
 ---
 <html lang="en">
   <head>
@@ -336,34 +337,36 @@ const hasCustomHero = Astro.slots.has('hero');
           ) : null}
 
           <div class="prose">
-            <div class="title">
-              {(hasPub || hasUpd) && (
-                <div class="date">
-                  {hasPub && (
-                    <>
-                      <FormattedDate date={pub!} />
-                      {showViews && (
-                        <>
-                          <span class="meta-sep"> | </span>
-                          <ViewCounter path={Astro.url.pathname} />
-                        </>
-                      )}
-                    </>
-                  )}
-                  {hasUpd && (
-                    <div class="last-updated-on">
-                      Last updated on <FormattedDate date={upd!} />
-                    </div>
-                  )}
-                </div>
-              )}
-              {!hideTitle && (
-                <>
-                  <h1>{title}</h1>
-                  <hr />
-                </>
-              )}
-            </div>
+            {showTitleBlock && (
+              <div class="title">
+                {(hasPub || hasUpd) && (
+                  <div class="date">
+                    {hasPub && (
+                      <>
+                        <FormattedDate date={pub!} />
+                        {showViews && (
+                          <>
+                            <span class="meta-sep"> | </span>
+                            <ViewCounter path={Astro.url.pathname} />
+                          </>
+                        )}
+                      </>
+                    )}
+                    {hasUpd && (
+                      <div class="last-updated-on">
+                        Last updated on <FormattedDate date={upd!} />
+                      </div>
+                    )}
+                  </div>
+                )}
+                {!hideTitle && (
+                  <>
+                    <h1>{title}</h1>
+                    <hr />
+                  </>
+                )}
+              </div>
+            )}
             <slot />
           </div>
         </article>
