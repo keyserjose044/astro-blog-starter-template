@@ -1,0 +1,238 @@
+---
+const inspirations = [
+  {
+    title: 'Phil Von Stade',
+    subtitle: 'Original life logger',
+    href: '#phil-von-stade',
+    src: '/images_webp/phil_von_stade.webp',
+    alt: 'Phil Von Stade presenting a life-logging spreadsheet',
+  },
+  {
+    title: 'Efficiency Is Everything',
+    subtitle: 'Time and optimization',
+    href: '#efficiency-is-everything',
+    src: '/images_webp/efficiency_is_everything.webp',
+    alt: 'Efficiency Is Everything website screenshot',
+  },
+  {
+    title: 'Michael Phelps',
+    subtitle: 'Journaling discipline',
+    href: '#michael-phelps',
+    src: '/images_webp/michael_phelps.webp',
+    alt: 'Michael Phelps journaling inspiration image',
+  },
+  {
+    title: 'Perfice',
+    subtitle: 'Life tracking app',
+    href: '#perfice',
+    src: '/images_webp/perfice.webp',
+    alt: 'Perfice life-tracking app screenshot',
+  },
+  {
+    title: 'VeganTechNomad',
+    subtitle: 'Minimalist logging',
+    href: '#vegantechnomad',
+    src: '/images_webp/vegantechnomad.webp',
+    alt: 'VeganTechNomad YouTube channel screenshot',
+  },
+  {
+    title: 'Feltron',
+    subtitle: 'Data storytelling',
+    href: '#feltron',
+    src: '/images_webp/feltron.webp',
+    alt: 'Feltron annual report screenshot',
+  },
+  {
+    title: 'Raptitude',
+    subtitle: 'Experiments in living',
+    href: '#raptitude',
+    src: '/images_webp/raptitude.webp',
+    alt: 'Raptitude blog screenshot',
+  },
+  {
+    title: 'Quantified Self',
+    subtitle: 'Life in data',
+    href: '#quantified-self',
+    src: '/images_webp/dailyvis.webp',
+    alt: 'Quantified Self article screenshot',
+  },
+  {
+    title: 'RYOT',
+    subtitle: 'Media tracking ideas',
+    href: '#ryot',
+    src: '/images_webp/ryot.webp',
+    alt: 'RYOT GitHub project screenshot',
+  },
+];
+---
+
+<section class="inspiration-collage-block" aria-labelledby="inspiration-collage-title">
+  <div class="collage-heading">
+    <p class="eyebrow">The idea map</p>
+    <h2 id="inspiration-collage-title">Nine sparks behind LifeLoggerz</h2>
+    <p>
+      Start with the full wall of influences, then jump into each section for the story behind it.
+    </p>
+  </div>
+
+  <nav class="inspiration-collage" aria-label="Jump to an inspiration">
+    {inspirations.map((item) => (
+      <a class="inspiration-tile" href={item.href} aria-label={`Jump to ${item.title}`}>
+        <img src={item.src} alt={item.alt} loading="lazy" decoding="async" />
+        <span class="tile-copy">
+          <strong>{item.title}</strong>
+          <small>{item.subtitle}</small>
+        </span>
+      </a>
+    ))}
+  </nav>
+</section>
+
+<style>
+  .inspiration-collage-block {
+    max-width: 980px;
+    margin: 2.5rem auto 3.5rem;
+  }
+
+  .collage-heading {
+    max-width: 720px;
+    margin: 0 auto 1.25rem;
+    text-align: center;
+  }
+
+  .collage-heading h2 {
+    margin: 0.25rem 0 0.5rem;
+    font-size: clamp(1.75rem, 3vw, 2.6rem);
+    line-height: 1.05;
+  }
+
+  .collage-heading p {
+    margin: 0;
+  }
+
+  .eyebrow {
+    color: #315cf6;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .inspiration-collage {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .inspiration-tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    min-height: 150px;
+    aspect-ratio: 16 / 10;
+    border-radius: 18px;
+    background: #111827;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+    text-decoration: none;
+    isolation: isolate;
+  }
+
+  .inspiration-tile::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.08) 62%);
+    z-index: 1;
+  }
+
+  .inspiration-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+
+  .tile-copy {
+    position: absolute;
+    right: 0.85rem;
+    bottom: 0.8rem;
+    left: 0.85rem;
+    z-index: 2;
+    color: white;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  .tile-copy strong,
+  .tile-copy small {
+    display: block;
+  }
+
+  .tile-copy strong {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+
+  .tile-copy small {
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    opacity: 0.86;
+  }
+
+  .inspiration-tile:hover img,
+  .inspiration-tile:focus-visible img {
+    transform: scale(1.05);
+    filter: brightness(0.92);
+  }
+
+  .inspiration-tile:focus-visible {
+    outline: 3px solid #315cf6;
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 820px) {
+    .inspiration-collage {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .inspiration-collage-block {
+      margin: 2rem auto 3rem;
+    }
+
+    .inspiration-collage {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .inspiration-tile {
+      min-height: 120px;
+      border-radius: 16px;
+    }
+
+    .tile-copy {
+      right: 0.65rem;
+      bottom: 0.6rem;
+      left: 0.65rem;
+    }
+
+    .tile-copy strong {
+      font-size: 0.84rem;
+    }
+
+    .tile-copy small {
+      font-size: 0.68rem;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .inspiration-collage {
+      grid-template-columns: 1fr;
+    }
+
+    .inspiration-tile {
+      min-height: 165px;
+    }
+  }
+</style>
