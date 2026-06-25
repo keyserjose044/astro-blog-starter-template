@@ -16,6 +16,7 @@ interface Props {
   heroImageStyle?: string;
   showViews?: boolean;
   heroVideo?: string; // optional hero video
+  hideTitle?: boolean;
 }
 
 const {
@@ -28,6 +29,7 @@ const {
   heroImageStyle,
   showViews = true,
   heroVideo
+  hideTitle = false
 } = Astro.props as Props;
 
 // ---------- helpers ----------
@@ -355,10 +357,13 @@ const hasCustomHero = Astro.slots.has('hero');
                   )}
                 </div>
               )}
-              <h1>{title}</h1>
-              <hr />
+              {!hideTitle && (
+                <>
+                  <h1>{title}</h1>
+                  <hr />
+                </>
+              )}
             </div>
-
             <slot />
           </div>
         </article>
