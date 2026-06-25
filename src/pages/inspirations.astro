@@ -14,8 +14,10 @@ import InspirationCollage from '../components/InspirationCollage.astro';
     This experiment eventually snowballed into <strong>everything</strong> this site presents today. I want to highlight the people and projects that made this all possible.
   </p>
 
+  <InspirationCollage />
+
   {/* 1. Phil Von Stade */}
-  <section class="inspo">
+  <section id="phil-von-stade" class="inspo">
     <h2>🎥 Phil Von Stade: The Original Life Logger</h2>
     <a href="https://www.youtube.com/watch?v=w2yIGGxg52A" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -30,7 +32,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 2. Efficiency Is Everything */}
-  <section class="inspo">
+  <section id="efficiency-is-everything" class="inspo">
     <h2>⚡ Efficiency Is Everything</h2>
     <a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -40,13 +42,13 @@ import InspirationCollage from '../components/InspirationCollage.astro';
     </a>
     <p>
       <a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">Efficiency Is Everything</a> was one of the first blogs that changed how I thought about time and optimization.
-      The creator breaks down things like the <strong>cheapest foods per calorie</strong> and how much time you lose on daily tasks like </strong>tying your shoes or tending your bed.</strong>
+      The creator breaks down things like the <strong>cheapest foods per calorie</strong> and how much time you lose on daily tasks like <strong>tying your shoes or making your bed.</strong>
     </p>
     <p>This mindset kindled my rush to save time since we all only have 24 hours a day.</p>
   </section>
 
   {/* 3. Michael Phelps */}
-  <section class="inspo">
+  <section id="michael-phelps" class="inspo">
     <h2>🏊 Michael Phelps and Journaling</h2>
     <a href="https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -58,7 +60,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
       Even world-class athletes do it.
       After reading
       <a href="https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/" target="_blank" rel="noopener noreferrer"> this article about Michael Phelps</a>,
-      this, I realized that technology can take this up a notch.
+      I realized that technology can take this up a notch.
     </p>
     <p>You know what Google Sheets has over journaling?</p>
     <ul>
@@ -70,7 +72,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 4. Perfice */}
-  <section class="inspo">
+  <section id="perfice" class="inspo">
     <h2>📱 Perfice: Tracking Life as an App</h2>
     <a href="https://perfice.adoe.dev/" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -85,7 +87,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 4.5 VeganTechNomad */}
-  <section class="inspo">
+  <section id="vegantechnomad" class="inspo">
     <h2>🌍 VeganTechNomad: Minimalist Lifestyle Logging</h2>
     <a href="https://www.youtube.com/@VeganTechNomad" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -105,7 +107,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 5. Feltron */}
-  <section class="inspo">
+  <section id="feltron" class="inspo">
     <h2>🎨 Feltron’s 2014 Annual Report</h2>
     <a href="http://feltron.com/FAR14.html" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -125,7 +127,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 6. Raptitude */}
-  <section class="inspo">
+  <section id="raptitude" class="inspo">
     <h2>🌱 Raptitude: Experiments in Living Better</h2>
     <a href="https://www.raptitude.com" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -141,7 +143,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 7. Quantified Self */}
-  <section class="inspo">
+  <section id="quantified-self" class="inspo">
     <h2>📊 Quantified Self</h2>
     <a href="https://dailyvis.com/posts/quantified-self-why-i-track-my-life-in-data/" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -156,7 +158,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
   </section>
 
   {/* 8. RYOT */}
-  <section class="inspo">
+  <section id="ryot" class="inspo">
     <h2>📊 RYOT GitHub</h2>
     <a href="https://github.com/IgnisDa/ryot" target="_blank" rel="noopener noreferrer">
       <SectionHero
@@ -171,7 +173,7 @@ import InspirationCollage from '../components/InspirationCollage.astro';
 
   <h2>💬 Final Thoughts</h2>
   <p>
-    You think you can do better? Try </strong>Looker Studio</strong>, </strong>Power BI</strong>, or any tool I haven’t explored yet.
+    You think you can do better? Try <strong>Looker Studio</strong>, <strong>Power BI</strong>, or any tool I haven’t explored yet.
     I avoid deep biometrics for now (ex: calories, bathroom breaks, etc) since I track what I feel is important. That might be different for you.
   </p>
 
@@ -192,7 +194,11 @@ import InspirationCollage from '../components/InspirationCollage.astro';
 
   /* Space out entries and add a subtle divider */
   .inspo + .inspo { margin-top: 2.5rem; }
-  .inspo { padding-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,.08); }
+  .inspo {
+    scroll-margin-top: 6rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+  }
 
   /* Keep the image visually grouped with its title */
   .inspo h2 + a > .section-hero,
