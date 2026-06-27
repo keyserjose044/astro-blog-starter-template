@@ -44,51 +44,81 @@ const startHere = [
   {
     eyebrow: 'Foundation',
     title: 'Raw Data Sheets',
-    body: 'The daily Google Sheets system where sleep, food, work, hobbies, diary notes, places, people, and small life details become searchable data.',
+    body: 'The Google Sheets backbone where daily life becomes structured, searchable data.',
     href: link('blog/rawdatapost2025/'),
   },
   {
     eyebrow: 'Output',
     title: 'Daily Snapshot',
-    body: 'A single-page summary that pulls a whole day together: the numbers, diary context, images, quotes, blunders, and memorable details.',
+    body: 'One ordinary day transformed into a readable summary with numbers, notes, images, quotes, blunders, and context.',
     href: link('blog/daily-snapshot/'),
+  },
+  {
+    eyebrow: 'Stats',
+    title: 'Stats Dashboard',
+    body: 'Graphs from the archive: guitar, audiobooks, running, diary word counts, and more as the system grows.',
+    href: link('stats/'),
   },
   {
     eyebrow: 'Try it',
     title: 'Templates',
-    body: 'Downloadable Google Sheets and workflow templates for people who want to build their own version instead of starting from zero.',
+    body: 'Copy the sheets and workflows instead of starting from zero.',
     href: link('templates/'),
   },
 ];
 
-const visitorPaths = [
+const archiveLinks = [
   {
-    eyebrow: 'New here',
-    title: 'Understand the project',
-    body: 'Start with the raw sheets and see how the archive is structured.',
-    href: link('blog/rawdatapost2025/'),
-    cta: 'Start here →',
+    icon: '📚',
+    title: 'Books',
+    body: 'Audiobooks logged with dates, genres, notes, and listening context.',
+    href: link('books/'),
   },
   {
-    eyebrow: 'Data person',
-    title: 'See the numbers',
-    body: 'Jump to the live graphs and explore what the system outputs.',
+    icon: '💿',
+    title: 'Albums',
+    body: 'Full albums preserved as part of the archive instead of disappearing into shuffled playlists.',
+    href: link('albums/'),
+  },
+  {
+    icon: '🎨',
+    title: 'Art',
+    body: 'Daily artworks collected into a visual diary of what shaped the years.',
+    href: link('art/'),
+  },
+  {
+    icon: '📈',
+    title: 'Stats Dashboard',
+    body: 'The quantitative side of LifeLoggerz: graphs built from the long-running archive.',
     href: link('stats/'),
-    cta: 'Open stats →',
-  },
-  {
-    eyebrow: 'Builder',
-    title: 'Copy the tools',
-    body: 'Use the templates as a base for your own life-tracking system.',
-    href: link('templates/'),
-    cta: 'Get templates →',
   },
 ];
 
-const systemSteps = [
-  { step: '01', title: 'Capture', body: 'Log the day while it is still fresh: sleep, meals, work, hobbies, diary notes, media, health, and context.' },
-  { step: '02', title: 'Distill', body: 'Use formulas, Apps Script, dashboards, and small automations to turn raw entries into clean summaries.' },
-  { step: '03', title: 'Remember', body: 'Use graphs, blog posts, and yearly comparisons to notice patterns that memory alone would miss.' },
+const storyLinks = [
+  {
+    eyebrow: 'About',
+    title: 'Who built this?',
+    body: 'The personal origin of LifeLoggerz and why the archive exists in the first place.',
+    href: link('about/'),
+  },
+  {
+    eyebrow: 'Timeline',
+    title: '2025 at a glance',
+    body: 'A year-level view of the project, the routines, and the systems coming together.',
+    href: link('timeline/'),
+  },
+  {
+    eyebrow: 'Influences',
+    title: 'Inspirations',
+    body: 'The people, projects, and ideas that helped spark LifeLoggerz.',
+    href: link('inspirations/'),
+  },
+  {
+    eyebrow: 'Questions',
+    title: 'FAQ',
+    body: 'Practical answers about privacy, what to track first, how long logging takes, and why the system works this way.',
+    href: link('faq/'),
+  },
 ];
 ---
 
@@ -165,37 +195,13 @@ const systemSteps = [
           ))}
         </section>
 
-        <!-- Choose a path -->
-        <section class="home-section visitor-paths" aria-labelledby="path-heading">
-          <div class="section-heading centered">
-            <p class="eyebrow">Choose your path</p>
-            <h2 id="path-heading">What do you want to see first?</h2>
-            <p>
-              LifeLoggerz has data, essays, templates, and philosophy. Pick the door that matches
-              what you came for.
-            </p>
-          </div>
-
-          <div class="path-grid">
-            {visitorPaths.map((item) => (
-              <a class="path-card" href={item.href}>
-                <span class="card-eyebrow">{item.eyebrow}</span>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <span class="card-link">{item.cta}</span>
-              </a>
-            ))}
-          </div>
-        </section>
-
         <!-- Start Here -->
         <section class="home-section" aria-labelledby="start-heading">
           <div class="section-heading centered">
             <p class="eyebrow">Start here</p>
-            <h2 id="start-heading">The fastest way to understand the project</h2>
+            <h2 id="start-heading">Four doors into the project</h2>
             <p>
-              LifeLoggerz is not just a blog index. It is a public tour through the data system,
-              the thinking behind it, and the tools that make it reusable.
+              One section, no redundancy: the foundation, the output, the graphs, and the tools.
             </p>
           </div>
 
@@ -211,81 +217,47 @@ const systemSteps = [
           </div>
         </section>
 
-        <!-- One day demo -->
-        <section class="home-section demo-band" aria-labelledby="demo-heading">
-          <div class="demo-copy">
-            <p class="eyebrow">See one day transformed</p>
-            <h2 id="demo-heading">From messy life to readable memory.</h2>
-            <p>
-              The core demo is simple: one ordinary day enters as raw structured data,
-              then becomes a readable snapshot with context, numbers, images, and lessons.
-            </p>
-          </div>
-
-          <div class="demo-steps" aria-label="Raw data to daily snapshot demo links">
-            <a class="demo-step" href={link('blog/rawdatapost2025/')}>
-              <span>01</span>
-              <strong>Raw sheet</strong>
-              <em>How the day is captured</em>
-            </a>
-            <a class="demo-step" href={link('blog/daily-snapshot/')}>
-              <span>02</span>
-              <strong>Daily Snapshot</strong>
-              <em>How the day is remembered</em>
-            </a>
-          </div>
-        </section>
-
-        <!-- Featured data + interaction -->
-        <section class="home-section feature-band" aria-labelledby="data-heading">
+        <!-- Archive links -->
+        <section class="home-section feature-band" aria-labelledby="archive-heading">
           <div class="feature-copy">
             <p class="eyebrow">Data, not vibes</p>
-            <h2 id="data-heading">See the graphs behind the story</h2>
+            <h2 id="archive-heading">Explore the archive</h2>
             <p>
-              The stats page turns years of logging into visual feedback: guitar practice,
-              audiobook hours, running miles, diary word counts, and more as the system grows.
+              LifeLoggerz is bigger than the tracking system. The archive also preserves the books,
+              albums, art, and stats that shape the years being tracked.
             </p>
             <a class="text-link" href={link('stats/')}>Go to the stats dashboard →</a>
           </div>
 
-          <div class="feature-cards" aria-label="Featured project areas">
-            <a class="mini-card" href={link('stats/')}>
-              <span class="mini-icon">📈</span>
-              <strong>Stats Dashboard</strong>
-              <span>Graphs built from the archive.</span>
-            </a>
-            <a class="mini-card" href={link('templates/')}>
-              <span class="mini-icon">📄</span>
-              <strong>Templates</strong>
-              <span>Sheets and workflows to copy.</span>
-            </a>
-            <a class="mini-card" href={link('faq/')}>
-              <span class="mini-icon">❓</span>
-              <strong>FAQ</strong>
-              <span>Why I track the way I do.</span>
-            </a>
-            <a class="mini-card" href={link('inspirations/')}>
-              <span class="mini-icon">💡</span>
-              <strong>Inspirations</strong>
-              <span>The lineage behind the idea.</span>
-            </a>
+          <div class="feature-cards" aria-label="Archive destinations">
+            {archiveLinks.map((item) => (
+              <a class="mini-card" href={item.href}>
+                <span class="mini-icon">{item.icon}</span>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </a>
+            ))}
           </div>
         </section>
 
-        <!-- How it works -->
-        <section class="home-section" aria-labelledby="system-heading">
+        <!-- Story links -->
+        <section class="home-section" aria-labelledby="story-heading">
           <div class="section-heading centered">
-            <p class="eyebrow">How it works</p>
-            <h2 id="system-heading">Capture → distill → remember</h2>
+            <p class="eyebrow">Story behind the system</p>
+            <h2 id="story-heading">The map beyond the data</h2>
+            <p>
+              These pages explain the person, timeline, influences, and practical questions behind LifeLoggerz.
+            </p>
           </div>
 
-          <div class="system-grid">
-            {systemSteps.map((item) => (
-              <article class="system-card">
-                <span class="system-step">{item.step}</span>
+          <div class="start-grid">
+            {storyLinks.map((item) => (
+              <a class="start-card" href={item.href}>
+                <span class="card-eyebrow">{item.eyebrow}</span>
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>
-              </article>
+                <span class="card-link">Open →</span>
+              </a>
             ))}
           </div>
         </section>
@@ -320,13 +292,29 @@ const systemSteps = [
 
         <!-- Mission -->
         <section class="home-section mission-card" aria-labelledby="mission-heading">
-          <p class="eyebrow">Why this exists</p>
-          <h2 id="mission-heading">The point is not to optimize every minute.</h2>
-          <p>
-            The point is to remember life clearly, study habits honestly, and leave a trail
-            that another curious person can build from. Even if one person creates a better
-            system after seeing this, LifeLoggerz has done its job.
-          </p>
+          <figure class="mission-image">
+            <img
+              src="/images/about-lifeloggerz.gif"
+              alt="A childhood image from the LifeLoggerz about page"
+              loading="lazy"
+              decoding="async"
+            />
+            <figcaption>Déjenme terminar esto...</figcaption>
+          </figure>
+
+          <div class="mission-copy">
+            <p class="eyebrow">Why this exists</p>
+            <h2 id="mission-heading">The point is not to optimize every minute.</h2>
+            <p>
+              The point is to remember life clearly, study habits honestly, and leave a trail
+              that another curious person can build from. Even if one person creates a better
+              system after seeing this, LifeLoggerz has done its job.
+            </p>
+            <div class="mission-actions">
+              <a class="button button-primary" href={link('about/')}>Read the about page</a>
+              <a class="button button-secondary" href={link('faq/')}>Read the FAQ</a>
+            </div>
+          </div>
         </section>
       </main>
 
@@ -624,13 +612,13 @@ const systemSteps = [
 
   .start-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
   }
 
   .start-card {
     display: flex;
-    min-height: 245px;
+    min-height: 220px;
     flex-direction: column;
     border-radius: 24px;
     padding: 1.25rem;
@@ -851,22 +839,57 @@ const systemSteps = [
   }
 
   .mission-card {
-    max-width: 900px;
+    display: grid;
+    grid-template-columns: minmax(220px, 0.45fr) minmax(0, 0.55fr);
+    gap: clamp(1rem, 4vw, 2rem);
+    align-items: center;
+    max-width: 980px;
     margin-inline: auto;
     border-radius: 30px;
     padding: clamp(1.25rem, 4vw, 2rem);
-    text-align: center;
+    text-align: left;
   }
 
   .mission-card p {
     max-width: 70ch;
-    margin-inline: auto;
+  }
+
+  .mission-image {
+    margin: 0;
+  }
+
+  .mission-image img {
+    display: block;
+    width: 100%;
+    border-radius: 22px;
+    object-fit: cover;
+    box-shadow: 0 14px 28px rgba(15, 18, 25, 0.11);
+  }
+
+  .mission-image figcaption {
+    margin-top: 0.55rem;
+    color: rgb(var(--gray-dark));
+    font-size: 0.85rem;
+    font-style: italic;
+    text-align: center;
+  }
+
+  .mission-copy p {
+    margin-inline: 0;
+  }
+
+  .mission-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.1rem;
   }
 
   @media (max-width: 900px) {
     .hero,
     .feature-band,
-    .demo-band {
+    .demo-band,
+    .mission-card {
       grid-template-columns: 1fr;
     }
 
@@ -1288,6 +1311,23 @@ const systemSteps = [
       border-radius: 18px;
       padding: 0.88rem;
       text-align: left;
+    }
+
+    .mission-image img {
+      max-height: 220px;
+      border-radius: 14px;
+      object-position: center;
+    }
+
+    .mission-image figcaption {
+      margin-top: 0.42rem;
+      font-size: 0.72rem;
+    }
+
+    .mission-actions {
+      justify-content: center;
+      gap: 0.42rem;
+      margin-top: 0.75rem;
     }
 
     .mission-card p {
