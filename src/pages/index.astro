@@ -683,54 +683,278 @@ const systemSteps = [
   }
 
   @media (max-width: 640px) {
+    /*
+      Mobile should feel curated, not like every card is trying to occupy
+      the whole screen. Keep the desktop layout generous, but give phones
+      a narrower reading column, smaller cards, and quieter spacing.
+    */
     .home-main {
-      width: min(100% - 1rem, 1120px);
-      padding-top: 1.25rem;
+      width: min(calc(100% - 2rem), 430px);
+      padding-top: 1rem;
+      padding-bottom: 2.75rem;
     }
 
     .hero {
-      gap: 1.2rem;
-      margin-top: 0.5rem;
+      gap: 1rem;
+      margin-top: 0.25rem;
+      margin-bottom: 1.65rem;
+    }
+
+    .eyebrow {
+      margin-bottom: 0.42rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.105em;
     }
 
     .hero-title {
-      font-size: clamp(2.7rem, 16vw, 4.2rem);
+      font-size: clamp(2.45rem, 13vw, 3.35rem);
+      letter-spacing: -0.06em;
     }
 
     .hero-lede {
-      max-width: 12ch;
-      font-size: clamp(1.9rem, 10vw, 2.6rem);
+      max-width: 17rem;
+      margin-top: 0.8rem;
+      margin-bottom: 0.75rem;
+      font-size: clamp(1.45rem, 7.2vw, 2rem);
+      line-height: 1.07;
+    }
+
+    .hero-subcopy {
+      max-width: 34ch;
+      margin-bottom: 1rem;
+      font-size: 0.96rem;
+      line-height: 1.55;
     }
 
     .hero-actions {
-      align-items: stretch;
-      flex-direction: column;
+      justify-content: center;
+      gap: 0.55rem;
     }
 
     .button {
-      width: 100%;
-      box-sizing: border-box;
+      min-height: 40px;
+      padding: 0.55rem 0.82rem;
+      font-size: 0.88rem;
     }
 
-    .proof-strip,
+    .button-ghost {
+      display: none;
+    }
+
+    .hero-preview {
+      max-width: 365px;
+      margin-inline: auto;
+      border-radius: 20px;
+    }
+
+    .preview-image-wrap {
+      height: clamp(140px, 41vw, 165px);
+      aspect-ratio: auto;
+    }
+
+    .preview-body {
+      padding: 0.85rem 1rem 1rem;
+    }
+
+    .preview-body h2 {
+      font-size: 1.15rem;
+      letter-spacing: -0.025em;
+    }
+
+    .preview-body p {
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .proof-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      max-width: 365px;
+      margin-inline: auto;
+      margin-bottom: 2.35rem;
+    }
+
+    .proof-card {
+      border-radius: 15px;
+      padding: 0.75rem;
+    }
+
+    .proof-card strong {
+      font-size: 1.25rem;
+    }
+
+    .proof-card span {
+      margin-top: 0.35rem;
+      font-size: 0.76rem;
+      line-height: 1.28;
+    }
+
+    .home-section {
+      margin-block: 2.45rem;
+    }
+
+    .section-heading {
+      max-width: 36ch;
+      margin-bottom: 1rem;
+    }
+
+    .section-heading h2,
+    .feature-copy h2,
+    .mission-card h2,
+    .home-section-title {
+      font-size: clamp(1.55rem, 8vw, 2rem);
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+    }
+
+    .section-heading p:not(.eyebrow),
+    .feature-copy p,
+    .mission-card p {
+      margin-top: 0.7rem;
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
     .start-grid,
     .system-grid,
-    .feature-cards,
     .post-grid {
       grid-template-columns: 1fr;
+      max-width: 365px;
+      margin-inline: auto;
     }
 
-    .proof-card,
+    .start-grid,
+    .system-grid {
+      gap: 0.78rem;
+    }
+
     .start-card,
-    .system-card,
-    .mini-card {
+    .system-card {
+      min-height: auto;
+      border-radius: 18px;
+      padding: 0.95rem;
       text-align: left;
+    }
+
+    .start-card h3,
+    .system-card h3 {
+      margin: 0.45rem 0 0.35rem;
+      font-size: 1.15rem;
+    }
+
+    .start-card p,
+    .system-card p,
+    .mini-card span {
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .card-link {
+      padding-top: 0.7rem;
+      font-size: 0.9rem;
+    }
+
+    .feature-band {
+      gap: 1rem;
+      max-width: 390px;
+      margin-inline: auto;
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .feature-copy {
+      text-align: center;
+    }
+
+    .feature-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .mini-card {
+      min-height: 116px;
+      border-radius: 16px;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    .mini-icon {
+      font-size: 1.25rem !important;
+    }
+
+    .mini-card strong {
+      font-size: 0.98rem;
+    }
+
+    .system-step {
+      width: 1.9rem;
+      height: 1.9rem;
+      font-size: 0.7rem;
     }
 
     .home-section-header {
       align-items: center;
       flex-direction: column;
+      gap: 0.65rem;
+      margin-bottom: 0.9rem;
       text-align: center;
+    }
+
+    .post-grid {
+      gap: 0.9rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .post-grid :global(.blog-card a) {
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.075);
+    }
+
+    .post-grid :global(.blog-card img),
+    .post-grid :global(.blog-card video) {
+      height: clamp(128px, 36vw, 150px);
+    }
+
+    .post-grid :global(.blog-card h3) {
+      margin: 0.62rem 0.8rem 0.22rem;
+      font-size: 1.02rem;
+      line-height: 1.18;
+    }
+
+    .post-grid :global(.blog-card time) {
+      margin: 0 0.8rem 0.85rem;
+      font-size: 0.9rem;
+    }
+
+    .mission-card {
+      max-width: 365px;
+      border-radius: 20px;
+      padding: 1rem;
+      text-align: left;
+    }
+
+    .mission-card p {
+      margin-inline: 0;
+    }
+  }
+
+  @media (max-width: 370px) {
+    .home-main {
+      width: min(calc(100% - 1.5rem), 430px);
+    }
+
+    .hero-actions {
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .button {
+      width: min(100%, 16rem);
+      box-sizing: border-box;
+    }
+
+    .feature-cards {
+      grid-template-columns: 1fr;
     }
   }
 </style>
