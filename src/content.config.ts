@@ -7,12 +7,17 @@ const blog = defineCollection({
   type: "content",
   schema: z.object({
     title: z.string(),
-    description: z.string(),              // you can make this .optional() later if you like
+    description: z.string(),
     pubDate: z.preprocess(toDate, z.date()),
     updatedDate: z.preprocess(toDate, z.date().optional()),
     heroImage: z.string().optional(),
-    heroVideo: z.string().optional(),     // ⬅️ NEW FIELD
+    heroVideo: z.string().optional(),
+    tags: z.array(z.string()).optional().default([]),
+    category: z.string().optional(),
+    featured: z.boolean().optional().default(false),
     draft: z.boolean().optional().default(false),
+    wide: z.boolean().optional().default(false),
+    heroImageStyle: z.string().optional(),
   }),
 });
 
