@@ -161,6 +161,12 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         overflow-x: hidden;
       }
 
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
       main.blog-main {
         width: var(--blog-max);
         max-width: 1120px;
@@ -517,16 +523,19 @@ const postTagPayload = (post: (typeof posts)[number]) => {
 
       .upcoming-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
         gap: 0.8rem;
+        align-items: stretch;
       }
 
       .upcoming-card {
         display: flex;
-        min-height: 100%;
+        min-width: 0;
+        height: 100%;
         flex-direction: column;
         gap: 0.45rem;
         padding: 0.95rem;
+        overflow: hidden;
         border-radius: 18px;
         color: inherit;
         transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
@@ -540,26 +549,33 @@ const postTagPayload = (post: (typeof posts)[number]) => {
       }
 
       .upcoming-card span {
+        min-width: 0;
         color: var(--blue);
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.1em;
         line-height: 1.15;
         text-transform: uppercase;
+        overflow-wrap: anywhere;
       }
 
       .upcoming-card strong {
+        min-width: 0;
         color: var(--ink);
-        font-size: 1rem;
+        font-size: clamp(0.96rem, 1.15vw, 1.04rem);
         letter-spacing: -0.02em;
-        line-height: 1.18;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        hyphens: auto;
       }
 
       .upcoming-card p {
+        min-width: 0;
         margin: 0;
         color: rgb(var(--gray-dark));
         font-size: 0.88rem;
         line-height: 1.45;
+        overflow-wrap: anywhere;
       }
 
       @media (max-width: 960px) {
@@ -573,17 +589,16 @@ const postTagPayload = (post: (typeof posts)[number]) => {
           justify-content: flex-start;
         }
 
-        ul#grid,
-        .upcoming-grid {
+        ul#grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
 
       @media (max-width: 720px) {
         main.blog-main {
-          width: min(100% - 1.5rem, 1120px);
-          padding-top: 1rem;
-          padding-bottom: 2.5rem;
+          width: min(100% - 1rem, 1120px);
+          padding-top: 0.7rem;
+          padding-bottom: 2.25rem;
         }
 
         .blog-hero,
@@ -594,19 +609,20 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         }
 
         .blog-hero {
-          gap: 1rem;
-          padding: 1rem;
+          gap: 0.85rem;
+          padding: 0.82rem;
           text-align: left;
         }
 
         .blog-hero h1 {
           max-width: 12ch;
-          font-size: clamp(2.1rem, 11vw, 3.2rem);
+          font-size: clamp(2rem, 10.5vw, 2.95rem);
         }
 
         .hero-lede {
-          margin-top: 0.8rem;
-          font-size: 1.08rem;
+          margin-top: 0.65rem;
+          font-size: 1.02rem;
+          line-height: 1.22;
         }
 
         .hero-subcopy,
@@ -617,16 +633,20 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         }
 
         .hero-actions {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 0.55rem;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.46rem;
         }
 
         .button {
-          width: 100%;
-          min-height: 40px;
-          padding: 0.55rem 0.8rem;
-          font-size: 0.9rem;
+          flex: 1 1 calc(50% - 0.46rem);
+          min-height: 36px;
+          padding: 0.48rem 0.68rem;
+          font-size: 0.84rem;
+        }
+
+        .button-primary {
+          flex-basis: 100%;
         }
 
         .hero-preview img {
@@ -638,13 +658,14 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         }
 
         .section-heading h2 {
-          font-size: clamp(1.65rem, 8vw, 2.3rem);
+          font-size: clamp(1.48rem, 7vw, 2.05rem);
+          line-height: 1;
         }
 
         .featured-shell,
         .archive-shell,
         .upcoming-shell {
-          padding: 0.85rem;
+          padding: 0.72rem;
         }
 
         .start-note,
@@ -659,8 +680,22 @@ const postTagPayload = (post: (typeof posts)[number]) => {
 
         .start-card,
         .upcoming-card {
-          padding: 0.82rem;
-          border-radius: 16px;
+          padding: 0.76rem;
+          border-radius: 15px;
+        }
+
+        .upcoming-grid {
+          gap: 0.62rem;
+        }
+
+        .upcoming-card strong {
+          font-size: 0.94rem;
+          line-height: 1.2;
+        }
+
+        .upcoming-card p {
+          font-size: 0.82rem;
+          line-height: 1.38;
         }
 
         .archive-topbar {
@@ -681,6 +716,57 @@ const postTagPayload = (post: (typeof posts)[number]) => {
           min-height: 36px;
           padding-inline: 0.68rem;
           font-size: 0.78rem;
+        }
+      }
+
+      @media (max-width: 430px) {
+        main.blog-main {
+          width: min(100% - 0.75rem, 1120px);
+        }
+
+        .blog-hero,
+        .featured-shell,
+        .archive-shell,
+        .upcoming-shell {
+          border-radius: 18px;
+        }
+
+        .hero-preview__body {
+          padding: 0.78rem 0.82rem 0.85rem;
+        }
+
+        .hero-preview__body h2 {
+          font-size: 1.08rem;
+          line-height: 1.1;
+        }
+
+        .hero-preview__body p {
+          font-size: 0.84rem;
+          line-height: 1.38;
+        }
+
+        .hero-preview img {
+          aspect-ratio: 16 / 7;
+        }
+
+        .toolbar input[type='search'] {
+          padding: 10px 12px;
+          border-radius: 13px;
+          font-size: 0.92rem;
+        }
+
+        .eyebrow {
+          font-size: 0.7rem;
+          letter-spacing: 0.1em;
+        }
+
+        .start-card strong {
+          font-size: 0.94rem;
+        }
+
+        .start-card p {
+          font-size: 0.82rem;
+          line-height: 1.38;
         }
       }
     </style>
