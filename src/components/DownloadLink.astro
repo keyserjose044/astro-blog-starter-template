@@ -21,15 +21,14 @@ const dlHref = `https://dl.lifeloggerz.com/d/${type}/${encodeURIComponent(slug)}
 { showCount && <span id={`dl-count-${slug.replace(/[^a-z0-9_-]/gi, "_")}`}> — </span> }
 
 { showCount && (
-  <script is:inline>
-    (async()=>{
+  <script is:inline define:vars={{ countId: `dl-count-${slug.replace(/[^a-z0-9_-]/gi, "_")}`, counterKey }}>
+    (async () => {
       try {
-        const id = "dl-count-" + {JSON.stringify(slug.replace(/[^a-z0-9_-]/gi, "_"))};
-        const r = await fetch(`https://stats.lifeloggerz.com/count/downloads?key=${encodeURIComponent({JSON.stringify(counterKey)})}`, { cache: "no-store" });
+        const r = await fetch(`https://stats.lifeloggerz.com/count/downloads?key=${encodeURIComponent(counterKey)}`, { cache: "no-store" });
         const { count } = await r.json();
-        const el = document.getElementById(id);
-        if (el) el.textContent = ` ${count} download${count===1?"":"s"}`;
-      } catch(_){}
+        const el = document.getElementById(countId);
+        if (el) el.textContent = ` ${count} download${count === 1 ? "" : "s"}`;
+      } catch (_) {}
     })();
   </script>
 ) }
