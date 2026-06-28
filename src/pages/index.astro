@@ -280,9 +280,11 @@ const storyLinks = [
                 <BlogCard
                   href={link(`blog/${post.slug}/`)}
                   title={post.data.title}
+                  description={post.data.description}
                   pubDate={post._pub}
                   heroImage={post.data.heroImage}
                   heroVideo={post.data.heroVideo}
+                  tags={post.data.tags}
                   {...(i === 0 ? { 'data-lcp': true } : {})}
                 />
               ))}
