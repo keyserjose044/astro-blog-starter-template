@@ -11,6 +11,15 @@ const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const link = (p: string = '') => `${base}${p}`;
 
+function inferCategory(tags: readonly string[] = [], title = '') {
+  const haystack = `${title} ${tags.join(' ')}`.toLowerCase();
+  if (haystack.includes('template')) return 'Templates';
+  if (haystack.includes('automation') || haystack.includes('python') || haystack.includes('autohotkey')) return 'Automation';
+  if (haystack.includes('google sheets') || haystack.includes('raw data') || haystack.includes('daily snapshot')) return 'Life Archive';
+  if (haystack.includes('research')) return 'Research';
+  return 'Field Notes';
+}
+
 const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
   .map((p) => ({
     ...p,
@@ -22,96 +31,44 @@ const posts = (await getCollection('blog', ({ data }) => data?.draft !== true))
   }))
   .sort((a, b) => (b._pub?.getTime?.() ?? 0) - (a._pub?.getTime?.() ?? 0));
 
-function inferCategory(tags: readonly string[] = [], title = '') {
-  const haystack = `${title} ${tags.join(' ')}`.toLowerCase();
-  if (haystack.includes('template')) return 'Templates';
-  if (haystack.includes('automation') || haystack.includes('python') || haystack.includes('autohotkey')) return 'Automation';
-  if (haystack.includes('google sheets') || haystack.includes('raw data') || haystack.includes('daily snapshot')) return 'Life Archive';
-  if (haystack.includes('research')) return 'Research';
-  return 'Field Notes';
-}
-
 const slugKey = (slug: string) => slug.toLowerCase();
 const bySlug = new Map(posts.map((post) => [slugKey(post.slug), post]));
-const startHereSlugs = ['daily-snapshot', 'rawdatapost2025', '2026interactivegstemplate'];
+const startHereSlugs = ['rawdatapost2025', 'daily-snapshot', '2026interactivegstemplate'];
 const startHerePosts = startHereSlugs
   .map((slug) => bySlug.get(slugKey(slug)))
-  .filter(Boolean);
-
-const mainFeatured = startHerePosts[0] ?? posts[0];
-const sideFeatured = startHerePosts.slice(1, 3);
+  .filter((post): post is (typeof posts)[number] => Boolean(post));
+const displayedStartHerePosts = startHerePosts.length ? startHerePosts : posts.slice(0, 3);
+const morePosts = posts.filter((post) => !startHereSlugs.includes(slugKey(post.slug)));
 
 const filterChips = [
   { label: 'All', value: 'all' },
-  { label: 'Start Here', value: 'start-here' },
   { label: 'Templates', value: 'templates' },
   { label: 'Automation', value: 'automation' },
   { label: 'Google Sheets', value: 'google sheets' },
   { label: 'Stats & Graphs', value: 'stats graphs' },
+  { label: 'Research', value: 'research' },
 ];
 
 const upcomingPosts = [
-  {
-    title: 'How My Google Apps Script System Works',
-    category: 'Automation',
-    note: 'The glue behind the sheets: triggers, menus, imports, dashboards, and data cleanup.',
-  },
-  {
-    title: 'AutoHotkey for Workflow Automations',
-    category: 'Workflow',
-    note: 'Keyboard shortcuts, hotstrings, window layouts, prompt menus, and everyday friction removal.',
-  },
-  {
-    title: 'Condensing Diary Logs using AI in Google Sheets',
-    category: 'AI + Sheets',
-    note: 'Turning long daily entries into useful summaries without replacing the original diary.',
-  },
-  {
-    title: 'What I Track and What I Refuse to Track',
-    category: 'Philosophy',
-    note: 'The privacy, sanity, and taste boundaries that keep LifeLoggerz useful instead of creepy.',
-  },
-  {
-    title: 'How to Build a $10/Year Website Like This One',
-    category: 'Web',
-    note: 'Astro, GitHub, Cloudflare, static pages, and why a simple stack can go very far.',
-  },
-  {
-    title: 'Conquering the Western Classical Music Canon: One Composer at a Time',
-    category: 'Music',
-    note: 'How the listening archive turns a huge cultural tradition into a long-term exploration path.',
-  },
-  {
-    title: 'Why You Need a Treadmill Desk',
-    category: 'Habits',
-    note: 'A practical case for low-friction movement while reading, writing, logging, and working.',
-  },
-  {
-    title: 'Close Your Eyes = 30% Brainpower Boost',
-    category: 'Focus',
-    note: 'A grounded look at eye-closing as a quick thinking reset, not a magic productivity hack.',
-  },
-  {
-    title: 'My Daily Non-Negotiables: Bare Minimums for Habits',
-    category: 'Habits',
-    note: 'Duolingo, dictionary, Bible, diary, guitar, art, and the tiny daily minimums that preserve streaks.',
-  },
-  {
-    title: 'LifeLoggerz StudyTimer: Turning Focus into Feedback Loops',
-    category: 'Automation',
-    note: 'A revived process post from the disabled drafts: timing serious work and feeding it back into the archive.',
-  },
-  {
-    title: 'Lab Automation: Turning Months of Manual Work Into Minutes',
-    category: 'Research',
-    note: 'A public-safe look at the research scripts that turn raw instrument outputs into clean analysis files.',
-  },
-  {
-    title: 'Graph Gallery: What the Archive Can Show',
-    category: 'Stats',
-    note: 'A visual tour of sleep, hobbies, work blocks, running, guitar, audiobooks, diary words, and more.',
-  },
+  { title: 'How My Google Apps Script System Works', category: 'Automation' },
+  { title: 'AutoHotkey for Workflow Automations', category: 'Workflow' },
+  { title: 'Condensing Diary Logs using AI in Google Sheets', category: 'AI + Sheets' },
+  { title: 'What I Track and What I Refuse to Track', category: 'Philosophy' },
+  { title: 'How to Build a $10/Year Website Like This One', category: 'Web' },
+  { title: 'Conquering the Western Classical Music Canon: One Composer at a Time', category: 'Music' },
+  { title: 'Why You Need a Treadmill Desk', category: 'Habits' },
+  { title: 'Close Your Eyes = 30% Brainpower Boost', category: 'Focus' },
+  { title: 'My Daily Non-Negotiables: Bare Minimums for Habits', category: 'Habits' },
+  { title: 'LifeLoggerz StudyTimer: Turning Focus into Feedback Loops', category: 'Automation' },
+  { title: 'Lab Automation: Turning Months of Manual Work Into Minutes', category: 'Research' },
+  { title: 'Graph Gallery: What the Archive Can Show', category: 'Stats' },
 ];
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 
 const postSearchPayload = (post: (typeof posts)[number]) =>
   [post.data.title, post.data.description, post._category, ...(post._tags ?? [])]
@@ -126,11 +83,11 @@ const postTagPayload = (post: (typeof posts)[number]) => {
   const all = `${title} ${description} ${joinedTags} ${post._category.toLowerCase()}`;
 
   tokens.add('all');
-  if (startHereSlugs.includes(slugKey(post.slug))) tokens.add('start-here');
   if (all.includes('template')) tokens.add('templates');
   if (all.includes('automation') || all.includes('python') || all.includes('autohotkey') || all.includes('script')) tokens.add('automation');
   if (all.includes('google sheets') || all.includes('raw data') || all.includes('sheet')) tokens.add('google sheets');
   if (all.includes('stat') || all.includes('graph') || all.includes('snapshot')) tokens.add('stats graphs');
+  if (all.includes('research') || all.includes('paper')) tokens.add('research');
 
   return Array.from(tokens).join('|');
 };
@@ -172,15 +129,13 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         max-width: 1120px;
         margin: 0 auto;
         padding: clamp(1.4rem, 4vw, 4rem) 0 3.5rem;
-        box-sizing: border-box;
       }
 
       .blog-hero,
-      .featured-shell,
       .archive-shell,
       .upcoming-shell,
-      .start-card,
-      .upcoming-card {
+      .path-card,
+      .upcoming-item {
         border: 1px solid var(--border);
         background: var(--card-bg);
         box-shadow: var(--soft-shadow);
@@ -190,18 +145,18 @@ const postTagPayload = (post: (typeof posts)[number]) => {
 
       .blog-hero {
         display: grid;
-        grid-template-columns: minmax(0, 1.07fr) minmax(280px, 0.93fr);
-        gap: clamp(1.2rem, 4vw, 3rem);
-        align-items: center;
+        grid-template-columns: minmax(0, 0.9fr) minmax(330px, 1.1fr);
+        gap: clamp(1.1rem, 3.4vw, 2.5rem);
+        align-items: start;
         margin: 0 0 clamp(1.5rem, 4vw, 3rem);
-        padding: clamp(1.2rem, 4vw, 2.2rem);
+        padding: clamp(1.05rem, 3.5vw, 2.2rem);
         border-radius: 30px;
       }
 
       .eyebrow {
         margin: 0 0 0.55rem;
         color: var(--blue);
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 800;
         letter-spacing: 0.12em;
         line-height: 1.2;
@@ -211,116 +166,136 @@ const postTagPayload = (post: (typeof posts)[number]) => {
       .blog-hero h1 {
         max-width: 10ch;
         margin: 0;
-        font-size: clamp(2.5rem, 7vw, 5.2rem);
+        font-size: clamp(2.45rem, 7vw, 5.2rem);
         letter-spacing: -0.07em;
         line-height: 0.94;
       }
 
       .hero-lede {
-        max-width: 62ch;
+        max-width: 60ch;
         margin: 1rem 0 0.75rem;
         color: var(--ink);
-        font-size: clamp(1.18rem, 2.3vw, 1.6rem);
+        font-size: clamp(1.16rem, 2.2vw, 1.48rem);
         font-weight: 800;
         letter-spacing: -0.035em;
         line-height: 1.16;
       }
 
       .hero-subcopy {
-        max-width: 66ch;
-        margin: 0 0 1.1rem;
+        max-width: 62ch;
+        margin: 0;
         color: rgb(var(--gray-dark));
-        font-size: clamp(0.98rem, 1.4vw, 1.08rem);
-        line-height: 1.65;
+        font-size: clamp(0.98rem, 1.4vw, 1.06rem);
+        line-height: 1.62;
       }
 
-      .hero-actions {
+      .reading-path {
+        min-width: 0;
+      }
+
+      .reading-path__header {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.7rem;
-        align-items: center;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.8rem;
       }
 
-      .button,
-      .text-link,
-      .start-card,
-      .upcoming-card {
+      .reading-path__header h2 {
+        margin: 0;
+        font-size: clamp(1.35rem, 2.7vw, 2.15rem);
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+
+      .path-list,
+      .upcoming-list,
+      ul#grid {
+        list-style: none;
+        padding: 0;
+      }
+
+      .path-list {
+        display: grid;
+        gap: 0.75rem;
+        margin: 0;
+      }
+
+      .path-card {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: 0.85rem;
+        min-width: 0;
+        padding: 0.65rem;
+        overflow: hidden;
+        border-radius: 20px;
+        color: inherit;
         text-decoration: none;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
       }
 
-      .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        padding: 0.56rem 0.95rem;
-        border: 1px solid rgba(15, 76, 255, 0.18);
-        border-radius: 999px;
-        font-size: 0.94rem;
-        font-weight: 800;
-        line-height: 1.1;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
-      }
-
-      .button:hover,
-      .button:focus-visible,
-      .start-card:hover,
-      .start-card:focus-visible,
-      .upcoming-card:hover,
-      .upcoming-card:focus-visible {
+      .path-card:hover,
+      .path-card:focus-visible,
+      .upcoming-item:hover,
+      .upcoming-item:focus-visible {
+        border-color: rgba(15, 76, 255, 0.22);
+        box-shadow: 0 18px 36px rgba(15, 18, 25, 0.12);
+        outline: none;
         transform: translateY(-2px);
       }
 
-      .button-primary {
-        background: var(--blue);
-        color: #fff;
-        box-shadow: 0 14px 28px rgba(15, 76, 255, 0.22);
-      }
-
-      .button-primary:hover,
-      .button-primary:focus-visible {
-        color: #fff;
-        box-shadow: 0 18px 38px rgba(15, 76, 255, 0.28);
-      }
-
-      .button-secondary {
-        background: #fff;
-        color: var(--blue);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-      }
-
-      .hero-preview {
-        overflow: hidden;
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        background: #fff;
-        box-shadow: 0 10px 30px rgba(15, 18, 25, 0.08);
-      }
-
-      .hero-preview img {
+      .path-card img {
         display: block;
         width: 100%;
-        aspect-ratio: 16 / 10;
-        border-radius: 0;
+        height: 100%;
+        min-height: 112px;
+        border-radius: 15px;
+        background: #f8fafc;
         object-fit: cover;
         object-position: top left;
       }
 
-      .hero-preview__body {
-        padding: 1rem 1.1rem 1.1rem;
+      .path-card__copy {
+        min-width: 0;
+        align-self: center;
       }
 
-      .hero-preview__body h2 {
-        margin: 0 0 0.35rem;
-        font-size: clamp(1.2rem, 2vw, 1.55rem);
-        letter-spacing: -0.035em;
+      .path-card__step {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--blue);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        line-height: 1.1;
+        text-transform: uppercase;
       }
 
-      .hero-preview__body p {
-        margin: 0;
+      .path-card strong {
+        display: block;
+        margin-bottom: 0.3rem;
+        color: var(--ink);
+        font-size: clamp(1rem, 1.5vw, 1.12rem);
+        letter-spacing: -0.025em;
+        line-height: 1.16;
+        overflow-wrap: anywhere;
+      }
+
+      .path-card p {
+        display: -webkit-box;
+        margin: 0 0 0.45rem;
+        overflow: hidden;
         color: rgb(var(--gray-dark));
-        font-size: 0.95rem;
-        line-height: 1.5;
+        font-size: 0.9rem;
+        line-height: 1.42;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+
+      .path-card time {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 700;
       }
 
       .section-heading {
@@ -333,8 +308,9 @@ const postTagPayload = (post: (typeof posts)[number]) => {
 
       .section-heading h2 {
         margin: 0;
-        font-size: clamp(1.75rem, 4vw, 3rem);
+        font-size: clamp(1.7rem, 3.7vw, 2.75rem);
         letter-spacing: -0.055em;
+        line-height: 1;
       }
 
       .section-heading p:not(.eyebrow) {
@@ -342,10 +318,9 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         margin: 0.45rem 0 0;
         color: rgb(var(--gray-dark));
         font-size: 1rem;
-        line-height: 1.6;
+        line-height: 1.55;
       }
 
-      .featured-shell,
       .archive-shell,
       .upcoming-shell {
         margin-bottom: clamp(1.7rem, 5vw, 3.4rem);
@@ -353,64 +328,8 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         border-radius: 28px;
       }
 
-      .featured-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.28fr) minmax(280px, 0.72fr);
-        gap: 1rem;
-        align-items: stretch;
-      }
-
-      .featured-side {
-        display: grid;
-        gap: 1rem;
-      }
-
-      .start-note {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.8rem;
-        margin: 1rem 0 0;
-      }
-
-      .start-card {
-        display: block;
-        padding: 1rem;
-        border-radius: 18px;
-        color: inherit;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-      }
-
-      .start-card:hover,
-      .start-card:focus-visible {
-        border-color: rgba(15, 76, 255, 0.22);
-        box-shadow: 0 18px 36px rgba(15, 18, 25, 0.12);
-        outline: none;
-      }
-
-      .start-card span {
-        display: block;
-        margin-bottom: 0.45rem;
-        color: var(--blue);
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-
-      .start-card strong {
-        display: block;
-        margin-bottom: 0.3rem;
-        color: var(--ink);
-        font-size: 1.03rem;
-        letter-spacing: -0.02em;
-        line-height: 1.2;
-      }
-
-      .start-card p {
-        margin: 0;
-        color: rgb(var(--gray-dark));
-        font-size: 0.9rem;
-        line-height: 1.45;
+      .upcoming-shell {
+        margin-bottom: 0;
       }
 
       .archive-topbar {
@@ -484,7 +403,8 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         color: #fff;
       }
 
-      .empty {
+      .empty,
+      .more-empty {
         display: none;
         margin: 1rem 0 0;
         padding: 1rem;
@@ -495,11 +415,8 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         text-align: center;
       }
 
-      ul#grid,
-      .featured-grid ul,
-      .featured-side {
-        list-style: none;
-        padding: 0;
+      .more-empty {
+        display: block;
       }
 
       ul#grid {
@@ -509,78 +426,53 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         margin: 0;
       }
 
-      .upcoming-shell {
-        margin-bottom: 0;
-      }
-
       .upcoming-intro {
         max-width: 72ch;
-        margin: 0 0 1.1rem;
+        margin: 0 0 1rem;
         color: rgb(var(--gray-dark));
-        font-size: 1rem;
-        line-height: 1.6;
+        font-size: 0.98rem;
+        line-height: 1.55;
       }
 
-      .upcoming-grid {
+      .upcoming-list {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
-        gap: 0.8rem;
-        align-items: stretch;
+        gap: 0.62rem;
+        margin: 0;
       }
 
-      .upcoming-card {
-        display: flex;
+      .upcoming-item {
         min-width: 0;
-        height: 100%;
-        flex-direction: column;
-        gap: 0.45rem;
-        padding: 0.95rem;
+        padding: 0.78rem 0.82rem;
         overflow: hidden;
-        border-radius: 18px;
-        color: inherit;
+        border-radius: 16px;
         transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
       }
 
-      .upcoming-card:hover,
-      .upcoming-card:focus-visible {
-        border-color: rgba(15, 76, 255, 0.22);
-        box-shadow: 0 18px 36px rgba(15, 18, 25, 0.12);
-        outline: none;
-      }
-
-      .upcoming-card span {
-        min-width: 0;
+      .upcoming-item span {
+        display: block;
+        margin-bottom: 0.28rem;
         color: var(--blue);
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         font-weight: 800;
         letter-spacing: 0.1em;
-        line-height: 1.15;
+        line-height: 1.1;
         text-transform: uppercase;
         overflow-wrap: anywhere;
       }
 
-      .upcoming-card strong {
-        min-width: 0;
+      .upcoming-item strong {
+        display: block;
         color: var(--ink);
-        font-size: clamp(0.96rem, 1.15vw, 1.04rem);
-        letter-spacing: -0.02em;
-        line-height: 1.2;
+        font-size: 0.94rem;
+        letter-spacing: -0.018em;
+        line-height: 1.18;
         overflow-wrap: anywhere;
         hyphens: auto;
       }
 
-      .upcoming-card p {
-        min-width: 0;
-        margin: 0;
-        color: rgb(var(--gray-dark));
-        font-size: 0.88rem;
-        line-height: 1.45;
-        overflow-wrap: anywhere;
-      }
-
       @media (max-width: 960px) {
         .blog-hero,
-        .featured-grid,
         .archive-topbar {
           grid-template-columns: 1fr;
         }
@@ -602,16 +494,14 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         }
 
         .blog-hero,
-        .featured-shell,
         .archive-shell,
         .upcoming-shell {
           border-radius: 22px;
         }
 
         .blog-hero {
-          gap: 0.85rem;
+          gap: 1rem;
           padding: 0.82rem;
-          text-align: left;
         }
 
         .blog-hero h1 {
@@ -632,70 +522,55 @@ const postTagPayload = (post: (typeof posts)[number]) => {
           line-height: 1.52;
         }
 
-        .hero-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.46rem;
+        .reading-path__header {
+          display: block;
+          margin-bottom: 0.65rem;
         }
 
-        .button {
-          flex: 1 1 calc(50% - 0.46rem);
-          min-height: 36px;
-          padding: 0.48rem 0.68rem;
-          font-size: 0.84rem;
+        .reading-path__header h2,
+        .section-heading h2 {
+          font-size: clamp(1.42rem, 6.5vw, 2rem);
         }
 
-        .button-primary {
-          flex-basis: 100%;
+        .path-list,
+        .upcoming-list,
+        ul#grid {
+          grid-template-columns: 1fr;
         }
 
-        .hero-preview img {
-          aspect-ratio: 16 / 9;
+        .path-card {
+          grid-template-columns: 88px minmax(0, 1fr);
+          gap: 0.66rem;
+          padding: 0.55rem;
+          border-radius: 16px;
+        }
+
+        .path-card img {
+          min-height: 90px;
+          border-radius: 12px;
+        }
+
+        .path-card strong {
+          font-size: 0.96rem;
+        }
+
+        .path-card p {
+          font-size: 0.82rem;
+          line-height: 1.35;
+          -webkit-line-clamp: 2;
+        }
+
+        .path-card time {
+          font-size: 0.72rem;
         }
 
         .section-heading {
           display: block;
         }
 
-        .section-heading h2 {
-          font-size: clamp(1.48rem, 7vw, 2.05rem);
-          line-height: 1;
-        }
-
-        .featured-shell,
         .archive-shell,
         .upcoming-shell {
           padding: 0.72rem;
-        }
-
-        .start-note,
-        ul#grid,
-        .upcoming-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .start-note {
-          gap: 0.65rem;
-        }
-
-        .start-card,
-        .upcoming-card {
-          padding: 0.76rem;
-          border-radius: 15px;
-        }
-
-        .upcoming-grid {
-          gap: 0.62rem;
-        }
-
-        .upcoming-card strong {
-          font-size: 0.94rem;
-          line-height: 1.2;
-        }
-
-        .upcoming-card p {
-          font-size: 0.82rem;
-          line-height: 1.38;
         }
 
         .archive-topbar {
@@ -717,6 +592,19 @@ const postTagPayload = (post: (typeof posts)[number]) => {
           padding-inline: 0.68rem;
           font-size: 0.78rem;
         }
+
+        .upcoming-list {
+          gap: 0.5rem;
+        }
+
+        .upcoming-item {
+          padding: 0.68rem 0.72rem;
+          border-radius: 14px;
+        }
+
+        .upcoming-item strong {
+          font-size: 0.9rem;
+        }
       }
 
       @media (max-width: 430px) {
@@ -725,28 +613,9 @@ const postTagPayload = (post: (typeof posts)[number]) => {
         }
 
         .blog-hero,
-        .featured-shell,
         .archive-shell,
         .upcoming-shell {
           border-radius: 18px;
-        }
-
-        .hero-preview__body {
-          padding: 0.78rem 0.82rem 0.85rem;
-        }
-
-        .hero-preview__body h2 {
-          font-size: 1.08rem;
-          line-height: 1.1;
-        }
-
-        .hero-preview__body p {
-          font-size: 0.84rem;
-          line-height: 1.38;
-        }
-
-        .hero-preview img {
-          aspect-ratio: 16 / 7;
         }
 
         .toolbar input[type='search'] {
@@ -760,13 +629,12 @@ const postTagPayload = (post: (typeof posts)[number]) => {
           letter-spacing: 0.1em;
         }
 
-        .start-card strong {
-          font-size: 0.94rem;
+        .path-card {
+          grid-template-columns: 76px minmax(0, 1fr);
         }
 
-        .start-card p {
-          font-size: 0.82rem;
-          line-height: 1.38;
+        .path-card img {
+          min-height: 82px;
         }
       }
     </style>
@@ -776,164 +644,119 @@ const postTagPayload = (post: (typeof posts)[number]) => {
     <VideoBg>
       <Header />
       <main class="blog-main">
-        <section class="blog-hero" aria-labelledby="blog-title">
-          <div class="blog-hero__copy">
-            <p class="eyebrow">The LifeLoggerz manual</p>
-            <h1 id="blog-title">Field Notes</h1>
-            <p class="hero-lede">
-              Essays, templates, scripts, screenshots, and experiments from building a searchable life archive.
-            </p>
-            <p class="hero-subcopy">
-              Start with the Google Sheets backbone, see how one day becomes a Daily Snapshot,
-              then branch into templates, automation, graphs, routines, and the philosophy behind what gets tracked.
-            </p>
-            <div class="hero-actions" aria-label="Primary blog paths">
-              <a class="button button-primary" href={link('blog/rawdatapost2025/')}>Start with the sheets</a>
-              <a class="button button-secondary" href={link('blog/daily-snapshot/')}>See the Daily Snapshot</a>
-              <a class="button button-secondary" href={link('templates/')}>Browse templates</a>
-            </div>
-          </div>
-
-          <aside class="hero-preview" aria-label="Blog guide preview">
-            <img
-              src="/images_webp/daily_snapshot.webp"
-              alt="Daily Snapshot spreadsheet preview from the LifeLoggerz system"
-              loading="eager"
-              fetchpriority="high"
-            />
-            <div class="hero-preview__body">
-              <p class="eyebrow">Start here</p>
-              <h2>Sheets are the input. Stories are the output.</h2>
-              <p>
-                The blog is where the raw system becomes explainable: why it exists, how it works,
-                and how someone else could build from it.
-              </p>
-            </div>
-          </aside>
-        </section>
-
         {posts.length === 0 ? (
           <section class="archive-shell">
             <p>No posts yet. Add markdown files to <code>src/content/blog/</code>.</p>
           </section>
         ) : (
           <>
-            <section class="featured-shell" aria-labelledby="start-here-heading">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Start here</p>
-                  <h2 id="start-here-heading">The clearest reading path</h2>
-                  <p>
-                    Chronological order is useful later. New visitors need the foundation first:
-                    the raw sheets, the day-level output, and the copyable template.
-                  </p>
-                </div>
+            <section class="blog-hero" aria-labelledby="blog-title">
+              <div class="blog-hero__copy">
+                <p class="eyebrow">Start here</p>
+                <h1 id="blog-title">Field Notes</h1>
+                <p class="hero-lede">
+                  The written manual behind LifeLoggerz: templates, scripts, workflows, and reflections on turning daily life into searchable data.
+                </p>
+                <p class="hero-subcopy">
+                  Read the three core posts first. They explain the raw data backbone, the day-level output,
+                  and the copyable template before you branch into the rest of the archive.
+                </p>
               </div>
 
-              <div class="featured-grid">
-                {mainFeatured && (
-                  <BlogCard
-                    href={link(`blog/${mainFeatured.slug}/`)}
-                    title={mainFeatured.data.title}
-                    description={mainFeatured.data.description}
-                    pubDate={mainFeatured._pub}
-                    heroImage={mainFeatured.data.heroImage}
-                    heroVideo={mainFeatured.data.heroVideo}
-                    tags={mainFeatured._tags}
-                    category={mainFeatured._category}
-                    featured={true}
-                    data-lcp="true"
-                  />
-                )}
+              <aside class="reading-path" aria-labelledby="reading-path-heading">
+                <div class="reading-path__header">
+                  <div>
+                    <p class="eyebrow">Clearest path</p>
+                    <h2 id="reading-path-heading">Read these first</h2>
+                  </div>
+                </div>
 
-                <div class="featured-side">
-                  {sideFeatured.map((post) => (
-                    <BlogCard
-                      href={link(`blog/${post.slug}/`)}
-                      title={post.data.title}
-                      description={post.data.description}
-                      pubDate={post._pub}
-                      heroImage={post.data.heroImage}
-                      heroVideo={post.data.heroVideo}
-                      tags={post._tags}
-                      category={post._category}
-                    />
+                <ol class="path-list">
+                  {displayedStartHerePosts.map((post, index) => (
+                    <li>
+                      <a class="path-card" href={link(`blog/${post.slug}/`)}>
+                        {post.data.heroImage && (
+                          <img
+                            src={post.data.heroImage}
+                            alt=""
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                            fetchpriority={index === 0 ? 'high' : 'auto'}
+                          />
+                        )}
+                        <div class="path-card__copy">
+                          <span class="path-card__step">
+                            {index + 1} · {index === 0 ? 'Foundation' : index === 1 ? 'Output' : 'Try it'}
+                          </span>
+                          <strong>{post.data.title}</strong>
+                          <p>{post.data.description}</p>
+                          <time datetime={post._pub.toISOString()}>{dateFormatter.format(post._pub)}</time>
+                        </div>
+                      </a>
+                    </li>
                   ))}
-                </div>
-              </div>
-
-              <div class="start-note" aria-label="Suggested reading order">
-                <a class="start-card" href={link('blog/rawdatapost2025/')}>
-                  <span>1 · Foundation</span>
-                  <strong>Raw Data Sheets</strong>
-                  <p>The daily Google Sheet where life becomes structured, searchable data.</p>
-                </a>
-                <a class="start-card" href={link('blog/daily-snapshot/')}>
-                  <span>2 · Output</span>
-                  <strong>Daily Snapshot</strong>
-                  <p>A single-day card that proves the system is more than columns.</p>
-                </a>
-                <a class="start-card" href={link('blog/2026interactivegstemplate/')}>
-                  <span>3 · Try it</span>
-                  <strong>2026 Raw Data Template</strong>
-                  <p>A copyable starting point for anyone who wants to build their own archive.</p>
-                </a>
-              </div>
+                </ol>
+              </aside>
             </section>
 
-            <section class="archive-shell" aria-labelledby="all-posts-heading">
+            <section class="archive-shell" aria-labelledby="more-posts-heading">
               <div class="section-heading">
                 <div>
                   <p class="eyebrow">Archive</p>
-                  <h2 id="all-posts-heading">All posts</h2>
+                  <h2 id="more-posts-heading">More posts</h2>
                   <p>
-                    Search titles, descriptions, tags, and categories. Use the chips when you want a guided skim.
+                    The three foundation posts stay fixed above. Search the remaining templates, notes, and process posts here.
                   </p>
                 </div>
               </div>
 
-              <div class="archive-topbar" aria-label="Blog filters">
-                <div class="toolbar">
-                  <input
-                    id="q"
-                    type="search"
-                    placeholder="Search posts"
-                    aria-label="Filter blog posts"
-                  />
-                </div>
+              {morePosts.length > 0 ? (
+                <>
+                  <div class="archive-topbar" aria-label="Blog filters">
+                    <div class="toolbar">
+                      <input
+                        id="q"
+                        type="search"
+                        placeholder="Search more posts"
+                        aria-label="Filter blog posts"
+                      />
+                    </div>
 
-                <div class="filter-chips" aria-label="Filter by topic">
-                  {filterChips.map((chip) => (
-                    <button
-                      class:list={['filter-chip', chip.value === 'all' && 'is-active']}
-                      type="button"
-                      data-filter={chip.value}
-                      aria-pressed={chip.value === 'all' ? 'true' : 'false'}
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    <div class="filter-chips" aria-label="Filter by topic">
+                      {filterChips.map((chip) => (
+                        <button
+                          class:list={['filter-chip', chip.value === 'all' && 'is-active']}
+                          type="button"
+                          data-filter={chip.value}
+                          aria-pressed={chip.value === 'all' ? 'true' : 'false'}
+                        >
+                          {chip.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <div class="empty" id="empty">No posts match your search.</div>
+                  <div class="empty" id="empty">No posts match your search.</div>
 
-              <ul id="grid">
-                {posts.map((post) => (
-                  <BlogCard
-                    href={link(`blog/${post.slug}/`)}
-                    title={post.data.title}
-                    description={post.data.description}
-                    pubDate={post._pub}
-                    heroImage={post.data.heroImage}
-                    heroVideo={post.data.heroVideo}
-                    tags={post._tags}
-                    category={post._category}
-                    data-search={postSearchPayload(post)}
-                    data-tags={postTagPayload(post)}
-                  />
-                ))}
-              </ul>
+                  <ul id="grid">
+                    {morePosts.map((post) => (
+                      <BlogCard
+                        href={link(`blog/${post.slug}/`)}
+                        title={post.data.title}
+                        description={post.data.description}
+                        pubDate={post._pub}
+                        heroImage={post.data.heroImage}
+                        heroVideo={post.data.heroVideo}
+                        tags={post._tags}
+                        category={post._category}
+                        data-search={postSearchPayload(post)}
+                        data-tags={postTagPayload(post)}
+                      />
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p class="more-empty">More posts are coming soon. The core reading path above is the best place to start.</p>
+              )}
             </section>
           </>
         )}
@@ -943,23 +766,20 @@ const postTagPayload = (post: (typeof posts)[number]) => {
             <div>
               <p class="eyebrow">Coming next</p>
               <h2 id="upcoming-heading">Upcoming blog posts</h2>
+              <p>
+                A compact roadmap of the automation, habit, website, and archive-writing posts planned next.
+              </p>
             </div>
           </div>
 
-          <p class="upcoming-intro">
-            These are public-safe post ideas already implied by the project: the automation layer,
-            the habit layer, the website layer, and the bigger archive philosophy.
-          </p>
-
-          <div class="upcoming-grid">
+          <ul class="upcoming-list">
             {upcomingPosts.map((post) => (
-              <article class="upcoming-card">
+              <li class="upcoming-item">
                 <span>{post.category}</span>
                 <strong>{post.title}</strong>
-                <p>{post.note}</p>
-              </article>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       </main>
       <Footer />
