@@ -16,6 +16,20 @@ const books = await fetchAllRaindrops({
   label: 'books',
   placeholder: '/images_webp/books-placeholder.webp',
 });
+
+const getBookMeta = (note?: string | null) => {
+  const parts = String(note || '')
+    .split('·')
+    .map((part) => part.trim());
+
+  return {
+    dateFinished: parts[0] || '',
+    author: parts[2] || '',
+    yearPublished: parts[3] || '',
+    genre: parts[4] || '',
+    length: parts[9] || '',
+  };
+};
 ---
 
 <BaseHead
@@ -87,6 +101,212 @@ const books = await fetchAllRaindrops({
     }
   }
   .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
+
+  /* Mobile-only quilt/list control. Desktop remains unchanged. */
+  .mobile-view-toggle,
+  .mobile-card-meta {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .wrap {
+      padding-block: 18px 36px;
+    }
+
+    .intro {
+      margin-bottom: 14px;
+      padding-inline: 12px;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+      font-size: 2rem;
+    }
+
+    .hint {
+      max-width: 36ch;
+      margin: 4px auto 12px;
+      font-size: 0.86rem;
+      line-height: 1.42;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 40px 40px;
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .toolbar input[type="search"] {
+      grid-column: 1 / -1;
+      max-width: none;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+    }
+
+    .toolbar select {
+      width: 100%;
+      min-width: 0;
+      padding: 9px 10px;
+      font-size: 0.84rem;
+    }
+
+    .mobile-view-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      margin: 0 auto 14px;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 6px 16px rgba(15,23,42,.06);
+    }
+
+    .mobile-view-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .mobile-view-button[aria-pressed="true"] {
+      background: #405cf5;
+      color: #fff;
+      box-shadow: 0 5px 12px rgba(64,92,245,.22);
+    }
+
+    .mobile-view-button:focus-visible {
+      outline: 2px solid #405cf5;
+      outline-offset: 2px;
+    }
+
+    .fullbleed {
+      padding-inline: 10px;
+    }
+
+    /* Quilt is the default mobile view. */
+    .grid[data-mobile-view="quilt"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 10px;
+    }
+
+    .grid[data-mobile-view="quilt"] .card {
+      min-width: 0;
+      gap: 5px;
+    }
+
+    .grid[data-mobile-view="quilt"] .thumb {
+      aspect-ratio: 2 / 3;
+      border-radius: 9px;
+      box-shadow: 0 6px 14px rgba(0,0,0,.12);
+    }
+
+    .grid[data-mobile-view="quilt"] .title {
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: 0.78rem;
+      line-height: 1.24;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    /* List keeps one book per row without making each cover enormous. */
+    .grid[data-mobile-view="list"] {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      max-width: 680px;
+      margin-inline: auto;
+    }
+
+    .grid[data-mobile-view="list"] .card {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      gap: 5px 12px;
+      align-items: start;
+      padding: 8px;
+      border: 1px solid rgba(230,233,239,.95);
+      border-radius: 14px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 7px 18px rgba(15,23,42,.06);
+    }
+
+    .grid[data-mobile-view="list"] .thumb {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      width: 82px;
+      aspect-ratio: 2 / 3;
+      border-radius: 8px;
+      box-shadow: 0 5px 12px rgba(0,0,0,.12);
+    }
+
+    .grid[data-mobile-view="list"] .title {
+      grid-column: 2;
+      grid-row: 1;
+      margin-top: 2px;
+      font-size: 0.94rem;
+      line-height: 1.25;
+    }
+
+    .grid[data-mobile-view="list"] .mobile-card-meta {
+      display: flex;
+      grid-column: 2;
+      grid-row: 2;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.3;
+    }
+
+    .grid[data-mobile-view="list"] .mobile-card-meta span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Metadata is already visible in list view, so no floating tooltip is needed. */
+    .grid[data-mobile-view="list"] .note-bubble {
+      display: none;
+    }
+
+    .note-bubble {
+      max-width: min(310px, 88vw);
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      line-height: 1.32;
+    }
+
+    .info-panel {
+      margin-bottom: 16px;
+      padding: 13px;
+      font-size: 0.84rem;
+    }
+  }
+
+  @media (min-width: 560px) and (max-width: 900px) {
+    .grid[data-mobile-view="quilt"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px 12px;
+    }
+
+    .grid[data-mobile-view="quilt"] .title {
+      font-size: 0.84rem;
+    }
+  }
 </style>
 
 <VideoBg>
@@ -126,6 +346,34 @@ const books = await fetchAllRaindrops({
         </a>
       </div>
 
+      {books.length > 0 ? (
+        <div
+          id="mobile-view-toggle"
+          class="mobile-view-toggle"
+          role="group"
+          aria-label="Choose book layout"
+        >
+          <button
+            type="button"
+            class="mobile-view-button"
+            data-book-view="quilt"
+            aria-pressed="true"
+          >
+            <span aria-hidden="true">▦</span>
+            <span>Quilt</span>
+          </button>
+          <button
+            type="button"
+            class="mobile-view-button"
+            data-book-view="list"
+            aria-pressed="false"
+          >
+            <span aria-hidden="true">▤</span>
+            <span>List</span>
+          </button>
+        </div>
+      ) : null}
+
       <section id="reading-info" class="info-panel" hidden>
         <h2>Why I Listen to Audiobooks</h2>
         <p>
@@ -143,10 +391,10 @@ const books = await fetchAllRaindrops({
 
         <h2>The Numbers</h2>
         <p>
-          Since <strong>February 9, 2023</strong>, I’ve listened to nearly
-          <strong>300 audiobooks</strong> and logged more than <strong>2,000 hours</strong> of
-          listening. With 2026 around the corner, that’s almost three full years of audiobooks
-          woven into everyday life.
+          Since <strong>February 9, 2023</strong>, I’ve listened to
+          <strong>{books.length.toLocaleString('en-US')} audiobooks</strong> and logged more than
+          <strong>2,000 hours</strong> of listening, weaving books into otherwise ordinary parts
+          of everyday life.
         </p>
 
         <h2>Notes</h2>
@@ -160,8 +408,8 @@ const books = await fetchAllRaindrops({
         </p>
 
         <p>
-          Click on a book cover to get these details on mobile. Double-tap on an image to be taken
-          to the Goodreads page for that book.
+          In Quilt view on mobile, tap once to see these details and tap again to open Goodreads.
+          In List view, the key details are already visible and one tap opens the book.
         </p>
 
         <p>
@@ -174,31 +422,40 @@ const books = await fetchAllRaindrops({
     {books.length === 0 ? (
       <div class="empty">No books found in this collection.</div>
     ) : (
-      <div class="grid fullbleed" id="grid" role="list">
-        {books.map((a) => (
-          <a
-            class="card"
-            role="listitem"
-            href={a.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={a.title}
-            data-title={a.title.toLowerCase()}
-            data-note={(a.note || '').toLowerCase()}
-            data-note-raw={a.note || ''}
-          >
-            <img
-              class="thumb"
-              src={a.cover}
-              alt={a.title}
-              loading="lazy"
-              decoding="async"
-              sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw"
-            />
-            <div class="title">{a.title}</div>
-            {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
-          </a>
-        ))}
+      <div class="grid fullbleed" id="grid" role="list" data-mobile-view="quilt">
+        {books.map((a) => {
+          const meta = getBookMeta(a.note);
+
+          return (
+            <a
+              class="card"
+              role="listitem"
+              href={a.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={a.title}
+              data-title={a.title.toLowerCase()}
+              data-note={(a.note || '').toLowerCase()}
+              data-note-raw={a.note || ''}
+            >
+              <img
+                class="thumb"
+                src={a.cover}
+                alt={a.title}
+                loading="lazy"
+                decoding="async"
+                sizes="(max-width: 559px) 46vw, (max-width: 900px) 31vw, (min-width: 1800px) 300px, 25vw"
+              />
+              <div class="title">{a.title}</div>
+              <div class="mobile-card-meta" aria-hidden="true">
+                {meta.author ? <span><strong>{meta.author}</strong></span> : null}
+                {meta.genre ? <span>{meta.genre}{meta.yearPublished ? ` · ${meta.yearPublished}` : ''}</span> : null}
+                {meta.dateFinished ? <span>Finished {meta.dateFinished}{meta.length ? ` · ${meta.length}` : ''}</span> : null}
+              </div>
+              {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
+            </a>
+          );
+        })}
       </div>
     )}
   </main>
@@ -219,6 +476,45 @@ const books = await fetchAllRaindrops({
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
+
+    // Mobile-only quilt/list layout switcher.
+    const VIEW_STORAGE_KEY = 'lifeloggerz-books-mobile-view';
+    const viewButtons = $$('[data-book-view]');
+
+    function setBookView(view, persist = true){
+      const nextView = view === 'list' ? 'list' : 'quilt';
+      grid.dataset.mobileView = nextView;
+
+      viewButtons.forEach(button => {
+        const isActive = button.dataset.bookView === nextView;
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+
+      cards.forEach(card => card.classList.remove('show-note'));
+
+      if (persist){
+        try {
+          localStorage.setItem(VIEW_STORAGE_KEY, nextView);
+        } catch (_err) {
+          // The chosen view still works for this visit when storage is unavailable.
+        }
+      }
+    }
+
+    let savedView = 'quilt';
+    try {
+      savedView = localStorage.getItem(VIEW_STORAGE_KEY) || 'quilt';
+    } catch (_err) {
+      savedView = 'quilt';
+    }
+
+    setBookView(savedView, false);
+
+    viewButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        setBookView(button.dataset.bookView);
+      });
+    });
 
     // Build search haystack (already there)
     const haystack = new Map(
@@ -361,6 +657,12 @@ const books = await fetchAllRaindrops({
         return;
       }
       if (!card.querySelector('.note-bubble')) return;
+
+      const isMobileListView =
+        window.matchMedia('(max-width: 900px)').matches &&
+        grid.dataset.mobileView === 'list';
+
+      if (isMobileListView) return;
       if (card.classList.contains('show-note')) return;
       e.preventDefault();
       cards.forEach(c=>c.classList.remove('show-note'));
