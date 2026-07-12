@@ -6,7 +6,7 @@ import VideoBg from '../components/VideoBg.astro';
 import { SITE_TITLE } from '../consts';
 
 // Hardcoded per your current page
-const RAINDROP_TOKEN = "2df3b611-fa2c-4794-a359-1bf08efdd67f";
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
 const COLLECTION_ID  = "59630582";
 
 async function fetchAllRaindrops() {
