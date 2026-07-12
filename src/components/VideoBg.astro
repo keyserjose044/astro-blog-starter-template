@@ -56,17 +56,13 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
       };
 
       const scheduleStart = () => {
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(startVideo, { timeout: 1200 });
-        } else {
-          window.setTimeout(startVideo, 500);
-        }
+        window.setTimeout(startVideo, 120);
       };
-
-      if (document.readyState === 'complete') {
-        scheduleStart();
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scheduleStart, { once: true });
       } else {
-        window.addEventListener('load', scheduleStart, { once: true });
+        scheduleStart();
       }
 
       document.addEventListener('visibilitychange', () => {
