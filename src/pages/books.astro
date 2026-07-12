@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: responsive Quilt/List toggle, publication period filter, and Age sorting — July 12, 2026
+// Revision: publication filters, Age sorting, and single-row desktop toolbar — July 12, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -154,6 +154,13 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
   .toolbar #year-filter{flex-basis:96px;min-width:92px}
   .toolbar #period-filter{flex-basis:135px}
   .toolbar #sort-books{flex-basis:140px}
+
+  /* Give the complete desktop filter row enough room to keep Info and Stats together. */
+  @media (min-width:901px){
+    .intro{max-width:1080px;padding-inline:20px}
+    .toolbar{flex-wrap:nowrap}
+    .toolbar > .info-toggle{flex:0 0 40px}
+  }
 
   .info-toggle{
     width:40px;height:40px;border-radius:999px;border:1px solid #838796;background:#a8adbd;
