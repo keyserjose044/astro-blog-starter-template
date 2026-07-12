@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: responsive Quilt/List toggle with desktop details grid — July 12, 2026
+// Revision: responsive Quilt/List toggle, desktop details grid, and publication period filter — July 12, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -45,6 +45,70 @@ const getFinishedYear = (dateFinished?: string | null) => {
   // Also support notes that already contain a four-digit year in another date format.
   return raw.match(/\b(?:19|20)\d{2}\b/)?.[0] || '';
 };
+
+const getOrdinal = (value: number) => {
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
+
+  const mod10 = value % 10;
+  if (mod10 === 1) return `${value}st`;
+  if (mod10 === 2) return `${value}nd`;
+  if (mod10 === 3) return `${value}rd`;
+  return `${value}th`;
+};
+
+const getPublicationPeriod = (yearPublished?: string | null) => {
+  const raw = String(yearPublished || '').trim();
+  const normalized = raw.toLowerCase().replace(/,/g, '');
+
+  if (!normalized) {
+    return { key: 'unknown', label: 'Unknown date', order: 400 };
+  }
+
+  const isBce = /\b(?:bc|bce)\b/.test(normalized);
+  const centuryMatch = normalized.match(/\b(\d{1,2})(?:st|nd|rd|th)\s+century\b/);
+
+  if (centuryMatch) {
+    const century = Number(centuryMatch[1]);
+
+    if (isBce || century <= 5) {
+      return { key: 'ancient', label: 'Ancient (before 500)', order: 300 };
+    }
+
+    if (century <= 14) {
+      return { key: 'medieval', label: 'Medieval (500–1400)', order: 200 };
+    }
+
+    return {
+      key: `century-${century}`,
+      label: `${getOrdinal(century)} century`,
+      order: 100 - century,
+    };
+  }
+
+  const yearMatch = normalized.match(/\b(\d{1,4})\b/);
+  if (!yearMatch) {
+    return { key: 'unknown', label: 'Unknown date', order: 400 };
+  }
+
+  const year = Number(yearMatch[1]);
+
+  if (isBce || year < 500) {
+    return { key: 'ancient', label: 'Ancient (before 500)', order: 300 };
+  }
+
+  if (year <= 1400) {
+    return { key: 'medieval', label: 'Medieval (500–1400)', order: 200 };
+  }
+
+  const century = Math.ceil(year / 100);
+
+  return {
+    key: `century-${century}`,
+    label: `${getOrdinal(century)} century`,
+    order: 100 - century,
+  };
+};
 ---
 
 <BaseHead
@@ -61,11 +125,12 @@ const getFinishedYear = (dateFinished?: string | null) => {
   h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
   .hint{color:var(--muted);margin:6px 0 20px}
   .toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
-  .toolbar input[type="search"]{flex:1 1 240px;width:100%;max-width:300px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .toolbar input[type="search"]{flex:1 1 220px;width:100%;max-width:260px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
   .toolbar select{flex:0 1 135px;min-width:120px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
-  .toolbar #genre-filter{flex-basis:150px}
-  .toolbar #year-filter{flex-basis:100px;min-width:96px}
-  .toolbar #sort-books{flex-basis:145px}
+  .toolbar #genre-filter{flex-basis:145px}
+  .toolbar #year-filter{flex-basis:96px;min-width:92px}
+  .toolbar #period-filter{flex-basis:135px}
+  .toolbar #sort-books{flex-basis:140px}
 
   .info-toggle{
     width:40px;height:40px;border-radius:999px;border:1px solid #838796;background:#a8adbd;
@@ -296,14 +361,32 @@ const getFinishedYear = (dateFinished?: string | null) => {
 
     #genre-filter {
       grid-column: 1;
+      grid-row: 2;
     }
 
     #year-filter {
       grid-column: 2;
+      grid-row: 2;
+    }
+
+    #period-filter {
+      grid-column: 1;
+      grid-row: 3;
     }
 
     #sort-books {
-      grid-column: 1 / 3;
+      grid-column: 2;
+      grid-row: 3;
+    }
+
+    #info-toggle {
+      grid-column: 3;
+      grid-row: 3;
+    }
+
+    .toolbar > a.info-toggle {
+      grid-column: 4;
+      grid-row: 3;
     }
 
     .view-toggle {
@@ -465,6 +548,10 @@ const getFinishedYear = (dateFinished?: string | null) => {
           <option value="">All years</option>
           <!-- Current and future years are generated automatically by JS. -->
         </select>
+        <select id="period-filter" aria-label="Filter by publication period">
+          <option value="">All periods</option>
+          <!-- Period options are generated from the publication metadata. -->
+        </select>
         <select id="sort-books" aria-label="Sort books">
           <option value="date-desc">Newest finished</option>
           <option value="date-asc">Oldest finished</option>
@@ -578,6 +665,7 @@ const getFinishedYear = (dateFinished?: string | null) => {
         {books.map((a, index) => {
           const meta = getBookMeta(a.note);
           const finishedYear = getFinishedYear(meta.dateFinished);
+          const publicationPeriod = getPublicationPeriod(meta.yearPublished);
 
           return (
             <a
@@ -591,6 +679,9 @@ const getFinishedYear = (dateFinished?: string | null) => {
               data-author={meta.author.toLowerCase()}
               data-date-finished={meta.dateFinished}
               data-finished-year={finishedYear}
+              data-publication-period={publicationPeriod.key}
+              data-publication-period-label={publicationPeriod.label}
+              data-publication-period-order={publicationPeriod.order}
               data-length={meta.length}
               data-original-index={index}
               data-note={(a.note || '').toLowerCase()}
@@ -635,6 +726,7 @@ const getFinishedYear = (dateFinished?: string | null) => {
           input = $('#q'),
           genreSelect = $('#genre-filter'),
           yearSelect = $('#year-filter'),
+          periodSelect = $('#period-filter'),
           sortSelect = $('#sort-books'),
           filterEmpty = $('#filter-empty');
 
@@ -795,6 +887,31 @@ const getFinishedYear = (dateFinished?: string | null) => {
       }
     }
 
+    // Populate only publication periods represented in the current Raindrop collection.
+    // This avoids dead filter options while still supporting ancient, medieval, and future centuries.
+    if (periodSelect) {
+      const periodsInUse = new Map();
+
+      cards.forEach(card => {
+        const key = card.dataset.publicationPeriod || 'unknown';
+        const label = card.dataset.publicationPeriodLabel || 'Unknown date';
+        const order = Number(card.dataset.publicationPeriodOrder || 400);
+
+        if (!periodsInUse.has(key)) {
+          periodsInUse.set(key, { key, label, order });
+        }
+      });
+
+      [...periodsInUse.values()]
+        .sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
+        .forEach(period => {
+          const opt = document.createElement('option');
+          opt.value = period.key;
+          opt.textContent = period.label;
+          periodSelect.appendChild(opt);
+        });
+    }
+
     const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
     function parseFinishedDate(value){
@@ -885,6 +1002,7 @@ const getFinishedYear = (dateFinished?: string | null) => {
       const selectedGenre = genreSelect ? genreSelect.value : '';
       const selectedKey = norm(selectedGenre);
       const selectedYear = yearSelect ? yearSelect.value : '';
+      const selectedPeriod = periodSelect ? periodSelect.value : '';
       let visibleCount = 0;
 
       cards.forEach(c => {
@@ -892,7 +1010,9 @@ const getFinishedYear = (dateFinished?: string | null) => {
         const genreMatches =
           !selectedGenre || (c.dataset.genreKey && c.dataset.genreKey === selectedKey);
         const yearMatches = !selectedYear || c.dataset.finishedYear === selectedYear;
-        const isVisible = textMatches && genreMatches && yearMatches;
+        const periodMatches =
+          !selectedPeriod || c.dataset.publicationPeriod === selectedPeriod;
+        const isVisible = textMatches && genreMatches && yearMatches && periodMatches;
         c.style.display = isVisible ? '' : 'none';
         if (isVisible) visibleCount += 1;
       });
@@ -903,6 +1023,7 @@ const getFinishedYear = (dateFinished?: string | null) => {
     input.addEventListener('input', debounce(filter, 80));
     if (genreSelect) genreSelect.addEventListener('change', filter);
     if (yearSelect) yearSelect.addEventListener('change', filter);
+    if (periodSelect) periodSelect.addEventListener('change', filter);
     if (sortSelect) sortSelect.addEventListener('change', sortBooks);
 
     // Keyboard shortcuts (unchanged)
@@ -911,6 +1032,7 @@ const getFinishedYear = (dateFinished?: string | null) => {
         input.value='';
         if (genreSelect) genreSelect.value = '';
         if (yearSelect) yearSelect.value = '';
+        if (periodSelect) periodSelect.value = '';
         if (sortSelect) sortSelect.value = 'date-desc';
         sortBooks();
         filter();
