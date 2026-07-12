@@ -200,7 +200,7 @@ const storyLinks = [
             <p>No posts yet. Add some markdown files to <code>src/content/blog/</code>!</p>
           ) : (
             <ul class="post-grid">
-              {featuredPosts.map((post, i) => (
+              {featuredPosts.map((post) => (
                 <BlogCard
                   href={link(`blog/${post.slug}/`)}
                   title={post.data.title}
@@ -209,7 +209,6 @@ const storyLinks = [
                   heroImage={post.data.heroImage}
                   heroVideo={post.data.heroVideo}
                   tags={post.data.tags}
-                  {...(i === 0 ? { 'data-lcp': true } : {})}
                 />
               ))}
             </ul>
@@ -612,8 +611,6 @@ const storyLinks = [
     color: inherit;
     text-decoration: none;
     box-shadow: 0 14px 34px rgba(15, 18, 25, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   }
 
