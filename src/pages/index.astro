@@ -26,71 +26,52 @@ const posts = rawPosts
   })
   .sort((a, b) => (b._pub?.getTime?.() ?? 0) - (a._pub?.getTime?.() ?? 0));
 
-const featuredPosts = posts.slice(0, 4);
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const trackingStart = new Date('2023-01-01T00:00:00');
-const today = new Date();
-const daysTracked = Math.max(0, Math.floor((today.getTime() - trackingStart.getTime()) / MS_PER_DAY) + 1);
-
-const projectStats = [
-  { value: `${daysTracked.toLocaleString()}+`, label: 'days logged since Jan 2023' },
-  { value: '150+', label: 'daily fields across life, work, habits, and media' },
-  { value: '10 min', label: 'to log the core day when the system is flowing' },
-  { value: '4 outputs', label: 'raw sheets, snapshots, graphs, and templates' },
+const featuredPostSlugs = [
+  'rawdatapost2025',
+  'daily-snapshot',
+  '2026interactivegstemplate',
 ];
 
-const startHere = [
-  {
-    eyebrow: 'Foundation',
-    title: 'Raw Data Sheets',
-    body: 'The Google Sheets backbone where daily life becomes structured, searchable data.',
-    href: link('blog/rawdatapost2025/'),
-  },
-  {
-    eyebrow: 'Output',
-    title: 'Daily Snapshot',
-    body: 'One ordinary day transformed into a readable summary with numbers, notes, images, quotes, blunders, and context.',
-    href: link('blog/daily-snapshot/'),
-  },
-  {
-    eyebrow: 'Stats',
-    title: 'Stats Dashboard',
-    body: 'Graphs from the archive: guitar, audiobooks, running, diary word counts, and more as the system grows.',
-    href: link('stats/'),
-  },
-  {
-    eyebrow: 'Try it',
-    title: 'Templates',
-    body: 'Copy the sheets and workflows instead of starting from zero.',
-    href: link('templates/'),
-  },
-];
+const featuredPosts = posts
+  .filter((post) => featuredPostSlugs.includes(post.slug))
+  .sort((a, b) => featuredPostSlugs.indexOf(a.slug) - featuredPostSlugs.indexOf(b.slug));
 
 const archiveLinks = [
   {
-    icon: '📚',
+    eyebrow: 'Reading archive',
     title: 'Books',
     body: 'Audiobooks logged with dates, genres, notes, and listening context.',
     href: link('books/'),
+    mediaClass: 'media-books',
+    mediaLabel: 'BOOKS',
+    mediaTag: 'LISTENED + LOGGED',
   },
   {
-    icon: '💿',
+    eyebrow: 'Listening archive',
     title: 'Albums',
     body: 'Full albums preserved as part of the archive instead of disappearing into shuffled playlists.',
     href: link('albums/'),
+    mediaClass: 'media-albums',
+    mediaLabel: 'ALBUMS',
+    mediaTag: 'FULL RECORDS',
   },
   {
-    icon: '🎨',
+    eyebrow: 'Visual archive',
     title: 'Art',
     body: 'Daily artworks collected into a visual diary of what shaped the years.',
     href: link('art/'),
+    mediaClass: 'media-art',
+    mediaLabel: 'ART',
+    mediaTag: 'ONE WORK A DAY',
   },
   {
-    icon: '📈',
+    eyebrow: 'Quantified archive',
     title: 'Stats Dashboard',
     body: 'The quantitative side of LifeLoggerz: graphs built from the long-running archive.',
     href: link('stats/'),
+    mediaClass: 'media-stats',
+    mediaLabel: 'STATS',
+    mediaTag: 'LIVE GRAPHS',
   },
 ];
 
@@ -100,24 +81,36 @@ const storyLinks = [
     title: 'Who built this?',
     body: 'The personal origin of LifeLoggerz and why the archive exists in the first place.',
     href: link('about/'),
+    mediaClass: 'media-about',
+    mediaLabel: 'ABOUT',
+    mediaTag: 'THE ORIGIN',
   },
   {
     eyebrow: 'Timeline',
-    title: '2025 at a glance',
+    title: 'Life at a glance',
     body: 'A year-level view of the project, the routines, and the systems coming together.',
     href: link('timeline/'),
+    mediaClass: 'media-timeline',
+    mediaLabel: 'TIME',
+    mediaTag: 'YEAR BY YEAR',
   },
   {
     eyebrow: 'Influences',
     title: 'Inspirations',
     body: 'The people, projects, and ideas that helped spark LifeLoggerz.',
     href: link('inspirations/'),
+    mediaClass: 'media-inspirations',
+    mediaLabel: 'IDEAS',
+    mediaTag: 'WHAT SHAPED IT',
   },
   {
     eyebrow: 'Questions',
     title: 'FAQ',
     body: 'Practical answers about privacy, what to track first, how long logging takes, and why the system works this way.',
     href: link('faq/'),
+    mediaClass: 'media-faq',
+    mediaLabel: 'FAQ',
+    mediaTag: 'START HERE',
   },
 ];
 ---
@@ -166,7 +159,11 @@ const storyLinks = [
             </div>
           </div>
 
-          <aside class="hero-preview" aria-label="LifeLoggerz system preview">
+          <a
+            class="hero-preview"
+            href={link('blog/daily-snapshot/')}
+            aria-label="Read how the LifeLoggerz Daily Snapshot turns raw data into a readable day"
+          >
             <div class="preview-image-wrap">
               <img
                 src="/images_webp/daily_snapshot.webp"
@@ -181,93 +178,20 @@ const storyLinks = [
               <p>
                 Sheets are the input. Daily snapshots, graphs, templates, and essays are the output.
               </p>
+              <span class="preview-link">Explore the Daily Snapshot →</span>
             </div>
-          </aside>
+          </a>
         </section>
 
-        <!-- Proof / scale -->
-        <section class="proof-strip" aria-label="LifeLoggerz project scale">
-          {projectStats.map((stat) => (
-            <article class="proof-card">
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </article>
-          ))}
-        </section>
-
-        <!-- Start Here -->
-        <section class="home-section" aria-labelledby="start-heading">
-          <div class="section-heading centered">
-            <p class="eyebrow">Start here</p>
-            <h2 id="start-heading">Four doors into the project</h2>
-            <p>
-              One section, no redundancy: the foundation, the output, the graphs, and the tools.
-            </p>
-          </div>
-
-          <div class="start-grid">
-            {startHere.map((item) => (
-              <a class="start-card" href={item.href}>
-                <span class="card-eyebrow">{item.eyebrow}</span>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <span class="card-link">Open →</span>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <!-- Archive links -->
-        <section class="home-section feature-band" aria-labelledby="archive-heading">
-          <div class="feature-copy">
-            <p class="eyebrow">Data, not vibes</p>
-            <h2 id="archive-heading">Explore the archive</h2>
-            <p>
-              LifeLoggerz is bigger than the tracking system. The archive also preserves the books,
-              albums, art, and stats that shape the years being tracked.
-            </p>
-            <a class="text-link" href={link('stats/')}>Go to the stats dashboard →</a>
-          </div>
-
-          <div class="feature-cards" aria-label="Archive destinations">
-            {archiveLinks.map((item) => (
-              <a class="mini-card" href={item.href}>
-                <span class="mini-icon">{item.icon}</span>
-                <strong>{item.title}</strong>
-                <span>{item.body}</span>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <!-- Story links -->
-        <section class="home-section" aria-labelledby="story-heading">
-          <div class="section-heading centered">
-            <p class="eyebrow">Story behind the system</p>
-            <h2 id="story-heading">The map beyond the data</h2>
-            <p>
-              These pages explain the person, timeline, influences, and practical questions behind LifeLoggerz.
-            </p>
-          </div>
-
-          <div class="start-grid">
-            {storyLinks.map((item) => (
-              <a class="start-card" href={item.href}>
-                <span class="card-eyebrow">{item.eyebrow}</span>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <span class="card-link">Open →</span>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <!-- Latest posts -->
-        <section class="home-section" aria-labelledby="blog-heading">
+        <!-- Featured posts -->
+        <section class="home-section featured-section" aria-labelledby="blog-heading">
           <div class="home-section-header">
             <div>
-              <p class="eyebrow">Featured reading</p>
+              <p class="eyebrow">Start here</p>
               <h2 class="home-section-title" id="blog-heading">Best starting posts</h2>
+              <p class="section-intro">
+                The foundation, the day-level output, and the copyable template—the clearest route into LifeLoggerz.
+              </p>
             </div>
             <SeeAllPill href={link('blog/')} />
           </div>
@@ -290,6 +214,70 @@ const storyLinks = [
               ))}
             </ul>
           )}
+        </section>
+
+        <!-- Archive links -->
+        <section class="home-section" aria-labelledby="archive-heading">
+          <div class="section-heading centered">
+            <p class="eyebrow">Data, not vibes</p>
+            <h2 id="archive-heading">Explore the archive</h2>
+            <p>
+              The system records more than routines. Browse the books, albums, art, and live graphs
+              that show what filled the years.
+            </p>
+          </div>
+
+          <div class="nav-card-grid" aria-label="Archive destinations">
+            {archiveLinks.map((item) => (
+              <a class="nav-card" href={item.href}>
+                <div
+                  class={`nav-card-media ${item.mediaClass}`}
+                  data-label={item.mediaLabel}
+                  aria-hidden="true"
+                >
+                  <span>{item.mediaTag}</span>
+                </div>
+                <div class="nav-card-body">
+                  <span class="card-eyebrow">{item.eyebrow}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                  <span class="card-link">Explore →</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <!-- Story links -->
+        <section class="home-section" aria-labelledby="story-heading">
+          <div class="section-heading centered">
+            <p class="eyebrow">Story behind the system</p>
+            <h2 id="story-heading">The map beyond the data</h2>
+            <p>
+              Meet the person behind the archive, follow its timeline, trace its influences,
+              and get practical answers before going deeper.
+            </p>
+          </div>
+
+          <div class="nav-card-grid" aria-label="LifeLoggerz background pages">
+            {storyLinks.map((item) => (
+              <a class="nav-card" href={item.href}>
+                <div
+                  class={`nav-card-media ${item.mediaClass}`}
+                  data-label={item.mediaLabel}
+                  aria-hidden="true"
+                >
+                  <span>{item.mediaTag}</span>
+                </div>
+                <div class="nav-card-body">
+                  <span class="card-eyebrow">{item.eyebrow}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                  <span class="card-link">Open →</span>
+                </div>
+              </a>
+            ))}
+          </div>
         </section>
 
         <!-- Mission -->
@@ -471,8 +459,20 @@ const storyLinks = [
   }
 
   .hero-preview {
+    display: block;
     overflow: hidden;
     border-radius: 28px;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .hero-preview:hover,
+  .hero-preview:focus-visible {
+    color: inherit;
+    border-color: rgba(15, 76, 255, 0.35);
+    box-shadow: 0 22px 48px rgba(15, 18, 25, 0.14);
+    transform: translateY(-3px);
   }
 
   .preview-image-wrap {
@@ -512,6 +512,15 @@ const storyLinks = [
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+  }
+
+
+  .preview-link {
+    display: inline-flex;
+    margin-top: 0.75rem;
+    color: #0f4cff;
+    font-size: 0.9rem;
+    font-weight: 800;
   }
 
   .proof-strip {
@@ -572,6 +581,127 @@ const storyLinks = [
     color: rgb(var(--gray-dark));
     font-size: 1.05rem;
     line-height: 1.65;
+  }
+
+  .section-intro {
+    max-width: 62ch;
+    margin: 0.75rem 0 0;
+    color: rgb(var(--gray-dark));
+    font-size: 1.02rem;
+    line-height: 1.55;
+  }
+
+  .featured-section {
+    margin-top: clamp(2.4rem, 6vw, 4.5rem);
+  }
+
+  .nav-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .nav-card {
+    display: flex;
+    min-width: 0;
+    overflow: hidden;
+    flex-direction: column;
+    border: 1px solid rgba(var(--gray-light), 0.95);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.9);
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 14px 34px rgba(15, 18, 25, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .nav-card:hover,
+  .nav-card:focus-visible {
+    color: inherit;
+    border-color: rgba(15, 76, 255, 0.35);
+    box-shadow: 0 20px 42px rgba(15, 18, 25, 0.13);
+    transform: translateY(-3px);
+  }
+
+  .nav-card-media {
+    position: relative;
+    display: flex;
+    height: 145px;
+    overflow: hidden;
+    align-items: flex-end;
+    padding: 0.9rem;
+    border-bottom: 1px solid rgba(var(--gray-light), 0.85);
+    isolation: isolate;
+  }
+
+  .nav-card-media::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.72), transparent 31%),
+      repeating-linear-gradient(118deg, transparent 0 18px, rgba(255, 255, 255, 0.18) 18px 20px);
+    content: '';
+  }
+
+  .nav-card-media::after {
+    position: absolute;
+    right: -0.08em;
+    bottom: -0.22em;
+    color: rgba(255, 255, 255, 0.76);
+    content: attr(data-label);
+    font-size: clamp(2.45rem, 4vw, 4.2rem);
+    font-weight: 900;
+    letter-spacing: -0.08em;
+    line-height: 0.8;
+    white-space: nowrap;
+  }
+
+  .nav-card-media span {
+    position: relative;
+    z-index: 1;
+    padding: 0.32rem 0.48rem;
+    border: 1px solid rgba(255, 255, 255, 0.54);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 0.67rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    line-height: 1;
+  }
+
+  .media-books { background: linear-gradient(135deg, #1b3f8b, #3779e8); }
+  .media-albums { background: linear-gradient(135deg, #4d176f, #b045c8); }
+  .media-art { background: linear-gradient(135deg, #b33b1c, #ef9d3b); }
+  .media-stats { background: linear-gradient(135deg, #005f5a, #23a89c); }
+  .media-about { background: linear-gradient(135deg, #383d49, #7b8498); }
+  .media-timeline { background: linear-gradient(135deg, #6a321f, #c97543); }
+  .media-inspirations { background: linear-gradient(135deg, #173e73, #28a4d4); }
+  .media-faq { background: linear-gradient(135deg, #244f2e, #63aa56); }
+
+  .nav-card-body {
+    display: flex;
+    min-height: 205px;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.05rem;
+  }
+
+  .nav-card-body h3 {
+    margin: 0.55rem 0 0.45rem;
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    letter-spacing: -0.035em;
+    line-height: 1.08;
+  }
+
+  .nav-card-body p {
+    margin: 0;
+    color: rgb(var(--gray-dark));
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 
   .path-grid {
@@ -908,6 +1038,7 @@ const storyLinks = [
       justify-content: center;
     }
 
+    .nav-card-grid,
     .proof-strip,
     .path-grid,
     .start-grid,
@@ -1071,6 +1202,12 @@ const storyLinks = [
       letter-spacing: 0.085em;
     }
 
+
+    .preview-link {
+      margin-top: 0.48rem;
+      font-size: 0.76rem;
+    }
+
     .proof-strip {
       grid-template-columns: 1fr;
       gap: 0.42rem;
@@ -1129,6 +1266,7 @@ const storyLinks = [
       line-height: 1.45;
     }
 
+    .nav-card-grid,
     .path-grid,
     .start-grid,
     .system-grid,
@@ -1136,6 +1274,61 @@ const storyLinks = [
       grid-template-columns: 1fr;
       max-width: 335px;
       margin-inline: auto;
+    }
+
+    .section-intro {
+      max-width: 32ch;
+      margin: 0.5rem auto 0;
+      font-size: 0.82rem;
+      line-height: 1.42;
+    }
+
+    .nav-card-grid {
+      gap: 0.7rem;
+    }
+
+    .nav-card {
+      display: grid;
+      grid-template-columns: 106px minmax(0, 1fr);
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(15, 18, 25, 0.07);
+    }
+
+    .nav-card-media {
+      height: 100%;
+      min-height: 148px;
+      padding: 0.55rem;
+      border-right: 1px solid rgba(var(--gray-light), 0.85);
+      border-bottom: 0;
+    }
+
+    .nav-card-media::after {
+      right: -0.04em;
+      bottom: -0.12em;
+      font-size: 2.25rem;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    .nav-card-media span {
+      padding: 0.28rem 0.38rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.06em;
+    }
+
+    .nav-card-body {
+      min-height: 148px;
+      padding: 0.72rem;
+    }
+
+    .nav-card-body h3 {
+      margin: 0.3rem 0 0.22rem;
+      font-size: 1rem;
+    }
+
+    .nav-card-body p {
+      font-size: 0.76rem;
+      line-height: 1.34;
     }
 
     .path-grid,
