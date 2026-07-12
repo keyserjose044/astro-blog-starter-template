@@ -2,12 +2,12 @@
 /**
  * Full-page animated background wrapper for LifeLoggerz.
  *
- * The poster paints immediately, while the muted MP4 begins loading and
- * playing as soon as the browser can render it.
+ * The poster paints immediately. The optimized MP4 is small enough to preload
+ * and autoplay without holding up the rest of the page.
  */
 
 const base = import.meta.env.BASE_URL || '/';
-const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=3`;
+const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=4`;
 const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
 ---
 
@@ -19,7 +19,7 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
     muted
     loop
     playsinline
-    preload="metadata"
+    preload="auto"
     aria-hidden="true"
     tabindex="-1"
     class="page-with-video-bg__video"
@@ -33,50 +33,38 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
 
 <script is:inline>
   if (typeof window !== 'undefined') {
-    const startBackgroundVideos = () => {
+    const playBackgrounds = () => {
       document
         .querySelectorAll('[data-lifeloggerz-background]')
-        .forEach((video) => {
-          if (!(video instanceof HTMLVideoElement)) return;
-
-          video.muted = true;
-          video.defaultMuted = true;
-
-          const tryPlay = () => {
-            if (document.visibilityState === 'hidden') return;
-            video.play().catch(() => {
-              // The poster remains visible if a browser temporarily blocks playback.
-            });
-          };
-
-          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-            tryPlay();
-          } else {
-            video.addEventListener('canplay', tryPlay, { once: true });
+        .forEach((element) => {
+          if (!(element instanceof HTMLVideoElement)) return;
+          element.muted = true;
+          element.defaultMuted = true;
+          if (document.visibilityState === 'visible') {
+            element.play().catch(() => {});
           }
         });
     };
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', startBackgroundVideos, { once: true });
+      document.addEventListener('DOMContentLoaded', playBackgrounds, { once: true });
     } else {
-      startBackgroundVideos();
+      playBackgrounds();
     }
 
     document.addEventListener('visibilitychange', () => {
       document
         .querySelectorAll('[data-lifeloggerz-background]')
-        .forEach((video) => {
-          if (!(video instanceof HTMLVideoElement)) return;
-
+        .forEach((element) => {
+          if (!(element instanceof HTMLVideoElement)) return;
           if (document.visibilityState === 'hidden') {
-            video.pause();
+            element.pause();
           } else {
-            video.play().catch(() => {});
+            element.play().catch(() => {});
           }
         });
     });
 
-    window.addEventListener('pageshow', startBackgroundVideos);
+    window.addEventListener('pageshow', playBackgrounds);
   }
 </script>
