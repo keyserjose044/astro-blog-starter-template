@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: dynamic finished-year filter; mobile list cards standardized — July 11, 2026
+// Revision: responsive Quilt/List toggle with desktop details grid — July 12, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -75,8 +75,9 @@ const getFinishedYear = (dateFinished?: string | null) =>
   .info-panel h2{font-size:1.02rem;margin:0 0 .4rem;font-weight:700;color:var(--ink)}
   .info-panel p{margin:.35rem 0}
   .info-panel a{color:#314bd8;font-weight:700;text-underline-offset:2px}
-  .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
-  @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+  .grid{display:grid;gap:var(--gap);align-items:start;max-width:100%}
+  .grid[data-book-view="quilt"]{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  @media (min-width:1800px){.grid[data-book-view="quilt"]{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
   .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
   .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
   .thumb{
@@ -112,10 +113,131 @@ const getFinishedYear = (dateFinished?: string | null) =>
   }
   .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
 
-  /* Mobile-only quilt/list control. Desktop remains unchanged. */
-  .mobile-view-toggle,
-  .mobile-card-meta {
-    display: none;
+  .card-meta{display:none}
+
+  .view-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin: 0 auto 18px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 6px 16px rgba(15,23,42,.06);
+  }
+
+  .view-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .view-button[aria-pressed="true"] {
+    background: #405cf5;
+    color: #fff;
+    box-shadow: 0 5px 12px rgba(64,92,245,.22);
+  }
+
+  .view-button:focus-visible {
+    outline: 2px solid #405cf5;
+    outline-offset: 2px;
+  }
+
+  /* Desktop List view becomes a responsive grid of equal-height detail cards. */
+  @media (min-width: 901px) {
+    .grid[data-book-view="list"] {
+      width: 100%;
+      max-width: 1700px;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      grid-auto-rows: 176px;
+      gap: 16px;
+      margin-inline: auto;
+    }
+
+    .grid[data-book-view="list"] .card {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      grid-template-columns: 104px minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      gap: 7px 14px;
+      align-items: start;
+      overflow: hidden;
+      padding: 10px;
+      border: 1px solid rgba(230,233,239,.95);
+      border-radius: 14px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 8px 20px rgba(15,23,42,.07);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+
+    .grid[data-book-view="list"] .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(64,92,245,.28);
+      box-shadow: 0 12px 28px rgba(15,23,42,.11);
+    }
+
+    .grid[data-book-view="list"] .thumb {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      width: 104px;
+      height: 156px;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      border-radius: 9px;
+      box-shadow: 0 6px 15px rgba(0,0,0,.13);
+    }
+
+    .grid[data-book-view="list"] .title {
+      grid-column: 2;
+      grid-row: 1;
+      display: -webkit-box;
+      min-height: 2.6em;
+      overflow: hidden;
+      margin-top: 2px;
+      font-size: 1rem;
+      line-height: 1.3;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .grid[data-book-view="list"] .card-meta {
+      display: flex;
+      grid-column: 2;
+      grid-row: 2;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.35;
+    }
+
+    .grid[data-book-view="list"] .card-meta span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .grid[data-book-view="list"] .note-bubble {
+      display: none;
+    }
   }
 
   @media (max-width: 900px) {
@@ -173,46 +295,8 @@ const getFinishedYear = (dateFinished?: string | null) =>
       grid-column: 1 / 3;
     }
 
-    .mobile-view-toggle {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      margin: 0 auto 14px;
-      padding: 3px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: rgba(255,255,255,.9);
-      box-shadow: 0 6px 16px rgba(15,23,42,.06);
-    }
-
-    .mobile-view-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-height: 36px;
-      padding: 7px 12px;
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--muted);
-      font: inherit;
-      font-size: 0.82rem;
-      font-weight: 700;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    .mobile-view-button[aria-pressed="true"] {
-      background: #405cf5;
-      color: #fff;
-      box-shadow: 0 5px 12px rgba(64,92,245,.22);
-    }
-
-    .mobile-view-button:focus-visible {
-      outline: 2px solid #405cf5;
-      outline-offset: 2px;
+    .view-toggle {
+      margin-bottom: 14px;
     }
 
     .fullbleed {
@@ -220,23 +304,23 @@ const getFinishedYear = (dateFinished?: string | null) =>
     }
 
     /* Quilt remains available as the visual browsing option. */
-    .grid[data-mobile-view="quilt"] {
+    .grid[data-book-view="quilt"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px 10px;
     }
 
-    .grid[data-mobile-view="quilt"] .card {
+    .grid[data-book-view="quilt"] .card {
       min-width: 0;
       gap: 5px;
     }
 
-    .grid[data-mobile-view="quilt"] .thumb {
+    .grid[data-book-view="quilt"] .thumb {
       aspect-ratio: 2 / 3;
       border-radius: 9px;
       box-shadow: 0 6px 14px rgba(0,0,0,.12);
     }
 
-    .grid[data-mobile-view="quilt"] .title {
+    .grid[data-book-view="quilt"] .title {
       display: -webkit-box;
       overflow: hidden;
       font-size: 0.78rem;
@@ -246,7 +330,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
     }
 
     /* List keeps one book per row without making each cover enormous. */
-    .grid[data-mobile-view="list"] {
+    .grid[data-book-view="list"] {
       width: 100%;
       max-width: 680px;
       grid-template-columns: minmax(0, 1fr);
@@ -255,7 +339,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
       margin-inline: auto;
     }
 
-    .grid[data-mobile-view="list"] .card {
+    .grid[data-book-view="list"] .card {
       display: grid;
       width: 100%;
       max-width: none;
@@ -276,7 +360,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
       box-shadow: 0 7px 18px rgba(15,23,42,.06);
     }
 
-    .grid[data-mobile-view="list"] .thumb {
+    .grid[data-book-view="list"] .thumb {
       grid-column: 1;
       grid-row: 1 / span 2;
       width: 88px;
@@ -287,7 +371,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
       box-shadow: 0 5px 12px rgba(0,0,0,.12);
     }
 
-    .grid[data-mobile-view="list"] .title {
+    .grid[data-book-view="list"] .title {
       grid-column: 2;
       grid-row: 1;
       display: -webkit-box;
@@ -300,7 +384,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
       -webkit-line-clamp: 2;
     }
 
-    .grid[data-mobile-view="list"] .mobile-card-meta {
+    .grid[data-book-view="list"] .card-meta {
       display: flex;
       grid-column: 2;
       grid-row: 2;
@@ -312,7 +396,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
       line-height: 1.3;
     }
 
-    .grid[data-mobile-view="list"] .mobile-card-meta span {
+    .grid[data-book-view="list"] .card-meta span {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -320,7 +404,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
     }
 
     /* Metadata is already visible in list view, so no floating tooltip is needed. */
-    .grid[data-mobile-view="list"] .note-bubble {
+    .grid[data-book-view="list"] .note-bubble {
       display: none;
     }
 
@@ -339,12 +423,12 @@ const getFinishedYear = (dateFinished?: string | null) =>
   }
 
   @media (min-width: 560px) and (max-width: 900px) {
-    .grid[data-mobile-view="quilt"] {
+    .grid[data-book-view="quilt"] {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px 12px;
     }
 
-    .grid[data-mobile-view="quilt"] .title {
+    .grid[data-book-view="quilt"] .title {
       font-size: 0.84rem;
     }
   }
@@ -401,14 +485,14 @@ const getFinishedYear = (dateFinished?: string | null) =>
 
       {books.length > 0 ? (
         <div
-          id="mobile-view-toggle"
-          class="mobile-view-toggle"
+          id="book-view-toggle"
+          class="view-toggle"
           role="group"
           aria-label="Choose book layout"
         >
           <button
             type="button"
-            class="mobile-view-button"
+            class="view-button"
             data-book-view="list"
             aria-pressed="true"
           >
@@ -417,7 +501,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
           </button>
           <button
             type="button"
-            class="mobile-view-button"
+            class="view-button"
             data-book-view="quilt"
             aria-pressed="false"
           >
@@ -451,7 +535,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
         </p>
 
         <h2>Notes</h2>
-        <p>On desktop, hover over any book cover to see this complete structure:</p>
+        <p>In Quilt view on desktop, hover over any book cover to see this complete structure:</p>
 
         <p>
           <strong>
@@ -461,8 +545,8 @@ const getFinishedYear = (dateFinished?: string | null) =>
         </p>
 
         <p>
-          In Quilt view on mobile, tap once to see these details and tap again to open Goodreads.
-          In List view, the key details are already visible and one tap opens the book.
+          In Quilt view on a phone, tap once to see these details and tap again to open Goodreads.
+          In List view on any screen, the key details are already visible and one click or tap opens the book.
         </p>
 
         <p>
@@ -479,7 +563,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
         <p id="filter-empty" class="empty" aria-live="polite" hidden>
           No books match these filters.
         </p>
-        <div class="grid fullbleed" id="grid" role="list" data-mobile-view="list">
+        <div class="grid fullbleed" id="grid" role="list" data-book-view="list">
         {books.map((a, index) => {
           const meta = getBookMeta(a.note);
           const finishedYear = getFinishedYear(meta.dateFinished);
@@ -513,7 +597,7 @@ const getFinishedYear = (dateFinished?: string | null) =>
                 {a.title}<span class="external-link-cue" aria-hidden="true">↗</span>
                 <span class="sr-only"> (opens in a new tab)</span>
               </div>
-              <div class="mobile-card-meta">
+              <div class="card-meta">
                 {meta.author ? <span><strong>{meta.author}</strong></span> : null}
                 {meta.genre ? <span>{meta.genre}{meta.yearPublished ? ` · ${meta.yearPublished}` : ''}</span> : null}
                 {meta.dateFinished ? <span>Finished {meta.dateFinished}{meta.length ? ` · ${meta.length}` : ''}</span> : null}
@@ -547,13 +631,25 @@ const getFinishedYear = (dateFinished?: string | null) =>
 
     const cards = $$('.card', grid);
 
-    // Mobile-only quilt/list layout switcher.
-    const VIEW_STORAGE_KEY = 'lifeloggerz-books-mobile-view';
+    // Quilt/List layout switcher with separate defaults and saved choices by screen size.
+    const MOBILE_VIEW_QUERY = window.matchMedia('(max-width: 900px)');
+    const VIEW_STORAGE_KEYS = {
+      mobile: 'lifeloggerz-books-mobile-view',
+      desktop: 'lifeloggerz-books-desktop-view',
+    };
     const viewButtons = $$('[data-book-view]');
+
+    function viewMode(){
+      return MOBILE_VIEW_QUERY.matches ? 'mobile' : 'desktop';
+    }
+
+    function defaultView(){
+      return viewMode() === 'mobile' ? 'list' : 'quilt';
+    }
 
     function setBookView(view, persist = true){
       const nextView = view === 'list' ? 'list' : 'quilt';
-      grid.dataset.mobileView = nextView;
+      grid.dataset.bookView = nextView;
 
       viewButtons.forEach(button => {
         const isActive = button.dataset.bookView === nextView;
@@ -564,27 +660,36 @@ const getFinishedYear = (dateFinished?: string | null) =>
 
       if (persist){
         try {
-          localStorage.setItem(VIEW_STORAGE_KEY, nextView);
+          localStorage.setItem(VIEW_STORAGE_KEYS[viewMode()], nextView);
         } catch (_err) {
           // The chosen view still works for this visit when storage is unavailable.
         }
       }
     }
 
-    let savedView = 'list';
-    try {
-      savedView = localStorage.getItem(VIEW_STORAGE_KEY) || 'list';
-    } catch (_err) {
-      savedView = 'list';
+    function restoreViewForCurrentScreen(){
+      let savedView = defaultView();
+      try {
+        savedView = localStorage.getItem(VIEW_STORAGE_KEYS[viewMode()]) || defaultView();
+      } catch (_err) {
+        savedView = defaultView();
+      }
+      setBookView(savedView, false);
     }
 
-    setBookView(savedView, false);
+    restoreViewForCurrentScreen();
 
     viewButtons.forEach(button => {
       button.addEventListener('click', () => {
         setBookView(button.dataset.bookView);
       });
     });
+
+    if (typeof MOBILE_VIEW_QUERY.addEventListener === 'function') {
+      MOBILE_VIEW_QUERY.addEventListener('change', restoreViewForCurrentScreen);
+    } else {
+      MOBILE_VIEW_QUERY.addListener(restoreViewForCurrentScreen);
+    }
 
     // Build search haystack (already there)
     const haystack = new Map(
@@ -827,11 +932,10 @@ const getFinishedYear = (dateFinished?: string | null) =>
       }
       if (!card.querySelector('.note-bubble')) return;
 
-      const isMobileListView =
-        window.matchMedia('(max-width: 900px)').matches &&
-        grid.dataset.mobileView === 'list';
+      const isMobileQuiltView =
+        MOBILE_VIEW_QUERY.matches && grid.dataset.bookView === 'quilt';
 
-      if (isMobileListView) return;
+      if (!isMobileQuiltView) return;
       if (card.classList.contains('show-note')) return;
       e.preventDefault();
       cards.forEach(c=>c.classList.remove('show-note'));
