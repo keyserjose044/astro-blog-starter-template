@@ -1,21 +1,28 @@
 ---
 /**
- * Full-page background video wrapper for LifeLoggerz.
- * Uses the global .page-with-video-bg styles.
+ * Full-page animated background wrapper for LifeLoggerz.
+ *
+ * Performance notes:
+ * - A lightweight poster paints immediately.
+ * - The MP4 is attached only after the page has loaded and the browser is idle.
+ * - Reduced-motion and data-saver users keep the poster and never download the video.
  */
 
 const base = import.meta.env.BASE_URL || '/';
 const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
+const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
 ---
 
 <div class="page-with-video-bg">
   <video
-    src={backgroundVideoSrc}
-    autoplay
+    data-src={backgroundVideoSrc}
+    poster={backgroundPosterSrc}
     muted
     loop
     playsinline
-    preload="auto"
+    preload="none"
+    aria-hidden="true"
+    tabindex="-1"
     class="page-with-video-bg__video"
   ></video>
 
@@ -26,68 +33,57 @@ const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
 
 <script is:inline>
   if (typeof window !== 'undefined') {
-    const getVideo = () =>
-      document.querySelector('.page-with-video-bg__video');
+    const video = document.querySelector('.page-with-video-bg__video');
 
-    const ensurePlaying = () => {
-      const video = getVideo();
-      if (!video) return;
+    if (video) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      const saveData = Boolean(connection && connection.saveData);
+      let started = false;
 
-      // If browser has enough data and it's paused, try to play
-      if (video.readyState >= 2 && video.paused) {
+      const startVideo = () => {
+        if (started || prefersReducedMotion || saveData) return;
+
+        const source = video.dataset.src;
+        if (!source) return;
+
+        started = true;
+        video.src = source;
+        video.load();
         video.play().catch(() => {
-          // Ignore autoplay failures (mobile, user gesture rules, etc.)
+          // The poster remains visible when autoplay is unavailable.
         });
-      }
-    };
+      };
 
-    let guardianId = null;
+      const scheduleStart = () => {
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(startVideo, { timeout: 1200 });
+        } else {
+          window.setTimeout(startVideo, 500);
+        }
+      };
 
-    const startGuardian = () => {
-      if (guardianId !== null) return;
-      // Check twice a second while visible
-      guardianId = window.setInterval(() => {
-        if (document.visibilityState !== 'visible') return;
-        ensurePlaying();
-      }, 500);
-    };
-
-    const stopGuardian = () => {
-      if (guardianId !== null) {
-        clearInterval(guardianId);
-        guardianId = null;
-      }
-    };
-
-    // Kick it immediately on script run
-    ensurePlaying();
-    startGuardian();
-
-    // When coming back via Back / bfcache
-    window.addEventListener('pageshow', () => {
-      ensurePlaying();
-      startGuardian();
-    });
-
-    // When tab becomes visible again
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        ensurePlaying();
-        startGuardian();
+      if (document.readyState === 'complete') {
+        scheduleStart();
       } else {
-        // optional: stopGuardian();  // you can leave it running too
+        window.addEventListener('load', scheduleStart, { once: true });
       }
-    });
 
-    // Clean up on unload
-    window.addEventListener('beforeunload', () => {
-      stopGuardian();
-    });
+      document.addEventListener('visibilitychange', () => {
+        if (!started) return;
 
-    // (Optional) Also respond to focus events, just in case
-    window.addEventListener('focus', () => {
-      ensurePlaying();
-      startGuardian();
-    });
+        if (document.visibilityState === 'hidden') {
+          video.pause();
+        } else {
+          video.play().catch(() => {});
+        }
+      });
+
+      window.addEventListener('pageshow', () => {
+        if (started && document.visibilityState === 'visible') {
+          video.play().catch(() => {});
+        }
+      });
+    }
   }
 </script>
