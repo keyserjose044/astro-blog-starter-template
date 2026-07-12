@@ -32,8 +32,19 @@ const getBookMeta = (note?: string | null) => {
   };
 };
 
-const getFinishedYear = (dateFinished?: string | null) =>
-  String(dateFinished || '').match(/\b(?:19|20)\d{2}\b/)?.[0] || '';
+const getFinishedYear = (dateFinished?: string | null) => {
+  const raw = String(dateFinished || '').trim();
+
+  // Raindrop completion dates are commonly stored as M/D/YY, such as 5/26/26.
+  const numericDate = raw.match(/\b\d{1,2}[\/-]\d{1,2}[\/-](\d{2}|\d{4})\b/);
+  if (numericDate) {
+    const year = numericDate[1];
+    return year.length === 2 ? String(2000 + Number(year)) : year;
+  }
+
+  // Also support notes that already contain a four-digit year in another date format.
+  return raw.match(/\b(?:19|20)\d{2}\b/)?.[0] || '';
+};
 ---
 
 <BaseHead
@@ -790,6 +801,18 @@ const getFinishedYear = (dateFinished?: string | null) =>
       const cleaned = String(value || '')
         .replace(/(\d)(st|nd|rd|th)\b/gi, '$1')
         .trim();
+
+      // Parse Raindrop's M/D/YY and M/D/YYYY formats explicitly.
+      const numericDate = cleaned.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})\s*$/);
+      if (numericDate){
+        const month = Number(numericDate[1]);
+        const day = Number(numericDate[2]);
+        const rawYear = numericDate[3];
+        const year = rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear);
+        const timestamp = Date.UTC(year, month - 1, day);
+        return Number.isNaN(timestamp) ? null : timestamp;
+      }
+
       const timestamp = Date.parse(cleaned);
       return Number.isNaN(timestamp) ? null : timestamp;
     }
