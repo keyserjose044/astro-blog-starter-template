@@ -22,6 +22,8 @@ jobs:
     env:
       RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
       RAINDROP_COLLECTION_BOOKS_ID: ${{ secrets.RAINDROP_COLLECTION_BOOKS_ID }}
+      RAINDROP_COLLECTION_ALBUMS_ID: ${{ secrets.RAINDROP_COLLECTION_ALBUMS_ID }}
+      RAINDROP_COLLECTION_ART_ID: ${{ secrets.RAINDROP_COLLECTION_ART_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
