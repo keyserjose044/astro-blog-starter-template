@@ -1,3 +1,4 @@
+// Revision: mobile list cards standardized — July 11, 2026, 11:41 PM CT
 ---
 // src/pages/books.astro
 import BaseHead from '../components/BaseHead.astro';
@@ -234,20 +235,29 @@ const getBookMeta = (note?: string | null) => {
 
     /* List keeps one book per row without making each cover enormous. */
     .grid[data-mobile-view="list"] {
-      grid-template-columns: 1fr;
-      gap: 10px;
+      width: 100%;
       max-width: 680px;
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-rows: 158px;
+      gap: 10px;
       margin-inline: auto;
     }
 
     .grid[data-mobile-view="list"] .card {
       display: grid;
-      grid-template-columns: 82px minmax(0, 1fr);
+      width: 100%;
+      max-width: none;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      grid-template-columns: 88px minmax(0, 1fr);
       grid-template-rows: auto 1fr;
-      gap: 5px 12px;
+      gap: 6px 12px;
       align-items: start;
-      min-height: 145px;
-      padding: 8px;
+      justify-self: stretch;
+      align-self: stretch;
+      overflow: hidden;
+      padding: 10px;
       border: 1px solid rgba(230,233,239,.95);
       border-radius: 14px;
       background: rgba(255,255,255,.9);
@@ -257,8 +267,8 @@ const getBookMeta = (note?: string | null) => {
     .grid[data-mobile-view="list"] .thumb {
       grid-column: 1;
       grid-row: 1 / span 2;
-      width: 82px;
-      height: 123px;
+      width: 88px;
+      height: 132px;
       aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: 8px;
@@ -269,8 +279,9 @@ const getBookMeta = (note?: string | null) => {
       grid-column: 2;
       grid-row: 1;
       display: -webkit-box;
+      min-height: 2.35em;
       overflow: hidden;
-      margin-top: 2px;
+      margin-top: 1px;
       font-size: 0.94rem;
       line-height: 1.25;
       -webkit-box-orient: vertical;
@@ -290,8 +301,10 @@ const getBookMeta = (note?: string | null) => {
     }
 
     .grid[data-mobile-view="list"] .mobile-card-meta span {
+      display: block;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* Metadata is already visible in list view, so no floating tooltip is needed. */
