@@ -45,9 +45,10 @@ const getBookMeta = (note?: string | null) => {
   .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
   h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
   .hint{color:var(--muted);margin:6px 0 20px}
-  .toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 18px;flex-wrap:wrap}
-  .toolbar input[type="search"]{flex:1 1 260px;width:100%;max-width:520px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
-  .toolbar select{flex:0 0 auto;min-width:150px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 10px;flex-wrap:wrap}
+  .toolbar input[type="search"]{flex:1 1 260px;width:100%;max-width:440px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .toolbar select{flex:0 1 165px;min-width:145px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .results-summary{min-height:1.35em;margin:0 0 14px;color:var(--muted);font-size:.88rem;line-height:1.35}
 
   .info-toggle{
     width:40px;height:40px;border-radius:999px;border:1px solid #838796;background:#a8adbd;
@@ -67,6 +68,7 @@ const getBookMeta = (note?: string | null) => {
   .info-panel--visible{display:block}
   .info-panel h2{font-size:1.02rem;margin:0 0 .4rem;font-weight:700;color:var(--ink)}
   .info-panel p{margin:.35rem 0}
+  .info-panel a{color:#314bd8;font-weight:700;text-underline-offset:2px}
   .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
   @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
   .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
@@ -76,6 +78,8 @@ const getBookMeta = (note?: string | null) => {
     box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border);
   }
   .title{font-weight:700;font-size:.98rem;line-height:1.3}
+  .external-link-cue{display:inline-block;margin-left:.2em;color:var(--muted);font-size:.8em;font-weight:700;vertical-align:.08em}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
   .note-bubble{
     position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);
@@ -132,7 +136,7 @@ const getBookMeta = (note?: string | null) => {
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 40px 40px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px 40px;
       gap: 7px;
       margin-bottom: 10px;
     }
@@ -147,8 +151,13 @@ const getBookMeta = (note?: string | null) => {
     .toolbar select {
       width: 100%;
       min-width: 0;
-      padding: 9px 10px;
-      font-size: 0.84rem;
+      padding: 9px 8px;
+      font-size: 0.8rem;
+    }
+
+    .results-summary {
+      margin-bottom: 10px;
+      font-size: 0.8rem;
     }
 
     .mobile-view-toggle {
@@ -197,7 +206,7 @@ const getBookMeta = (note?: string | null) => {
       padding-inline: 10px;
     }
 
-    /* Quilt is the default mobile view. */
+    /* Quilt remains available as the visual browsing option. */
     .grid[data-mobile-view="quilt"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px 10px;
@@ -237,6 +246,7 @@ const getBookMeta = (note?: string | null) => {
       grid-template-rows: auto 1fr;
       gap: 5px 12px;
       align-items: start;
+      min-height: 145px;
       padding: 8px;
       border: 1px solid rgba(230,233,239,.95);
       border-radius: 14px;
@@ -248,7 +258,9 @@ const getBookMeta = (note?: string | null) => {
       grid-column: 1;
       grid-row: 1 / span 2;
       width: 82px;
+      height: 123px;
       aspect-ratio: 2 / 3;
+      object-fit: cover;
       border-radius: 8px;
       box-shadow: 0 5px 12px rgba(0,0,0,.12);
     }
@@ -256,9 +268,13 @@ const getBookMeta = (note?: string | null) => {
     .grid[data-mobile-view="list"] .title {
       grid-column: 2;
       grid-row: 1;
+      display: -webkit-box;
+      overflow: hidden;
       margin-top: 2px;
       font-size: 0.94rem;
       line-height: 1.25;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
     }
 
     .grid[data-mobile-view="list"] .mobile-card-meta {
@@ -315,8 +331,8 @@ const getBookMeta = (note?: string | null) => {
     <div class="intro" role="region" aria-label="books header">
       <h1>📚 Books</h1>
       <p class="hint">
-        {(books.length).toLocaleString('en-US')} Audiobooks listened to since 2023. While I drive,
-        wash, run, any menial task really...
+        {(books.length).toLocaleString('en-US')} audiobooks since February 9, 2023—mostly while
+        driving, running, washing, or doing other routine tasks.
       </p>
 
       <div class="toolbar">
@@ -324,6 +340,14 @@ const getBookMeta = (note?: string | null) => {
         <select id="genre-filter" aria-label="Filter by genre">
           <option value="">All genres</option>
           <!-- Options will be filled in by JS -->
+        </select>
+        <select id="sort-books" aria-label="Sort books">
+          <option value="date-desc">Newest finished</option>
+          <option value="date-asc">Oldest finished</option>
+          <option value="title-asc">Title A–Z</option>
+          <option value="author-asc">Author A–Z</option>
+          <option value="length-desc">Longest</option>
+          <option value="length-asc">Shortest</option>
         </select>
         <button
           type="button"
@@ -347,6 +371,12 @@ const getBookMeta = (note?: string | null) => {
       </div>
 
       {books.length > 0 ? (
+        <p id="results-summary" class="results-summary" aria-live="polite">
+          Showing all {books.length.toLocaleString('en-US')} books
+        </p>
+      ) : null}
+
+      {books.length > 0 ? (
         <div
           id="mobile-view-toggle"
           class="mobile-view-toggle"
@@ -356,20 +386,20 @@ const getBookMeta = (note?: string | null) => {
           <button
             type="button"
             class="mobile-view-button"
-            data-book-view="quilt"
+            data-book-view="list"
             aria-pressed="true"
           >
-            <span aria-hidden="true">▦</span>
-            <span>Quilt</span>
+            <span aria-hidden="true">▤</span>
+            <span>List</span>
           </button>
           <button
             type="button"
             class="mobile-view-button"
-            data-book-view="list"
+            data-book-view="quilt"
             aria-pressed="false"
           >
-            <span aria-hidden="true">▤</span>
-            <span>List</span>
+            <span aria-hidden="true">▦</span>
+            <span>Quilt</span>
           </button>
         </div>
       ) : null}
@@ -384,7 +414,7 @@ const getBookMeta = (note?: string | null) => {
 
         <h2>What I Read</h2>
         <p>
-          I almost never follow a strict plan. Over these three years I’ve wandered through
+          I almost never follow a strict plan. Over the past few years I’ve wandered through
           classics, philosophy, history, psychology, fantasy, religion, and anything that sparks
           curiosity in the moment. My favorite genres are simply the ones with the most entries.
         </p>
@@ -398,7 +428,7 @@ const getBookMeta = (note?: string | null) => {
         </p>
 
         <h2>Notes</h2>
-        <p>Hover over any book cover and you'll be greeted with this structure:</p>
+        <p>On desktop, hover over any book cover to see this complete structure:</p>
 
         <p>
           <strong>
@@ -413,8 +443,8 @@ const getBookMeta = (note?: string | null) => {
         </p>
 
         <p>
-          Later I’ll add live stats here: genre counts, listening hours, favorite authors, and
-          graphs powered by my Google Sheets logs.
+          <a href="/stats/?metric=audiobooks&amp;year=current#graphs">View my audiobook statistics</a>
+          for listening hours, yearly totals, records, and trends powered by my Google Sheets logs.
         </p>
       </section>
     </div>
@@ -422,8 +452,8 @@ const getBookMeta = (note?: string | null) => {
     {books.length === 0 ? (
       <div class="empty">No books found in this collection.</div>
     ) : (
-      <div class="grid fullbleed" id="grid" role="list" data-mobile-view="quilt">
-        {books.map((a) => {
+      <div class="grid fullbleed" id="grid" role="list" data-mobile-view="list">
+        {books.map((a, index) => {
           const meta = getBookMeta(a.note);
 
           return (
@@ -433,8 +463,12 @@ const getBookMeta = (note?: string | null) => {
               href={a.href}
               target="_blank"
               rel="noopener noreferrer"
-              title={a.title}
+              title={`${a.title} — opens in a new tab`}
               data-title={a.title.toLowerCase()}
+              data-author={meta.author.toLowerCase()}
+              data-date-finished={meta.dateFinished}
+              data-length={meta.length}
+              data-original-index={index}
               data-note={(a.note || '').toLowerCase()}
               data-note-raw={a.note || ''}
             >
@@ -446,8 +480,11 @@ const getBookMeta = (note?: string | null) => {
                 decoding="async"
                 sizes="(max-width: 559px) 46vw, (max-width: 900px) 31vw, (min-width: 1800px) 300px, 25vw"
               />
-              <div class="title">{a.title}</div>
-              <div class="mobile-card-meta" aria-hidden="true">
+              <div class="title">
+                {a.title}<span class="external-link-cue" aria-hidden="true">↗</span>
+                <span class="sr-only"> (opens in a new tab)</span>
+              </div>
+              <div class="mobile-card-meta">
                 {meta.author ? <span><strong>{meta.author}</strong></span> : null}
                 {meta.genre ? <span>{meta.genre}{meta.yearPublished ? ` · ${meta.yearPublished}` : ''}</span> : null}
                 {meta.dateFinished ? <span>Finished {meta.dateFinished}{meta.length ? ` · ${meta.length}` : ''}</span> : null}
@@ -471,7 +508,9 @@ const getBookMeta = (note?: string | null) => {
 
     const grid = $('#grid'),
           input = $('#q'),
-          genreSelect = $('#genre-filter');
+          genreSelect = $('#genre-filter'),
+          sortSelect = $('#sort-books'),
+          resultsSummary = $('#results-summary');
 
     if (!grid || !input) return;
 
@@ -501,11 +540,11 @@ const getBookMeta = (note?: string | null) => {
       }
     }
 
-    let savedView = 'quilt';
+    let savedView = 'list';
     try {
-      savedView = localStorage.getItem(VIEW_STORAGE_KEY) || 'quilt';
+      savedView = localStorage.getItem(VIEW_STORAGE_KEY) || 'list';
     } catch (_err) {
-      savedView = 'quilt';
+      savedView = 'list';
     }
 
     setBookView(savedView, false);
@@ -594,29 +633,113 @@ const getBookMeta = (note?: string | null) => {
       });
     }
 
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
+    function parseFinishedDate(value){
+      const cleaned = String(value || '')
+        .replace(/(\d)(st|nd|rd|th)\b/gi, '$1')
+        .trim();
+      const timestamp = Date.parse(cleaned);
+      return Number.isNaN(timestamp) ? null : timestamp;
+    }
+
+    function parseLengthMinutes(value){
+      const raw = String(value || '').toLowerCase().trim();
+      if (!raw) return null;
+
+      const colonMatch = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+      if (colonMatch){
+        const first = Number(colonMatch[1]);
+        const second = Number(colonMatch[2]);
+        const third = colonMatch[3] ? Number(colonMatch[3]) : null;
+        return third === null ? first * 60 + second : first * 60 + second + third / 60;
+      }
+
+      const hoursMatch = raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/);
+      const minutesMatch = raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/);
+      if (hoursMatch || minutesMatch){
+        return (hoursMatch ? Number(hoursMatch[1]) * 60 : 0) +
+          (minutesMatch ? Number(minutesMatch[1]) : 0);
+      }
+
+      const numeric = Number.parseFloat(raw.replace(/[^\d.]/g, ''));
+      return Number.isFinite(numeric) ? numeric * 60 : null;
+    }
+
+    function compareNullableNumbers(a, b, direction){
+      const aMissing = a === null;
+      const bMissing = b === null;
+      if (aMissing && bMissing) return 0;
+      if (aMissing) return 1;
+      if (bMissing) return -1;
+      return direction === 'asc' ? a - b : b - a;
+    }
+
+    function sortBooks(){
+      const mode = sortSelect ? sortSelect.value : 'date-desc';
+      const orderedCards = [...cards].sort((a, b) => {
+        let comparison = 0;
+
+        if (mode === 'date-desc' || mode === 'date-asc'){
+          comparison = compareNullableNumbers(
+            parseFinishedDate(a.dataset.dateFinished),
+            parseFinishedDate(b.dataset.dateFinished),
+            mode === 'date-asc' ? 'asc' : 'desc'
+          );
+        } else if (mode === 'title-asc'){
+          comparison = collator.compare(a.dataset.title || '', b.dataset.title || '');
+        } else if (mode === 'author-asc'){
+          comparison = collator.compare(a.dataset.author || '', b.dataset.author || '');
+        } else if (mode === 'length-desc' || mode === 'length-asc'){
+          comparison = compareNullableNumbers(
+            parseLengthMinutes(a.dataset.length),
+            parseLengthMinutes(b.dataset.length),
+            mode === 'length-asc' ? 'asc' : 'desc'
+          );
+        }
+
+        if (comparison !== 0) return comparison;
+        return Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
+      });
+
+      orderedCards.forEach(card => grid.appendChild(card));
+    }
+
     function filter(){
       const s = norm(input.value.trim());
+      const words = s ? s.split(/\s+/) : [];
       const selectedGenre = genreSelect ? genreSelect.value : '';
       const selectedKey = norm(selectedGenre);
+      let visibleCount = 0;
 
       cards.forEach(c => {
-        const textMatches = !s || s.split(/\s+/).every(w => haystack.get(c).includes(w));
+        const textMatches = !words.length || words.every(w => haystack.get(c).includes(w));
         const genreMatches =
           !selectedGenre || (c.dataset.genreKey && c.dataset.genreKey === selectedKey);
-        c.style.display = (textMatches && genreMatches) ? '' : 'none';
+        const isVisible = textMatches && genreMatches;
+        c.style.display = isVisible ? '' : 'none';
+        if (isVisible) visibleCount += 1;
       });
+
+      if (resultsSummary){
+        const total = cards.length;
+        resultsSummary.textContent = visibleCount === total
+          ? `Showing all ${total.toLocaleString()} books`
+          : `Showing ${visibleCount.toLocaleString()} of ${total.toLocaleString()} books`;
+      }
     }
 
     input.addEventListener('input', debounce(filter, 80));
-    if (genreSelect) {
-      genreSelect.addEventListener('change', filter);
-    }
+    if (genreSelect) genreSelect.addEventListener('change', filter);
+    if (sortSelect) sortSelect.addEventListener('change', sortBooks);
 
     // Keyboard shortcuts (unchanged)
     window.addEventListener('keydown', e=>{
       if (e.key==='Escape'){
         input.value='';
         if (genreSelect) genreSelect.value = '';
+        if (sortSelect) sortSelect.value = 'date-desc';
+        sortBooks();
         filter();
         input.focus();
       } else if (e.key==='/' && e.target===document.body){
@@ -624,6 +747,7 @@ const getBookMeta = (note?: string | null) => {
       }
     });
 
+    sortBooks();
     filter();
 
     // Tooltip positioning (unchanged)
