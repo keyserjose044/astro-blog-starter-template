@@ -6,238 +6,1226 @@ import VideoBg from '../components/VideoBg.astro';
 import HorzTimeline from '../components/HorzTimeline.astro';
 import VertTimeline from '../components/VertTimeline.astro';
 
-const year = 2025;
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const link = (path = '') => `${base}${path}`;
 
-const items = [
+const years = [
+  {
+    id: 'year-2022',
+    year: '2022',
+    era: 'Origin',
+    title: 'The archive begins as a diary',
+    summary:
+      'Before dashboards or templates, the project began with a simple need: preserve ordinary days before they disappeared.',
+    image: '/images_webp/day-summary-diary-log.webp',
+    imageAlt: 'A detailed daily diary entry inside the LifeLoggerz system',
+  },
+  {
+    id: 'year-2023',
+    year: '2023',
+    era: 'Structure',
+    title: 'Daily life becomes data',
+    summary:
+      'On January 1, the diary expanded into a Google Sheets system that made recurring parts of life sortable and searchable.',
+    image: '/images_webp/rawdatapost/2023-raw-data-sheet.webp',
+    imageAlt: 'The 2023 LifeLoggerz Raw Data spreadsheet',
+  },
+  {
+    id: 'year-2024',
+    year: '2024',
+    era: 'Analysis',
+    title: 'The first graphs change the question',
+    summary:
+      'The system grew beyond recording. New tabs, summaries, and graphs made it possible to compare patterns across months and habits.',
+    image: '/images_webp/rawdatapost/2024-started-graphing-data.webp',
+    imageAlt: 'Early LifeLoggerz graphs and dashboards from 2024',
+  },
+  {
+    id: 'year-2025',
+    year: '2025',
+    era: 'Public build',
+    title: 'LifeLoggerz becomes a website',
+    summary:
+      'A refined tracking system became a public project through Astro, essays, templates, visual identity, and the Daily Snapshot.',
+    image: '/images_webp/rawdatapost/2025-raw-data-sheet.webp',
+    imageAlt: 'The refined 2025 LifeLoggerz Raw Data spreadsheet',
+  },
+  {
+    id: 'year-2026',
+    year: '2026',
+    era: 'Expansion',
+    title: 'The archive becomes easier to explore',
+    summary:
+      'The focus shifts from merely presenting the system to making its data, tools, and history inviting on every screen.',
+    image: '/images_webp/daily_snapshot.webp',
+    imageAlt: 'A LifeLoggerz Daily Snapshot showing one day as a readable summary',
+  },
+];
+
+const items2025 = [
   {
     id: 'jan',
     label: 'JAN',
-    title: 'GS Expansion',
-    tag: 'Google Sheets systems',
+    title: 'Refining the Raw Data system',
+    tag: 'System refinement',
     description:
-      'Laid the foundation of the 2025 Google Sheets systems. Raw Data, stats, and routines started locking into place.',
+      'The year began with the tracking system already established and ready for a more deliberate round of cleanup and consolidation.',
     bullets: [
-      'Tuned daily tracking inside Raw Data instead of scattered sheets.',
-      'Simplified categories and color-coding for long-term use.',
-      'Started thinking of Sheets as the operating system for your life.',
+      'Refined the structure used to capture recurring details of daily life.',
+      'Reduced friction so the archive could remain practical over the long term.',
     ],
   },
   {
     id: 'feb',
     label: 'FEB',
-    title: 'GS Expansion',
-    tag: 'Sheets refinement',
+    title: 'One system instead of scattered sheets',
+    tag: 'Consolidation',
     description:
-      'Continued refining the 2025 template and building comfort with formulas, references, and summaries.',
+      'Categories, references, and summaries were brought closer together so the archive behaved more like one connected system.',
     bullets: [
-      'Iterated on RD layouts and summary sheets.',
-      'Experimented with small quality-of-life automations.',
+      'Continued simplifying layouts and repeated inputs.',
+      'Strengthened the connection between daily logs and summary views.',
     ],
   },
   {
     id: 'mar',
     label: 'MAR',
-    title: 'GS Expansion',
-    tag: 'Routines stabilizing',
+    title: 'A sustainable daily workflow',
+    tag: 'Long-term use',
     description:
-      'More stability in routines and logging, less reinventing the sheet. Systems started to feel natural.',
+      'The emphasis moved from inventing new fields toward making the established routine dependable enough to keep using every day.',
     bullets: [
-      'Pruned unnecessary fields that created friction.',
-      'Strengthened the habit of logging every day.',
+      'Pruned entries that created more friction than insight.',
+      'Kept the core archive consistent while leaving room for richer outputs.',
     ],
   },
   {
     id: 'apr',
     label: 'APR',
-    title: 'GS Expansion (final stretch)',
-    tag: 'GS before code',
+    title: 'Finding what should be automated',
+    tag: 'Friction audit',
     description:
-      'Last big push of the pure-GS phase before code-heavy automation began.',
+      'Repeated manual steps revealed which parts of LifeLoggerz could benefit most from formulas, scripts, and reusable processing.',
     bullets: [
-      'Locked in the main 2025 RD structure.',
-      'Identified pain points that needed scripting to fix.',
+      'Identified repetitive work that interrupted the logging flow.',
+      'Separated useful complexity from complexity that only looked impressive.',
     ],
   },
   {
     id: 'may',
     label: 'MAY',
-    title: 'Bridge: GS → Python',
-    tag: 'GS + Python automation',
+    title: 'The bridge from Sheets to code',
+    tag: 'Automation begins',
     description:
-      'The month where spreadsheets met code: still heavily Sheets, but Python and Apps Script started entering the picture.',
+      'Experience with Apps Script and Python began changing how the system could process and present information.',
     bullets: [
-      'First serious Apps Script / Python experiments.',
-      'Shift from “manual but beautiful” to “automated systems”.',
+      'Experimented with automating repetitive transformations.',
+      'Started treating outputs as reusable tools rather than one-off sheets.',
     ],
   },
   {
     id: 'jun',
     label: 'JUN',
-    title: 'Python automation sprint',
-    tag: 'Lab & data automation',
+    title: 'Scripts become part of the toolkit',
+    tag: 'Reusable workflows',
     description:
-      'Full dive into Python for lab workflows, scripts started turning into real tools.',
+      'Automation work elsewhere sharpened the skills needed to make LifeLoggerz faster, more repeatable, and easier to maintain.',
     bullets: [
-      'Built/refined calorimetry and TGA pipelines.',
-      'Moved from one-off scripts to reusable modules.',
+      'Moved from isolated scripts toward reusable patterns.',
+      'Learned how to separate raw inputs from polished outputs.',
     ],
   },
   {
     id: 'jul',
     label: 'JUL',
-    title: 'Python automation sprint',
-    tag: 'Integrated toolkit',
+    title: 'Processing becomes more deliberate',
+    tag: 'Systems thinking',
     description:
-      'One of the heaviest Python months: multiple lab tools began to feel like an integrated toolkit.',
+      'The project increasingly followed a clear pipeline: capture first, process second, and present only what helps a visitor understand.',
     bullets: [
-      'Expanded automation to Load–CMOD and mechanical tests.',
-      'Improved graphing, Excel output, and batch processing.',
+      'Clarified the role of the Raw Data sheet as the source of truth.',
+      'Began thinking more carefully about public-safe presentation.',
     ],
   },
   {
     id: 'aug',
     label: 'AUG',
-    title: 'Python + Guitar',
-    tag: 'Automation & guitar mastery',
+    title: 'Preparing the project for a public form',
+    tag: 'From private to public',
     description:
-      'Automation was still moving, but focus started to split as guitar became a serious priority.',
+      'The system had become mature enough that the next challenge was no longer collecting data—it was explaining the idea clearly to others.',
     bullets: [
-      'Finalized key Python tools to “good enough for now”.',
-      'Shifted more deliberate practice time into guitar technique.',
+      'Identified the outputs most worth sharing publicly.',
+      'Separated the reusable method from private personal records.',
     ],
   },
   {
     id: 'sep',
     label: 'SEP',
-    title: 'Guitar → Web design',
-    tag: 'Transition month',
+    title: 'The website begins',
+    tag: 'Astro build',
     description:
-      'Transition from intense guitar practice into the Web Design era, especially after mid-September.',
+      'LifeLoggerz started taking shape as a standalone website rather than a collection of spreadsheets and explanations.',
     bullets: [
-      'Consolidated guitar gains.',
-      'Started experimenting with Astro layouts and components.',
+      'Experimented with Astro layouts, components, and page structure.',
+      'Began translating the system into a visual identity.',
     ],
   },
   {
     id: 'oct',
     label: 'OCT',
-    title: 'Web design era',
-    tag: 'LifeLoggerz & client sites',
+    title: 'The public archive takes form',
+    tag: 'Web design sprint',
     description:
-      'The Web Design sprint took over: Astro builds, layout experiments, and multiple websites in parallel.',
+      'The build expanded into dedicated pages for the system, statistics, templates, books, albums, art, and the story behind the project.',
     bullets: [
-      'Heavy sessions on LifeLoggerz structure & styling.',
-      'Iterated on academic and business sites.',
+      'Built the core navigation and page architecture.',
+      'Developed the animated visual language that made the site feel alive.',
     ],
   },
   {
     id: 'nov',
     label: 'NOV',
-    title: 'Web design era',
-    tag: 'Polish & depth',
+    title: 'The Daily Snapshot is published',
+    tag: 'Readable output',
     description:
-      'Refinement month: micro-interactions, backgrounds, and overall feel of the sites.',
+      'One of the strongest LifeLoggerz outputs received its own explanation: a single day condensed into a readable page of data and context.',
     bullets: [
-      'Tweaked animations, cards, and responsiveness.',
-      'Strengthened brand voice and visual identity.',
+      'Showed how raw entries become a human-readable summary.',
+      'Connected diary writing, images, numbers, and comparisons in one view.',
     ],
   },
   {
     id: 'dec',
     label: 'DEC',
-    title: 'Web design era',
-    tag: 'Consolidation',
+    title: 'The first public version is consolidated',
+    tag: 'Public archive',
     description:
-      'Year-end wrap: finishing passes on design, documenting what worked, and planning the next year.',
+      'The year closed with LifeLoggerz established as a real public project: part archive, part toolkit, and part argument for recording life deliberately.',
     bullets: [
-      'Closed loops on key UI tasks.',
-      'Captured 2025 lessons to guide 2026 builds.',
+      'Polished the initial site and documented the central systems.',
+      'Created a foundation that later redesigns could build upon rather than replace.',
     ],
   },
 ];
 
-// Four high-level eras for the horizontal phase bands
-const phases = [
-  {
-    label: 'GS Systems',
-    subtitle: 'Jan – Apr',
-    startId: 'jan',
-    endId: 'apr',
-  },
-  {
-    label: 'Python Automation',
-    subtitle: 'May – Jul',
-    startId: 'may',
-    endId: 'jul',
-  },
-  {
-    label: 'Guitar Focus',
-    subtitle: 'Aug – Sep',
-    startId: 'aug',
-    endId: 'sep',
-  },
-  {
-    label: 'LifeLoggerz / Web',
-    subtitle: 'Oct – Dec',
-    startId: 'oct',
-    endId: 'dec',
-  },
+const phases2025 = [
+  { label: 'GS refinement', subtitle: 'Jan – Apr', startId: 'jan', endId: 'apr' },
+  { label: 'Automation', subtitle: 'May – Aug', startId: 'may', endId: 'aug' },
+  { label: 'Website build', subtitle: 'Sep – Oct', startId: 'sep', endId: 'oct' },
+  { label: 'Public archive', subtitle: 'Nov – Dec', startId: 'nov', endId: 'dec' },
 ];
 ---
 
 <html lang="en">
   <head>
     <BaseHead
-      title="2025 at a Glance"
-      description="A timeline of how 2025 unfolded: Google Sheets expansion, Python automation, Guitar focus, and LifeLoggerz web design."
-      image="/about-lifeloggerz.webp"
+      title="The LifeLoggerz Story — 2022 to Present"
+      description="The project history of LifeLoggerz: from a private daily diary in 2022 to structured Google Sheets, visual analysis, a public website, and an expanding living archive."
+      image="/images_webp/daily_snapshot.webp"
     />
   </head>
+
   <body>
     <VideoBg>
       <Header />
 
-      <main class="page page--timeline">
-        <div class="timeline-shell">
-          <div class="timeline-shell__desktop">
-            <HorzTimeline
-              year={year}
-              items={items}
-              phases={phases}
-              heading="Year in review"
-              subheading="Four main phases: Google Sheets, Python automation, Guitar mastery, and Web design. Stitched together month by month."
-            />
-          </div>
+      <main class="timeline-page">
+        <header class="timeline-hero">
+          <p class="eyebrow">Project history · 2022 to present</p>
+          <h1>The LifeLoggerz Story</h1>
+          <p class="timeline-hero__lede">
+            From a private diary to a public system for turning ordinary days into
+            <strong>searchable, visual, useful data.</strong>
+          </p>
+          <p class="timeline-hero__scope">
+            This timeline follows the development of LifeLoggerz—not a complete timeline of my life.
+          </p>
+        </header>
 
-          <div class="timeline-shell__mobile">
-            <VertTimeline
-              year={year}
-              items={items}
-              phases={phases}   // ← add this line
-              heading="Year in review"
-              subheading="Four main phases: Google Sheets, Python automation, Guitar mastery, and Web design. Stitched together month by month."
-            />
+        <nav class="year-nav" aria-label="Jump to a year in the LifeLoggerz timeline">
+          {years.map((item) => (
+            <a href={`#${item.id}`} data-year-link={item.id}>
+              <strong>{item.year}</strong>
+              <span>{item.era}</span>
+            </a>
+          ))}
+        </nav>
+
+        <section class="story-intro" aria-labelledby="story-intro-heading">
+          <p class="eyebrow">The central transformation</p>
+          <h2 id="story-intro-heading">The project changed shape without losing its original purpose.</h2>
+          <div class="evolution-row" aria-label="Evolution of LifeLoggerz">
+            <span>Private diary</span>
+            <i aria-hidden="true">→</i>
+            <span>Structured sheets</span>
+            <i aria-hidden="true">→</i>
+            <span>Visual analysis</span>
+            <i aria-hidden="true">→</i>
+            <span>Public archive</span>
           </div>
-        </div>
+        </section>
+
+        <ol class="project-years">
+          {years.map((item, index) => (
+            <li class="project-year">
+              <span class="project-year__node" aria-hidden="true">{item.year}</span>
+
+              <details id={item.id} class="year-panel" open={index === 0}>
+                <summary>
+                  <div class="year-summary__copy">
+                    <div class="year-summary__meta">
+                      <span class="year-summary__year">{item.year}</span>
+                      <span class="year-summary__era">{item.era}</span>
+                    </div>
+                    <h2>{item.title}</h2>
+                    <p>{item.summary}</p>
+                    <span class="year-summary__toggle">
+                      <span class="when-closed">Explore this year</span>
+                      <span class="when-open">Close this year</span>
+                      <b aria-hidden="true">+</b>
+                    </span>
+                  </div>
+
+                  <figure class="year-summary__image">
+                    <img src={item.image} alt={item.imageAlt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
+                  </figure>
+                </summary>
+
+                {item.year === '2022' && (
+                  <div class="year-body">
+                    <div class="year-body__intro">
+                      <p class="year-body__kicker">The original problem</p>
+                      <h3>Memory was rich, but difficult to revisit.</h3>
+                      <p>
+                        Daily diary writing began in March 2022. The goal was not yet to build a quantified-self system; it was to preserve the texture of ordinary life in enough detail that a day could be understood later.
+                      </p>
+                    </div>
+
+                    <div class="milestone-grid">
+                      <article>
+                        <span>01</span>
+                        <h4>A daily record begins</h4>
+                        <p>Events, thoughts, routines, media, and small details start accumulating into a continuous written archive.</p>
+                      </article>
+                      <article>
+                        <span>02</span>
+                        <h4>Patterns become visible</h4>
+                        <p>Repeated subjects reveal that memory can be organized—not only preserved as isolated diary entries.</p>
+                      </article>
+                      <article>
+                        <span>03</span>
+                        <h4>A new question emerges</h4>
+                        <p>How could one day be compared with another without rereading thousands of words?</p>
+                      </article>
+                    </div>
+                  </div>
+                )}
+
+                {item.year === '2023' && (
+                  <div class="year-body">
+                    <div class="year-body__intro">
+                      <p class="year-body__kicker">The structural leap</p>
+                      <h3>The diary gains a database beside it.</h3>
+                      <p>
+                        On January 1, 2023, LifeLoggerz began its continuous Google Sheets record. Six core metrics fit on one sheet at first, establishing the foundation for everything that followed.
+                      </p>
+                    </div>
+
+                    <div class="milestone-grid">
+                      <article>
+                        <span>01</span>
+                        <h4>Raw Data becomes the backbone</h4>
+                        <p>Daily details move into consistent columns that can be searched, sorted, filtered, and counted.</p>
+                      </article>
+                      <article>
+                        <span>02</span>
+                        <h4>Qualitative and quantitative meet</h4>
+                        <p>Numbers remain connected to the notes and context that explain what a day actually felt like.</p>
+                      </article>
+                      <article>
+                        <span>03</span>
+                        <h4>A year-long dataset forms</h4>
+                        <p>The project proves that detailed logging can become a sustainable daily practice rather than a temporary experiment.</p>
+                      </article>
+                    </div>
+
+                    <a class="year-cta" href={link('blog/rawdatapost2025/')}>
+                      See how the Raw Data system evolved →
+                    </a>
+                  </div>
+                )}
+
+                {item.year === '2024' && (
+                  <div class="year-body">
+                    <div class="year-body__intro">
+                      <p class="year-body__kicker">From capture to analysis</p>
+                      <h3>The archive begins answering questions.</h3>
+                      <p>
+                        New tabs, categories, and the first graphs transformed LifeLoggerz from a place where information was stored into a system that could reveal change over time.
+                      </p>
+                    </div>
+
+                    <div class="milestone-grid">
+                      <article>
+                        <span>01</span>
+                        <h4>The sheet expands</h4>
+                        <p>Dedicated areas emerge for recurring parts of life instead of forcing every observation into one flat table.</p>
+                      </article>
+                      <article>
+                        <span>02</span>
+                        <h4>The first graphs appear</h4>
+                        <p>Running, hobbies, writing, and other measures can finally be viewed as trends rather than isolated entries.</p>
+                      </article>
+                      <article>
+                        <span>03</span>
+                        <h4>The archive becomes comparative</h4>
+                        <p>Months, routines, and periods can be placed beside one another, giving the project analytical value.</p>
+                      </article>
+                    </div>
+
+                    <a class="year-cta" href={link('stats/')}>
+                      Explore the graphs that grew from the archive →
+                    </a>
+                  </div>
+                )}
+
+                {item.year === '2025' && (
+                  <div class="year-body year-body--timeline">
+                    <div class="year-body__intro year-body__intro--centered">
+                      <p class="year-body__kicker">The public-build year</p>
+                      <h3>A private system becomes something others can explore.</h3>
+                      <p>
+                        The established archive was refined, automation skills changed how its outputs were imagined, and LifeLoggerz finally took shape as its own website.
+                      </p>
+                    </div>
+
+                    <div class="timeline-shell__desktop">
+                      <HorzTimeline
+                        year={2025}
+                        items={items2025}
+                        phases={phases2025}
+                        heading="Month by month"
+                        subheading="System refinement, automation, website construction, and the first public version of LifeLoggerz."
+                      />
+                    </div>
+
+                    <div class="timeline-shell__mobile">
+                      <VertTimeline
+                        year={2025}
+                        items={items2025}
+                        phases={phases2025}
+                        heading="Month by month"
+                        subheading="System refinement, automation, website construction, and the first public version of LifeLoggerz."
+                      />
+                    </div>
+
+                    <div class="year-link-row">
+                      <a class="year-cta" href={link('blog/daily-snapshot/')}>
+                        Read about the Daily Snapshot →
+                      </a>
+                      <a class="year-cta year-cta--secondary" href={link('templates/')}>
+                        Open the templates →
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {item.year === '2026' && (
+                  <div class="year-body">
+                    <div class="year-body__intro">
+                      <p class="year-body__kicker">The current chapter</p>
+                      <h3>The question is now: how should visitors experience the archive?</h3>
+                      <p>
+                        LifeLoggerz is being reshaped around clarity, mobile access, richer demonstrations, and public-safe ways to move through years of accumulated data.
+                      </p>
+                    </div>
+
+                    <div class="milestone-grid milestone-grid--current">
+                      <article>
+                        <span>01</span>
+                        <h4>Homepage and mobile renovation</h4>
+                        <p>The site becomes faster, less cramped, and more useful to visitors who rely on the homepage as a visual sitemap.</p>
+                      </article>
+                      <article>
+                        <span>02</span>
+                        <h4>Stronger reading paths</h4>
+                        <p>The blog, core posts, and project explanations are reorganized so newcomers can understand the system without wandering.</p>
+                      </article>
+                      <article>
+                        <span>03</span>
+                        <h4>More explorable data</h4>
+                        <p>Daily and monthly graphs, richer statistics, and hobby correlations move the archive closer to an interactive research tool.</p>
+                      </article>
+                      <article>
+                        <span>04</span>
+                        <h4>The Day Viewer idea</h4>
+                        <p>A public-safe date explorer would let visitors move through individual days and compare them across years.</p>
+                      </article>
+                      <article>
+                        <span>05</span>
+                        <h4>More of the machinery becomes visible</h4>
+                        <p>Apps Script, automation, templates, diagrams, and short demonstrations can show how the archive works behind the scenes.</p>
+                      </article>
+                      <article>
+                        <span>06</span>
+                        <h4>The project reaches outward</h4>
+                        <p>LifeLoggerz increasingly serves not only as a personal archive, but as a reference point for other people who want to build higher.</p>
+                      </article>
+                    </div>
+
+                    <div class="year-link-row">
+                      <a class="year-cta" href={link('stats/')}>
+                        Explore the live data →
+                      </a>
+                      <a class="year-cta year-cta--secondary" href={link('blog/')}>
+                        Read the field notes →
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </details>
+            </li>
+          ))}
+        </ol>
+
+        <section class="future-card" aria-labelledby="future-heading">
+          <div>
+            <p class="eyebrow">Still being written</p>
+            <h2 id="future-heading">LifeLoggerz is not a finished archive.</h2>
+            <p>
+              Each new year adds data, but the larger work is learning how to make that history understandable, useful, and inviting without exposing every private detail behind it.
+            </p>
+          </div>
+          <div class="future-card__actions">
+            <a class="button button-primary" href={link('about/')}>Why this exists</a>
+            <a class="button button-secondary" href={link('faq/')}>Read the FAQ</a>
+          </div>
+        </section>
       </main>
 
       <Footer />
     </VideoBg>
+
+    <script is:inline>
+      const yearLinks = document.querySelectorAll('[data-year-link]');
+
+      yearLinks.forEach((yearLink) => {
+        yearLink.addEventListener('click', () => {
+          const targetId = yearLink.getAttribute('data-year-link');
+          const target = targetId ? document.getElementById(targetId) : null;
+          if (target instanceof HTMLDetailsElement) target.open = true;
+        });
+      });
+
+      if (window.location.hash) {
+        const target = document.querySelector(window.location.hash);
+        if (target instanceof HTMLDetailsElement) target.open = true;
+      }
+    </script>
   </body>
 </html>
 
 <style>
+  .timeline-page {
+    width: min(1180px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) 0 4rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.55rem;
+    color: #0f4cff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .timeline-hero {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .timeline-hero h1 {
+    margin: 0;
+    color: rgb(var(--black));
+    font-size: clamp(2.8rem, 7vw, 5.7rem);
+    letter-spacing: -0.065em;
+    line-height: 0.95;
+  }
+
+  .timeline-hero__lede {
+    max-width: 720px;
+    margin: 1rem auto 0;
+    color: rgb(var(--gray-dark));
+    font-size: clamp(1.12rem, 2vw, 1.45rem);
+    line-height: 1.55;
+  }
+
+  .timeline-hero__scope {
+    display: inline-flex;
+    margin: 1.15rem auto 0;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid rgba(15, 76, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: rgb(var(--gray-dark));
+    font-size: 0.88rem;
+    font-weight: 700;
+    box-shadow: 0 8px 22px rgba(15, 18, 25, 0.06);
+  }
+
+  .year-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.7rem;
+    max-width: 900px;
+    margin: clamp(1.8rem, 4vw, 3rem) auto 0;
+  }
+
+  .year-nav a {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+    padding: 0.8rem 0.6rem;
+    border: 1px solid rgba(15, 76, 255, 0.15);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    color: inherit;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(15, 18, 25, 0.07);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .year-nav a:hover,
+  .year-nav a:focus-visible {
+    border-color: rgba(15, 76, 255, 0.45);
+    box-shadow: 0 15px 30px rgba(15, 18, 25, 0.11);
+    transform: translateY(-2px);
+  }
+
+  .year-nav strong {
+    color: #0f4cff;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .year-nav span {
+    color: rgb(var(--gray-dark));
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .story-intro {
+    max-width: 940px;
+    margin: clamp(3rem, 7vw, 5.5rem) auto clamp(2rem, 5vw, 3.5rem);
+    text-align: center;
+  }
+
+  .story-intro h2,
+  .future-card h2 {
+    margin: 0;
+    color: rgb(var(--black));
+    font-size: clamp(1.8rem, 4vw, 3.15rem);
+    letter-spacing: -0.052em;
+    line-height: 1.04;
+  }
+
+  .evolution-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.3rem;
+  }
+
+  .evolution-row span {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid rgba(15, 76, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.84);
+    color: rgb(var(--gray-dark));
+    font-size: 0.88rem;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(15, 18, 25, 0.06);
+  }
+
+  .evolution-row i {
+    color: #0f4cff;
+    font-size: 1.1rem;
+    font-style: normal;
+    font-weight: 900;
+  }
+
+  .project-years {
+    position: relative;
+    display: grid;
+    gap: 1.15rem;
+    margin: 0;
+    padding: 0 0 0 5.2rem;
+    list-style: none;
+  }
+
+  .project-years::before {
+    content: '';
+    position: absolute;
+    left: 2.25rem;
+    top: 2rem;
+    bottom: 2rem;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      rgba(15, 76, 255, 0.22),
+      rgba(15, 76, 255, 0.85),
+      rgba(15, 76, 255, 0.22)
+    );
+  }
+
+  .project-year {
+    position: relative;
+  }
+
+  .project-year__node {
+    position: absolute;
+    z-index: 2;
+    left: -5.2rem;
+    top: 1.35rem;
+    display: inline-flex;
+    width: 4.5rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f4cff;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0f4cff;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    box-shadow: 0 0 0 5px rgba(15, 76, 255, 0.09);
+  }
+
+  .year-panel {
+    overflow: clip;
+    border: 1px solid rgba(var(--gray-light), 0.95);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 44px rgba(15, 18, 25, 0.09);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .year-panel > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 0.36fr);
+    gap: clamp(1rem, 4vw, 2rem);
+    align-items: center;
+    padding: clamp(1rem, 3vw, 1.55rem);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .year-panel > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .year-panel > summary:hover .year-summary__image img,
+  .year-panel > summary:focus-visible .year-summary__image img {
+    transform: scale(1.025);
+  }
+
+  .year-summary__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+  }
+
+  .year-summary__year {
+    color: #0f4cff;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+  }
+
+  .year-summary__era {
+    padding: 0.28rem 0.58rem;
+    border-radius: 999px;
+    background: rgba(15, 76, 255, 0.08);
+    color: #0f4cff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .year-summary__copy h2 {
+    margin: 0.5rem 0 0;
+    color: rgb(var(--black));
+    font-size: clamp(1.45rem, 3vw, 2.3rem);
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+  }
+
+  .year-summary__copy > p {
+    max-width: 760px;
+    margin: 0.7rem 0 0;
+    color: rgb(var(--gray-dark));
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .year-summary__toggle {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    margin-top: 0.9rem;
+    color: #0f4cff;
+    font-size: 0.86rem;
+    font-weight: 800;
+  }
+
+  .year-summary__toggle b {
+    display: inline-flex;
+    width: 1.4rem;
+    height: 1.4rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #0f4cff;
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .when-open {
+    display: none;
+  }
+
+  .year-panel[open] .when-closed {
+    display: none;
+  }
+
+  .year-panel[open] .when-open {
+    display: inline;
+  }
+
+  .year-panel[open] .year-summary__toggle b {
+    transform: rotate(45deg);
+  }
+
+  .year-summary__image {
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    margin: 0;
+    border-radius: 18px;
+    background: rgba(var(--gray-light), 0.5);
+    box-shadow: 0 12px 28px rgba(15, 18, 25, 0.1);
+  }
+
+  .year-summary__image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    transition: transform 0.25s ease;
+  }
+
+  .year-body {
+    border-top: 1px solid rgba(var(--gray-light), 0.95);
+    padding: clamp(1.15rem, 3vw, 2rem);
+    background: rgba(248, 250, 255, 0.72);
+  }
+
+  .year-body__intro {
+    max-width: 820px;
+  }
+
+  .year-body__intro--centered {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .year-body__kicker {
+    margin: 0 0 0.35rem;
+    color: #0f4cff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .year-body__intro h3 {
+    margin: 0;
+    color: rgb(var(--black));
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+  }
+
+  .year-body__intro > p:last-child {
+    margin: 0.65rem 0 0;
+    color: rgb(var(--gray-dark));
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
+  .milestone-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+  }
+
+  .milestone-grid--current {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .milestone-grid article {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid rgba(15, 76, 255, 0.12);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 9px 24px rgba(15, 18, 25, 0.06);
+  }
+
+  .milestone-grid article > span {
+    color: #0f4cff;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+  }
+
+  .milestone-grid h4 {
+    margin: 0.35rem 0 0;
+    color: rgb(var(--black));
+    font-size: 1.04rem;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  .milestone-grid p {
+    margin: 0.45rem 0 0;
+    color: rgb(var(--gray-dark));
+    font-size: 0.88rem;
+    line-height: 1.48;
+  }
+
+  .year-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    margin-top: 1.2rem;
+    padding: 0.58rem 0.9rem;
+    border: 1px solid rgba(15, 76, 255, 0.2);
+    border-radius: 999px;
+    background: #0f4cff;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(15, 76, 255, 0.2);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .year-cta:hover,
+  .year-cta:focus-visible {
+    color: #ffffff;
+    box-shadow: 0 15px 30px rgba(15, 76, 255, 0.27);
+    transform: translateY(-2px);
+  }
+
+  .year-cta--secondary {
+    background: #ffffff;
+    color: #0f4cff;
+    box-shadow: 0 9px 22px rgba(15, 18, 25, 0.08);
+  }
+
+  .year-cta--secondary:hover,
+  .year-cta--secondary:focus-visible {
+    color: #0f4cff;
+  }
+
+  .year-link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    justify-content: center;
+  }
+
+  .year-body--timeline {
+    padding-inline: 0;
+  }
+
+  .year-body--timeline > .year-body__intro,
+  .year-body--timeline > .year-link-row {
+    padding-inline: clamp(1.15rem, 3vw, 2rem);
+  }
+
   .timeline-shell__mobile {
     display: none;
   }
 
+  .future-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: center;
+    max-width: 980px;
+    margin: clamp(3rem, 7vw, 5rem) auto 0;
+    padding: clamp(1.3rem, 4vw, 2rem);
+    border: 1px solid rgba(var(--gray-light), 0.95);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 44px rgba(15, 18, 25, 0.09);
+  }
+
+  .future-card p:not(.eyebrow) {
+    max-width: 700px;
+    margin: 0.75rem 0 0;
+    color: rgb(var(--gray-dark));
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .future-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    justify-content: flex-end;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.62rem 1rem;
+    border: 1px solid rgba(15, 76, 255, 0.18);
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+
+  .button-primary {
+    background: #0f4cff;
+    color: #ffffff;
+    box-shadow: 0 12px 26px rgba(15, 76, 255, 0.22);
+  }
+
+  .button-primary:hover,
+  .button-primary:focus-visible {
+    color: #ffffff;
+  }
+
+  .button-secondary {
+    background: #ffffff;
+    color: #0f4cff;
+    box-shadow: 0 9px 22px rgba(15, 18, 25, 0.08);
+  }
+
   @media (max-width: 900px) {
+    .timeline-page {
+      width: min(100% - 1.15rem, 720px);
+      padding-top: 1.4rem;
+    }
+
+    .year-panel > summary {
+      grid-template-columns: minmax(0, 1fr) 170px;
+    }
+
+    .milestone-grid,
+    .milestone-grid--current {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .timeline-shell__desktop {
       display: none;
     }
 
     .timeline-shell__mobile {
       display: block;
+    }
+
+    .future-card {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .future-card__actions {
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .timeline-hero h1 {
+      font-size: clamp(2.35rem, 13vw, 3.4rem);
+    }
+
+    .timeline-hero__lede {
+      font-size: 1rem;
+      line-height: 1.48;
+    }
+
+    .timeline-hero__scope {
+      border-radius: 15px;
+      font-size: 0.75rem;
+      line-height: 1.35;
+    }
+
+    .year-nav {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.35rem;
+    }
+
+    .year-nav a {
+      padding: 0.58rem 0.2rem;
+      border-radius: 13px;
+    }
+
+    .year-nav strong {
+      font-size: 0.96rem;
+    }
+
+    .year-nav span {
+      display: none;
+    }
+
+    .story-intro {
+      margin-top: 2.7rem;
+    }
+
+    .story-intro h2,
+    .future-card h2 {
+      font-size: 1.55rem;
+    }
+
+    .evolution-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      max-width: 250px;
+      margin-inline: auto;
+    }
+
+    .evolution-row i {
+      transform: rotate(90deg);
+    }
+
+    .project-years {
+      gap: 0.8rem;
+      padding-left: 0;
+    }
+
+    .project-years::before,
+    .project-year__node {
+      display: none;
+    }
+
+    .year-panel {
+      border-radius: 20px;
+    }
+
+    .year-panel > summary {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+      padding: 0.85rem;
+    }
+
+    .year-summary__image {
+      order: -1;
+      border-radius: 14px;
+    }
+
+    .year-summary__copy h2 {
+      font-size: 1.35rem;
+    }
+
+    .year-summary__copy > p {
+      font-size: 0.82rem;
+      line-height: 1.42;
+    }
+
+    .year-summary__toggle {
+      margin-top: 0.65rem;
+      font-size: 0.76rem;
+    }
+
+    .year-body {
+      padding: 0.85rem;
+    }
+
+    .year-body__intro h3 {
+      font-size: 1.25rem;
+    }
+
+    .year-body__intro > p:last-child {
+      font-size: 0.84rem;
+      line-height: 1.48;
+    }
+
+    .milestone-grid,
+    .milestone-grid--current {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+      margin-top: 0.85rem;
+    }
+
+    .milestone-grid article {
+      padding: 0.78rem;
+      border-radius: 14px;
+    }
+
+    .milestone-grid h4 {
+      font-size: 0.94rem;
+    }
+
+    .milestone-grid p {
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .year-cta {
+      min-height: 36px;
+      margin-top: 0.85rem;
+      padding: 0.48rem 0.7rem;
+      font-size: 0.76rem;
+    }
+
+    .year-body--timeline > .year-body__intro,
+    .year-body--timeline > .year-link-row {
+      padding-inline: 0.85rem;
+    }
+
+    .future-card {
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .future-card p:not(.eyebrow) {
+      font-size: 0.84rem;
+      line-height: 1.48;
+    }
+
+    .button {
+      min-height: 36px;
+      padding: 0.48rem 0.72rem;
+      font-size: 0.78rem;
     }
   }
 </style>
