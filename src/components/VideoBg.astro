@@ -2,28 +2,28 @@
 /**
  * Full-page animated background wrapper for LifeLoggerz.
  *
- * Performance notes:
- * - A lightweight poster paints immediately.
- * - The MP4 is attached only after the page has loaded and the browser is idle.
- * - Reduced-motion and data-saver users keep the poster and never download the video.
+ * The poster paints immediately, while the muted MP4 begins loading and
+ * playing as soon as the browser can render it.
  */
 
 const base = import.meta.env.BASE_URL || '/';
-const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=2`;
+const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=3`;
 const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
 ---
 
 <div class="page-with-video-bg">
   <video
-    data-src={backgroundVideoSrc}
+    src={backgroundVideoSrc}
     poster={backgroundPosterSrc}
+    autoplay
     muted
     loop
     playsinline
-    preload="none"
+    preload="metadata"
     aria-hidden="true"
     tabindex="-1"
     class="page-with-video-bg__video"
+    data-lifeloggerz-background
   ></video>
 
   <div class="page-with-video-bg__content">
@@ -33,53 +33,50 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
 
 <script is:inline>
   if (typeof window !== 'undefined') {
-    const video = document.querySelector('.page-with-video-bg__video');
+    const startBackgroundVideos = () => {
+      document
+        .querySelectorAll('[data-lifeloggerz-background]')
+        .forEach((video) => {
+          if (!(video instanceof HTMLVideoElement)) return;
 
-    if (video) {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      const saveData = Boolean(connection && connection.saveData);
-      let started = false;
+          video.muted = true;
+          video.defaultMuted = true;
 
-      const startVideo = () => {
-        if (started || prefersReducedMotion || saveData) return;
+          const tryPlay = () => {
+            if (document.visibilityState === 'hidden') return;
+            video.play().catch(() => {
+              // The poster remains visible if a browser temporarily blocks playback.
+            });
+          };
 
-        const source = video.dataset.src;
-        if (!source) return;
-
-        started = true;
-        video.src = source;
-        video.load();
-        video.play().catch(() => {
-          // The poster remains visible when autoplay is unavailable.
+          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            tryPlay();
+          } else {
+            video.addEventListener('canplay', tryPlay, { once: true });
+          }
         });
-      };
+    };
 
-      const scheduleStart = () => {
-        window.setTimeout(startVideo, 120);
-      };
-      
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', scheduleStart, { once: true });
-      } else {
-        scheduleStart();
-      }
-
-      document.addEventListener('visibilitychange', () => {
-        if (!started) return;
-
-        if (document.visibilityState === 'hidden') {
-          video.pause();
-        } else {
-          video.play().catch(() => {});
-        }
-      });
-
-      window.addEventListener('pageshow', () => {
-        if (started && document.visibilityState === 'visible') {
-          video.play().catch(() => {});
-        }
-      });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startBackgroundVideos, { once: true });
+    } else {
+      startBackgroundVideos();
     }
+
+    document.addEventListener('visibilitychange', () => {
+      document
+        .querySelectorAll('[data-lifeloggerz-background]')
+        .forEach((video) => {
+          if (!(video instanceof HTMLVideoElement)) return;
+
+          if (document.visibilityState === 'hidden') {
+            video.pause();
+          } else {
+            video.play().catch(() => {});
+          }
+        });
+    });
+
+    window.addEventListener('pageshow', startBackgroundVideos);
   }
 </script>
