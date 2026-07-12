@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: responsive Quilt/List toggle, desktop details grid, and publication period filter — July 12, 2026
+// Revision: responsive Quilt/List toggle, publication period filter, and Age sorting — July 12, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -57,6 +57,30 @@ const getOrdinal = (value: number) => {
   return `${value}th`;
 };
 
+const getPublicationYear = (yearPublished?: string | null): number | null => {
+  const raw = String(yearPublished || '').trim();
+  const normalized = raw.toLowerCase().replace(/,/g, '');
+
+  if (!normalized) return null;
+
+  // Also support values written as 600 BC / BCE before parsing unsigned numbers.
+  const bceMatch = normalized.match(/\b(\d{1,4})\s*(?:bc|bce)\b/);
+  if (bceMatch) return -Number(bceMatch[1]);
+
+  // AD / CE years remain positive.
+  const ceMatch = normalized.match(/\b(\d{1,4})\s*(?:ad|ce)\b/);
+  if (ceMatch) return Number(ceMatch[1]);
+
+  // Raindrop stores BCE years as negative numbers, such as -600 or -1700.
+  const signedYearMatch = normalized.match(/(?:^|\s)(-?\d{1,4})(?=\s|$|\b)/);
+  if (signedYearMatch) {
+    const year = Number(signedYearMatch[1]);
+    return Number.isFinite(year) ? year : null;
+  }
+
+  return null;
+};
+
 const getPublicationPeriod = (yearPublished?: string | null) => {
   const raw = String(yearPublished || '').trim();
   const normalized = raw.toLowerCase().replace(/,/g, '');
@@ -86,14 +110,13 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     };
   }
 
-  const yearMatch = normalized.match(/\b(\d{1,4})\b/);
-  if (!yearMatch) {
+  const year = getPublicationYear(yearPublished);
+  if (year === null) {
     return { key: 'unknown', label: 'Unknown date', order: 400 };
   }
 
-  const year = Number(yearMatch[1]);
-
-  if (isBce || year < 500) {
+  // Any negative year is BCE and therefore Ancient.
+  if (year < 500) {
     return { key: 'ancient', label: 'Ancient (before 500)', order: 300 };
   }
 
@@ -557,6 +580,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           <option value="date-asc">Oldest finished</option>
           <option value="title-asc">Title A–Z</option>
           <option value="author-asc">Author A–Z</option>
+          <option value="publication-desc">Age (newest first)</option>
           <option value="length-desc">Longest</option>
           <option value="length-asc">Shortest</option>
         </select>
@@ -665,6 +689,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         {books.map((a, index) => {
           const meta = getBookMeta(a.note);
           const finishedYear = getFinishedYear(meta.dateFinished);
+          const publicationYear = getPublicationYear(meta.yearPublished);
           const publicationPeriod = getPublicationPeriod(meta.yearPublished);
 
           return (
@@ -679,6 +704,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
               data-author={meta.author.toLowerCase()}
               data-date-finished={meta.dateFinished}
               data-finished-year={finishedYear}
+              data-publication-year={publicationYear ?? ''}
               data-publication-period={publicationPeriod.key}
               data-publication-period-label={publicationPeriod.label}
               data-publication-period-order={publicationPeriod.order}
@@ -981,6 +1007,14 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           comparison = collator.compare(a.dataset.title || '', b.dataset.title || '');
         } else if (mode === 'author-asc'){
           comparison = collator.compare(a.dataset.author || '', b.dataset.author || '');
+        } else if (mode === 'publication-desc'){
+          const aYear = a.dataset.publicationYear === '' ? null : Number(a.dataset.publicationYear);
+          const bYear = b.dataset.publicationYear === '' ? null : Number(b.dataset.publicationYear);
+          comparison = compareNullableNumbers(
+            Number.isFinite(aYear) ? aYear : null,
+            Number.isFinite(bYear) ? bYear : null,
+            'desc'
+          );
         } else if (mode === 'length-desc' || mode === 'length-asc'){
           comparison = compareNullableNumbers(
             parseLengthMinutes(a.dataset.length),
