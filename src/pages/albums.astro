@@ -1,5 +1,6 @@
 ---
 // src/pages/albums.astro
+// Revision: List/Quilt views, richer filters and sorting, live counts, and dynamic listening time — July 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -16,114 +17,209 @@ const albums = await fetchAllRaindrops({
   label: 'albums',
   placeholder: '/images_webp/album-placeholder.webp',
 });
+
+const getAlbumMeta = (note?: string | null) => {
+  const parts = String(note || '')
+    .split('·')
+    .map((part) => part.trim());
+
+  return {
+    dateListened: parts[0] || '',
+    artist: parts[2] || '',
+    yearReleased: parts[3] || '',
+    style: parts[4] || '',
+    country: parts[5] || '',
+    length: parts[6] || '',
+    context: parts.slice(7).join(' · ') || '',
+  };
+};
+
+const getListenedYear = (dateListened?: string | null) => {
+  const raw = String(dateListened || '').trim();
+  const numericDate = raw.match(/\b\d{1,2}[\/-]\d{1,2}[\/-](\d{2}|\d{4})\b/);
+
+  if (numericDate) {
+    const year = numericDate[1];
+    return year.length === 2 ? String(2000 + Number(year)) : year;
+  }
+
+  return raw.match(/\b(?:19|20)\d{2}\b/)?.[0] || '';
+};
+
+const getReleaseYear = (yearReleased?: string | null): number | null => {
+  const match = String(yearReleased || '').match(/\b(?:18|19|20)\d{2}\b/);
+  if (!match) return null;
+
+  const year = Number(match[0]);
+  return Number.isFinite(year) ? year : null;
+};
+
+const parseLengthMinutes = (value?: string | null): number | null => {
+  const raw = String(value || '').toLowerCase().trim();
+  if (!raw) return null;
+
+  const colonMatch = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (colonMatch) {
+    const first = Number(colonMatch[1]);
+    const second = Number(colonMatch[2]);
+    const third = colonMatch[3] ? Number(colonMatch[3]) : null;
+    return third === null ? first * 60 + second : first * 60 + second + third / 60;
+  }
+
+  const hoursMatch = raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/);
+  const minutesMatch = raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/);
+
+  if (hoursMatch || minutesMatch) {
+    return (hoursMatch ? Number(hoursMatch[1]) * 60 : 0) +
+      (minutesMatch ? Number(minutesMatch[1]) : 0);
+  }
+
+  const numeric = Number.parseFloat(raw.replace(/[^\d.]/g, ''));
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
+const totalListeningMinutes = Math.round(
+  albums.reduce((total, album) => {
+    const minutes = parseLengthMinutes(getAlbumMeta(album.note).length);
+    return total + (minutes ?? 0);
+  }, 0),
+);
+
+const formatDuration = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours <= 0) return `${remainingMinutes.toLocaleString('en-US')} min`;
+
+  return `${hours.toLocaleString('en-US')} hr${hours === 1 ? '' : 's'}${
+    remainingMinutes ? ` ${remainingMinutes} min` : ''
+  }`;
+};
+
+const totalListeningTime = formatDuration(totalListeningMinutes);
 ---
 
 <BaseHead
   title={`${SITE_TITLE} — Albums`}
-  description="Albums gallery powered by Raindrop: auto-updated from my collection."
+  description="A searchable, auto-updated archive of the full albums I have listened to."
 />
 
 <style>
-  :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
+  :root{--gap:18px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
   *{box-sizing:border-box}
   .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
   .wrap--wide{width:100dvw;margin-left:calc(50% - 50dvw);margin-right:calc(50% - 50dvw);padding-inline:0}
-  .intro{max-width:920px;margin:0 auto 24px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
+  .intro{max-width:1240px;margin:0 auto 22px;text-align:center;padding-inline:clamp(16px,3vw,48px)}
   h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
   .hint{color:var(--muted);margin:6px 0 20px}
 
-  .toolbar{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    margin:6px 0 18px;
-    flex-wrap:wrap;
-  }
-  .toolbar input[type="search"]{
-    flex:1 1 260px;
-    width:100%;
-    max-width:520px;
-    margin-inline:0;
-    padding:12px 14px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:var(--surface);
-    color:var(--ink);
-    font-size:.95rem;
-    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  .toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 13px;flex-wrap:wrap}
+  .toolbar input[type="search"]{flex:1 1 230px;width:100%;max-width:270px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .toolbar select{flex:0 1 145px;min-width:118px;padding:10px 11px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.88rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .toolbar #style-filter{flex-basis:150px}
+  .toolbar #listened-year-filter{flex-basis:118px}
+  .toolbar #decade-filter{flex-basis:145px}
+  .toolbar #sort-albums{flex-basis:164px}
+
+  @media (min-width:901px){
+    .toolbar{flex-wrap:nowrap}
+    .toolbar > .info-toggle{flex:0 0 40px}
   }
 
-  .toolbar select{flex:0 0 auto;min-width:150px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .info-toggle{width:40px;height:40px;border-radius:999px;border:1px solid #838796;background:#a8adbd;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:background .15s ease,box-shadow .15s ease,transform .08s ease,border-color .15s ease,color .15s ease}
+  .info-toggle span{position:relative;top:-1px;font-weight:600}
+  .info-toggle:hover{background:#f0f2ff;box-shadow:0 4px 10px rgba(0,0,0,.08);transform:translateY(-1px)}
+  .info-toggle[aria-pressed="true"]{background:#405cf5;color:#fff;border-color:#405cf5}
+  .info-toggle:focus-visible{outline:2px solid #405cf5;outline-offset:2px}
 
-  .info-toggle{
-    width:40px;
-    height:40px;
-    border-radius:999px;
-    border:1px solid #838796;
-    background:#a8adbd;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.1rem;
-    cursor:pointer;
-    box-shadow:0 1px 2px rgba(0,0,0,.04);
-    transition:background .15s ease, box-shadow .15s ease, transform .08s ease, border-color .15s ease, color .15s ease;
-  }
-  .info-toggle span{
-    position:relative;
-    top:-1px;
-    font-weight:600;
-  }
-  .info-toggle:hover{
-    background:#f0f2ff;
-    box-shadow:0 4px 10px rgba(0,0,0,.08);
-    transform:translateY(-1px);
-  }
-  .info-toggle[aria-pressed="true"]{
-    background:#405cf5;
-    color:#fff;
-    border-color:#405cf5;
-  }
+  .view-toggle{display:inline-flex;align-items:center;justify-content:center;gap:3px;margin:0 auto 9px;padding:3px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.9);box-shadow:0 6px 16px rgba(15,23,42,.06)}
+  .view-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 12px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:inherit;font-size:.82rem;font-weight:700;line-height:1;cursor:pointer}
+  .view-button[aria-pressed="true"]{background:#405cf5;color:#fff;box-shadow:0 5px 12px rgba(64,92,245,.22)}
+  .view-button:focus-visible{outline:2px solid #405cf5;outline-offset:2px}
 
-  .info-panel{
-    max-width:920px;
-    margin:0 auto 24px;
-    padding:16px 18px 14px;
-    border-radius:14px;
-    background:rgba(255,255,255,.9);
-    border:1px solid var(--border);
-    box-shadow:0 10px 24px rgba(15,23,42,.04);
-    font-size:.94rem;
-    line-height:1.5;
-    color:var(--muted);
-    text-align:left;
-    display:none;
-  }
-  .info-panel--visible{display:block;}
-  .info-panel h2{
-    font-size:1.02rem;
-    margin:0 0 .4rem;
-    font-weight:700;
-    color:var(--ink);
-  }
-  .info-panel p{margin:.35rem 0;}
+  .results-row{display:flex;align-items:center;justify-content:center;gap:9px;min-height:30px;margin:0 auto 15px;color:var(--muted);font-size:.82rem}
+  .results-row p{margin:0}
+  .clear-filters{border:0;background:transparent;color:#314bd8;font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .clear-filters:hover{color:#1e34b8}
+  .clear-filters:focus-visible{outline:2px solid #405cf5;outline-offset:3px;border-radius:3px}
 
-  .grid{display:grid;gap:var(--gap);align-items:start;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:100%}
-  @media (min-width:1800px){.grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
-  .fullbleed{width:100%;margin:0;padding-inline:clamp(16px,3vw,48px)}
-  .card{position:relative;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;border-radius:12px}
-  .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
-  .title{font-weight:700;font-size:.98rem;line-height:1.3}
+  .info-panel{max-width:920px;margin:0 auto 24px;padding:16px 18px 14px;border-radius:14px;background:rgba(255,255,255,.9);border:1px solid var(--border);box-shadow:0 10px 24px rgba(15,23,42,.04);font-size:.94rem;line-height:1.5;color:var(--muted);text-align:left;display:none}
+  .info-panel--visible{display:block}
+  .info-panel h2{font-size:1.02rem;margin:0 0 .4rem;font-weight:700;color:var(--ink)}
+  .info-panel p{margin:.35rem 0}
+  .info-panel a{color:#314bd8;font-weight:700;text-underline-offset:2px}
+
+  .grid{display:grid;gap:var(--gap);align-items:start;width:100%;max-width:1800px;margin-inline:auto}
+  .grid:is([data-album-view="auto"],[data-album-view="quilt"]){grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .fullbleed{padding-inline:clamp(16px,3vw,48px)}
+  .card{position:relative;display:flex;min-width:0;flex-direction:column;gap:7px;text-decoration:none;color:inherit;border-radius:12px}
+  .thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 9px 22px rgba(0,0,0,.12);background:#f0f2f7;border:1px solid var(--border)}
+  .title{display:-webkit-box;overflow:hidden;font-weight:700;font-size:.94rem;line-height:1.28;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .external-link-cue{display:inline-block;margin-left:.2em;color:var(--muted);font-size:.8em;font-weight:700;vertical-align:.08em}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   .card:focus-visible{outline:2px solid #405cf5;outline-offset:4px;border-radius:12px}
+  .card-meta{display:none}
+
   .note-bubble{position:absolute;left:50%;top:-10px;transform:translate(calc(-50% + var(--shift,0px)),-100%);width:max-content;max-width:min(600px,90vw);white-space:normal;background:rgba(20,23,31,.96);color:#fff;font-size:.9rem;line-height:1.35;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:10;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease;text-align:left;text-wrap:pretty;hyphens:auto;word-break:break-word}
   .note-bubble::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(20,23,31,.96)}
   .card:hover .note-bubble,.card:focus-within .note-bubble,.card.show-note .note-bubble{opacity:1;visibility:visible}
-  @media (max-width:700px){
-    .note-bubble{top:auto;bottom:-10px;transform:translate(calc(-50% + var(--shift,0px)),100%)}
-    .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
+  .empty{text-align:center;color:var(--muted);padding:40px 16px 24px}
+
+  @media (min-width:901px){
+    .grid[data-album-view="list"]{max-width:1700px;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));grid-auto-rows:158px;gap:15px}
+    .grid[data-album-view="list"] .card{display:grid;width:100%;height:100%;grid-template-columns:132px minmax(0,1fr);grid-template-rows:auto 1fr;gap:7px 14px;align-items:start;overflow:hidden;padding:12px;border:1px solid rgba(230,233,239,.95);border-radius:14px;background:rgba(255,255,255,.9);box-shadow:0 8px 20px rgba(15,23,42,.07);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+    .grid[data-album-view="list"] .card:hover{transform:translateY(-2px);border-color:rgba(64,92,245,.28);box-shadow:0 12px 28px rgba(15,23,42,.11)}
+    .grid[data-album-view="list"] .thumb{grid-column:1;grid-row:1 / span 2;width:132px;height:132px;aspect-ratio:1;border-radius:9px;box-shadow:0 6px 15px rgba(0,0,0,.13)}
+    .grid[data-album-view="list"] .title{grid-column:2;grid-row:1;min-height:2.55em;margin-top:1px;font-size:1rem;line-height:1.28;-webkit-line-clamp:2}
+    .grid[data-album-view="list"] .card-meta{display:flex;grid-column:2;grid-row:2;flex-direction:column;gap:4px;min-width:0;color:var(--muted);font-size:.8rem;line-height:1.3}
+    .grid[data-album-view="list"] .card-meta span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .grid[data-album-view="list"] .card-meta .context{display:-webkit-box;white-space:normal;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+    .grid[data-album-view="list"] .note-bubble{display:none}
   }
-  .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
+
+  @media (max-width:900px){
+    .wrap{padding-block:18px 36px}
+    .intro{margin-bottom:12px;padding-inline:12px}
+    h1{margin-bottom:6px;font-size:2rem}
+    .hint{max-width:38ch;margin:4px auto 12px;font-size:.86rem;line-height:1.42}
+
+    .toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px 40px;gap:7px;margin-bottom:10px}
+    .toolbar input[type="search"]{grid-column:1 / -1;max-width:none;padding:10px 12px;font-size:.88rem}
+    .toolbar select{width:100%;min-width:0;padding:9px 8px;font-size:.78rem}
+    #style-filter{grid-column:1;grid-row:2}
+    #listened-year-filter{grid-column:2;grid-row:2}
+    #decade-filter{grid-column:1;grid-row:3}
+    #sort-albums{grid-column:2;grid-row:3}
+    #info-toggle{grid-column:3;grid-row:3}
+    .toolbar > a.info-toggle{grid-column:4;grid-row:3}
+
+    .view-toggle{margin-bottom:7px}
+    .results-row{margin-bottom:12px;font-size:.78rem}
+    .fullbleed{padding-inline:10px}
+
+    .grid[data-album-view="quilt"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 10px}
+    .grid[data-album-view="quilt"] .card{gap:5px}
+    .grid[data-album-view="quilt"] .thumb{border-radius:9px;box-shadow:0 6px 14px rgba(0,0,0,.12)}
+    .grid[data-album-view="quilt"] .title{font-size:.78rem;line-height:1.24;-webkit-line-clamp:2}
+
+    .grid:is([data-album-view="auto"],[data-album-view="list"]){max-width:680px;grid-template-columns:minmax(0,1fr);grid-auto-rows:142px;gap:10px}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .card{display:grid;width:100%;height:100%;grid-template-columns:112px minmax(0,1fr);grid-template-rows:auto 1fr;gap:6px 12px;align-items:start;overflow:hidden;padding:10px;border:1px solid rgba(230,233,239,.95);border-radius:14px;background:rgba(255,255,255,.9);box-shadow:0 7px 18px rgba(15,23,42,.06)}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .thumb{grid-column:1;grid-row:1 / span 2;width:112px;height:112px;aspect-ratio:1;border-radius:8px;box-shadow:0 5px 12px rgba(0,0,0,.12)}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .title{grid-column:2;grid-row:1;min-height:2.35em;margin-top:1px;font-size:.94rem;line-height:1.25;-webkit-line-clamp:2}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .card-meta{display:flex;grid-column:2;grid-row:2;flex-direction:column;gap:3px;min-width:0;color:var(--muted);font-size:.75rem;line-height:1.28}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .card-meta span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .card-meta .context{display:-webkit-box;white-space:normal;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+    .grid:is([data-album-view="auto"],[data-album-view="list"]) .note-bubble{display:none}
+
+    .note-bubble{top:auto;bottom:-10px;transform:translate(calc(-50% + var(--shift,0px)),100%);max-width:min(310px,88vw);padding:8px 10px;font-size:.78rem;line-height:1.32}
+    .note-bubble::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:rgba(20,23,31,.96)}
+    .info-panel{margin-bottom:16px;padding:13px;font-size:.84rem}
+  }
+
+  @media (min-width:560px) and (max-width:900px){
+    .grid[data-album-view="quilt"]{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px}
+    .grid[data-album-view="quilt"] .title{font-size:.84rem}
+  }
 </style>
 
 <VideoBg>
@@ -132,31 +228,46 @@ const albums = await fetchAllRaindrops({
     <div class="intro" role="region" aria-label="Albums header">
       <h1>🎵 Albums</h1>
       <p class="hint">
-        My life in {(albums.length).toLocaleString('en-US')} albums, every listen logged and displayed here.
+        {(albums.length).toLocaleString('en-US')} full albums · {totalListeningTime} of intentional, front-to-back listening.
       </p>
-      
+
       <div class="toolbar">
-        <input
-          id="q"
-          type="search"
-          placeholder="Search title or note…"
-          aria-label="Filter albums"
-        />
-        <select id="genre-filter" aria-label="Filter by style">
+        <input id="q" type="search" placeholder="Search album, artist, or note…" aria-label="Filter albums" />
+
+        <select id="style-filter" aria-label="Filter by style">
           <option value="">All styles</option>
         </select>
-      
+
+        <select id="listened-year-filter" aria-label="Filter by year listened">
+          <option value="">All listened years</option>
+        </select>
+
+        <select id="decade-filter" aria-label="Filter by release decade">
+          <option value="">All release decades</option>
+        </select>
+
+        <select id="sort-albums" aria-label="Sort albums">
+          <option value="date-desc">Newest listened</option>
+          <option value="date-asc">Oldest listened</option>
+          <option value="title-asc">Album A–Z</option>
+          <option value="artist-asc">Artist A–Z</option>
+          <option value="release-desc">Release: newest first</option>
+          <option value="release-asc">Release: oldest first</option>
+          <option value="length-desc">Longest</option>
+          <option value="length-asc">Shortest</option>
+        </select>
+
         <button
           type="button"
           id="info-toggle"
           class="info-toggle"
-          aria-label="About my listening"
+          aria-label="About my album listening"
           aria-expanded="false"
           aria-pressed="false"
         >
           <span>?</span>
         </button>
-      
+
         <a
           href="/stats/?metric=music&year=current#graphs"
           class="info-toggle"
@@ -167,33 +278,59 @@ const albums = await fetchAllRaindrops({
         </a>
       </div>
 
+      {albums.length > 0 ? (
+        <>
+          <div id="album-view-toggle" class="view-toggle" role="group" aria-label="Choose album layout">
+            <button type="button" class="view-button" data-album-view="list" aria-pressed="false">
+              <span aria-hidden="true">▤</span>
+              <span>List</span>
+            </button>
+            <button type="button" class="view-button" data-album-view="quilt" aria-pressed="false">
+              <span aria-hidden="true">▦</span>
+              <span>Quilt</span>
+            </button>
+          </div>
+
+          <div class="results-row">
+            <p id="results-summary" aria-live="polite">
+              Showing {albums.length.toLocaleString('en-US')} of {albums.length.toLocaleString('en-US')} albums
+            </p>
+            <button type="button" id="clear-filters" class="clear-filters" hidden>Clear filters</button>
+          </div>
+        </>
+      ) : null}
+
       <section id="albums-info" class="info-panel" hidden>
         <h2>Why I Log Albums</h2>
         <p>
-          I listen to music while I work on things that I can't listen to audiobooks to. I don’t listen passively, I log albums the way I log
-          books, as a record of what’s been in my ears. Apart from this, I track classical music listening separately.
+          Music fills the stretches when an audiobook would demand too much attention. I log full albums—not shuffled
+          playlists—as a record of what has accompanied my work, driving, and everyday life.
         </p>
 
-        <h2>What’s in Here</h2>
+        <h2>The Collection</h2>
         <p>
-          These are full albums, not shuffled playlists. I drift through classical, film scores, jazz, folk, and
-          anything that grabs my curiosity hard enough to deserve a front-to-back listen.
+          This archive currently contains <strong>{albums.length.toLocaleString('en-US')} albums</strong> totaling
+          <strong>{totalListeningTime}</strong>. Classical listening is also tracked separately when it does not fit
+          neatly into an album entry.
         </p>
 
-        <h2>How to Read This Grid</h2>
+        <h2>How to Browse</h2>
         <p>
-          Hover over a cover to see my structured note:
+          Filter by style, the year I listened, or the decade the album was released. Sort by listening date, artist,
+          release year, or runtime. List view exposes the key metadata; Quilt view emphasizes the covers.
+        </p>
+        <p>
+          In desktop Quilt view, hover over a cover to see the complete note:
           <strong>Date · Album · Artist · Year · Style · Country · Length · Context</strong>.
         </p>
         <p>
-          On mobile, tap once to reveal the note, then tap again to follow the link (usually to a streaming or
-          reference page).
+          On a phone, List is the default. In mobile Quilt view, tap once to reveal the note and tap again to open the
+          album link.
         </p>
 
-        <h2>Future Stats</h2>
         <p>
-          Later I’ll surface live listening stats here: most-played artists, years, genres, and streaks powered by my
-          Google Sheets logs.
+          <a href="/stats/?metric=music&amp;year=current#graphs">View my music statistics</a> for listening totals and
+          trends powered by my Google Sheets logs.
         </p>
       </section>
     </div>
@@ -203,36 +340,69 @@ const albums = await fetchAllRaindrops({
         Albums are temporarily unavailable: either Raindrop returned no items or its API hiccuped during build.
       </div>
     ) : (
-      <div class="grid fullbleed" id="grid" role="list">
-        {albums.map((a) => (
-          <a
-            class="card"
-            role="listitem"
-            href={a.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={a.title}
-            data-title={a.title.toLowerCase()}
-            data-note={(a.note || '').toLowerCase()}
-            data-note-raw={a.note || ''}
-          >
-            <img
-              class="thumb"
-              src={a.cover}
-              alt={a.title}
-              loading="lazy"
-              decoding="async"
-              sizes="(min-width: 1800px) 300px, (min-width: 900px) 25vw, 50vw"
-            />
-            <div class="title">{a.title}</div>
-            {a.note ? (
-              <div class="note-bubble" role="tooltip">
-                {a.note}
-              </div>
-            ) : null}
-          </a>
-        ))}
-      </div>
+      <>
+        <p id="filter-empty" class="empty" aria-live="polite" hidden>
+          No albums match these filters. Clear the filters to restore the full collection.
+        </p>
+
+        <div class="grid fullbleed" id="grid" role="list" data-album-view="auto">
+          {albums.map((album, index) => {
+            const meta = getAlbumMeta(album.note);
+            const listenedYear = getListenedYear(meta.dateListened);
+            const releaseYear = getReleaseYear(meta.yearReleased);
+            const releaseDecade = releaseYear === null ? '' : Math.floor(releaseYear / 10) * 10;
+            const styleAndYear = [meta.style, meta.yearReleased].filter(Boolean).join(' · ');
+            const listenedAndLength = [meta.dateListened ? `Listened ${meta.dateListened}` : '', meta.length]
+              .filter(Boolean)
+              .join(' · ');
+
+            return (
+              <a
+                class="card"
+                role="listitem"
+                href={album.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`${album.title} — opens in a new tab`}
+                data-title={album.title.toLowerCase()}
+                data-artist={meta.artist.toLowerCase()}
+                data-style={meta.style}
+                data-date-listened={meta.dateListened}
+                data-listened-year={listenedYear}
+                data-release-year={releaseYear ?? ''}
+                data-release-decade={releaseDecade}
+                data-length={meta.length}
+                data-original-index={index}
+                data-note={(album.note || '').toLowerCase()}
+                data-note-raw={album.note || ''}
+              >
+                <img
+                  class="thumb"
+                  src={album.cover}
+                  alt={album.title}
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(max-width: 559px) 112px, (max-width: 900px) 112px, (min-width: 901px) 220px"
+                />
+
+                <div class="title">
+                  {album.title}<span class="external-link-cue" aria-hidden="true">↗</span>
+                  <span class="sr-only"> (opens in a new tab)</span>
+                </div>
+
+                <div class="card-meta">
+                  {meta.artist ? <span><strong>{meta.artist}</strong></span> : null}
+                  {styleAndYear ? <span>{styleAndYear}</span> : null}
+                  {listenedAndLength ? <span>{listenedAndLength}</span> : null}
+                  {meta.context ? <span class="context">{meta.context}</span> : null}
+                </div>
+
+                {album.note ? <div class="note-bubble" role="tooltip">{album.note}</div> : null}
+              </a>
+            );
+          })}
+        </div>
+      </>
     )}
   </main>
   <Footer />
@@ -240,23 +410,104 @@ const albums = await fetchAllRaindrops({
 
 <script>
   (function(){
-    const $ = (sel,root=document)=>root.querySelector(sel);
-    const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
-    const debounce = (fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);} };
-    const norm = s => (s||"").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const debounce = (fn, ms) => {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), ms);
+      };
+    };
+    const norm = value => (value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
     const grid = $('#grid');
     const input = $('#q');
-    const genreSelect = $('#genre-filter');
+    const styleSelect = $('#style-filter');
+    const listenedYearSelect = $('#listened-year-filter');
+    const decadeSelect = $('#decade-filter');
+    const sortSelect = $('#sort-albums');
+    const resultsSummary = $('#results-summary');
+    const clearFiltersButton = $('#clear-filters');
+    const filterEmpty = $('#filter-empty');
+
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
-    const haystack = new Map(cards.map(c => [c, norm((c.dataset.title||'')+' '+(c.dataset.note||''))]));
+    const haystack = new Map(
+      cards.map(card => [
+        card,
+        norm(`${card.dataset.title || ''} ${card.dataset.artist || ''} ${card.dataset.note || ''}`),
+      ]),
+    );
 
-    // 🔹 Canonical style list (order matters)
+    // Use a practical default for each screen size and remember later choices separately.
+    const MOBILE_VIEW_QUERY = window.matchMedia('(max-width: 900px)');
+    const VIEW_STORAGE_KEYS = {
+      mobile: 'lifeloggerz-albums-mobile-view',
+      desktop: 'lifeloggerz-albums-desktop-view',
+    };
+    const viewButtons = $$('.view-button[data-album-view]');
+
+    function viewMode(){
+      return MOBILE_VIEW_QUERY.matches ? 'mobile' : 'desktop';
+    }
+
+    function defaultView(){
+      return viewMode() === 'mobile' ? 'list' : 'quilt';
+    }
+
+    function setAlbumView(view, persist = true){
+      const nextView = view === 'list' ? 'list' : 'quilt';
+      grid.dataset.albumView = nextView;
+
+      viewButtons.forEach(button => {
+        const isActive = button.dataset.albumView === nextView;
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+
+      cards.forEach(card => card.classList.remove('show-note'));
+
+      if (persist) {
+        try {
+          localStorage.setItem(VIEW_STORAGE_KEYS[viewMode()], nextView);
+        } catch (_error) {
+          // The selected view still works during this visit when storage is unavailable.
+        }
+      }
+    }
+
+    function restoreViewForCurrentScreen(){
+      let savedView = defaultView();
+
+      try {
+        savedView = localStorage.getItem(VIEW_STORAGE_KEYS[viewMode()]) || defaultView();
+      } catch (_error) {
+        savedView = defaultView();
+      }
+
+      setAlbumView(savedView, false);
+    }
+
+    restoreViewForCurrentScreen();
+
+    viewButtons.forEach(button => {
+      button.addEventListener('click', () => setAlbumView(button.dataset.albumView));
+    });
+
+    if (typeof MOBILE_VIEW_QUERY.addEventListener === 'function') {
+      MOBILE_VIEW_QUERY.addEventListener('change', restoreViewForCurrentScreen);
+    } else {
+      MOBILE_VIEW_QUERY.addListener(restoreViewForCurrentScreen);
+    }
+
     const CANONICAL_STYLES = [
       'Pop',
       'Rock',
+      'Alternative/Indie',
       'Hip-Hop/Rap',
       'R&B/Soul',
       'Electronic/Dance',
@@ -277,10 +528,11 @@ const albums = await fetchAllRaindrops({
       'Experimental/Avant-Garde',
     ];
 
-    // 🔹 Alias map in case Raindrop notes use slightly different punctuation
     const STYLE_ALIAS_MAP = {};
+    STYLE_ALIAS_MAP[norm('Alternative')] = 'Alternative/Indie';
+    STYLE_ALIAS_MAP[norm('Indie')] = 'Alternative/Indie';
+    STYLE_ALIAS_MAP[norm('Indie/Alternative')] = 'Alternative/Indie';
     STYLE_ALIAS_MAP[norm('Hip Hop/Rap')] = 'Hip-Hop/Rap';
-    STYLE_ALIAS_MAP[norm('Hip-Hop/Rap')] = 'Hip-Hop/Rap';
     STYLE_ALIAS_MAP[norm('R&B / Soul')] = 'R&B/Soul';
     STYLE_ALIAS_MAP[norm('R&amp;B/Soul')] = 'R&B/Soul';
     STYLE_ALIAS_MAP[norm('Electronic / Dance')] = 'Electronic/Dance';
@@ -300,120 +552,279 @@ const albums = await fetchAllRaindrops({
 
     const stylesInUse = new Set();
 
-    // 🔹 Extract style from note (5th field) and attach to each card
-    // Note format: Date · Album · Artist · Year · Style · Country · Length · Context
-    cards.forEach(c => {
-      const raw = c.dataset.noteRaw || '';
-      const parts = raw.split('·').map(s => s.trim());
-      if (parts.length < 5) return;
-
-      const rawStyle = parts[4];
+    cards.forEach(card => {
+      const rawStyle = card.dataset.style || '';
       const rawNorm = norm(rawStyle);
+      if (!rawNorm) return;
 
-      // Exact match first
-      let canonical = CANONICAL_STYLES.find(g => norm(g) === rawNorm);
+      let canonical = CANONICAL_STYLES.find(style => norm(style) === rawNorm);
+      if (!canonical && STYLE_ALIAS_MAP[rawNorm]) canonical = STYLE_ALIAS_MAP[rawNorm];
+      if (!canonical) return;
 
-      // Fallback to alias map
-      if (!canonical && STYLE_ALIAS_MAP[rawNorm]) {
-        canonical = STYLE_ALIAS_MAP[rawNorm];
-      }
-
-      if (!canonical) return; // ignore weird styles
-
-      const styleKey = norm(canonical);
-      c.dataset.genre = canonical;
-      c.dataset.genreKey = styleKey;
+      card.dataset.style = canonical;
+      card.dataset.styleKey = norm(canonical);
       stylesInUse.add(canonical);
     });
 
-    // 🔹 Populate dropdown using canonical order, but only styles actually present
-    if (genreSelect) {
-      const used = CANONICAL_STYLES.filter(g => stylesInUse.has(g));
-      used.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g;
-        opt.textContent = g;
-        genreSelect.appendChild(opt);
+    if (styleSelect) {
+      CANONICAL_STYLES
+        .filter(style => stylesInUse.has(style))
+        .forEach(style => {
+          const option = document.createElement('option');
+          option.value = style;
+          option.textContent = style;
+          styleSelect.appendChild(option);
+        });
+    }
+
+    if (listenedYearSelect) {
+      const listenedYears = [...new Set(cards.map(card => card.dataset.listenedYear).filter(Boolean))]
+        .sort((a, b) => Number(b) - Number(a));
+
+      listenedYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        listenedYearSelect.appendChild(option);
       });
     }
 
-    function filter() {
-      const s = norm(input.value.trim());
-      const selected = genreSelect ? genreSelect.value : '';
-      const selectedKey = norm(selected);
+    if (decadeSelect) {
+      const decades = [...new Set(cards.map(card => card.dataset.releaseDecade).filter(Boolean))]
+        .map(Number)
+        .filter(Number.isFinite)
+        .sort((a, b) => b - a);
 
-      cards.forEach(c => {
-        const textMatches = !s || s.split(/\s+/).every(w => haystack.get(c).includes(w));
-        const styleMatches = !selected || (c.dataset.genreKey && c.dataset.genreKey === selectedKey);
-        c.style.display = (textMatches && styleMatches) ? '' : 'none';
+      decades.forEach(decade => {
+        const option = document.createElement('option');
+        option.value = String(decade);
+        option.textContent = `${decade}s`;
+        decadeSelect.appendChild(option);
       });
+    }
+
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
+    function parseListenedDate(value){
+      const cleaned = String(value || '')
+        .replace(/(\d)(st|nd|rd|th)\b/gi, '$1')
+        .trim();
+
+      const numericDate = cleaned.match(/^\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})\s*$/);
+      if (numericDate) {
+        const month = Number(numericDate[1]);
+        const day = Number(numericDate[2]);
+        const rawYear = numericDate[3];
+        const year = rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear);
+        const timestamp = Date.UTC(year, month - 1, day);
+        return Number.isNaN(timestamp) ? null : timestamp;
+      }
+
+      const timestamp = Date.parse(cleaned);
+      return Number.isNaN(timestamp) ? null : timestamp;
+    }
+
+    function parseLengthMinutes(value){
+      const raw = String(value || '').toLowerCase().trim();
+      if (!raw) return null;
+
+      const colonMatch = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+      if (colonMatch) {
+        const first = Number(colonMatch[1]);
+        const second = Number(colonMatch[2]);
+        const third = colonMatch[3] ? Number(colonMatch[3]) : null;
+        return third === null ? first * 60 + second : first * 60 + second + third / 60;
+      }
+
+      const hoursMatch = raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/);
+      const minutesMatch = raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/);
+
+      if (hoursMatch || minutesMatch) {
+        return (hoursMatch ? Number(hoursMatch[1]) * 60 : 0) +
+          (minutesMatch ? Number(minutesMatch[1]) : 0);
+      }
+
+      const numeric = Number.parseFloat(raw.replace(/[^\d.]/g, ''));
+      return Number.isFinite(numeric) ? numeric : null;
+    }
+
+    function compareNullableNumbers(a, b, direction){
+      const aMissing = a === null;
+      const bMissing = b === null;
+      if (aMissing && bMissing) return 0;
+      if (aMissing) return 1;
+      if (bMissing) return -1;
+      return direction === 'asc' ? a - b : b - a;
+    }
+
+    function sortAlbums(){
+      const mode = sortSelect ? sortSelect.value : 'date-desc';
+
+      const orderedCards = [...cards].sort((a, b) => {
+        let comparison = 0;
+
+        if (mode === 'date-desc' || mode === 'date-asc') {
+          comparison = compareNullableNumbers(
+            parseListenedDate(a.dataset.dateListened),
+            parseListenedDate(b.dataset.dateListened),
+            mode === 'date-asc' ? 'asc' : 'desc',
+          );
+        } else if (mode === 'title-asc') {
+          comparison = collator.compare(a.dataset.title || '', b.dataset.title || '');
+        } else if (mode === 'artist-asc') {
+          comparison = collator.compare(a.dataset.artist || '', b.dataset.artist || '');
+        } else if (mode === 'release-desc' || mode === 'release-asc') {
+          const aYear = a.dataset.releaseYear === '' ? null : Number(a.dataset.releaseYear);
+          const bYear = b.dataset.releaseYear === '' ? null : Number(b.dataset.releaseYear);
+          comparison = compareNullableNumbers(
+            Number.isFinite(aYear) ? aYear : null,
+            Number.isFinite(bYear) ? bYear : null,
+            mode === 'release-asc' ? 'asc' : 'desc',
+          );
+        } else if (mode === 'length-desc' || mode === 'length-asc') {
+          comparison = compareNullableNumbers(
+            parseLengthMinutes(a.dataset.length),
+            parseLengthMinutes(b.dataset.length),
+            mode === 'length-asc' ? 'asc' : 'desc',
+          );
+        }
+
+        if (comparison !== 0) return comparison;
+        return Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
+      });
+
+      orderedCards.forEach(card => grid.appendChild(card));
+    }
+
+    function hasActiveFilters(){
+      return Boolean(
+        input.value.trim() ||
+        styleSelect?.value ||
+        listenedYearSelect?.value ||
+        decadeSelect?.value
+      );
+    }
+
+    function filter(){
+      const search = norm(input.value.trim());
+      const words = search ? search.split(/\s+/) : [];
+      const selectedStyle = styleSelect ? styleSelect.value : '';
+      const selectedStyleKey = norm(selectedStyle);
+      const selectedListenedYear = listenedYearSelect ? listenedYearSelect.value : '';
+      const selectedDecade = decadeSelect ? decadeSelect.value : '';
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const textMatches = !words.length || words.every(word => haystack.get(card).includes(word));
+        const styleMatches = !selectedStyle || card.dataset.styleKey === selectedStyleKey;
+        const listenedYearMatches = !selectedListenedYear || card.dataset.listenedYear === selectedListenedYear;
+        const decadeMatches = !selectedDecade || card.dataset.releaseDecade === selectedDecade;
+        const isVisible = textMatches && styleMatches && listenedYearMatches && decadeMatches;
+
+        card.style.display = isVisible ? '' : 'none';
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (resultsSummary) {
+        resultsSummary.textContent = `Showing ${visibleCount.toLocaleString()} of ${cards.length.toLocaleString()} albums`;
+      }
+
+      if (clearFiltersButton) clearFiltersButton.hidden = !hasActiveFilters();
+      if (filterEmpty) filterEmpty.hidden = visibleCount !== 0;
+    }
+
+    function clearFilters(){
+      input.value = '';
+      if (styleSelect) styleSelect.value = '';
+      if (listenedYearSelect) listenedYearSelect.value = '';
+      if (decadeSelect) decadeSelect.value = '';
+      filter();
     }
 
     input.addEventListener('input', debounce(filter, 80));
-    if (genreSelect) {
-      genreSelect.addEventListener('change', filter);
-    }
+    if (styleSelect) styleSelect.addEventListener('change', filter);
+    if (listenedYearSelect) listenedYearSelect.addEventListener('change', filter);
+    if (decadeSelect) decadeSelect.addEventListener('change', filter);
+    if (sortSelect) sortSelect.addEventListener('change', sortAlbums);
+    if (clearFiltersButton) clearFiltersButton.addEventListener('click', clearFilters);
 
-    window.addEventListener('keydown', e => {
-      if (e.key==='Escape'){
-        input.value='';
-        if (genreSelect) genreSelect.value = '';
-        filter();
+    window.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        clearFilters();
+        if (sortSelect) sortSelect.value = 'date-desc';
+        sortAlbums();
         input.focus();
-      } else if (e.key==='/' && e.target===document.body){
-        e.preventDefault();
+      } else if (event.key === '/' && event.target === document.body) {
+        event.preventDefault();
         input.focus();
       }
     });
 
+    sortAlbums();
     filter();
 
-    // Tooltip positioning (unchanged)
     function adjust(bubble){
       if (!bubble) return;
-      bubble.style.setProperty('--shift','0px');
-      const r = bubble.getBoundingClientRect(), m = 8;
+      bubble.style.setProperty('--shift', '0px');
+      const rect = bubble.getBoundingClientRect();
+      const margin = 8;
       let shift = 0;
-      if (r.left < m) shift = m - r.left;
-      else if (r.right > innerWidth - m) shift = (innerWidth - m) - r.right;
+
+      if (rect.left < margin) shift = margin - rect.left;
+      else if (rect.right > innerWidth - margin) shift = (innerWidth - margin) - rect.right;
+
       if (shift) bubble.style.setProperty('--shift', `${shift}px`);
     }
-    grid.addEventListener('mouseenter', e=>{
-      const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
-      requestAnimationFrame(()=>adjust(b));
+
+    grid.addEventListener('mouseenter', event => {
+      const bubble = event.target.closest('.card')?.querySelector('.note-bubble');
+      if (!bubble) return;
+      requestAnimationFrame(() => adjust(bubble));
     }, true);
-    grid.addEventListener('focusin', e=>{
-      const b = e.target.closest('.card')?.querySelector('.note-bubble'); if (!b) return;
-      requestAnimationFrame(()=>adjust(b));
+
+    grid.addEventListener('focusin', event => {
+      const bubble = event.target.closest('.card')?.querySelector('.note-bubble');
+      if (!bubble) return;
+      requestAnimationFrame(() => adjust(bubble));
     });
-    addEventListener('resize', ()=> $$('.note-bubble').forEach(adjust));
 
-    // Mobile tap-to-show tooltip (unchanged)
-    document.addEventListener('click', e=>{
-      const card = e.target.closest('.card');
-      if (!card){ cards.forEach(c=>c.classList.remove('show-note')); return; }
+    addEventListener('resize', () => $$('.note-bubble').forEach(adjust));
+
+    document.addEventListener('click', event => {
+      const card = event.target.closest('.card');
+
+      if (!card) {
+        cards.forEach(item => item.classList.remove('show-note'));
+        return;
+      }
+
       if (!card.querySelector('.note-bubble')) return;
+
+      const isMobileQuiltView =
+        MOBILE_VIEW_QUERY.matches && grid.dataset.albumView === 'quilt';
+
+      if (!isMobileQuiltView) return;
       if (card.classList.contains('show-note')) return;
-      e.preventDefault();
-      cards.forEach(c=>c.classList.remove('show-note'));
+
+      event.preventDefault();
+      cards.forEach(item => item.classList.remove('show-note'));
       card.classList.add('show-note');
-      requestAnimationFrame(()=>adjust(card.querySelector('.note-bubble')));
-      setTimeout(()=>card.classList.remove('show-note'), 2500);
+      requestAnimationFrame(() => adjust(card.querySelector('.note-bubble')));
+      setTimeout(() => card.classList.remove('show-note'), 2500);
     }, true);
 
-    const infoBtn = $('#info-toggle');
+    const infoButton = $('#info-toggle');
     const infoPanel = $('#albums-info');
-    if (infoBtn && infoPanel){
-      infoBtn.addEventListener('click', ()=>{
+
+    if (infoButton && infoPanel) {
+      infoButton.addEventListener('click', () => {
         const isOpen = infoPanel.classList.toggle('info-panel--visible');
         infoPanel.hidden = !isOpen;
-        infoBtn.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
-        infoBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        if (isOpen){
-          infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+        infoButton.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
+        infoButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+        if (isOpen) infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
     }
   })();
 </script>
-
