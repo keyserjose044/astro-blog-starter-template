@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: publication filters, Age sorting, and single-row desktop toolbar — July 12, 2026
+// Revision: live result counts, two-way publication sorting, and dynamic listening hours — July 14, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -31,6 +31,35 @@ const getBookMeta = (note?: string | null) => {
     length: parts[9] || '',
   };
 };
+
+const parseBookLengthMinutes = (value?: string | null): number => {
+  const raw = String(value || '').toLowerCase().trim();
+  if (!raw) return 0;
+
+  const colonMatch = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (colonMatch) {
+    const first = Number(colonMatch[1]);
+    const second = Number(colonMatch[2]);
+    const third = colonMatch[3] ? Number(colonMatch[3]) : null;
+    return third === null ? first * 60 + second : first * 60 + second + third / 60;
+  }
+
+  const hoursMatch = raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/);
+  const minutesMatch = raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/);
+  if (hoursMatch || minutesMatch) {
+    return (hoursMatch ? Number(hoursMatch[1]) * 60 : 0) +
+      (minutesMatch ? Number(minutesMatch[1]) : 0);
+  }
+
+  const numeric = Number.parseFloat(raw.replace(/[^\d.]/g, ''));
+  return Number.isFinite(numeric) ? numeric * 60 : 0;
+};
+
+const totalListeningMinutes = books.reduce((sum, book) => {
+  const { length } = getBookMeta(book.note);
+  return sum + parseBookLengthMinutes(length);
+}, 0);
+const totalListeningHours = Math.round(totalListeningMinutes / 60);
 
 const getFinishedYear = (dateFinished?: string | null) => {
   const raw = String(dateFinished || '').trim();
@@ -218,6 +247,19 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     }
   }
   .empty{text-align:center;color:var(--muted);padding:40px 0 24px}
+
+  .results-row{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    min-height:32px;margin:-6px auto 18px;color:var(--muted);font-size:.86rem;
+  }
+  .results-count{margin:0}
+  .clear-filters{
+    border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.92);
+    color:#314bd8;padding:6px 10px;font:inherit;font-size:.8rem;font-weight:700;
+    line-height:1;cursor:pointer;box-shadow:0 3px 10px rgba(15,23,42,.05);
+  }
+  .clear-filters:hover{border-color:rgba(64,92,245,.35);background:#f6f7ff}
+  .clear-filters:focus-visible{outline:2px solid #405cf5;outline-offset:2px}
 
   .card-meta{display:none}
 
@@ -423,6 +465,17 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       margin-bottom: 14px;
     }
 
+    .results-row {
+      margin-top: -4px;
+      margin-bottom: 14px;
+      font-size: .8rem;
+    }
+
+    .clear-filters {
+      padding: 6px 9px;
+      font-size: .76rem;
+    }
+
     .fullbleed {
       padding-inline: 10px;
     }
@@ -564,8 +617,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     <div class="intro" role="region" aria-label="books header">
       <h1>📚 Books</h1>
       <p class="hint">
-        {(books.length).toLocaleString('en-US')} audiobooks since February 9, 2023—mostly while
-        driving, running, washing, or doing other routine tasks.
+        {(books.length).toLocaleString('en-US')} audiobooks · {totalListeningHours.toLocaleString('en-US')} listening hours
+        since February 9, 2023—mostly while driving, running, washing, or doing other routine tasks.
       </p>
 
       <div class="toolbar">
@@ -587,7 +640,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           <option value="date-asc">Oldest finished</option>
           <option value="title-asc">Title A–Z</option>
           <option value="author-asc">Author A–Z</option>
-          <option value="publication-desc">Age (newest first)</option>
+          <option value="publication-desc">Publication: newest first</option>
+          <option value="publication-asc">Publication: oldest first</option>
           <option value="length-desc">Longest</option>
           <option value="length-asc">Shortest</option>
         </select>
@@ -640,6 +694,17 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         </div>
       ) : null}
 
+      {books.length > 0 ? (
+        <div class="results-row" aria-live="polite" aria-atomic="true">
+          <p id="results-count" class="results-count">
+            Showing {books.length.toLocaleString('en-US')} of {books.length.toLocaleString('en-US')} books
+          </p>
+          <button type="button" id="clear-filters" class="clear-filters" hidden>
+            Clear filters
+          </button>
+        </div>
+      ) : null}
+
       <section id="reading-info" class="info-panel" hidden>
         <h2>Why I Listen to Audiobooks</h2>
         <p>
@@ -658,9 +723,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         <h2>The Numbers</h2>
         <p>
           Since <strong>February 9, 2023</strong>, I’ve listened to
-          <strong>{books.length.toLocaleString('en-US')} audiobooks</strong> and logged more than
-          <strong>2,000 hours</strong> of listening, weaving books into otherwise ordinary parts
-          of everyday life.
+          <strong>{books.length.toLocaleString('en-US')} audiobooks</strong> and logged
+          <strong>{totalListeningHours.toLocaleString('en-US')} hours</strong> of listening,
+          weaving books into otherwise ordinary parts of everyday life.
         </p>
 
         <h2>Notes</h2>
@@ -761,7 +826,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           yearSelect = $('#year-filter'),
           periodSelect = $('#period-filter'),
           sortSelect = $('#sort-books'),
-          filterEmpty = $('#filter-empty');
+          filterEmpty = $('#filter-empty'),
+          resultsCount = $('#results-count'),
+          clearFiltersButton = $('#clear-filters');
 
     if (!grid || !input) return;
 
@@ -1014,13 +1081,13 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           comparison = collator.compare(a.dataset.title || '', b.dataset.title || '');
         } else if (mode === 'author-asc'){
           comparison = collator.compare(a.dataset.author || '', b.dataset.author || '');
-        } else if (mode === 'publication-desc'){
+        } else if (mode === 'publication-desc' || mode === 'publication-asc'){
           const aYear = a.dataset.publicationYear === '' ? null : Number(a.dataset.publicationYear);
           const bYear = b.dataset.publicationYear === '' ? null : Number(b.dataset.publicationYear);
           comparison = compareNullableNumbers(
             Number.isFinite(aYear) ? aYear : null,
             Number.isFinite(bYear) ? bYear : null,
-            'desc'
+            mode === 'publication-asc' ? 'asc' : 'desc'
           );
         } else if (mode === 'length-desc' || mode === 'length-asc'){
           comparison = compareNullableNumbers(
@@ -1059,6 +1126,24 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       });
 
       if (filterEmpty) filterEmpty.hidden = visibleCount !== 0;
+
+      if (resultsCount) {
+        resultsCount.textContent = `Showing ${visibleCount.toLocaleString()} of ${cards.length.toLocaleString()} books`;
+      }
+
+      const hasActiveFilters = Boolean(
+        input.value.trim() || selectedGenre || selectedYear || selectedPeriod
+      );
+      if (clearFiltersButton) clearFiltersButton.hidden = !hasActiveFilters;
+    }
+
+    function clearFilters(){
+      input.value = '';
+      if (genreSelect) genreSelect.value = '';
+      if (yearSelect) yearSelect.value = '';
+      if (periodSelect) periodSelect.value = '';
+      filter();
+      input.focus();
     }
 
     input.addEventListener('input', debounce(filter, 80));
@@ -1066,18 +1151,14 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     if (yearSelect) yearSelect.addEventListener('change', filter);
     if (periodSelect) periodSelect.addEventListener('change', filter);
     if (sortSelect) sortSelect.addEventListener('change', sortBooks);
+    if (clearFiltersButton) clearFiltersButton.addEventListener('click', clearFilters);
 
     // Keyboard shortcuts (unchanged)
     window.addEventListener('keydown', e=>{
       if (e.key==='Escape'){
-        input.value='';
-        if (genreSelect) genreSelect.value = '';
-        if (yearSelect) yearSelect.value = '';
-        if (periodSelect) periodSelect.value = '';
         if (sortSelect) sortSelect.value = 'date-desc';
         sortBooks();
-        filter();
-        input.focus();
+        clearFilters();
       } else if (e.key==='/' && e.target===document.body){
         e.preventDefault(); input.focus();
       }
