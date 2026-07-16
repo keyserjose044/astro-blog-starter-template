@@ -252,14 +252,12 @@ const structuredData = {
   name: 'Ideas That Shaped LifeLoggerz',
   description:
     'The people, projects, communities, and ideas that influenced the LifeLoggerz personal data and systems project.',
-  dateModified: '2026-07-15',
 };
 ---
 
 <Layout
   title="Ideas That Shaped LifeLoggerz"
   description="The people, projects, and ideas that shaped LifeLoggerz: personal data, experimentation, automation, and visual archives."
-  updatedDate="2026-07-15"
   wide
   hideTitle
   showViews={false}
@@ -381,6 +379,22 @@ const structuredData = {
 </Layout>
 
 <style is:global>
+  /* This page is intentionally wider than a normal article.
+     Override the generic BlogPost prose constraints at the exact wrapper level. */
+  article.wrap.prose--wide {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+    padding-inline: clamp(0.55rem, 2vw, 1rem) !important;
+  }
+
+  article.wrap.prose--wide > .prose {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+  }
+
   .inspirations-page {
     --ink: #0f172a;
     --muted: #475569;
@@ -550,8 +564,9 @@ const structuredData = {
   .inspiration-card {
     display: grid;
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-items: stretch;
     overflow: hidden;
-    min-height: 430px;
+    min-height: 0;
     border: 1px solid var(--line);
     border-radius: 28px;
     background: var(--surface);
@@ -570,10 +585,16 @@ const structuredData = {
 
   .inspiration-media {
     position: relative;
-    display: block;
-    overflow: hidden;
+    display: flex;
+    min-width: 0;
     min-height: 100%;
-    background: #111827;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(0.5rem, 1.2vw, 0.9rem);
+    background:
+      radial-gradient(circle at 16% 10%, rgba(59, 130, 246, 0.16), transparent 38%),
+      linear-gradient(145deg, #101827, #172033);
     text-decoration: none;
     isolation: isolate;
   }
@@ -583,15 +604,22 @@ const structuredData = {
     inset: 0;
     z-index: 1;
     content: '';
-    background: linear-gradient(to top, rgba(2, 6, 23, 0.44), transparent 55%);
+    background: linear-gradient(to top, rgba(2, 6, 23, 0.2), transparent 42%);
     pointer-events: none;
   }
 
   .inspiration-media img {
+    position: relative;
+    z-index: 0;
+    display: block;
     width: 100%;
-    height: 100%;
-    min-height: 430px;
-    object-fit: cover;
+    height: auto;
+    min-height: 0;
+    max-height: 620px;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.28);
     transition: transform 0.32s ease, filter 0.32s ease;
   }
 
@@ -826,17 +854,26 @@ const structuredData = {
     }
   }
 
-  @media (max-width: 760px) {
-    article.wrap,
-    .prose {
+  @media (max-width: 840px) {
+    article.wrap.prose--wide {
+      width: 100vw !important;
+      max-width: 100vw !important;
+      margin-inline: 0 !important;
+      padding-inline: 0.5rem !important;
+    }
+
+    article.wrap.prose--wide > .prose {
       width: 100% !important;
-      max-width: none !important;
-      padding-inline: 0.55rem !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     .inspirations-page {
-      width: 100%;
-      max-width: none;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0;
+      margin: 0;
     }
 
     .page-hero {
@@ -905,16 +942,19 @@ const structuredData = {
 
     .inspiration-media {
       width: 100%;
-      min-height: 0;
-      aspect-ratio: 16 / 10;
+      min-height: 210px;
+      aspect-ratio: auto;
+      padding: 0.45rem;
     }
 
     .inspiration-media img {
       width: 100%;
-      height: 100%;
+      height: auto;
       min-height: 0;
-      aspect-ratio: 16 / 10;
-      object-fit: cover;
+      max-height: 430px;
+      aspect-ratio: auto;
+      object-fit: contain;
+      border-radius: 14px;
     }
 
     .inspiration-copy {
@@ -1002,10 +1042,26 @@ const structuredData = {
     }
   }
 
+
+  @media (max-width: 560px) {
+    .hero-actions,
+    .closing-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .closing-actions .text-link {
+      grid-column: auto;
+    }
+
+    .inspirations-page .button,
+    .inspirations-page .external-link {
+      width: 100%;
+    }
+  }
+
   @media (max-width: 405px) {
-    article.wrap,
-    .prose {
-      padding-inline: 0.4rem !important;
+    article.wrap.prose--wide {
+      padding-inline: 0.35rem !important;
     }
 
     .hero-actions,
