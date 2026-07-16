@@ -50,7 +50,7 @@ const snapshotStats = [
     unit: 'miles',
     snapshotKeys: 'runningMiles',
     start: 'September 26, 2023',
-    note: 'Logged distance across every recorded run.',
+    note: 'Logged distance, with time estimated at 10 minutes per mile.',
   },
   {
     metric: 'diary',
@@ -253,6 +253,12 @@ const jsonLd = JSON.stringify({
                 <dt>Best month</dt>
                 <dd data-card-peak>Loading…</dd>
               </div>
+              {item.metric === 'running' ? (
+                <div class="snapshot-card__fact--wide snapshot-card__fact--estimate">
+                  <dt>Estimated running time</dt>
+                  <dd data-running-time-estimate>≈ 74.2 hours at 10 min/mile</dd>
+                </div>
+              ) : null}
               <div class="snapshot-card__fact--wide">
                 <dt>Tracking since</dt>
                 <dd>{item.start}</dd>
@@ -350,7 +356,8 @@ const jsonLd = JSON.stringify({
     (() => {
       const SNAPSHOT_URL =
         'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
-      const CACHE_KEY = 'lifeloggerz-snapshot-stats-v3';
+      const CACHE_KEY = 'lifeloggerz-snapshot-stats-v4';
+      const RUNNING_MINUTES_PER_MILE = 10;
 
       function plural(value, label) {
         return `${value} ${label}${value === 1 ? '' : 's'}`;
@@ -396,6 +403,17 @@ const jsonLd = JSON.stringify({
         }).format(numeric);
       }
 
+      function updateRunningTimeEstimate(milesValue) {
+        const output = document.querySelector('[data-running-time-estimate]');
+        if (!output) return;
+
+        const miles = Number(String(milesValue ?? '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/)?.[0]);
+        if (!Number.isFinite(miles)) return;
+
+        const hours = (miles * RUNNING_MINUTES_PER_MILE) / 60;
+        output.textContent = `≈ ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(hours)} hours at ${RUNNING_MINUTES_PER_MILE} min/mile`;
+      }
+
       function applySnapshot(data) {
         let replacements = 0;
 
@@ -409,6 +427,7 @@ const jsonLd = JSON.stringify({
             const cleaned = cleanSnapshotValue(data?.[key]);
             if (cleaned !== null) {
               element.textContent = cleaned;
+              if (key === 'runningMiles') updateRunningTimeEstimate(data?.[key]);
               replacements += 1;
               break;
             }
@@ -458,6 +477,8 @@ const jsonLd = JSON.stringify({
 
       function start() {
         updateTrackingDuration();
+        const runningValue = document.querySelector('[data-dashboard-metric="running"] [data-stat-value]');
+        if (runningValue) updateRunningTimeEstimate(runningValue.textContent);
         loadSnapshot();
       }
 
