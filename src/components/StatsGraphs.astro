@@ -1,1973 +1,1310 @@
 ---
-const API_URL =
-  'https://script.google.com/macros/s/AKfycbw2o8bsw-UGn-qizyftLnuFSUwqR_5RITxhmqkBBCS9YoGkMhIsx97wkzUtv99DoNBJsw/exec';
+import Layout from '../layouts/BlogPost.astro';
+import StatsGraphs from '../components/StatsGraphs.astro';
 
-const metrics = [
+const TRACKING_START = '2023-01-01';
+
+function durationParts(startValue: string) {
+  const start = new Date(`${startValue}T00:00:00`);
+  const end = new Date();
+
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    days += new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  return {
+    years: Math.max(0, years),
+    months: Math.max(0, months),
+    days: Math.max(0, days),
+  };
+}
+
+function formatDuration(parts: { years: number; months: number; days: number }) {
+  const values = [
+    `${parts.years} year${parts.years === 1 ? '' : 's'}`,
+    `${parts.months} month${parts.months === 1 ? '' : 's'}`,
+    `${parts.days} day${parts.days === 1 ? '' : 's'}`,
+  ];
+
+  return values.join(', ');
+}
+
+const trackingDuration = formatDuration(durationParts(TRACKING_START));
+
+const snapshotStats = [
   {
-    key: 'guitar',
-    label: 'Guitar',
-    longLabel: 'Guitar Hours',
-    icon: '🎸',
-    unit: 'hours',
-  },
-  {
-    key: 'audiobooks',
-    label: 'Audiobooks',
-    longLabel: 'Audiobook Hours',
-    icon: '📚',
-    unit: 'hours',
-  },
-  {
-    key: 'running',
-    label: 'Running',
-    longLabel: 'Running Miles',
+    metric: 'running',
     icon: '🏃‍♂️',
+    label: 'Running',
+    fallback: '445',
     unit: 'miles',
+    snapshotKeys: 'runningMiles',
+    start: 'September 26, 2023',
+    note: 'Logged distance, with time estimated at 10 minutes per mile.',
   },
   {
-    key: 'diary',
-    label: 'Diary',
-    longLabel: 'Average Diary Words',
+    metric: 'diary',
     icon: '📓',
-    unit: 'words/day',
+    label: 'Diary',
+    fallback: '100,000',
+    unit: 'words',
+    snapshotKeys: 'diaryWords',
+    start: 'March 16, 2022',
+    note: 'A searchable written record of ordinary days and major moments.',
+  },
+  {
+    metric: 'guitar',
+    icon: '🎸',
+    label: 'Guitar',
+    fallback: '419',
+    unit: 'hours',
+    snapshotKeys: 'guitarHours',
+    start: 'September 27, 2023',
+    note: 'Practice time, from ten-minute minimums to focused sessions.',
+  },
+  {
+    metric: 'audiobooks',
+    icon: '📚',
+    label: 'Audiobooks',
+    fallback: '400',
+    unit: 'hours',
+    snapshotKeys: 'audiobookHours,booksCount',
+    start: 'February 10, 2023',
+    note: 'Commutes, chores, walks, and exercise converted into reading time.',
   },
 ];
+
+const trackingTimeline = [
+  {
+    date: 'March 16, 2022',
+    title: 'Daily diary begins',
+    text: 'Short daily notes became the first durable layer of the LifeLoggerz archive.',
+    metric: 'Diary',
+  },
+  {
+    date: 'January 1, 2023',
+    title: 'Core tracking system begins',
+    text: 'Sleep, food, routines, people, places, work, and other variables moved into a structured daily sheet.',
+    metric: 'Core archive',
+  },
+  {
+    date: 'February 10, 2023',
+    title: 'Audiobook time begins',
+    text: 'Passive travel and chore time became a measurable reading habit.',
+    metric: 'Audiobooks',
+  },
+  {
+    date: 'September 26–27, 2023',
+    title: 'Running and guitar begin',
+    text: 'Two habits started one day apart and developed through very different seasons of consistency.',
+    metric: 'Running + guitar',
+  },
+  {
+    date: 'June 2026',
+    title: 'Dance enters the archive',
+    text: 'Cumbia, bachata, and salsa added another competing—and complementary—use of hobby time.',
+    metric: 'Dance',
+  },
+];
+
+const systemSteps = [
+  {
+    number: '01',
+    icon: '✍️',
+    title: 'Daily entry',
+    text: 'A compact Google Sheets routine captures the details worth preserving.',
+  },
+  {
+    number: '02',
+    icon: '⚙️',
+    title: 'Automation',
+    text: 'Formulas and Apps Script clean, classify, total, and archive the entries.',
+  },
+  {
+    number: '03',
+    icon: '🗂️',
+    title: 'Long-term archive',
+    text: 'Monthly and yearly records make separate days comparable across time.',
+  },
+  {
+    number: '04',
+    icon: '📈',
+    title: 'Public dashboard',
+    text: 'A small API sends selected, public-safe summaries to this Astro page.',
+  },
+];
+
+const jsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'LifeLoggerz Public Statistics',
+  description: 'Public-safe personal tracking totals, projections, monthly trends, correlations, records, and system documentation.',
+  creator: {
+    '@type': 'Person',
+    name: 'José',
+  },
+  temporalCoverage: '2022/..',
+  url: 'https://lifeloggerz.com/stats/',
+}).replace(/</g, '\\u003c');
 ---
 
-<section id="graphs" class="dashboard-section graph-explorer" aria-labelledby="graphs-heading">
-  <div class="section-heading">
-    <p class="eyebrow">Interactive archive explorer</p>
-    <h2 id="graphs-heading">See how the habits changed</h2>
-    <p>
-      Choose a metric, switch between monthly and cumulative views, and compare one year against another. Every summary below is calculated from the same monthly archive that draws the graph.
-    </p>
-  </div>
+<Layout
+  title="Stats & Systems"
+  description="Live public-safe totals, projections, records, correlations, trends, and the system that turns daily LifeLoggerz entries into a long-term archive."
+  wide={true}
+  hideTitle={true}
+  showViews={false}
+>
+  <script type="application/ld+json" is:inline set:html={jsonLd}></script>
 
-  <div class="explorer-shell">
-    <div class="explorer-toolbar">
-      <div class="control-group control-group--metrics">
-        <span class="control-label">Metric</span>
-        <div class="metric-tabs" id="metric-tabs" role="tablist" aria-label="Select a metric">
-          {metrics.map((metric, index) => (
-            <button
-              type="button"
-              class={`metric-tab ${index === 0 ? 'metric-tab--active' : ''}`}
-              data-metric={metric.key}
-              role="tab"
-              aria-selected={index === 0 ? 'true' : 'false'}
-              tabindex={index === 0 ? '0' : '-1'}
-            >
-              <span aria-hidden="true">{metric.icon}</span>
-              <span>{metric.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+  <div class="stats-dashboard" data-tracking-start={TRACKING_START}>
+    <section class="stats-hero" aria-labelledby="stats-title">
+      <div class="stats-hero__glow stats-hero__glow--one" aria-hidden="true"></div>
+      <div class="stats-hero__glow stats-hero__glow--two" aria-hidden="true"></div>
 
-      <div class="explorer-toolbar__row">
-        <div class="control-group">
-          <span class="control-label">View</span>
-          <div class="view-toggle" id="view-toggle" aria-label="Select chart view">
-            <button type="button" class="view-button view-button--active" data-view="monthly" aria-pressed="true">
-              Monthly
-            </button>
-            <button type="button" class="view-button" data-view="cumulative" aria-pressed="false">
-              Cumulative
-            </button>
-          </div>
-        </div>
-
-        <label class="select-control">
-          <span class="control-label">Period</span>
-          <select id="graph-year" aria-label="Select year"></select>
-        </label>
-
-        <label class="select-control">
-          <span class="control-label">Compare</span>
-          <select id="graph-compare" aria-label="Compare with another year">
-            <option value="">No comparison</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="graph-summary" aria-label="Selected graph summary">
-      <article class="summary-stat">
-        <span id="summary-primary-label">Selected total</span>
-        <strong id="summary-primary">—</strong>
-      </article>
-      <article class="summary-stat">
-        <span id="summary-average-label">Monthly average</span>
-        <strong id="summary-average">—</strong>
-      </article>
-      <article class="summary-stat">
-        <span>Peak month</span>
-        <strong id="summary-peak">—</strong>
-      </article>
-      <article class="summary-stat">
-        <span id="summary-change-label">Change from prior year</span>
-        <strong id="summary-change">—</strong>
-      </article>
-    </div>
-
-    <div class="chart-panel">
-      <div class="chart-panel__heading">
-        <div>
-          <p class="chart-panel__eyebrow" id="chart-period-label">2026 monthly view</p>
-          <h3>
-            <span id="chart-title-icon" aria-hidden="true">🎸</span>
-            <span id="chart-title">Guitar hours</span>
-          </h3>
-        </div>
-        <p class="chart-panel__unit" id="chart-unit">Hours per month</p>
-      </div>
-
-      <div id="main-chart" class="chart-host" aria-label="Interactive LifeLoggerz chart">
-        <div class="chart-skeleton" aria-hidden="true"></div>
-      </div>
-
-      <div id="main-legend" class="chart-legend" aria-label="Chart legend"></div>
-      <p id="chart-text-summary" class="sr-only" aria-live="polite"></p>
-    </div>
-
-    <details class="pattern-note" id="pattern-note">
-      <summary>
-        <span>What this pattern means</span>
-        <span class="pattern-note__hint">Open context</span>
-      </summary>
-      <div class="pattern-note__content">
-        <h3 id="story-title">Guitar is the slow compound interest of practice.</h3>
-        <p id="story-body">
-          This explanation changes with the selected metric so the numbers remain connected to the life behind them.
+      <div class="stats-hero__content">
+        <p class="eyebrow">Live data from the LifeLoggerz archive</p>
+        <h1 id="stats-title">A life, measured over time</h1>
+        <p class="stats-hero__lede">
+          Public totals, records, and patterns drawn from a system I have maintained since
+          <strong>January 1, 2023</strong>—with diary records reaching back even further.
         </p>
-        <div class="pattern-note__facts" id="story-facts"></div>
-      </div>
-    </details>
-  </div>
-</section>
 
-<section id="hobby-time" class="dashboard-section hobby-section" aria-labelledby="hobby-heading">
-  <div class="section-heading section-heading--split">
-    <div>
-      <p class="eyebrow">One timeline, several priorities</p>
-      <h2 id="hobby-heading">Where my hobby time went</h2>
-    </div>
-    <p>
-      This chart compares activities on one time scale. Running miles are converted at an estimated 10 minutes per mile, while dance appears automatically once the public archive supplies monthly dance hours.
-    </p>
-  </div>
-
-  <div class="hobby-shell">
-    <div class="hobby-controls">
-      <label class="select-control">
-        <span class="control-label">Year</span>
-        <select id="hobby-year" aria-label="Select year for hobby chart"></select>
-      </label>
-      <div>
-        <span class="control-label">Activities shown</span>
-        <div id="hobby-toggles" class="hobby-toggles"></div>
-      </div>
-    </div>
-
-    <div class="hobby-summary">
-      <span>Total hobby time</span>
-      <strong id="hobby-total">—</strong>
-      <p id="hobby-availability">Loading available hour-based activities…</p>
-    </div>
-
-    <div id="hobby-chart" class="chart-host chart-host--hobby" aria-label="Combined hobby hours chart">
-      <div class="chart-skeleton" aria-hidden="true"></div>
-    </div>
-    <div id="hobby-legend" class="chart-legend" aria-label="Hobby chart legend"></div>
-  </div>
-</section>
-
-<section id="records" class="dashboard-section records-section" aria-labelledby="records-heading">
-  <div class="section-heading">
-    <p class="eyebrow">Beyond lifetime totals</p>
-    <h2 id="records-heading">Personal records in the monthly archive</h2>
-    <p>
-      These records are calculated automatically from the public monthly feed. They update whenever the underlying archive changes.
-    </p>
-  </div>
-
-  <div id="records-grid" class="records-grid" aria-live="polite">
-    {metrics.map((metric) => (
-      <article class="record-card record-card--loading" data-record-metric={metric.key}>
-        <div class="record-card__heading">
-          <span aria-hidden="true">{metric.icon}</span>
-          <h3>{metric.label}</h3>
+        <div class="stats-hero__actions" aria-label="Stats page shortcuts">
+          <a class="button button--primary" href="#graphs">Explore the graphs <span aria-hidden="true">↓</span></a>
+          <a class="button button--secondary" href="#correlations">Compare habits <span aria-hidden="true">↗</span></a>
+          <a class="button button--secondary" href="#system">How the system works <span aria-hidden="true">→</span></a>
         </div>
-        <dl>
-          <div>
-            <dt>Best month</dt>
-            <dd data-record-month>Loading…</dd>
-          </div>
-          <div>
-            <dt>Best year</dt>
-            <dd data-record-year>Loading…</dd>
-          </div>
-        </dl>
-      </article>
-    ))}
+      </div>
+
+      <div class="stats-hero__facts" aria-label="LifeLoggerz tracking summary">
+        <article class="hero-fact hero-fact--wide">
+          <span class="hero-fact__label">Tracking for</span>
+          <strong id="tracking-duration">{trackingDuration}</strong>
+        </article>
+        <article class="hero-fact">
+          <span class="hero-fact__label">Variables</span>
+          <strong>150+</strong>
+        </article>
+        <article class="hero-fact">
+          <span class="hero-fact__label">Daily logging</span>
+          <strong>≈ 5 min</strong>
+        </article>
+        <article class="hero-fact hero-fact--status">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>
+            <span class="hero-fact__label">Archive status</span>
+            <strong id="archive-status">Connecting…</strong>
+          </span>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard-section snapshot-section" aria-labelledby="snapshot-heading">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="eyebrow">The current snapshot</p>
+          <h2 id="snapshot-heading">Four windows into the archive</h2>
+        </div>
+        <p>
+          The large figures come from the public summary feed. The smaller comparisons are calculated from the monthly archive below.
+        </p>
+      </div>
+
+      <div class="snapshot-grid">
+        {snapshotStats.map((item) => (
+          <article
+            class={`snapshot-card snapshot-card--${item.metric}`}
+            data-dashboard-metric={item.metric}
+          >
+            <div class="snapshot-card__top">
+              <span class="snapshot-card__icon" aria-hidden="true">{item.icon}</span>
+              <div>
+                <p class="snapshot-card__kicker">Lifetime logged</p>
+                <h3>{item.label}</h3>
+              </div>
+            </div>
+
+            <p class="snapshot-card__value">
+              <strong
+                data-stat-value
+                data-snapshot-keys={item.snapshotKeys}
+              >{item.fallback}</strong>
+              <span data-stat-unit>{item.unit}</span>
+            </p>
+
+            <p class="snapshot-card__note">{item.note}</p>
+
+            <dl class="snapshot-card__facts">
+              <div>
+                <dt>This year</dt>
+                <dd data-card-year>Loading…</dd>
+              </div>
+              <div>
+                <dt>Best month</dt>
+                <dd data-card-peak>Loading…</dd>
+              </div>
+              {item.metric === 'running' ? (
+                <div class="snapshot-card__fact--wide snapshot-card__fact--estimate">
+                  <dt>Estimated running time</dt>
+                  <dd data-running-time-estimate>≈ 74.2 hours at 10 min/mile</dd>
+                </div>
+              ) : null}
+              <div class="snapshot-card__fact--wide">
+                <dt>Tracking since</dt>
+                <dd>{item.start}</dd>
+              </div>
+            </dl>
+
+            <button class="snapshot-card__link" type="button" data-open-metric={item.metric}>
+              Explore {item.label.toLowerCase()} <span aria-hidden="true">→</span>
+            </button>
+          </article>
+        ))}
+      </div>
+
+      <p class="data-note" id="snapshot-note" role="status">
+        Saved totals remain visible if the live summary feed is unavailable.
+      </p>
+    </section>
+
+    <StatsGraphs />
+
+    <section id="tracking-history" class="dashboard-section history-section" aria-labelledby="history-heading">
+      <div class="section-heading">
+        <p class="eyebrow">Context before comparison</p>
+        <h2 id="history-heading">When each record began</h2>
+        <p>
+          A lifetime total means little without knowing how long it had to accumulate. These start dates explain why the timelines do not all cover the same years.
+        </p>
+      </div>
+
+      <div class="history-timeline">
+        {trackingTimeline.map((item, index) => (
+          <article class="history-item">
+            <div class="history-item__rail" aria-hidden="true">
+              <span>{String(index + 1).padStart(2, '0')}</span>
+            </div>
+            <div class="history-item__content">
+              <div class="history-item__meta">
+                <time>{item.date}</time>
+                <span>{item.metric}</span>
+              </div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="system" class="dashboard-section system-section" aria-labelledby="system-heading">
+      <div class="section-heading">
+        <p class="eyebrow">Stats and systems</p>
+        <h2 id="system-heading">How the numbers reach this page</h2>
+        <p>
+          The public dashboard is the final layer. The real system is the quiet chain that turns a five-minute daily habit into years of searchable information.
+        </p>
+      </div>
+
+      <div class="system-flow">
+        {systemSteps.map((step, index) => (
+          <article class="system-step">
+            <div class="system-step__heading">
+              <span class="system-step__number">{step.number}</span>
+              <span class="system-step__icon" aria-hidden="true">{step.icon}</span>
+            </div>
+            <h3>{step.title}</h3>
+            <p>{step.text}</p>
+            {index < systemSteps.length - 1 ? <span class="system-step__arrow" aria-hidden="true">→</span> : null}
+          </article>
+        ))}
+      </div>
+
+      <div class="system-links">
+        <a href="/blog/rawdatapost2025/">Read the raw-data story <span aria-hidden="true">→</span></a>
+        <a href="/templates/">Use the templates <span aria-hidden="true">→</span></a>
+        <a href="/faq/">Read the FAQ <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section class="stats-cta" aria-labelledby="stats-cta-heading">
+      <div>
+        <p class="eyebrow">The numbers are not the destination</p>
+        <h2 id="stats-cta-heading">Build a system that returns attention to your life</h2>
+        <p>
+          Start with one question worth answering. Track only what helps. Automate the repetition. Let the archive grow without allowing it to become the point of living.
+        </p>
+      </div>
+      <div class="stats-cta__actions">
+        <a class="button button--primary" href="/templates/">Browse the templates</a>
+        <a class="button button--secondary" href="/about/">About LifeLoggerz</a>
+      </div>
+    </section>
   </div>
-</section>
 
-<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+  <script is:inline>
+    (() => {
+      const SNAPSHOT_URL =
+        'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
+      const CACHE_KEY = 'lifeloggerz-snapshot-stats-v4';
+      const RUNNING_MINUTES_PER_MILE = 10;
 
-<script>
-  (() => {
-    const API_URL =
-      'https://script.google.com/macros/s/AKfycbw2o8bsw-UGn-qizyftLnuFSUwqR_5RITxhmqkBBCS9YoGkMhIsx97wkzUtv99DoNBJsw/exec';
-    const CACHE_KEY = 'lifeloggerz-monthly-archive-v5';
-    const RUNNING_MINUTES_PER_MILE = 10;
-    const RUNNING_HOURS_PER_MILE = RUNNING_MINUTES_PER_MILE / 60;
-    const CURRENT_YEAR = new Date().getFullYear();
-    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const MONTH_LOOKUP = {
-      jan: 'Jan', january: 'Jan', '1': 'Jan', '01': 'Jan',
-      feb: 'Feb', february: 'Feb', '2': 'Feb', '02': 'Feb',
-      mar: 'Mar', march: 'Mar', '3': 'Mar', '03': 'Mar',
-      apr: 'Apr', april: 'Apr', '4': 'Apr', '04': 'Apr',
-      may: 'May', '5': 'May', '05': 'May',
-      jun: 'Jun', june: 'Jun', '6': 'Jun', '06': 'Jun',
-      jul: 'Jul', july: 'Jul', '7': 'Jul', '07': 'Jul',
-      aug: 'Aug', august: 'Aug', '8': 'Aug', '08': 'Aug',
-      sep: 'Sep', sept: 'Sep', september: 'Sep', '9': 'Sep', '09': 'Sep',
-      oct: 'Oct', october: 'Oct', '10': 'Oct',
-      nov: 'Nov', november: 'Nov', '11': 'Nov',
-      dec: 'Dec', december: 'Dec', '12': 'Dec',
-    };
+      function plural(value, label) {
+        return `${value} ${label}${value === 1 ? '' : 's'}`;
+      }
 
-    const COLORS = {
-      selected: '#2457ff',
-      comparison: '#d97706',
-      guitar: '#2457ff',
-      audiobooks: '#7c3aed',
-      dance: '#db2777',
-      runninghours: '#0f8a5f',
-      total: '#111827',
-    };
+      function updateTrackingDuration() {
+        const root = document.querySelector('.stats-dashboard');
+        const output = document.getElementById('tracking-duration');
+        if (!root || !output) return;
 
-    const METRICS = {
-      guitar: {
-        key: 'guitar',
-        label: 'Guitar',
-        title: 'Guitar hours',
-        icon: '🎸',
-        unit: 'hours',
-        unitLabel: 'Hours per month',
-        decimals: 0,
-        primaryLabel: 'Selected total',
-        averageLabel: 'Monthly average',
-        storyTitle: 'Guitar is the slow compound interest of practice.',
-        storyBody:
-          'I returned to guitar on September 27, 2023 after giving it up several times. A ten-minute daily minimum removed the pressure to make every session ambitious. The graph shows the result: long stretches of maintenance interrupted by periods when a song, technique, or performance goal caught fire. Lower months usually mean that research, illness, travel, dance, or another priority temporarily won the competition for time.',
-      },
-      audiobooks: {
-        key: 'audiobooks',
-        label: 'Audiobooks',
-        title: 'Audiobook hours',
-        icon: '📚',
-        unit: 'hours',
-        unitLabel: 'Hours per month',
-        decimals: 0,
-        primaryLabel: 'Selected total',
-        averageLabel: 'Monthly average',
-        storyTitle: 'Audiobook hours are my background university.',
-        storyBody:
-          'Audiobooks began on February 10, 2023 and transformed commuting, chores, walking, and other low-focus time into a steady reading practice. High months often reflect more movement or travel. Low months can mean that music, conversation, research, or deliberate silence took over. The important pattern is not maximizing every month; it is making otherwise disposable time available for learning.',
-      },
-      running: {
-        key: 'running',
-        label: 'Running',
-        title: 'Running miles',
-        icon: '🏃‍♂️',
-        unit: 'miles',
-        unitLabel: 'Miles per month',
-        decimals: 0,
-        primaryLabel: 'Selected total',
-        averageLabel: 'Monthly average',
-        storyTitle: 'Running miles show the condition of my physical foundation.',
-        storyBody:
-          'I started running on September 26, 2023 after years of being unable to run more than a mile. The graph records training blocks, interruptions, and restarts rather than a perfect upward line. Peaks can reflect renewed motivation or a specific distance goal. Troughs often reflect weather, illness, deadlines, or time moving toward another activity.',
-      },
-      diary: {
-        key: 'diary',
-        label: 'Diary',
-        title: 'Average diary words',
-        icon: '📓',
-        unit: 'words/day',
-        unitLabel: 'Average words per day',
-        decimals: 0,
-        primaryLabel: 'Selected average',
-        averageLabel: 'Months recorded',
-        storyTitle: 'Diary words show how much life I am processing.',
-        storyBody:
-          'Daily diary logging began on March 16, 2022 and became the first layer of LifeLoggerz. Longer entries can reflect rich experiences, difficult decisions, heavy reflection, or a strong desire to preserve detail. Shorter entries are not failures; they can signal a quieter period or simply a more concise way of recording it.',
-      },
-    };
+        const startValue = root.getAttribute('data-tracking-start') || '2023-01-01';
+        const start = new Date(`${startValue}T00:00:00`);
+        const now = new Date();
 
-    const HOBBY_METRICS = {
-      guitar: { key: 'guitar', label: 'Guitar', icon: '🎸', color: COLORS.guitar },
-      audiobooks: { key: 'audiobooks', label: 'Audiobooks', icon: '📚', color: COLORS.audiobooks },
-      dance: { key: 'dance', label: 'Dance', icon: '💃', color: COLORS.dance },
-      runninghours: { key: 'runninghours', label: 'Running time (estimated)', icon: '🏃‍♂️', color: COLORS.runninghours },
-    };
+        let years = now.getFullYear() - start.getFullYear();
+        let months = now.getMonth() - start.getMonth();
+        let days = now.getDate() - start.getDate();
 
-    const state = {
-      data: [],
-      metric: 'guitar',
-      year: null,
-      compareYear: null,
-      view: 'monthly',
-      hobbyYear: null,
-      hobbyMetrics: new Set(),
-      dataSource: 'live',
-    };
+        if (days < 0) {
+          months -= 1;
+          days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+        }
+        if (months < 0) {
+          years -= 1;
+          months += 12;
+        }
 
-    let mainResizeTimer = null;
-    let hobbyResizeTimer = null;
+        output.textContent = [plural(Math.max(0, years), 'year'), plural(Math.max(0, months), 'month'), plural(Math.max(0, days), 'day')].join(', ');
+      }
 
-    function canonicalMetric(value) {
-      const raw = String(value || '')
-        .trim()
-        .toLowerCase()
-        .replace(/[\s_-]+/g, '');
+      function cleanSnapshotValue(value) {
+        if (value === undefined || value === null) return null;
+        const text = String(value).trim();
+        if (!text) return null;
 
-      if (['guitar', 'guitarhours'].includes(raw)) return 'guitar';
-      if (['audiobook', 'audiobooks', 'audiobookhours', 'bookhours', 'books'].includes(raw)) return 'audiobooks';
-      if (['running', 'run', 'runningmiles', 'milesran'].includes(raw)) return 'running';
-      if (['diary', 'diarywords', 'averagediarywords'].includes(raw)) return 'diary';
-      if (['dance', 'dancehours', 'dancing'].includes(raw)) return 'dance';
-      if (['runninghours', 'runhours', 'runningtime'].includes(raw)) return 'runninghours';
-      return raw;
-    }
+        const numberMatch = text.replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
+        if (!numberMatch) return text;
 
-    function canonicalMonth(value) {
-      const raw = String(value || '').trim().toLowerCase();
-      return MONTH_LOOKUP[raw] || null;
-    }
+        const numeric = Number(numberMatch[0]);
+        if (!Number.isFinite(numeric)) return text;
+        return new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: Number.isInteger(numeric) ? 0 : 1,
+        }).format(numeric);
+      }
 
-    function normalizeData(rawData) {
-      const source = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
+      function updateRunningTimeEstimate(milesValue) {
+        const output = document.querySelector('[data-running-time-estimate]');
+        if (!output) return;
 
-      const normalized = source
-        .map((row) => {
-          const metric = canonicalMetric(row?.metric ?? row?.Metric ?? row?.category);
-          const year = Number(row?.year ?? row?.Year);
-          const month = canonicalMonth(row?.month ?? row?.Month);
-          const value = Number(row?.value ?? row?.Value ?? row?.total);
+        const miles = Number(String(milesValue ?? '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/)?.[0]);
+        if (!Number.isFinite(miles)) return;
 
-          return {
-            metric,
-            year,
-            month,
-            value: Number.isFinite(value) ? value : 0,
-            estimated: false,
-          };
-        })
-        .filter((row) => row.metric && row.year && row.month && row.year <= CURRENT_YEAR);
+        const hours = (miles * RUNNING_MINUTES_PER_MILE) / 60;
+        output.textContent = `≈ ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(hours)} hours at ${RUNNING_MINUTES_PER_MILE} min/mile`;
+      }
 
-      // Running is logged as distance. Derive an hour-based companion series for
-      // the hobby-time graph using the stated assumption of 10 minutes per mile.
-      // If measured running-hour rows are supplied later, they take precedence.
-      const explicitRunningHours = new Set(
-        normalized
-          .filter((row) => row.metric === 'runninghours')
-          .map((row) => `${row.year}-${row.month}`)
-      );
-      const derivedRunningHours = normalized
-        .filter((row) => row.metric === 'running')
-        .filter((row) => !explicitRunningHours.has(`${row.year}-${row.month}`))
-        .map((row) => ({
-          ...row,
-          metric: 'runninghours',
-          value: row.value * RUNNING_HOURS_PER_MILE,
-          estimated: true,
-        }));
+      function applySnapshot(data) {
+        let replacements = 0;
 
-      return [...normalized, ...derivedRunningHours]
-        .sort((a, b) => a.year - b.year || MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month));
-    }
+        document.querySelectorAll('[data-stat-value]').forEach((element) => {
+          const keys = (element.getAttribute('data-snapshot-keys') || '')
+            .split(',')
+            .map((key) => key.trim())
+            .filter(Boolean);
 
-    function formatNumber(value, decimals = 0) {
-      if (!Number.isFinite(value)) return '—';
-      return new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: decimals,
-      }).format(value);
-    }
-
-    function formatMetricValue(metricKey, value, includeUnit = true) {
-      const metric = METRICS[metricKey] || METRICS.guitar;
-      const formatted = formatNumber(value, metric.decimals);
-      return includeUnit ? `${formatted} ${metric.unit}` : formatted;
-    }
-
-    function formatRunningWithEstimate(miles) {
-      return `${formatMetricValue('running', miles)} · ≈ ${formatNumber(miles * RUNNING_HOURS_PER_MILE, 1)} hours`;
-    }
-
-    function monthsForYear(year) {
-      if (year === CURRENT_YEAR) return MONTHS.slice(0, new Date().getMonth() + 1);
-      return MONTHS;
-    }
-
-    function yearsForMetric(metricKey) {
-      return Array.from(
-        new Set(state.data.filter((row) => row.metric === metricKey).map((row) => row.year))
-      ).sort((a, b) => a - b);
-    }
-
-    function valuesForYear(metricKey, year) {
-      return monthsForYear(year).map((month) => {
-        const record = state.data.find(
-          (row) => row.metric === metricKey && row.year === year && row.month === month
-        );
-        return {
-          month,
-          value: record ? Number(record.value) || 0 : 0,
-          recorded: Boolean(record),
-          estimated: Boolean(record?.estimated),
-        };
-      });
-    }
-
-    function transformSeries(metricKey, values, view) {
-      if (view !== 'cumulative') return values.map((item) => ({ ...item }));
-
-      if (metricKey === 'diary') {
-        let total = 0;
-        let count = 0;
-        return values.map((item) => {
-          if (item.recorded && item.value > 0) {
-            total += item.value;
-            count += 1;
+          for (const key of keys) {
+            const cleaned = cleanSnapshotValue(data?.[key]);
+            if (cleaned !== null) {
+              element.textContent = cleaned;
+              if (key === 'runningMiles') updateRunningTimeEstimate(data?.[key]);
+              replacements += 1;
+              break;
+            }
           }
-          return { ...item, value: count ? total / count : 0 };
         });
+
+        return replacements;
       }
 
-      let running = 0;
-      return values.map((item) => {
-        running += item.value;
-        return { ...item, value: running };
-      });
-    }
-
-    function summarizeYear(metricKey, year, throughMonthIndex = null) {
-      let values = valuesForYear(metricKey, year);
-      if (Number.isInteger(throughMonthIndex) && throughMonthIndex >= 0) {
-        values = values.filter((item) => MONTHS.indexOf(item.month) <= throughMonthIndex);
+      function setArchiveStatus(text, state = 'neutral') {
+        const status = document.getElementById('archive-status');
+        const note = document.getElementById('snapshot-note');
+        if (status) status.textContent = text;
+        if (note) note.dataset.state = state;
       }
 
-      const recorded = values.filter((item) => item.recorded);
-      const positive = recorded.filter((item) => item.value > 0);
-      const metric = METRICS[metricKey] || METRICS.guitar;
-
-      if (!recorded.length) {
-        return {
-          primary: 0,
-          average: 0,
-          peak: null,
-          count: 0,
-          metric,
-        };
-      }
-
-      const total = recorded.reduce((sum, item) => sum + item.value, 0);
-      const averageBase = metricKey === 'diary' ? positive : recorded;
-      const average = averageBase.length
-        ? averageBase.reduce((sum, item) => sum + item.value, 0) / averageBase.length
-        : 0;
-      const peak = recorded.reduce((best, item) => (!best || item.value > best.value ? item : best), null);
-
-      return {
-        primary: metricKey === 'diary' ? average : total,
-        average,
-        peak,
-        count: recorded.length,
-        metric,
-      };
-    }
-
-    function lastRecordedMonthIndex(metricKey, year) {
-      const indices = state.data
-        .filter((row) => row.metric === metricKey && row.year === year)
-        .map((row) => MONTHS.indexOf(row.month))
-        .filter((index) => index >= 0);
-
-      if (!indices.length) return -1;
-      const latest = Math.max(...indices);
-      return year === CURRENT_YEAR ? Math.min(latest, new Date().getMonth()) : latest;
-    }
-
-    function percentageChange(current, previous) {
-      if (!Number.isFinite(previous) || previous === 0) return null;
-      return ((current - previous) / Math.abs(previous)) * 100;
-    }
-
-    function updateUrl() {
-      const url = new URL(window.location.href);
-      url.searchParams.set('metric', state.metric);
-      url.searchParams.set('year', String(state.year));
-      url.searchParams.set('view', state.view);
-      if (state.compareYear) url.searchParams.set('compare', String(state.compareYear));
-      else url.searchParams.delete('compare');
-      url.hash = 'graphs';
-      history.replaceState({}, '', url);
-    }
-
-    function initialStateFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const metric = canonicalMetric(params.get('metric'));
-      const view = params.get('view');
-      const year = Number(params.get('year'));
-      const compare = Number(params.get('compare'));
-
-      if (METRICS[metric]) state.metric = metric;
-      if (view === 'monthly' || view === 'cumulative') state.view = view;
-      if (Number.isFinite(year) && year > 2000) state.year = year;
-      if (Number.isFinite(compare) && compare > 2000) state.compareYear = compare;
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function setArchiveStatus(text) {
-      const status = document.getElementById('archive-status');
-      if (status) status.textContent = text;
-    }
-
-    async function loadArchive() {
-      let cached = null;
-      try {
-        cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-      } catch (_error) {
-        cached = null;
-      }
-
-      try {
-        const response = await fetch(API_URL, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Archive request failed: ${response.status}`);
-        const raw = await response.json();
-        const normalized = normalizeData(raw);
-        if (!normalized.length) throw new Error('Archive returned no monthly records.');
+      async function loadSnapshot() {
+        let cached = null;
+        try {
+          cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        } catch (_error) {
+          cached = null;
+        }
 
         try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: raw, savedAt: Date.now() }));
-        } catch (_storageError) {
-          // Live data is still usable when browser storage is unavailable.
-        }
-        state.dataSource = 'live';
-        setArchiveStatus('Monthly archive loaded');
-        return normalized;
-      } catch (_error) {
-        if (cached?.data) {
-          const normalized = normalizeData(cached.data);
-          if (normalized.length) {
-            state.dataSource = 'cached';
-            setArchiveStatus('Using saved archive');
-            return normalized;
+          const response = await fetch(SNAPSHOT_URL, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Snapshot request failed: ${response.status}`);
+
+          const data = await response.json();
+          const replacements = applySnapshot(data);
+
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ data, savedAt: Date.now() }));
+          } catch (_storageError) {
+            // Live data is still usable when browser storage is unavailable.
+          }
+          setArchiveStatus(replacements ? 'Live totals loaded' : 'Archive connected', 'live');
+        } catch (_error) {
+          if (cached?.data) {
+            applySnapshot(cached.data);
+            setArchiveStatus('Using saved totals', 'cached');
+          } else {
+            setArchiveStatus('Saved totals shown', 'fallback');
           }
         }
-        state.dataSource = 'fallback';
-        setArchiveStatus('Saved totals shown');
-        return [];
-      }
-    }
-
-    function configureMetricTabs() {
-      const tabs = Array.from(document.querySelectorAll('[data-metric]'));
-
-      tabs.forEach((tab) => {
-        const active = tab.getAttribute('data-metric') === state.metric;
-        tab.classList.toggle('metric-tab--active', active);
-        tab.setAttribute('aria-selected', String(active));
-        tab.setAttribute('tabindex', active ? '0' : '-1');
-
-        tab.addEventListener('click', () => {
-          const metric = tab.getAttribute('data-metric');
-          if (!metric || !METRICS[metric]) return;
-          setMetric(metric, true);
-        });
-
-        tab.addEventListener('keydown', (event) => {
-          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-          event.preventDefault();
-          const currentIndex = tabs.indexOf(tab);
-          let nextIndex = currentIndex;
-          if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-          if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
-          if (event.key === 'Home') nextIndex = 0;
-          if (event.key === 'End') nextIndex = tabs.length - 1;
-          tabs[nextIndex].focus();
-          tabs[nextIndex].click();
-        });
-      });
-    }
-
-    function configureViewButtons() {
-      document.querySelectorAll('[data-view]').forEach((button) => {
-        const active = button.getAttribute('data-view') === state.view;
-        button.classList.toggle('view-button--active', active);
-        button.setAttribute('aria-pressed', String(active));
-
-        button.addEventListener('click', () => {
-          const view = button.getAttribute('data-view');
-          if (view !== 'monthly' && view !== 'cumulative') return;
-          state.view = view;
-          document.querySelectorAll('[data-view]').forEach((candidate) => {
-            const selected = candidate === button;
-            candidate.classList.toggle('view-button--active', selected);
-            candidate.setAttribute('aria-pressed', String(selected));
-          });
-          renderMainExplorer();
-          updateUrl();
-        });
-      });
-    }
-
-    function setMetric(metricKey, updateAddress) {
-      state.metric = metricKey;
-      const years = yearsForMetric(metricKey);
-
-      if (!years.includes(state.year)) {
-        state.year = years.includes(CURRENT_YEAR) ? CURRENT_YEAR : years[years.length - 1] || CURRENT_YEAR;
-      }
-      if (!years.includes(state.compareYear) || state.compareYear === state.year) {
-        state.compareYear = null;
       }
 
-      document.querySelectorAll('[data-metric]').forEach((tab) => {
-        const active = tab.getAttribute('data-metric') === state.metric;
-        tab.classList.toggle('metric-tab--active', active);
-        tab.setAttribute('aria-selected', String(active));
-        tab.setAttribute('tabindex', active ? '0' : '-1');
-      });
-
-      updateYearControls();
-      renderMainExplorer();
-      if (updateAddress) updateUrl();
-    }
-
-    function updateYearControls() {
-      const yearSelect = document.getElementById('graph-year');
-      const compareSelect = document.getElementById('graph-compare');
-      if (!yearSelect || !compareSelect) return;
-
-      const years = yearsForMetric(state.metric);
-      if (!years.length) {
-        yearSelect.innerHTML = '<option>No years available</option>';
-        compareSelect.innerHTML = '<option value="">No comparison</option>';
-        yearSelect.disabled = true;
-        compareSelect.disabled = true;
-        return;
+      function start() {
+        updateTrackingDuration();
+        const runningValue = document.querySelector('[data-dashboard-metric="running"] [data-stat-value]');
+        if (runningValue) updateRunningTimeEstimate(runningValue.textContent);
+        loadSnapshot();
       }
 
-      yearSelect.disabled = false;
-      yearSelect.innerHTML = years
-        .slice()
-        .reverse()
-        .map((year) => `<option value="${year}">${year}</option>`)
-        .join('');
-      yearSelect.value = String(state.year);
-
-      const comparisonYears = years.filter((year) => year !== state.year).slice().reverse();
-      compareSelect.disabled = !comparisonYears.length;
-      compareSelect.innerHTML =
-        '<option value="">No comparison</option>' +
-        comparisonYears.map((year) => `<option value="${year}">${year}</option>`).join('');
-      compareSelect.value = state.compareYear ? String(state.compareYear) : '';
-    }
-
-    function configureYearControls() {
-      const yearSelect = document.getElementById('graph-year');
-      const compareSelect = document.getElementById('graph-compare');
-
-      yearSelect?.addEventListener('change', () => {
-        state.year = Number(yearSelect.value);
-        if (state.compareYear === state.year) state.compareYear = null;
-        updateYearControls();
-        renderMainExplorer();
-        updateUrl();
-      });
-
-      compareSelect?.addEventListener('change', () => {
-        state.compareYear = compareSelect.value ? Number(compareSelect.value) : null;
-        renderMainExplorer();
-        updateUrl();
-      });
-    }
-
-    function updateSummaryCards() {
-      const metric = METRICS[state.metric] || METRICS.guitar;
-      const priorYear = state.year - 1;
-      const throughMonthIndex = lastRecordedMonthIndex(state.metric, state.year);
-      const summary = summarizeYear(state.metric, state.year, throughMonthIndex);
-      const prior = summarizeYear(state.metric, priorYear, throughMonthIndex);
-      const change = summary.count && prior.count ? percentageChange(summary.primary, prior.primary) : null;
-
-      const primaryLabel = document.getElementById('summary-primary-label');
-      const averageLabel = document.getElementById('summary-average-label');
-      const changeLabel = document.getElementById('summary-change-label');
-      const primary = document.getElementById('summary-primary');
-      const average = document.getElementById('summary-average');
-      const peak = document.getElementById('summary-peak');
-      const changeElement = document.getElementById('summary-change');
-
-      if (primaryLabel) primaryLabel.textContent = metric.primaryLabel;
-      if (averageLabel) averageLabel.textContent = metric.averageLabel;
-      if (changeLabel) {
-        const throughLabel = throughMonthIndex >= 0 && throughMonthIndex < 11
-          ? ` through ${MONTHS[throughMonthIndex]}`
-          : '';
-        changeLabel.textContent = `Change vs ${priorYear}${throughLabel}`;
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start, { once: true });
+      } else {
+        start();
       }
-      if (primary) primary.textContent = formatMetricValue(state.metric, summary.primary);
-      if (average) {
-        average.textContent = state.metric === 'diary'
-          ? `${summary.count} month${summary.count === 1 ? '' : 's'}`
-          : formatMetricValue(state.metric, summary.average);
-      }
-      if (peak) {
-        peak.textContent = summary.peak
-          ? `${summary.peak.month} · ${formatMetricValue(state.metric, summary.peak.value)}`
-          : 'No data';
-      }
-      if (changeElement) {
-        if (change === null) {
-          changeElement.textContent = 'No comparable baseline';
-          changeElement.dataset.direction = 'neutral';
-        } else {
-          const sign = change > 0 ? '+' : '';
-          changeElement.textContent = `${sign}${formatNumber(change, 1)}%`;
-          changeElement.dataset.direction = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
-        }
-      }
-    }
-
-    function updateStory() {
-      const metric = METRICS[state.metric] || METRICS.guitar;
-      const summary = summarizeYear(state.metric, state.year);
-      const title = document.getElementById('story-title');
-      const body = document.getElementById('story-body');
-      const facts = document.getElementById('story-facts');
-
-      if (title) title.textContent = metric.storyTitle;
-      if (body) body.textContent = metric.storyBody;
-      if (facts) {
-        const viewText = state.view === 'cumulative'
-          ? state.metric === 'diary' ? 'Running average' : 'Cumulative total'
-          : 'Monthly values';
-        const runningEstimate = state.metric === 'running'
-          ? `<span>Estimated running time <strong>${escapeHtml(formatNumber(summary.primary * RUNNING_HOURS_PER_MILE, 1))} hours</strong></span>`
-          : '';
-        facts.innerHTML = `
-          <span>Selected period <strong>${escapeHtml(state.year)}</strong></span>
-          <span>View <strong>${escapeHtml(viewText)}</strong></span>
-          <span>Months recorded <strong>${escapeHtml(summary.count)}</strong></span>
-          ${runningEstimate}
-        `;
-      }
-    }
-
-    function renderMainExplorer() {
-      const host = document.getElementById('main-chart');
-      if (!host) return;
-
-      const metric = METRICS[state.metric] || METRICS.guitar;
-      const selectedRaw = valuesForYear(state.metric, state.year);
-      const selected = transformSeries(state.metric, selectedRaw, state.view);
-      const comparisonRaw = state.compareYear ? valuesForYear(state.metric, state.compareYear) : null;
-      const comparison = comparisonRaw ? transformSeries(state.metric, comparisonRaw, state.view) : null;
-
-      const title = document.getElementById('chart-title');
-      const titleIcon = document.getElementById('chart-title-icon');
-      const unit = document.getElementById('chart-unit');
-      const period = document.getElementById('chart-period-label');
-
-      if (title) title.textContent = metric.title;
-      if (titleIcon) titleIcon.textContent = metric.icon;
-      if (unit) {
-        unit.textContent = state.view === 'cumulative'
-          ? state.metric === 'diary' ? 'Running average words per day' : `Cumulative ${metric.unit}`
-          : metric.unitLabel;
-      }
-      if (period) {
-        period.textContent = `${state.year} ${state.view === 'cumulative' ? 'cumulative' : 'monthly'} view`;
-      }
-
-      updateSummaryCards();
-      updateStory();
-      drawLineChart(host, {
-        metricKey: state.metric,
-        selectedYear: state.year,
-        selected,
-        comparisonYear: state.compareYear,
-        comparison,
-        view: state.view,
-      });
-      updateMainLegend();
-      updateTextSummary(selectedRaw);
-    }
-
-    function updateMainLegend() {
-      const legend = document.getElementById('main-legend');
-      if (!legend) return;
-      legend.innerHTML = `
-        <span><i style="--legend-color:${COLORS.selected}"></i>${escapeHtml(state.year)}</span>
-        ${state.compareYear ? `<span><i class="legend-dashed" style="--legend-color:${COLORS.comparison}"></i>${escapeHtml(state.compareYear)}</span>` : ''}
-      `;
-    }
-
-    function updateTextSummary(values) {
-      const output = document.getElementById('chart-text-summary');
-      if (!output) return;
-      const metric = METRICS[state.metric] || METRICS.guitar;
-      const readable = values
-        .filter((item) => item.recorded)
-        .map((item) => `${item.month}: ${formatMetricValue(state.metric, item.value)}`)
-        .join('; ');
-      output.textContent = `${metric.label}, ${state.year}. ${readable || 'No monthly records available.'}`;
-    }
-
-    function drawLineChart(host, options) {
-      const d3 = window.d3;
-      if (!d3) return;
-      if (!state.data.length) {
-        host.innerHTML = '<div class="chart-message">The monthly archive is unavailable. Saved headline totals remain visible above.</div>';
-        return;
-      }
-
-      const width = Math.max(320, host.clientWidth || 900);
-      const height = width < 560 ? 320 : 410;
-      const margin = width < 560
-        ? { top: 22, right: 14, bottom: 42, left: 46 }
-        : { top: 28, right: 28, bottom: 48, left: 58 };
-
-      host.innerHTML = '';
-      const tooltip = document.createElement('div');
-      tooltip.className = 'chart-tooltip';
-      tooltip.hidden = true;
-      host.appendChild(tooltip);
-
-      const svg = d3
-        .select(host)
-        .append('svg')
-        .attr('viewBox', `0 0 ${width} ${height}`)
-        .attr('role', 'img')
-        .attr('aria-label', `${METRICS[options.metricKey].label} chart for ${options.selectedYear}`)
-        .style('width', '100%')
-        .style('height', 'auto');
-
-      const allSeries = [options.selected, options.comparison || []];
-      const maximum = d3.max(allSeries.flat(), (item) => Number(item.value) || 0) || 1;
-      const yMaximum = maximum <= 10 ? 10 : maximum * 1.12;
-
-      const x = d3
-        .scalePoint()
-        .domain(MONTHS)
-        .range([margin.left, width - margin.right])
-        .padding(0.3);
-
-      const y = d3
-        .scaleLinear()
-        .domain([0, yMaximum])
-        .nice()
-        .range([height - margin.bottom, margin.top]);
-
-      const visibleTicks = width < 520 ? MONTHS.filter((_month, index) => index % 2 === 0) : MONTHS;
-
-      svg
-        .append('g')
-        .attr('class', 'chart-grid')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''))
-        .call((group) => group.select('.domain').remove());
-
-      svg
-        .append('g')
-        .attr('class', 'chart-axis')
-        .attr('transform', `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(x).tickValues(visibleTicks).tickSizeOuter(0));
-
-      svg
-        .append('g')
-        .attr('class', 'chart-axis')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0))
-        .call((group) => group.select('.domain').remove());
-
-      const line = d3
-        .line()
-        .x((item) => x(item.month))
-        .y((item) => y(item.value))
-        .curve(d3.curveMonotoneX);
-
-      const area = d3
-        .area()
-        .x((item) => x(item.month))
-        .y0(y(0))
-        .y1((item) => y(item.value))
-        .curve(d3.curveMonotoneX);
-
-      svg
-        .append('path')
-        .datum(options.selected)
-        .attr('class', 'chart-area')
-        .attr('d', area);
-
-      svg
-        .append('path')
-        .datum(options.selected)
-        .attr('class', 'chart-line chart-line--selected')
-        .attr('d', line);
-
-      if (options.comparison?.length) {
-        svg
-          .append('path')
-          .datum(options.comparison)
-          .attr('class', 'chart-line chart-line--comparison')
-          .attr('d', line);
-      }
-
-      function addPoints(series, color, year, comparison = false) {
-        const points = svg
-          .append('g')
-          .selectAll('circle')
-          .data(series)
-          .join('circle')
-          .attr('class', comparison ? 'chart-point chart-point--comparison' : 'chart-point')
-          .attr('cx', (item) => x(item.month))
-          .attr('cy', (item) => y(item.value))
-          .attr('r', comparison ? 3.2 : 4.2)
-          .attr('fill', color)
-          .attr('tabindex', 0)
-          .attr('aria-label', (item) => `${item.month} ${year}: ${formatMetricValue(options.metricKey, item.value)}`);
-
-        function show(event, item) {
-          tooltip.hidden = false;
-          tooltip.innerHTML = `<strong>${escapeHtml(item.month)} ${escapeHtml(year)}</strong><span>${escapeHtml(formatMetricValue(options.metricKey, item.value))}</span>`;
-          const hostRect = host.getBoundingClientRect();
-          const targetRect = event.currentTarget.getBoundingClientRect();
-          tooltip.style.left = `${targetRect.left - hostRect.left + targetRect.width / 2}px`;
-          tooltip.style.top = `${targetRect.top - hostRect.top - 8}px`;
-        }
-
-        function hide() {
-          tooltip.hidden = true;
-        }
-
-        points
-          .on('mouseenter focus', show)
-          .on('mouseleave blur', hide)
-          .on('touchstart', (event, item) => {
-            event.preventDefault();
-            show(event, item);
-          });
-      }
-
-      addPoints(options.selected, COLORS.selected, options.selectedYear, false);
-      if (options.comparison?.length) addPoints(options.comparison, COLORS.comparison, options.comparisonYear, true);
-    }
-
-    function updateSnapshotCards() {
-      Object.keys(METRICS).forEach((metricKey) => {
-        const card = document.querySelector(`[data-dashboard-metric="${metricKey}"]`);
-        if (!card) return;
-
-        const currentSummary = summarizeYear(metricKey, CURRENT_YEAR);
-        const allRows = state.data.filter((row) => row.metric === metricKey);
-        const peak = allRows.reduce((best, row) => (!best || row.value > best.value ? row : best), null);
-        const yearOutput = card.querySelector('[data-card-year]');
-        const peakOutput = card.querySelector('[data-card-peak]');
-
-        if (yearOutput) {
-          if (!currentSummary.count) yearOutput.textContent = 'No 2026 data yet';
-          else if (metricKey === 'diary') yearOutput.textContent = `${formatNumber(currentSummary.primary)} words/day`;
-          else if (metricKey === 'running') yearOutput.textContent = formatRunningWithEstimate(currentSummary.primary);
-          else yearOutput.textContent = formatMetricValue(metricKey, currentSummary.primary);
-        }
-
-        if (peakOutput) {
-          peakOutput.textContent = peak
-            ? `${peak.month} ${peak.year} · ${metricKey === 'running' ? formatRunningWithEstimate(peak.value) : formatMetricValue(metricKey, peak.value)}`
-            : 'No monthly data';
-        }
-      });
-
-      document.querySelectorAll('[data-open-metric]').forEach((button) => {
-        if (button.dataset.listenerAttached === 'true') return;
-        button.dataset.listenerAttached = 'true';
-        button.addEventListener('click', () => {
-          const metric = button.getAttribute('data-open-metric');
-          if (!metric || !METRICS[metric]) return;
-          setMetric(metric, true);
-          document.getElementById('graphs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      });
-    }
-
-    function updateRecords() {
-      Object.keys(METRICS).forEach((metricKey) => {
-        const card = document.querySelector(`[data-record-metric="${metricKey}"]`);
-        if (!card) return;
-
-        const rows = state.data.filter((row) => row.metric === metricKey);
-        const bestMonth = rows.reduce((best, row) => (!best || row.value > best.value ? row : best), null);
-        const years = yearsForMetric(metricKey);
-        const bestYear = years
-          .map((year) => ({ year, ...summarizeYear(metricKey, year) }))
-          .reduce((best, item) => (!best || item.primary > best.primary ? item : best), null);
-
-        const monthOutput = card.querySelector('[data-record-month]');
-        const yearOutput = card.querySelector('[data-record-year]');
-
-        if (monthOutput) {
-          monthOutput.textContent = bestMonth
-            ? `${bestMonth.month} ${bestMonth.year} · ${metricKey === 'running' ? formatRunningWithEstimate(bestMonth.value) : formatMetricValue(metricKey, bestMonth.value)}`
-            : 'No data';
-        }
-        if (yearOutput) {
-          yearOutput.textContent = bestYear
-            ? `${bestYear.year} · ${metricKey === 'running' ? formatRunningWithEstimate(bestYear.primary) : formatMetricValue(metricKey, bestYear.primary)}`
-            : 'No data';
-        }
-        card.classList.remove('record-card--loading');
-      });
-    }
-
-    function availableHobbyMetrics() {
-      return Object.keys(HOBBY_METRICS).filter((key) => state.data.some((row) => row.metric === key));
-    }
-
-    function hobbyYears() {
-      const available = availableHobbyMetrics();
-      return Array.from(
-        new Set(state.data.filter((row) => available.includes(row.metric)).map((row) => row.year))
-      ).sort((a, b) => a - b);
-    }
-
-    function configureHobbyControls() {
-      const years = hobbyYears();
-      const yearSelect = document.getElementById('hobby-year');
-      const toggles = document.getElementById('hobby-toggles');
-      const available = availableHobbyMetrics();
-
-      state.hobbyYear = years.includes(CURRENT_YEAR) ? CURRENT_YEAR : years[years.length - 1] || CURRENT_YEAR;
-      state.hobbyMetrics = new Set(available);
-
-      if (yearSelect) {
-        yearSelect.innerHTML = years.length
-          ? years.slice().reverse().map((year) => `<option value="${year}">${year}</option>`).join('')
-          : '<option>No data</option>';
-        yearSelect.value = String(state.hobbyYear);
-        yearSelect.disabled = !years.length;
-        yearSelect.addEventListener('change', () => {
-          state.hobbyYear = Number(yearSelect.value);
-          renderHobbyChart();
-        });
-      }
-
-      if (toggles) {
-        if (!available.length) {
-          toggles.innerHTML = '<span class="hobby-empty">No hour-based monthly series are available.</span>';
-        } else {
-          toggles.innerHTML = available
-            .map((key) => {
-              const metric = HOBBY_METRICS[key];
-              return `
-                <label class="hobby-toggle">
-                  <input type="checkbox" value="${escapeHtml(key)}" checked />
-                  <span style="--toggle-color:${metric.color}">${metric.icon} ${escapeHtml(metric.label)}</span>
-                </label>
-              `;
-            })
-            .join('');
-
-          toggles.querySelectorAll('input').forEach((input) => {
-            input.addEventListener('change', () => {
-              if (input.checked) state.hobbyMetrics.add(input.value);
-              else state.hobbyMetrics.delete(input.value);
-              renderHobbyChart();
-            });
-          });
-        }
-      }
-
-      renderHobbyChart();
-    }
-
-    function renderHobbyChart() {
-      const host = document.getElementById('hobby-chart');
-      const totalOutput = document.getElementById('hobby-total');
-      const availability = document.getElementById('hobby-availability');
-      const legend = document.getElementById('hobby-legend');
-      if (!host || !totalOutput || !availability || !legend) return;
-
-      const available = availableHobbyMetrics();
-      const selectedKeys = available.filter((key) => state.hobbyMetrics.has(key));
-      const missingLabels = Object.keys(HOBBY_METRICS)
-        .filter((key) => !available.includes(key))
-        .map((key) => HOBBY_METRICS[key].label);
-
-      const runningIsEstimated = available.includes('runninghours') && state.data.some((row) => row.metric === 'runninghours' && row.estimated);
-      availability.textContent = available.length
-        ? `${available.map((key) => HOBBY_METRICS[key].label).join(', ')} are available.${runningIsEstimated ? ` Running uses ${RUNNING_MINUTES_PER_MILE} minutes per mile.` : ''}${missingLabels.length ? ` Waiting for: ${missingLabels.join(', ')}.` : ''}`
-        : 'The public archive does not yet contain hour-based hobby series.';
-
-      if (!selectedKeys.length) {
-        host.innerHTML = '<div class="chart-message">Select at least one activity to draw the chart.</div>';
-        totalOutput.textContent = '0 hours';
-        legend.innerHTML = '';
-        return;
-      }
-
-      const series = selectedKeys.map((key) => ({
-        key,
-        config: HOBBY_METRICS[key],
-        values: valuesForYear(key, state.hobbyYear),
-      }));
-
-      const totalSeries = monthsForYear(state.hobbyYear).map((month) => ({
-        month,
-        value: series.reduce((sum, item) => {
-          const point = item.values.find((candidate) => candidate.month === month);
-          return sum + (point?.value || 0);
-        }, 0),
-      }));
-      const total = totalSeries.reduce((sum, item) => sum + item.value, 0);
-      totalOutput.textContent = `${formatNumber(total, 1)} hours in ${state.hobbyYear}`;
-
-      drawHobbyChart(host, series, totalSeries);
-      legend.innerHTML =
-        series
-          .map((item) => `<span><i style="--legend-color:${item.config.color}"></i>${escapeHtml(item.config.label)}</span>`)
-          .join('') +
-        `<span><i style="--legend-color:${COLORS.total}"></i>Total</span>`;
-    }
-
-    function drawHobbyChart(host, series, totalSeries) {
-      const d3 = window.d3;
-      if (!d3) return;
-      const width = Math.max(320, host.clientWidth || 900);
-      const height = width < 560 ? 315 : 390;
-      const margin = width < 560
-        ? { top: 20, right: 14, bottom: 42, left: 44 }
-        : { top: 26, right: 28, bottom: 48, left: 55 };
-
-      host.innerHTML = '';
-      const svg = d3
-        .select(host)
-        .append('svg')
-        .attr('viewBox', `0 0 ${width} ${height}`)
-        .attr('role', 'img')
-        .attr('aria-label', `Hobby-time chart for ${state.hobbyYear}; running time is estimated at ${RUNNING_MINUTES_PER_MILE} minutes per mile`)
-        .style('width', '100%')
-        .style('height', 'auto');
-
-      const maximum = d3.max([...series.flatMap((item) => item.values), ...totalSeries], (item) => item.value) || 1;
-      const x = d3.scalePoint().domain(MONTHS).range([margin.left, width - margin.right]).padding(0.3);
-      const y = d3.scaleLinear().domain([0, maximum * 1.12]).nice().range([height - margin.bottom, margin.top]);
-      const visibleTicks = width < 520 ? MONTHS.filter((_month, index) => index % 2 === 0) : MONTHS;
-
-      svg
-        .append('g')
-        .attr('class', 'chart-grid')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''))
-        .call((group) => group.select('.domain').remove());
-
-      svg
-        .append('g')
-        .attr('class', 'chart-axis')
-        .attr('transform', `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(x).tickValues(visibleTicks).tickSizeOuter(0));
-
-      svg
-        .append('g')
-        .attr('class', 'chart-axis')
-        .attr('transform', `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y).ticks(5).tickSizeOuter(0))
-        .call((group) => group.select('.domain').remove());
-
-      const line = d3
-        .line()
-        .x((item) => x(item.month))
-        .y((item) => y(item.value))
-        .curve(d3.curveMonotoneX);
-
-      series.forEach((item) => {
-        svg
-          .append('path')
-          .datum(item.values)
-          .attr('fill', 'none')
-          .attr('stroke', item.config.color)
-          .attr('stroke-width', 2.4)
-          .attr('opacity', 0.9)
-          .attr('d', line);
-      });
-
-      svg
-        .append('path')
-        .datum(totalSeries)
-        .attr('fill', 'none')
-        .attr('stroke', COLORS.total)
-        .attr('stroke-width', 3.5)
-        .attr('d', line);
-    }
-
-    function configureResizeObservers() {
-      const main = document.getElementById('main-chart');
-      const hobby = document.getElementById('hobby-chart');
-      if (!('ResizeObserver' in window)) return;
-
-      if (main) {
-        new ResizeObserver(() => {
-          clearTimeout(mainResizeTimer);
-          mainResizeTimer = setTimeout(renderMainExplorer, 120);
-        }).observe(main);
-      }
-
-      if (hobby) {
-        new ResizeObserver(() => {
-          clearTimeout(hobbyResizeTimer);
-          hobbyResizeTimer = setTimeout(renderHobbyChart, 120);
-        }).observe(hobby);
-      }
-    }
-
-    function waitForD3(callback) {
-      if (window.d3) callback();
-      else setTimeout(() => waitForD3(callback), 50);
-    }
-
-    async function initialize() {
-      initialStateFromUrl();
-      state.data = await loadArchive();
-
-      const years = yearsForMetric(state.metric);
-      if (!years.includes(state.year)) {
-        state.year = years.includes(CURRENT_YEAR) ? CURRENT_YEAR : years[years.length - 1] || CURRENT_YEAR;
-      }
-      if (!years.includes(state.compareYear) || state.compareYear === state.year) state.compareYear = null;
-
-      waitForD3(() => {
-        configureMetricTabs();
-        configureViewButtons();
-        configureYearControls();
-        updateYearControls();
-        updateSnapshotCards();
-        updateRecords();
-        renderMainExplorer();
-        configureHobbyControls();
-        configureResizeObservers();
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initialize, { once: true });
-    } else {
-      initialize();
-    }
-  })();
-</script>
+    })();
+  </script>
+</Layout>
 
 <style is:global>
-  .graph-explorer,
-  .graph-explorer *,
-  .hobby-section,
-  .hobby-section *,
-  .records-section,
-  .records-section * {
+  :root {
+    --stats-ink: #111827;
+    --stats-muted: #566174;
+    --stats-line: rgba(15, 23, 42, 0.12);
+    --stats-blue: #2457ff;
+    --stats-green: #0f8a5f;
+    --stats-gold: #b7791f;
+    --stats-panel: rgba(255, 255, 255, 0.86);
+    --stats-shadow: 0 20px 55px rgba(15, 23, 42, 0.09);
+  }
+
+  article.wrap.prose--wide {
+    width: 100% !important;
+    max-width: none !important;
+    padding-inline: 0 !important;
+  }
+
+  article.wrap.prose--wide > .prose {
+    width: 100% !important;
+    max-width: none !important;
+    padding-inline: 0 !important;
+  }
+
+  .stats-dashboard,
+  .stats-dashboard * {
     box-sizing: border-box;
   }
 
-  .explorer-shell,
-  .hobby-shell {
-    overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.12);
-    border-radius: 28px;
-    background: rgba(255, 255, 255, 0.88);
-    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.09);
+  .stats-dashboard {
+    width: min(calc(100% - 2rem), 1240px);
+    margin: 1.1rem auto 4rem;
+    color: var(--stats-ink);
   }
 
-  .explorer-toolbar {
-    padding: 1.25rem;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
-    background: linear-gradient(120deg, rgba(235, 242, 255, 0.88), rgba(235, 250, 243, 0.8));
+  .stats-dashboard a {
+    color: inherit;
   }
 
-  .control-group,
-  .select-control {
-    min-width: 0;
+  .stats-dashboard p {
+    color: var(--stats-muted);
   }
 
-  .control-label {
-    display: block;
-    margin-bottom: 0.45rem;
-    color: #667085;
-    font-size: 0.69rem;
+  .eyebrow {
+    margin: 0 0 0.65rem;
+    color: #0f5132 !important;
+    font-size: 0.76rem;
     font-weight: 900;
-    letter-spacing: 0.075em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
-  .metric-tabs {
+  .stats-hero {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-
-  .metric-tab,
-  .view-button {
-    min-height: 46px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    overflow: hidden;
+    padding: clamp(2rem, 5vw, 4.6rem);
     border: 1px solid rgba(15, 23, 42, 0.12);
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.78);
-    color: #475467;
-    font: inherit;
-    font-size: 0.86rem;
-    font-weight: 850;
-    cursor: pointer;
-    transition: transform 150ms ease, background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+    border-radius: 32px;
+    background:
+      linear-gradient(130deg, rgba(222, 250, 237, 0.83), rgba(255, 247, 221, 0.72) 48%, rgba(225, 237, 255, 0.82));
+    box-shadow: var(--stats-shadow);
+    isolation: isolate;
   }
 
-  .metric-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    padding: 0.65rem;
+  .stats-hero__glow {
+    position: absolute;
+    z-index: -1;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    filter: blur(12px);
+    opacity: 0.52;
   }
 
-  .metric-tab:hover,
-  .view-button:hover {
-    transform: translateY(-1px);
+  .stats-hero__glow--one {
+    top: -150px;
+    right: 23%;
+    background: rgba(36, 87, 255, 0.16);
   }
 
-  .metric-tab--active,
-  .view-button--active {
-    border-color: #111827;
-    background: #111827;
-    color: #fff;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+  .stats-hero__glow--two {
+    bottom: -190px;
+    left: 8%;
+    background: rgba(15, 138, 95, 0.18);
   }
 
-  .explorer-toolbar__row {
-    display: grid;
-    grid-template-columns: minmax(230px, 1fr) minmax(150px, 0.42fr) minmax(175px, 0.48fr);
-    gap: 0.75rem;
-    align-items: end;
-    margin-top: 0.9rem;
+  .stats-hero__content {
+    align-self: center;
   }
 
-  .view-toggle {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
+  .stats-hero h1 {
+    max-width: 790px;
+    margin: 0;
+    color: var(--stats-ink);
+    font-size: clamp(2.8rem, 6vw, 5.7rem);
+    line-height: 0.95;
+    letter-spacing: -0.065em;
   }
 
-  .view-button {
-    padding: 0.55rem 0.75rem;
+  .stats-hero__lede {
+    max-width: 720px;
+    margin: 1.5rem 0 0;
+    color: #344054 !important;
+    font-size: clamp(1.02rem, 1.6vw, 1.24rem);
+    line-height: 1.75;
   }
 
-  .select-control select {
-    width: 100%;
-    min-height: 46px;
-    padding: 0.55rem 2.4rem 0.55rem 0.8rem;
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 15px;
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #111827;
-    font: inherit;
-    font-size: 0.88rem;
-    font-weight: 800;
+  .stats-hero__lede strong {
+    color: var(--stats-ink);
   }
 
-  .graph-summary {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
-  }
-
-  .summary-stat {
-    min-width: 0;
-    padding: 1.1rem 1.2rem;
-    border-right: 1px solid rgba(15, 23, 42, 0.1);
-  }
-
-  .summary-stat:last-child {
-    border-right: 0;
-  }
-
-  .summary-stat span {
-    display: block;
-    color: #667085;
-    font-size: 0.69rem;
-    font-weight: 850;
-    letter-spacing: 0.055em;
-    text-transform: uppercase;
-  }
-
-  .summary-stat strong {
-    display: block;
-    margin-top: 0.35rem;
-    overflow-wrap: anywhere;
-    color: #111827;
-    font-size: clamp(1rem, 2vw, 1.35rem);
-    line-height: 1.3;
-  }
-
-  #summary-change[data-direction='up'] {
-    color: #067647;
-  }
-
-  #summary-change[data-direction='down'] {
-    color: #b42318;
-  }
-
-  .chart-panel {
-    padding: 1.25rem;
-  }
-
-  .chart-panel__heading {
+  .stats-hero__actions,
+  .stats-cta__actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.7rem;
+  }
+
+  .button {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.72rem 1.05rem;
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    border-radius: 999px;
+    font-size: 0.92rem;
+    font-weight: 850;
+    line-height: 1.2;
+    text-decoration: none !important;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  }
+
+  .button:hover {
+    transform: translateY(-2px);
+  }
+
+  .button--primary {
+    border-color: var(--stats-ink);
+    background: var(--stats-ink);
+    color: white !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+  }
+
+  .button--secondary {
+    background: rgba(255, 255, 255, 0.67);
+    color: var(--stats-ink) !important;
+  }
+
+  .stats-hero__facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.8rem;
-    margin-bottom: 0.75rem;
+    align-content: center;
   }
 
-  .chart-panel__eyebrow,
-  .chart-panel__unit {
-    margin: 0 !important;
-    color: #667085 !important;
-    font-size: 0.74rem;
+  .hero-fact {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.67);
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(12px);
+  }
+
+  .hero-fact--wide,
+  .hero-fact--status {
+    grid-column: 1 / -1;
+  }
+
+  .hero-fact--status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero-fact__label {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: #667085;
+    font-size: 0.73rem;
     font-weight: 800;
-  }
-
-  .chart-panel__eyebrow {
     letter-spacing: 0.07em;
     text-transform: uppercase;
   }
 
-  .chart-panel h3 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.25rem 0 0;
-    color: #111827;
-    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-  }
-
-  .chart-host {
-    position: relative;
-    width: 100%;
-    min-height: 320px;
-    overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(249, 251, 255, 0.95), rgba(255, 255, 255, 0.98));
-  }
-
-  .chart-host svg {
+  .hero-fact strong {
     display: block;
+    overflow-wrap: anywhere;
+    color: var(--stats-ink);
+    font-size: clamp(1rem, 1.6vw, 1.26rem);
+    line-height: 1.3;
   }
 
-  .chart-host .chart-grid line {
-    stroke: rgba(15, 23, 42, 0.08);
+  .live-dot {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #16a34a;
+    box-shadow: 0 0 0 7px rgba(22, 163, 74, 0.13);
   }
 
-  .chart-host .chart-grid path,
-  .chart-host .chart-grid .domain {
-    display: none;
+  .dashboard-section {
+    margin-top: clamp(4rem, 8vw, 7rem);
+    scroll-margin-top: 6rem;
   }
 
-  .chart-host .chart-axis text {
-    fill: #667085;
-    font-size: 11px;
-    font-weight: 650;
-  }
-
-  .chart-host .chart-axis line {
-    stroke: rgba(15, 23, 42, 0.18);
-  }
-
-  .chart-host .chart-axis .domain {
-    stroke: rgba(15, 23, 42, 0.16);
-  }
-
-  .chart-host .chart-area {
-    fill: rgba(36, 87, 255, 0.1);
-  }
-
-  .chart-host .chart-line {
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .chart-host .chart-line--selected {
-    stroke: #2457ff;
-    stroke-width: 3;
-  }
-
-  .chart-host .chart-line--comparison {
-    stroke: #d97706;
-    stroke-width: 2.4;
-    stroke-dasharray: 7 6;
-  }
-
-  .chart-host .chart-point {
-    stroke: #fff;
-    stroke-width: 2;
-    cursor: pointer;
-  }
-
-  .chart-tooltip {
-    position: absolute;
-    z-index: 5;
-    display: grid;
-    gap: 0.15rem;
-    min-width: 110px;
-    padding: 0.55rem 0.7rem;
-    border-radius: 11px;
-    background: #111827;
-    color: #fff;
-    font-size: 0.76rem;
-    line-height: 1.35;
-    pointer-events: none;
-    transform: translate(-50%, -100%);
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.24);
-  }
-
-  .chart-tooltip span {
-    color: rgba(255, 255, 255, 0.78);
-  }
-
-  .chart-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.55rem 1rem;
-    align-items: center;
-    justify-content: center;
-    margin-top: 0.8rem;
-    color: #475467;
-    font-size: 0.78rem;
-    font-weight: 800;
-  }
-
-  .chart-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .chart-legend i {
-    display: inline-block;
-    width: 22px;
-    height: 3px;
-    border-radius: 99px;
-    background: var(--legend-color);
-  }
-
-  .chart-legend i.legend-dashed {
-    height: 0;
-    border-top: 3px dashed var(--legend-color);
-    background: transparent;
-  }
-
-  .pattern-note {
-    margin: 0 1.25rem 1.25rem;
-    overflow: hidden;
-    border: 1px solid rgba(15, 23, 42, 0.1);
-    border-radius: 18px;
-    background: #f8fafc;
-  }
-
-  .pattern-note summary {
-    display: flex;
-    min-height: 52px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.8rem 1rem;
-    color: #111827;
-    font-size: 0.9rem;
-    font-weight: 900;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .pattern-note summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .pattern-note__hint {
-    color: #2457ff;
-    font-size: 0.75rem;
-  }
-
-  .pattern-note[open] .pattern-note__hint {
-    font-size: 0;
-  }
-
-  .pattern-note[open] .pattern-note__hint::after {
-    content: 'Close context';
-    font-size: 0.75rem;
-  }
-
-  .pattern-note__content {
-    padding: 0 1rem 1rem;
-    border-top: 1px solid rgba(15, 23, 42, 0.08);
-  }
-
-  .pattern-note__content h3 {
+  .section-heading {
     max-width: 820px;
-    margin: 1rem 0 0;
-    color: #111827;
-    font-size: clamp(1.35rem, 3vw, 2rem);
-    line-height: 1.15;
+    margin: 0 auto 2rem;
+    text-align: center;
   }
 
-  .pattern-note__content > p {
-    max-width: 880px;
-    margin: 0.75rem 0 0 !important;
+  .section-heading--split {
+    display: grid;
+    max-width: none;
+    grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.7fr);
+    gap: 2rem;
+    align-items: end;
+    text-align: left;
+  }
+
+  .section-heading h2 {
+    margin: 0;
+    color: var(--stats-ink);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.03;
+    letter-spacing: -0.045em;
+  }
+
+  .section-heading > p:last-child,
+  .section-heading--split > p {
+    margin: 0.85rem auto 0;
+    color: var(--stats-muted);
+    font-size: 1rem;
     line-height: 1.75;
   }
 
-  .pattern-note__facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-top: 1rem;
+  .section-heading--split > p {
+    margin: 0;
   }
 
-  .pattern-note__facts span {
-    padding: 0.42rem 0.62rem;
-    border: 1px solid rgba(15, 23, 42, 0.09);
-    border-radius: 999px;
-    background: #fff;
-    color: #667085;
-    font-size: 0.75rem;
-  }
-
-  .pattern-note__facts strong {
-    color: #111827;
-  }
-
-  .hobby-shell {
-    padding: 1.25rem;
-  }
-
-  .hobby-controls {
+  .snapshot-grid {
     display: grid;
-    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
-    align-items: end;
   }
 
-  .hobby-toggles {
+  .snapshot-card {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .hobby-toggle input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+    min-width: 0;
+    min-height: 100%;
+    flex-direction: column;
+    padding: 1.25rem;
     overflow: hidden;
-    opacity: 0;
+    border: 1px solid var(--stats-line);
+    border-radius: 24px;
+    background: var(--stats-panel);
+    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.065);
   }
 
-  .hobby-toggle span {
-    display: inline-flex;
-    min-height: 42px;
+  .snapshot-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5px;
+    background: linear-gradient(90deg, #2f6bff, #0f9f70);
+  }
+
+  .snapshot-card--diary::before {
+    background: linear-gradient(90deg, #b7791f, #f0b429);
+  }
+
+  .snapshot-card--running::before {
+    background: linear-gradient(90deg, #0f8a5f, #4dc69a);
+  }
+
+  .snapshot-card--audiobooks::before {
+    background: linear-gradient(90deg, #7c3aed, #3b82f6);
+  }
+
+  .snapshot-card__top {
+    display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid rgba(15, 23, 42, 0.13);
-    border-radius: 999px;
-    background: #fff;
-    color: #475467;
-    font-size: 0.8rem;
-    font-weight: 850;
-    cursor: pointer;
+    gap: 0.8rem;
   }
 
-  .hobby-toggle input:checked + span {
-    border-color: var(--toggle-color);
-    box-shadow: inset 0 0 0 1px var(--toggle-color);
-    color: #111827;
-  }
-
-  .hobby-summary {
+  .snapshot-card__icon {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
-    gap: 0.55rem 0.9rem;
-    align-items: baseline;
-    margin: 1rem 0 0.75rem;
-    padding: 0.85rem 1rem;
+    flex: 0 0 auto;
+    width: 50px;
+    height: 50px;
+    place-items: center;
+    border: 1px solid rgba(15, 23, 42, 0.09);
     border-radius: 16px;
-    background: linear-gradient(120deg, #f1f5ff, #f0faf5);
+    background: rgba(245, 248, 252, 0.92);
+    font-size: 1.45rem;
   }
 
-  .hobby-summary > span {
-    color: #667085;
-    font-size: 0.74rem;
+  .snapshot-card__kicker {
+    margin: 0 !important;
+    color: #667085 !important;
+    font-size: 0.7rem;
     font-weight: 850;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .hobby-summary strong {
-    color: #111827;
-    font-size: 1.2rem;
+  .snapshot-card h3 {
+    margin: 0.08rem 0 0;
+    color: var(--stats-ink);
+    font-size: 1.08rem;
+    line-height: 1.2;
   }
 
-  .hobby-summary p {
-    margin: 0 !important;
-    color: #667085 !important;
-    font-size: 0.8rem;
-    text-align: right;
-  }
-
-  .chart-host--hobby {
-    min-height: 300px;
-  }
-
-  .records-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.85rem;
-  }
-
-  .record-card {
-    min-width: 0;
-    padding: 1.15rem;
-    border: 1px solid rgba(15, 23, 42, 0.11);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.84);
-    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.055);
-  }
-
-  .record-card--loading {
-    opacity: 0.7;
-  }
-
-  .record-card__heading {
+  .snapshot-card__value {
     display: flex;
-    align-items: center;
-    gap: 0.55rem;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin: 1.2rem 0 0 !important;
   }
 
-  .record-card__heading span {
+  .snapshot-card__value strong {
+    color: var(--stats-ink);
+    font-size: clamp(2.25rem, 3.5vw, 3.65rem);
+    line-height: 0.95;
+    letter-spacing: -0.055em;
+  }
+
+  .snapshot-card__value span {
+    color: #667085;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .snapshot-card__note {
+    min-height: 4.8em;
+    margin: 0.75rem 0 0 !important;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .snapshot-card__facts {
     display: grid;
-    width: 40px;
-    height: 40px;
-    place-items: center;
-    border-radius: 13px;
-    background: #f2f5f9;
-    font-size: 1.15rem;
-  }
-
-  .record-card h3 {
-    margin: 0;
-    color: #111827;
-    font-size: 1rem;
-  }
-
-  .record-card dl {
-    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.65rem;
     margin: 1rem 0 0;
   }
 
-  .record-card dl > div {
-    padding-top: 0.65rem;
-    border-top: 1px solid rgba(15, 23, 42, 0.09);
+  .snapshot-card__facts > div {
+    min-width: 0;
+    padding: 0.72rem;
+    border-radius: 14px;
+    background: rgba(244, 247, 251, 0.9);
   }
 
-  .record-card dt {
+  .snapshot-card__fact--wide {
+    grid-column: 1 / -1;
+  }
+
+  .snapshot-card__facts dt {
+    margin: 0;
     color: #667085;
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     font-weight: 850;
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
 
-  .record-card dd {
-    margin: 0.24rem 0 0;
+  .snapshot-card__facts dd {
+    margin: 0.22rem 0 0;
     overflow-wrap: anywhere;
-    color: #111827;
-    font-size: 0.85rem;
-    font-weight: 850;
-    line-height: 1.4;
+    color: var(--stats-ink);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.35;
   }
 
-  .chart-skeleton {
+  .snapshot-card__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
     width: 100%;
-    min-height: 320px;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #f1f5f9, #e7ecf3, #f1f5f9);
-    background-size: 220% 100%;
-    animation: stats-shimmer 1.25s linear infinite;
+    min-height: 44px;
+    margin-top: auto;
+    padding: 1rem 0 0;
+    border: 0;
+    background: transparent;
+    color: var(--stats-blue);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 850;
+    text-align: left;
+    cursor: pointer;
   }
 
-  .chart-message {
-    display: grid;
-    min-height: 300px;
-    place-items: center;
-    padding: 2rem;
-    color: #667085;
+  .data-note {
+    margin: 1rem 0 0 !important;
+    color: #667085 !important;
+    font-size: 0.82rem;
     text-align: center;
   }
 
-  .sr-only {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
+  .data-note[data-state='live'] {
+    color: #067647 !important;
   }
 
-  @keyframes stats-shimmer {
-    from { background-position: 200% 0; }
-    to { background-position: -20% 0; }
+  .history-timeline {
+    max-width: 980px;
+    margin: 0 auto;
+    border-top: 1px solid var(--stats-line);
   }
 
-  @media (max-width: 920px) {
-    .graph-summary,
-    .records-grid {
+  .history-item {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    min-width: 0;
+    border-bottom: 1px solid var(--stats-line);
+  }
+
+  .history-item__rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 1.8rem;
+  }
+
+  .history-item__rail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: rgba(36, 87, 255, 0.2);
+  }
+
+  .history-item__rail span {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid rgba(36, 87, 255, 0.24);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--stats-blue);
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .history-item__content {
+    min-width: 0;
+    padding: 1.7rem 0 1.7rem 1rem;
+  }
+
+  .history-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .history-item__meta time {
+    color: var(--stats-blue);
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+  }
+
+  .history-item__meta span {
+    padding: 0.2rem 0.52rem;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: #284dba;
+    font-size: 0.69rem;
+    font-weight: 850;
+  }
+
+  .history-item h3 {
+    margin: 0.45rem 0 0;
+    color: var(--stats-ink);
+    font-size: 1.25rem;
+  }
+
+  .history-item p {
+    max-width: 760px;
+    margin: 0.45rem 0 0 !important;
+    line-height: 1.65;
+  }
+
+  .system-section {
+    padding: clamp(1.4rem, 4vw, 3rem);
+    border: 1px solid var(--stats-line);
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: var(--stats-shadow);
+  }
+
+  .system-flow {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .system-step {
+    position: relative;
+    min-width: 0;
+    padding: 1.25rem;
+    border: 1px solid var(--stats-line);
+    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(247, 250, 255, 0.94), rgba(242, 251, 247, 0.88));
+  }
+
+  .system-step__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .system-step__number {
+    color: var(--stats-blue);
+    font-size: 0.75rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+  }
+
+  .system-step__icon {
+    font-size: 1.35rem;
+  }
+
+  .system-step h3 {
+    margin: 1rem 0 0;
+    color: var(--stats-ink);
+    font-size: 1.05rem;
+  }
+
+  .system-step p {
+    margin: 0.45rem 0 0 !important;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .system-step__arrow {
+    position: absolute;
+    top: 50%;
+    right: -1.1rem;
+    z-index: 2;
+    display: grid;
+    width: 1.35rem;
+    height: 1.35rem;
+    place-items: center;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--stats-blue);
+    font-size: 0.9rem;
+    font-weight: 900;
+    transform: translateY(-50%);
+  }
+
+  .system-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.7rem;
+    margin-top: 1.25rem;
+  }
+
+  .system-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 42px;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--stats-line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--stats-blue) !important;
+    font-size: 0.84rem;
+    font-weight: 850;
+    text-decoration: none !important;
+  }
+
+  .stats-cta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: center;
+    margin-top: clamp(4rem, 8vw, 7rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 30px;
+    background: linear-gradient(125deg, rgba(216, 249, 234, 0.78), rgba(255, 245, 208, 0.72) 48%, rgba(219, 233, 255, 0.8));
+    box-shadow: var(--stats-shadow);
+  }
+
+  .stats-cta h2 {
+    max-width: 760px;
+    margin: 0;
+    color: var(--stats-ink);
+    font-size: clamp(2rem, 4vw, 3.55rem);
+    line-height: 1.02;
+    letter-spacing: -0.048em;
+  }
+
+  .stats-cta p:not(.eyebrow) {
+    max-width: 760px;
+    margin: 0.9rem 0 0 !important;
+    line-height: 1.7;
+  }
+
+  .stats-cta__actions {
+    min-width: 210px;
+    flex-direction: column;
+    margin-top: 0;
+  }
+
+  @media (max-width: 1050px) {
+    .stats-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-hero__facts {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .hero-fact--wide,
+    .hero-fact--status {
+      grid-column: span 2;
+    }
+
+    .snapshot-grid,
+    .system-flow {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .summary-stat:nth-child(2) {
-      border-right: 0;
-    }
-
-    .summary-stat:nth-child(-n + 2) {
-      border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+    .system-step__arrow {
+      display: none;
     }
   }
 
   @media (max-width: 760px) {
-    .explorer-shell,
-    .hobby-shell {
-      border-radius: 22px;
+    article.wrap.prose--wide,
+    article.wrap.prose--wide > .prose {
+      width: 100% !important;
+      max-width: none !important;
+      margin-inline: auto !important;
+      padding-inline: 0 !important;
     }
 
-    .explorer-toolbar,
-    .chart-panel,
-    .hobby-shell {
-      padding: 0.85rem;
+    .stats-dashboard {
+      width: calc(100% - 1rem);
+      margin: 0.5rem auto 3rem;
     }
 
-    .metric-tabs {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .stats-hero {
+      gap: 1.5rem;
+      padding: 1.35rem;
+      border-radius: 24px;
     }
 
-    .explorer-toolbar__row {
+    .stats-hero h1 {
+      font-size: clamp(2.55rem, 13vw, 4rem);
+    }
+
+    .stats-hero__lede {
+      font-size: 0.98rem;
+    }
+
+    .stats-hero__facts {
       grid-template-columns: 1fr 1fr;
     }
 
-    .explorer-toolbar__row .control-group {
+    .hero-fact--wide,
+    .hero-fact--status {
       grid-column: 1 / -1;
     }
 
-    .chart-host {
-      min-height: 300px;
-      border-radius: 15px;
+    .section-heading--split {
+      grid-template-columns: 1fr;
+      gap: 0.7rem;
+      text-align: center;
     }
 
-    .pattern-note {
-      margin: 0 0.85rem 0.85rem;
-      border-radius: 15px;
+    .section-heading--split > p {
+      margin: 0.35rem auto 0;
     }
 
-    .hobby-controls {
+    .snapshot-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .snapshot-card {
+      padding: 0.95rem;
+      border-radius: 19px;
+    }
+
+    .snapshot-card__top {
+      align-items: flex-start;
+      gap: 0.55rem;
+    }
+
+    .snapshot-card__icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      font-size: 1.15rem;
+    }
+
+    .snapshot-card__value {
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .snapshot-card__value strong {
+      font-size: clamp(2rem, 11vw, 3rem);
+    }
+
+    .snapshot-card__note {
+      min-height: 0;
+      font-size: 0.82rem;
+    }
+
+    .snapshot-card__facts {
       grid-template-columns: 1fr;
     }
 
-    .hobby-summary {
-      grid-template-columns: 1fr;
-      gap: 0.25rem;
+    .snapshot-card__fact--wide {
+      grid-column: auto;
     }
 
-    .hobby-summary p {
-      text-align: left;
+    .history-item {
+      grid-template-columns: 52px minmax(0, 1fr);
+    }
+
+    .history-item__content {
+      padding-left: 0.45rem;
+    }
+
+    .system-section {
+      padding: 1rem;
+      border-radius: 24px;
+    }
+
+    .system-flow {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-cta {
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      padding: 1.35rem;
+      border-radius: 24px;
+    }
+
+    .stats-cta__actions {
+      min-width: 0;
+      flex-direction: row;
     }
   }
 
   @media (max-width: 470px) {
-    .metric-tab {
-      min-height: 48px;
-      font-size: 0.8rem;
-    }
-
-    .explorer-toolbar__row,
-    .graph-summary,
-    .records-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .summary-stat,
-    .summary-stat:nth-child(2) {
-      border-right: 0;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.1);
-    }
-
-    .summary-stat:last-child {
-      border-bottom: 0;
-    }
-
-    .chart-panel__heading {
-      display: block;
-    }
-
-    .chart-panel__unit {
-      margin-top: 0.35rem !important;
-    }
-
-    .pattern-note__facts {
+    .stats-hero__actions,
+    .stats-cta__actions {
       display: grid;
       grid-template-columns: 1fr;
     }
 
-    .hobby-toggles {
-      display: grid;
+    .button {
+      width: 100%;
+    }
+
+    .snapshot-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .snapshot-card__facts {
       grid-template-columns: 1fr 1fr;
     }
 
-    .hobby-toggle span {
+    .snapshot-card__fact--wide {
+      grid-column: 1 / -1;
+    }
+
+    .snapshot-card__note {
+      min-height: 0;
+    }
+
+    .system-links {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .system-links a {
       justify-content: center;
-      border-radius: 14px;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .metric-tab,
-    .view-button {
+    .button {
       transition: none;
-    }
-
-    .chart-skeleton {
-      animation: none;
     }
   }
 </style>
