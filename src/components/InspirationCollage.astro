@@ -252,8 +252,10 @@ const inspirations = [
     }
   }
 
-  @media (max-width: 520px) {
+  @media (max-width: 560px) {
     .inspiration-collage-block {
+      width: 100%;
+      max-width: none;
       margin: 1.75rem auto 3rem;
     }
 
@@ -272,55 +274,48 @@ const inspirations = [
     }
 
     .inspiration-collage {
-      gap: 0.62rem;
-    }
-
-    .inspiration-tile {
-      min-height: 142px;
-      border-radius: 16px;
-    }
-
-    .tile-number {
-      top: 0.55rem;
-      left: 0.55rem;
-      min-width: 1.85rem;
-      min-height: 1.85rem;
-      font-size: 0.64rem;
-    }
-
-    .tile-copy {
-      right: 0.7rem;
-      bottom: 0.68rem;
-      left: 0.7rem;
-    }
-
-    .tile-copy strong {
-      font-size: 0.94rem;
-    }
-
-    .tile-copy small {
-      font-size: 0.73rem;
-    }
-  }
-
-  @media (max-width: 405px) {
-    .inspiration-collage {
       grid-template-columns: 1fr;
+      gap: 0.7rem;
+      width: 100%;
     }
 
     .inspiration-tile,
     .inspiration-tile:last-child {
       grid-column: auto;
-      min-height: 176px;
-      aspect-ratio: 16 / 9;
+      width: 100%;
+      min-height: 174px;
+      aspect-ratio: 16 / 8.8;
+      border-radius: 17px;
+    }
+
+    .tile-number {
+      top: 0.62rem;
+      left: 0.62rem;
+      min-width: 2rem;
+      min-height: 2rem;
+      font-size: 0.67rem;
+    }
+
+    .tile-copy {
+      right: 0.8rem;
+      bottom: 0.76rem;
+      left: 0.8rem;
     }
 
     .tile-copy strong {
-      font-size: 1.02rem;
+      font-size: 1.03rem;
     }
 
     .tile-copy small {
-      font-size: 0.78rem;
+      font-size: 0.77rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .inspiration-tile,
+    .inspiration-tile:last-child {
+      min-height: 160px;
+      aspect-ratio: 16 / 9;
     }
   }
 
