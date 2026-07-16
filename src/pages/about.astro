@@ -2,26 +2,159 @@
 import AboutLayout from '../layouts/AboutLayout.astro';
 import AboutPhotoBubble from '../components/AboutPhotoBubble.astro';
 
-// Server-side fallback for SEO / no-JS users
-const start = new Date('2023-01-01T00:00:00');
+const trackingStart = new Date('2023-01-01T00:00:00');
 const now = new Date();
-let years = now.getFullYear() - start.getFullYear();
-const monthDiff = now.getMonth() - start.getMonth();
-const dayDiff = now.getDate() - start.getDate();
+let years = now.getFullYear() - trackingStart.getFullYear();
+const monthDiff = now.getMonth() - trackingStart.getMonth();
+const dayDiff = now.getDate() - trackingStart.getDate();
+
 if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) years--;
 if (years < 0) years = 0;
+
 const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
+
+const proofStats = [
+  {
+    value: 'Jan. 1, 2023',
+    label: 'Tracking since',
+    note: 'A continuous, evolving record',
+  },
+  {
+    value: '150+',
+    label: 'Variables tracked',
+    note: 'From sleep to study to “blunders”',
+  },
+  {
+    value: '≈ 5 min',
+    label: 'Daily logging time',
+    note: 'For the essential statistics',
+  },
+  {
+    value: '4 tools',
+    label: 'Core toolkit',
+    note: 'Sheets, Apps Script, Python, and APIs',
+  },
+];
+
+const timeline = [
+  {
+    year: '2023',
+    title: 'Started tracking',
+    text: 'I began with the basics: sleep, meals, work, study, routines, and the details I kept forgetting.',
+  },
+  {
+    year: '2024',
+    title: 'Connected the system',
+    text: 'The spreadsheets grew into dashboards, formulas, scripts, APIs, and repeatable workflows.',
+  },
+  {
+    year: '2025',
+    title: 'Stopped optimizing everything',
+    text: 'I reached the point where adding more data created less value. The system had to serve my life—not consume it.',
+  },
+  {
+    year: 'Today',
+    title: 'Sharing what survived',
+    text: 'LifeLoggerz now collects the useful templates, code, public data, experiments, and lessons from the process.',
+  },
+];
+
+const exploreCards = [
+  {
+    icon: '📊',
+    title: 'See the Data',
+    text: 'Explore the dashboards, long-term totals, records, and patterns behind the project.',
+    href: '/stats/',
+    cta: 'Open Stats',
+  },
+  {
+    icon: '🧰',
+    title: 'Use the Tools',
+    text: 'Start with practical templates instead of rebuilding every spreadsheet and workflow from scratch.',
+    href: '/templates/',
+    cta: 'Browse Templates',
+  },
+  {
+    icon: '📝',
+    title: 'Read the Lessons',
+    text: 'See what worked, what became excessive, and how the systems changed over time.',
+    href: '/blog/',
+    cta: 'Visit the Blog',
+  },
+  {
+    icon: '🗂️',
+    title: 'Explore the Archive',
+    text: 'Browse the books, albums, art, and other pieces that make the data feel like a life rather than a ledger.',
+    href: '/books/',
+    cta: 'Start with Books',
+  },
+];
+
+const lifeCards = [
+  {
+    icon: '🎸',
+    title: 'Guitar',
+    text: 'Practicing, singing, and learning music without turning every session into another optimization project.',
+  },
+  {
+    icon: '💃',
+    title: 'Dance',
+    text: 'Making room for cumbia, bachata, salsa, and the uncomfortable work of being a beginner again.',
+  },
+  {
+    icon: '🏃',
+    title: 'Running',
+    text: 'Using simple records to support consistency—not to make movement feel like homework.',
+  },
+  {
+    icon: '🎧',
+    title: 'Audiobooks',
+    text: 'Turning commutes and chores into thousands of hours of reading and listening.',
+  },
+  {
+    icon: '🌍',
+    title: 'Languages',
+    text: 'Learning slowly across years, with curiosity allowed to matter more than perfect efficiency.',
+  },
+  {
+    icon: '👨‍👩‍👦',
+    title: 'Family',
+    text: 'Protecting time for the people and memories that no dashboard can replace.',
+  },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About LifeLoggerz',
+  description:
+    'The story, philosophy, tools, and person behind LifeLoggerz, a public personal data and systems project by José.',
+  dateModified: '2026-07-15',
+  mainEntity: {
+    '@type': 'Person',
+    name: 'José',
+    description:
+      'Civil engineering PhD student, researcher, systems builder, and creator of LifeLoggerz.',
+    email: 'mailto:lifeloggerz.official@gmail.com',
+    knowsAbout: [
+      'Personal data tracking',
+      'Google Sheets',
+      'Google Apps Script',
+      'Python',
+      'Data visualization',
+      'Civil engineering research',
+    ],
+  },
+};
 ---
 
 <AboutLayout
-  title="About Me"
-  description="Civil engineering PhD, systems builder, and data-driven life logger."
-  pubDate="2025-10-14"
+  title="About LifeLoggerz"
+  description="A personal operating system built from years of daily data—and the story of the person behind it."
+  pubDate="2026-07-15"
   wide={true}
   showViews={false}
 >
-
-  <!-- 🗨️ Little José hero -->
   <AboutPhotoBubble
     slot="hero"
     src="/images/about-lifeloggerz.gif"
@@ -35,101 +168,997 @@ const yearsLabel = `${years} year${years === 1 ? '' : 's'}`;
     bubbleLeft="45%"
   />
 
-  <div class="about">
-    <p>
-      I’m <strong>José</strong>, the kid sitting with a pen and paper in the photo above. I’m an engineering grad student and the person behind <strong>LifeLoggerz</strong>.
-      This is where I turn messy routines into repeatable systems using <strong>Google Sheets dashboards, Python tools, and simple workflows</strong> that make research and daily life run smoother.
-    </p>
+  <main class="about-page">
+    <section class="intro-panel" aria-labelledby="intro-title">
+      <div class="section-kicker">The person and purpose behind the project</div>
+      <h2 id="intro-title">A searchable record of a life in progress</h2>
+      <p class="intro-lede">
+        I’m <strong>José</strong>, the kid sitting with a pen and paper in the photo above. Today, I’m a civil engineering PhD student, researcher, and the person behind <strong>LifeLoggerz</strong>.
+      </p>
+      <p>
+        I built this project by turning messy routines into repeatable systems: Google Sheets dashboards, Apps Script automations, Python tools, and small workflows that help research and daily life run more smoothly. What began as a few personal logs became part public dashboard, part personal archive, and part toolkit for anyone who wants to build a system of their own.
+      </p>
 
-    <h2>🎓 How Did This All Start?</h2>
-    <p>
-      You can explore the <strong>2023, 2024, and 2025 raw data sheets</strong> to see how these systems evolved.
-      I had <strong>no prior experience with Excel or Google Sheets</strong>, so I learned one formula at a time, then moved into formatting and automation with Apps Script and APIs.
-      Today, logging my essential stats takes about <strong>5 minutes</strong>, though my diary entries take longer.
-      No matter how tired I am, <strong>I still log it.</strong>
-    </p>
+      <div class="intro-actions" aria-label="Explore LifeLoggerz">
+        <a class="button button-primary" href="/stats/">Explore the System <span aria-hidden="true">→</span></a>
+        <a class="button button-secondary" href="/templates/">Use the Templates</a>
+      </div>
+    </section>
 
-    <h2>📊 LifeLoggerz Philosophy</h2>
-    <p>
-      Small habits compound. I started by tracking sleep and meals. Now I track <strong>over 150 variables</strong>:
-      sleep, food, health, work, study, music, books, even “blunders.”
-      Over time, this became a personal operating system. <strong>I use it to make decisions based on data.</strong>
-      LifeLoggerz shares the templates and code so you can take what works and <strong>build your own system.</strong>
-    </p>
+    <section class="proof-grid" aria-label="LifeLoggerz at a glance">
+      {proofStats.map((stat) => (
+        <article class="proof-card">
+          <p class="proof-value">{stat.value}</p>
+          <h3>{stat.label}</h3>
+          <p>{stat.note}</p>
+        </article>
+      ))}
+    </section>
 
-    <h2>🛠 Tools & Systems I Share</h2>
-    <ul class="centered-list">
-      <li>Google Sheets templates and dashboards for daily life and research</li>
-      <li>Python apps for analysis, visualization, and exports (Excel and PowerPoint)</li>
-      <li>Templates and routines that remove decision fatigue</li>
-    </ul>
+    <section class="content-section origin-section" aria-labelledby="origin-title">
+      <div class="section-heading">
+        <div class="section-kicker">The origin story</div>
+        <h2 id="origin-title">From one spreadsheet to a personal operating system</h2>
+        <p>
+          I started with no meaningful Excel or Google Sheets experience. I learned one formula at a time, then formatting, dashboards, Apps Script, APIs, and Python. The important part was never technical brilliance. It was showing up, improving one friction point, and keeping the system alive long enough for it to become useful.
+        </p>
+      </div>
 
-    <h2>🎸 What Do I Do With the Time Gained?</h2>
-    <p>
-      For a while, this was my only hobby. <strong>Nothing else mattered.</strong> Every spare minute went into improving these systems.
-      Eventually, I hit diminishing returns. There is a limit to how much you should track, and I reached it around May 2025.
-      My systems did not need constant upgrading, so I stepped back.
-    </p>
+      <ol class="timeline">
+        {timeline.map((item) => (
+          <li class="timeline-item">
+            <div class="timeline-marker" aria-hidden="true"></div>
+            <div class="timeline-card">
+              <p class="timeline-year">{item.year}</p>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
 
-    <p>
-      Now I keep things stable and use the time I gained. I practice flamenco guitar, listen to audiobooks while I drive or do chores,
-      run, learn languages, and spend time with family.
-      Optimization created the space. <strong>Now I actually use it.</strong>
-    </p>
+      <p class="origin-note">
+        Today, logging the essential statistics takes about <strong>five minutes</strong>. Diary entries take longer. No matter how tired I am, <strong>I still log it.</strong>
+      </p>
 
-    <h2>🌱 Why This Blog Exists</h2>
-    <p>
-      For the past <span id="years-since" data-start="2023-01-01">{yearsLabel}</span>, I have been showing these systems to people.
-      This site makes them easy to explore and use.
-      If you are curious about tracking your habits, streamlining research, or building your own life system, you are in the right place.
-    </p>
+      <p class="origin-story-link">
+        <a href="/blog/rawdatapost2025/">See how the 2023, 2024, and 2025 Raw Data systems evolved <span aria-hidden="true">→</span></a>
+      </p>
+    </section>
 
-    <h2>📬 Get in Touch</h2>
-    <p class="centered-email">
-      Have a question or suggestion about a template or script?<br />
-      Tell me what you are building or what you would like to see next. I would love to hear from you.
-      <br /><br />
-      📧 <strong>lifeloggerz.official@gmail.com</strong>
-    </p>
-  </div>
+    <section class="content-section" aria-labelledby="what-title">
+      <div class="section-heading compact-heading">
+        <div class="section-kicker">What this site contains</div>
+        <h2 id="what-title">LifeLoggerz is more than a collection of charts</h2>
+        <p>
+          It connects daily records, diary entries, hobbies, books, music, art, health, work, and research into a history that can be explored instead of forgotten.
+        </p>
+      </div>
+
+      <div class="explore-grid">
+        {exploreCards.map((card) => (
+          <a class="explore-card" href={card.href}>
+            <span class="card-icon" aria-hidden="true">{card.icon}</span>
+            <h3>{card.title}</h3>
+            <p>{card.text}</p>
+            <span class="card-link">{card.cta} <span aria-hidden="true">→</span></span>
+          </a>
+        ))}
+      </div>
+
+      <nav class="archive-links" aria-label="More archive sections">
+        <span>More of the archive:</span>
+        <a href="/albums/">Albums</a>
+        <a href="/art/">Art</a>
+        <a href="/faq/">FAQ</a>
+      </nav>
+    </section>
+
+    <section class="philosophy-section" aria-labelledby="philosophy-title">
+      <div class="philosophy-copy">
+        <div class="section-kicker">The philosophy</div>
+        <h2 id="philosophy-title">Tracking is a tool, not the goal</h2>
+        <p>
+          Small habits compound, but more data is not automatically better. I now track more than 150 variables—from sleep, food, health, work, and study to music, books, and “blunders.” That does <em>not</em> mean everyone should do the same.
+        </p>
+        <p>
+          A good system should reduce mental load, preserve useful memories, and improve decisions. When it becomes another obligation that adds more friction than clarity, it needs to be simplified.
+        </p>
+      </div>
+
+      <div class="principles-card">
+        <h3>What I believe now</h3>
+        <ul>
+          <li>You do not need to track everything.</li>
+          <li>Keep only the data that earns its place.</li>
+          <li>Automation should remove repetition, not hide understanding.</li>
+          <li>The system should make life easier to live—not harder to document.</li>
+        </ul>
+      </div>
+    </section>
+
+    <aside class="statement-card" aria-label="LifeLoggerz guiding principle">
+      <span class="statement-mark" aria-hidden="true">“</span>
+      <blockquote>
+        The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.
+      </blockquote>
+    </aside>
+
+    <section class="content-section" aria-labelledby="room-title">
+      <div class="section-heading compact-heading">
+        <div class="section-kicker">What the system makes room for</div>
+        <h2 id="room-title">Optimization created the space. Now I use it.</h2>
+        <p>
+          For a while, improving these systems was nearly my only hobby. By May 2025, I had reached diminishing returns. The system no longer needed constant expansion, so I stepped back and redirected that energy toward living.
+        </p>
+      </div>
+
+      <div class="life-grid">
+        {lifeCards.map((card) => (
+          <article class="life-card">
+            <span class="life-icon" aria-hidden="true">{card.icon}</span>
+            <div>
+              <h3>{card.title}</h3>
+              <p>{card.text}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="profile-section" aria-labelledby="profile-title">
+      <div class="profile-heading">
+        <div class="section-kicker">The person behind the data</div>
+        <h2 id="profile-title">About José</h2>
+      </div>
+
+      <div class="profile-grid">
+        <div class="profile-copy">
+          <p>
+            I’m a civil engineering PhD student and researcher who became a systems builder out of necessity. I taught myself spreadsheets, automation, Python, and data visualization because I kept finding repetitive problems that could be solved once and reused.
+          </p>
+          <p>
+            LifeLoggerz is the public side of that instinct: document the process, preserve what works, admit what did not, and make the useful parts easier for someone else to borrow.
+          </p>
+        </div>
+
+        <ul class="profile-facts" aria-label="José's areas of work and interest">
+          <li><span aria-hidden="true">🎓</span> Civil engineering PhD student</li>
+          <li><span aria-hidden="true">🔬</span> Researcher and data-driven problem solver</li>
+          <li><span aria-hidden="true">⚙️</span> Self-taught systems and automation builder</li>
+          <li><span aria-hidden="true">📚</span> Lifelong learner, reader, and archivist</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="closing-section" aria-labelledby="closing-title">
+      <div class="closing-copy">
+        <div class="section-kicker">Start smaller than I did</div>
+        <h2 id="closing-title">Build a system that fits your life</h2>
+        <p>
+          Start with one useful variable. Keep what helps. Remove what does not. Let the system grow only when it earns its place.
+        </p>
+      </div>
+
+      <div class="closing-actions">
+        <a class="button button-primary" href="/templates/">Browse the Templates</a>
+        <a class="button button-secondary" href="/faq/">Read the FAQ</a>
+        <a class="button button-quiet" href="mailto:lifeloggerz.official@gmail.com">Contact José</a>
+      </div>
+
+      <p class="contact-line">
+        Questions, suggestions, or something interesting you are building?
+        <a href="mailto:lifeloggerz.official@gmail.com">lifeloggerz.official@gmail.com</a>
+      </p>
+
+      <div class="page-meta">
+        <span>Tracking for <strong id="years-since" data-start="2023-01-01">{yearsLabel}</strong></span>
+        <span aria-hidden="true">•</span>
+        <span>Last updated July 2026</span>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
 
   <style is:global>
-    .about h2 {
+    .about-page,
+    .about-page * {
+      box-sizing: border-box;
+    }
+
+    .about-page {
+      --about-ink: #15171b;
+      --about-muted: #5a606b;
+      --about-border: #dfe3e8;
+      --about-surface: #ffffff;
+      --about-soft: #f4f6f8;
+      --about-accent: #245c46;
+      --about-accent-dark: #174433;
+      --about-accent-soft: #e9f2ed;
+      --about-gold-soft: #fff6d8;
+      --about-shadow: 0 14px 38px rgba(25, 33, 44, 0.09);
+
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1.25rem 0 4rem;
+      color: var(--about-ink);
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+
+    .about-page h2,
+    .about-page h3,
+    .about-page p,
+    .about-page blockquote {
+      color: var(--about-ink);
+    }
+
+    .about-page h2,
+    .about-page h3 {
+      line-height: 1.16;
+      margin: 0;
+      text-wrap: balance;
+    }
+
+    .about-page h2 {
+      font-size: clamp(1.8rem, 4vw, 2.75rem);
+      letter-spacing: -0.035em;
+    }
+
+    .about-page h3 {
+      font-size: 1.08rem;
+      letter-spacing: -0.01em;
+    }
+
+    .about-page p {
+      margin: 0;
+    }
+
+    .about-page a {
+      color: inherit;
+    }
+
+    .section-kicker {
+      margin-bottom: 0.65rem;
+      color: var(--about-accent-dark);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      line-height: 1.3;
+      text-transform: uppercase;
+    }
+
+    .intro-panel {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      border: 1px solid var(--about-border);
+      border-radius: 28px;
+      background: var(--about-surface);
+      box-shadow: var(--about-shadow);
+      text-align: left;
+    }
+
+    .intro-panel h2 {
+      max-width: 780px;
+      margin-bottom: 1.15rem;
+    }
+
+    .intro-panel > p {
+      max-width: 800px;
+      color: var(--about-muted);
+      font-size: clamp(1rem, 1.5vw, 1.08rem);
+    }
+
+    .intro-panel > p + p {
+      margin-top: 0.9rem;
+    }
+
+    .intro-lede {
+      font-size: clamp(1.08rem, 2vw, 1.25rem) !important;
+    }
+
+    .intro-actions,
+    .closing-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.72rem 1rem;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 0.94rem;
+      font-weight: 750;
+      line-height: 1.2;
       text-align: center;
-      margin-top: 2.5rem;
+      text-decoration: none !important;
+      transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button-primary {
+      background: var(--about-accent);
+      color: #ffffff !important;
+      box-shadow: 0 8px 18px rgba(36, 92, 70, 0.2);
+    }
+
+    .button-primary:hover {
+      background: var(--about-accent-dark);
+    }
+
+    .button-secondary {
+      border-color: #cbd2d9;
+      background: #ffffff;
+      color: var(--about-ink) !important;
+    }
+
+    .button-secondary:hover {
+      background: var(--about-soft);
+    }
+
+    .button-quiet {
+      border-color: transparent;
+      background: transparent;
+      color: var(--about-accent-dark) !important;
+      text-decoration: underline !important;
+      text-underline-offset: 0.25em;
+    }
+
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin: 1rem auto 0;
+    }
+
+    .proof-card {
+      min-width: 0;
+      padding: 1.2rem;
+      border: 1px solid var(--about-border);
+      border-radius: 18px;
+      background: var(--about-surface);
+    }
+
+    .proof-value {
+      margin-bottom: 0.45rem !important;
+      color: var(--about-accent-dark) !important;
+      font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+      font-weight: 850;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+    }
+
+    .proof-card h3 {
+      margin-bottom: 0.35rem;
+      font-size: 0.96rem;
+    }
+
+    .proof-card > p:last-child {
+      color: var(--about-muted);
+      font-size: 0.83rem;
+      line-height: 1.45;
+    }
+
+    .content-section,
+    .philosophy-section,
+    .profile-section,
+    .closing-section {
+      margin-top: clamp(3.75rem, 8vw, 6.5rem);
+    }
+
+    .section-heading {
+      max-width: 790px;
+      margin: 0 auto 2rem;
+      text-align: center;
+    }
+
+    .section-heading h2 {
       margin-bottom: 1rem;
     }
 
-    .centered-list {
-      list-style-position: inside;
-      text-align: center;
+    .section-heading p {
+      color: var(--about-muted);
+      font-size: 1.04rem;
+    }
+
+    .compact-heading {
+      margin-bottom: 1.65rem;
+    }
+
+    .origin-section {
+      max-width: 920px;
+      margin-right: auto;
+      margin-left: auto;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 1rem;
+      margin: 2rem 0 0;
       padding: 0;
-      margin: 1.5rem 0;
+      list-style: none;
     }
 
-    .centered-list li {
-      margin: 0.5rem 0;
+    .timeline::before {
+      position: absolute;
+      top: 1rem;
+      bottom: 1rem;
+      left: 18px;
+      width: 2px;
+      background: #c9d9d0;
+      content: '';
     }
 
-    .centered-email {
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .timeline-marker {
+      position: relative;
+      z-index: 1;
+      width: 16px;
+      height: 16px;
+      margin: 1.22rem 0 0 11px;
+      border: 4px solid #ffffff;
+      border-radius: 50%;
+      background: var(--about-accent);
+      box-shadow: 0 0 0 1px #b9cfc3;
+    }
+
+    .timeline-card {
+      padding: 1.15rem 1.25rem;
+      border: 1px solid var(--about-border);
+      border-radius: 16px;
+      background: var(--about-surface);
+    }
+
+    .timeline-year {
+      margin-bottom: 0.3rem !important;
+      color: var(--about-accent-dark) !important;
+      font-size: 0.75rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .timeline-card h3 {
+      margin-bottom: 0.45rem;
+    }
+
+    .timeline-card p:last-child {
+      color: var(--about-muted);
+      font-size: 0.94rem;
+    }
+
+    .origin-note {
+      max-width: 780px;
+      margin: 1.15rem auto 0 !important;
+      padding: 1rem 1.15rem;
+      border-left: 4px solid var(--about-accent);
+      border-radius: 0 12px 12px 0;
+      background: var(--about-accent-soft);
+      color: #26372f !important;
+    }
+
+    .origin-story-link {
+      margin-top: 1rem !important;
       text-align: center;
-      line-height: 1.6;
+    }
+
+    .origin-story-link a {
+      color: var(--about-accent-dark);
+      font-size: 0.92rem;
+      font-weight: 800;
+      text-underline-offset: 0.22em;
+    }
+
+    .explore-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .explore-card {
+      display: flex;
+      min-width: 0;
+      min-height: 260px;
+      flex-direction: column;
+      padding: 1.35rem;
+      border: 1px solid var(--about-border);
+      border-radius: 20px;
+      background: var(--about-surface);
+      box-shadow: 0 8px 26px rgba(25, 33, 44, 0.06);
+      text-decoration: none !important;
+      transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+    }
+
+    .explore-card:hover {
+      transform: translateY(-4px);
+      border-color: #aabfb4;
+      box-shadow: 0 14px 34px rgba(25, 33, 44, 0.11);
+    }
+
+    .card-icon {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      margin-bottom: 1rem;
+      border-radius: 13px;
+      background: var(--about-accent-soft);
+      font-size: 1.35rem;
+    }
+
+    .explore-card h3 {
+      margin-bottom: 0.55rem;
+    }
+
+    .explore-card p {
+      color: var(--about-muted);
+      font-size: 0.93rem;
+      line-height: 1.58;
+    }
+
+    .card-link {
+      margin-top: auto;
+      padding-top: 1rem;
+      color: var(--about-accent-dark);
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .archive-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem 1rem;
+      margin-top: 1.2rem;
+      color: var(--about-muted);
+      font-size: 0.9rem;
+    }
+
+    .archive-links a {
+      color: var(--about-accent-dark);
+      font-weight: 750;
+      text-underline-offset: 0.2em;
+    }
+
+    .philosophy-section {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 1.25rem;
+      align-items: stretch;
+      padding: clamp(1.5rem, 4vw, 2.75rem);
+      border: 1px solid #cddfd5;
+      border-radius: 26px;
+      background: var(--about-accent-soft);
+    }
+
+    .philosophy-copy h2 {
+      margin-bottom: 1rem;
+    }
+
+    .philosophy-copy p {
+      color: #33453c;
+    }
+
+    .philosophy-copy p + p {
+      margin-top: 0.85rem;
+    }
+
+    .principles-card {
+      align-self: stretch;
+      padding: 1.35rem;
+      border: 1px solid #bfd2c8;
+      border-radius: 18px;
+      background: #ffffff;
+    }
+
+    .principles-card h3 {
+      margin-bottom: 0.85rem;
+    }
+
+    .principles-card ul {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .principles-card li {
+      position: relative;
+      padding-left: 1.55rem;
+      color: #38423d;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .principles-card li::before {
+      position: absolute;
+      top: 0.1rem;
+      left: 0;
+      color: var(--about-accent);
+      font-weight: 900;
+      content: '✓';
+    }
+
+    .statement-card {
+      position: relative;
+      max-width: 900px;
+      margin: clamp(3.5rem, 7vw, 5.5rem) auto 0;
+      padding: clamp(1.7rem, 5vw, 3rem);
+      overflow: hidden;
+      border: 1px solid #eadba5;
+      border-radius: 24px;
+      background: var(--about-gold-soft);
+      text-align: center;
+    }
+
+    .statement-mark {
+      position: absolute;
+      top: -0.4rem;
+      left: 1rem;
+      color: rgba(119, 88, 0, 0.12);
+      font-family: Georgia, serif;
+      font-size: 9rem;
+      line-height: 1;
+    }
+
+    .statement-card blockquote {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 0 auto;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(1.25rem, 2.8vw, 1.85rem);
+      font-weight: 600;
+      line-height: 1.42;
+    }
+
+    .life-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .life-card {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 0.85rem;
+      padding: 1.2rem;
+      border: 1px solid var(--about-border);
+      border-radius: 17px;
+      background: var(--about-surface);
+    }
+
+    .life-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--about-soft);
+      font-size: 1.2rem;
+    }
+
+    .life-card h3 {
+      margin-bottom: 0.35rem;
+    }
+
+    .life-card p {
+      color: var(--about-muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .profile-section {
+      padding: clamp(1.5rem, 4vw, 2.75rem);
+      border: 1px solid var(--about-border);
+      border-radius: 26px;
+      background: var(--about-surface);
+      box-shadow: var(--about-shadow);
+    }
+
+    .profile-heading {
+      margin-bottom: 1.3rem;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .profile-copy p {
+      color: var(--about-muted);
+    }
+
+    .profile-copy p + p {
+      margin-top: 0.85rem;
+    }
+
+    .profile-facts {
+      display: grid;
+      gap: 0.7rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .profile-facts li {
+      display: grid;
+      grid-template-columns: 1.5rem minmax(0, 1fr);
+      gap: 0.55rem;
+      align-items: start;
+      padding: 0.75rem 0.85rem;
+      border: 1px solid var(--about-border);
+      border-radius: 12px;
+      background: var(--about-soft);
+      color: #343940;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .closing-section {
+      padding: clamp(1.75rem, 5vw, 3.5rem);
+      border-radius: 28px;
+      background: #171b1f;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .closing-section .section-kicker {
+      color: #aad5bf;
+    }
+
+    .closing-section h2,
+    .closing-section p {
+      color: #ffffff;
+    }
+
+    .closing-copy {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .closing-copy h2 {
+      margin-bottom: 0.9rem;
+    }
+
+    .closing-copy p {
+      color: #d3d8dc;
+    }
+
+    .closing-actions {
+      justify-content: center;
+    }
+
+    .closing-section .button-secondary {
+      border-color: #5f686f;
+      background: transparent;
+      color: #ffffff !important;
+    }
+
+    .closing-section .button-secondary:hover {
+      background: #262d32;
+    }
+
+    .closing-section .button-quiet {
+      color: #b8dec9 !important;
+    }
+
+    .contact-line {
+      margin-top: 1.6rem !important;
+      color: #bdc5ca !important;
+      font-size: 0.9rem;
+    }
+
+    .contact-line a {
+      color: #d9f0e4;
+      font-weight: 750;
+      text-underline-offset: 0.22em;
+    }
+
+    .page-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.45rem;
+      margin-top: 1.35rem;
+      padding-top: 1rem;
+      border-top: 1px solid #3a4146;
+      color: #98a2a9;
+      font-size: 0.78rem;
+    }
+
+    .page-meta strong {
+      color: #c9d0d4;
+    }
+
+    .about-page a:focus-visible,
+    .about-page button:focus-visible {
+      outline: 3px solid #f2b84b;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 900px) {
+      .proof-grid,
+      .explore-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .philosophy-section,
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .life-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .explore-card {
+        min-height: 230px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .about-page {
+        width: calc(100% - 1rem);
+        padding-top: 0.65rem;
+      }
+
+      .intro-panel,
+      .philosophy-section,
+      .profile-section,
+      .closing-section {
+        border-radius: 20px;
+      }
+
+      .intro-panel {
+        padding: 1.25rem;
+      }
+
+      .intro-actions,
+      .closing-actions {
+        gap: 0.55rem;
+      }
+
+      .button {
+        width: auto;
+        max-width: 100%;
+        min-height: 42px;
+        padding: 0.68rem 0.85rem;
+        font-size: 0.88rem;
+      }
+
+      .proof-grid,
+      .explore-grid,
+      .life-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .proof-card {
+        display: grid;
+        grid-template-columns: minmax(110px, auto) minmax(0, 1fr);
+        column-gap: 0.85rem;
+        align-items: center;
+        padding: 1rem;
+      }
+
+      .proof-value {
+        grid-row: 1 / span 2;
+        margin: 0 !important;
+      }
+
+      .proof-card h3 {
+        align-self: end;
+      }
+
+      .proof-card > p:last-child {
+        align-self: start;
+      }
+
+      .section-heading {
+        text-align: left;
+      }
+
+      .timeline-item {
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 0.65rem;
+      }
+
+      .timeline::before {
+        left: 14px;
+      }
+
+      .timeline-marker {
+        margin-left: 7px;
+      }
+
+      .timeline-card {
+        padding: 1rem;
+      }
+
+      .explore-card {
+        min-height: 0;
+        padding: 1.15rem;
+      }
+
+      .archive-links {
+        justify-content: flex-start;
+      }
+
+      .philosophy-section,
+      .profile-section {
+        padding: 1.25rem;
+      }
+
+      .statement-card {
+        padding: 1.6rem 1.15rem;
+      }
+
+      .life-card {
+        padding: 1rem;
+      }
+
+      .closing-section {
+        padding: 1.6rem 1.15rem;
+      }
+
+      .contact-line a {
+        overflow-wrap: anywhere;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .about-page *,
+      .about-page *::before,
+      .about-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 
   <script>
-    (function () {
+    (() => {
       const el = document.getElementById('years-since');
       if (!el) return;
-      const startStr = el.dataset.start || '2023-01-01';
-      const start = new Date(startStr + 'T00:00:00');
+
+      const startString = el.dataset.start || '2023-01-01';
+      const start = new Date(`${startString}T00:00:00`);
       const now = new Date();
-      let y = now.getFullYear() - start.getFullYear();
-      const m = now.getMonth() - start.getMonth();
-      const d = now.getDate() - start.getDate();
-      if (m < 0 || (m === 0 && d < 0)) y--;
-      if (y < 0) y = 0;
-      el.textContent = `${y} year${y === 1 ? '' : 's'}`;
+      let elapsedYears = now.getFullYear() - start.getFullYear();
+      const monthDifference = now.getMonth() - start.getMonth();
+      const dayDifference = now.getDate() - start.getDate();
+
+      if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
+        elapsedYears--;
+      }
+
+      if (elapsedYears < 0) elapsedYears = 0;
+      el.textContent = `${elapsedYears} year${elapsedYears === 1 ? '' : 's'}`;
     })();
   </script>
 </AboutLayout>
