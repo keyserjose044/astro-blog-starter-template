@@ -1415,20 +1415,44 @@ const faqSchema = {
       }
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-width: 1100px) {
+      :global(body) {
+        overflow-x: clip;
+      }
+
       .faq-page {
-        /* Break out of the narrower article column used by AboutLayout on phones. */
-        width: calc(100vw - 1rem);
-        max-width: calc(100vw - 1rem);
-        margin-inline: calc(50% - 50vw + 0.5rem);
-        padding: 1.25rem 0.75rem 3.5rem;
+        /* Force a true full-viewport layout even inside AboutLayout's article column. */
+        position: relative;
+        left: 50%;
+        width: 100dvw !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding:
+          1.25rem max(1rem, env(safe-area-inset-right))
+          3.5rem max(1rem, env(safe-area-inset-left));
         box-sizing: border-box;
         color: #09090b;
+        transform: translateX(-50%);
         --faq-border: rgba(17, 24, 39, 0.18);
         --faq-border-strong: rgba(17, 24, 39, 0.3);
-        --faq-surface: rgba(255, 255, 255, 0.74);
-        --faq-surface-strong: rgba(255, 255, 255, 0.92);
+        --faq-surface: rgba(255, 255, 255, 0.82);
+        --faq-surface-strong: rgba(255, 255, 255, 0.95);
         --faq-muted: #303038;
+      }
+
+      .faq-page > *,
+      .faq-intro,
+      .start-here,
+      .faq-tools,
+      .popular-section,
+      .faq-shell,
+      .faq-content,
+      .faq-group,
+      .faq-cta {
+        width: 100% !important;
+        max-width: none !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
       }
 
       .faq-page *,
@@ -1438,7 +1462,12 @@ const faqSchema = {
       }
 
       .faq-intro {
-        margin-bottom: 3rem;
+        margin-bottom: 3rem !important;
+      }
+
+      .section-heading,
+      .group-header {
+        width: 100%;
       }
 
       .intro-meta {
@@ -1451,9 +1480,22 @@ const faqSchema = {
         font-size: 0.75rem;
       }
 
-      .path-grid {
+      .path-grid,
+      .popular-grid {
         grid-template-columns: 1fr;
         gap: 0.75rem;
+      }
+
+      .popular-link,
+      .popular-link:nth-child(2),
+      .popular-link:nth-child(-n + 2) {
+        min-height: 0;
+        border-right: 0;
+        border-bottom: 1px solid var(--faq-border);
+      }
+
+      .popular-link:last-child {
+        border-bottom: 0;
       }
 
       .path-card {
