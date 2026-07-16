@@ -1,215 +1,1035 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
-import SectionHero from '../components/SectionHero.astro';
 import InspirationCollage from '../components/InspirationCollage.astro';
+
+const chapters = [
+  {
+    id: 'record-reflect',
+    eyebrow: 'Chapter one',
+    title: 'Record and reflect',
+    intro:
+      'These influences showed me that ordinary days become more useful—and more meaningful—when they are recorded in a form that can be revisited.',
+    items: [
+      {
+        id: 'phil-von-stade',
+        number: '01',
+        category: 'Video',
+        title: 'Phil Von Stade',
+        subtitle: 'The spreadsheet life logger who made the idea feel real',
+        src: '/images_webp/phil_von_stade.webp',
+        alt: 'Phil Von Stade presenting a life-logging spreadsheet',
+        href: 'https://www.youtube.com/watch?v=w2yIGGxg52A',
+        cta: 'Watch the video',
+        reverse: false,
+        paragraphs: [
+          'I assumed that building a life log in spreadsheets was an unusually solitary idea until I found Phil Von Stade’s 2012 video. Seeing someone else preserve everyday life in a structured sheet made the practice feel less like an odd personal habit and more like a legitimate way to build memory.',
+          'Other life loggers have pursued total capture through cameras, sensors, and constant recording. Phil’s approach reinforced what still works best for me: deliberately recording the parts of life that are useful to remember, compare, or understand.',
+        ],
+        takeaway:
+          'A spreadsheet can be more than a calculator. It can become a durable, searchable record of a life.',
+        internalLinks: [
+          { label: 'See the data it helped inspire', href: '/stats/' },
+        ],
+      },
+      {
+        id: 'michael-phelps',
+        number: '02',
+        category: 'Article',
+        title: 'Michael Phelps',
+        subtitle: 'Journaling as disciplined self-observation',
+        src: '/images_webp/michael_phelps.webp',
+        alt: 'Michael Phelps journaling inspiration image',
+        href: 'https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/',
+        cta: 'Read the article',
+        reverse: true,
+        paragraphs: [
+          'Learning that an elite athlete used journals to study himself reinforced the value of recording more than outcomes. A result tells you what happened; a journal can preserve the conditions, thoughts, routines, and decisions around it.',
+          'Technology extends that practice. Structured entries can be searched, filtered, compared across years, and summarized without sacrificing the original record. That combination of reflection and analysis became central to LifeLoggerz.',
+        ],
+        takeaway:
+          'Reflection becomes more powerful when the original words remain searchable and the surrounding patterns remain measurable.',
+        internalLinks: [
+          { label: 'Explore the LifeLoggerz approach', href: '/about/' },
+        ],
+      },
+      {
+        id: 'quantified-self',
+        number: '03',
+        category: 'Community',
+        title: 'Quantified Self',
+        subtitle: 'Data for self-knowledge, not data for its own sake',
+        src: '/images_webp/dailyvis.webp',
+        alt: 'Quantified Self article screenshot',
+        href: 'https://dailyvis.com/posts/quantified-self-why-i-track-my-life-in-data/',
+        cta: 'Read the perspective',
+        reverse: false,
+        paragraphs: [
+          'The Quantified Self community gave me a wider language for what I was building. Personal data could be used to ask questions, test assumptions, and uncover patterns that memory alone would miss.',
+          'It also supplied an important boundary: collecting more is not automatically better. A variable earns its place when it helps preserve something meaningful, improve a decision, or make a pattern visible.',
+        ],
+        takeaway:
+          'The point of tracking is not to produce the largest dataset. It is to understand something that matters.',
+        internalLinks: [
+          { label: 'Browse the current statistics', href: '/stats/' },
+        ],
+      },
+      {
+        id: 'perfice',
+        number: '04',
+        category: 'App',
+        title: 'Perfice',
+        subtitle: 'A focused interface for everyday tracking',
+        src: '/images_webp/perfice.webp',
+        alt: 'Perfice life-tracking app screenshot',
+        href: 'https://perfice.adoe.dev/',
+        cta: 'Visit Perfice',
+        reverse: true,
+        paragraphs: [
+          'Perfice demonstrates how approachable a purpose-built life-tracking app can feel. A clean interface lowers the friction between experiencing something and preserving it.',
+          'For my own system, I still prefer Google Sheets because every formula, table, and automation remains visible and editable. Perfice nevertheless keeps the possibility of a more polished LifeLoggerz interface in view.',
+        ],
+        takeaway:
+          'The best tracking interface is the one that makes consistent input easy without hiding the user’s own data.',
+        internalLinks: [
+          { label: 'Use the current templates', href: '/templates/' },
+        ],
+      },
+      {
+        id: 'vegantechnomad',
+        number: '05',
+        category: 'YouTube',
+        title: 'VeganTechNomad',
+        subtitle: 'Proof that lightweight tracking can still change perspective',
+        src: '/images_webp/vegantechnomad.webp',
+        alt: 'VeganTechNomad YouTube channel screenshot',
+        href: 'https://www.youtube.com/@VeganTechNomad',
+        cta: 'Visit the channel',
+        reverse: false,
+        paragraphs: [
+          'VeganTechNomad approaches life tracking through simple habits and lightweight reflection. Her work is a useful reminder that a system does not need hundreds of variables to help someone notice how they live.',
+          'That contrast also helped define LifeLoggerz. My own system goes deeper because I want years of records to connect across routines, media, work, health, and memory—but depth should remain a choice, never an entry requirement.',
+        ],
+        takeaway:
+          'Start small enough to continue. Add depth only when the added detail proves useful.',
+        internalLinks: [
+          { label: 'Start with a template', href: '/templates/' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'optimize-experiment',
+    eyebrow: 'Chapter two',
+    title: 'Optimize and experiment',
+    intro:
+      'Tracking became more than preservation when I began treating routines as systems that could be tested, refined, and sometimes left alone.',
+    items: [
+      {
+        id: 'efficiency-is-everything',
+        number: '06',
+        category: 'Blog',
+        title: 'Efficiency Is Everything',
+        subtitle: 'Making the hidden cost of repetition visible',
+        src: '/images_webp/efficiency_is_everything.webp',
+        alt: 'Efficiency Is Everything website screenshot',
+        href: 'https://efficiencyiseverything.com',
+        cta: 'Visit the site',
+        reverse: true,
+        paragraphs: [
+          'Efficiency Is Everything was one of the first sites to change how I thought about small recurring actions. Its breakdowns of food costs, task duration, and daily friction showed how tiny differences accumulate when repeated hundreds of times.',
+          'That idea pushed me to automate repetitive work and remove avoidable decisions. I later learned the other half of the lesson: time saved only matters when it is returned to something worth doing.',
+        ],
+        takeaway:
+          'Measure repeated friction, remove what adds no value, and decide in advance what the recovered time is for.',
+        internalLinks: [
+          { label: 'Read how the system evolved', href: '/about/' },
+        ],
+      },
+      {
+        id: 'raptitude',
+        number: '07',
+        category: 'Blog',
+        title: 'Raptitude',
+        subtitle: 'Treating self-improvement as a series of experiments',
+        src: '/images_webp/raptitude.webp',
+        alt: 'Raptitude blog screenshot',
+        href: 'https://www.raptitude.com',
+        cta: 'Visit Raptitude',
+        reverse: false,
+        paragraphs: [
+          'Raptitude encouraged me to treat changes in daily life as experiments rather than permanent declarations. Try something, observe what happens, keep the useful part, and discard the rest without turning the result into a moral verdict.',
+          'That attitude appears throughout LifeLoggerz. The system is never finished, but it also does not need constant expansion. Iteration should solve a real problem, not become a hobby that consumes the life being optimized.',
+        ],
+        takeaway:
+          'A failed experiment is still useful when it tells you what not to carry forward.',
+        internalLinks: [
+          { label: 'Read more field notes', href: '/blog/' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'visualize-preserve',
+    eyebrow: 'Chapter three',
+    title: 'Visualize and preserve',
+    intro:
+      'The final leap was realizing that a personal archive should not merely store records. It should make them inviting to revisit.',
+    items: [
+      {
+        id: 'feltron',
+        number: '08',
+        category: 'Annual report',
+        title: 'Feltron’s 2014 Annual Report',
+        subtitle: 'Turning personal data into visual storytelling',
+        src: '/images_webp/feltron.webp',
+        alt: 'Feltron 2014 annual report screenshot',
+        href: 'http://feltron.com/FAR14.html',
+        cta: 'View the report',
+        reverse: true,
+        paragraphs: [
+          'Nicholas Felton’s annual report showed me that collecting the data is only half the job. Design determines whether the patterns feel like numbers in a table or the story of an actual year.',
+          'LifeLoggerz began in functional spreadsheets, but Feltron remains the standard that pushes the public project toward clearer graphs, stronger hierarchy, and pages that invite exploration rather than merely proving that the data exists.',
+        ],
+        takeaway:
+          'Visual design is not decoration added after the analysis. It is part of how the meaning becomes understandable.',
+        internalLinks: [
+          { label: 'See the visual statistics', href: '/stats/' },
+        ],
+      },
+      {
+        id: 'ryot',
+        number: '09',
+        category: 'GitHub project',
+        title: 'RYOT',
+        subtitle: 'Treating media consumption as a browsable personal archive',
+        src: '/images_webp/ryot.webp',
+        alt: 'RYOT GitHub project screenshot',
+        href: 'https://github.com/IgnisDa/ryot',
+        cta: 'View the project',
+        reverse: false,
+        paragraphs: [
+          'RYOT introduced me to the idea of organizing media as a visual archive rather than allowing books, albums, and art to disappear into separate apps and recommendation feeds. It also led me toward Raindrop as a practical source for cover galleries.',
+          'That influence became the Books, Albums, and Art pages: public-facing records of what accompanied different periods of my life, designed to be browsed as well as counted.',
+        ],
+        takeaway:
+          'A media log becomes more meaningful when it preserves not only a total, but the individual works that filled the time.',
+        internalLinks: [
+          { label: 'Books', href: '/books/' },
+          { label: 'Albums', href: '/albums/' },
+          { label: 'Art', href: '/art/' },
+        ],
+      },
+    ],
+  },
+];
+
+const principles = [
+  {
+    number: '01',
+    title: 'Record what matters',
+    text: 'Preserve the details that memory compresses, rearranges, or loses.',
+  },
+  {
+    number: '02',
+    title: 'Automate repetition',
+    text: 'Let the system remove routine work instead of becoming another source of it.',
+  },
+  {
+    number: '03',
+    title: 'Review for decisions',
+    text: 'Data earns its place when it improves understanding or changes an action.',
+  },
+  {
+    number: '04',
+    title: 'Turn records into stories',
+    text: 'Graphs, archives, and daily snapshots should make a life easier to see.',
+  },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Ideas That Shaped LifeLoggerz',
+  description:
+    'The people, projects, communities, and ideas that influenced the LifeLoggerz personal data and systems project.',
+  dateModified: '2026-07-15',
+};
 ---
 
 <Layout
-  title="Inspirations"
-  description="The people, projects, and ideas that sparked my obsession with tracking life and optimizing every hour."
+  title="Ideas That Shaped LifeLoggerz"
+  description="The people, projects, and ideas that shaped LifeLoggerz: personal data, experimentation, automation, and visual archives."
+  updatedDate="2026-07-15"
   wide
   hideTitle
+  showViews={false}
 >
-  <InspirationCollage />
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')}></script>
 
-  {/* 1. Phil Von Stade */}
-  <section id="phil-von-stade" class="inspo">
-    <h2>🎥 Phil Von Stade: The Original Life Logger</h2>
-    <a href="https://www.youtube.com/watch?v=w2yIGGxg52A" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/phil_von_stade.webp"
-        alt="Phil Von Stade life-logging video thumbnail"
-      />
-    </a>
-    <p>
-      I thought the kind of life-logging that I was doing with spreadsheets was something unique until I found
-      <a href="https://www.youtube.com/watch?v=w2yIGGxg52A" target="_blank" rel="noopener noreferrer"> Phil Von Stade’s video</a> from 2012. Of course there's 'life loggers' like Gordon Bell who track EVERYTHING 24/7, but I find spreadsheets the most efficient means for tracking what matters in your life.
-    </p>
-  </section>
+  <main class="inspirations-page">
+    <header class="page-hero">
+      <p class="page-eyebrow">The people, projects, and ideas behind the system</p>
+      <h1>Ideas that shaped <span>LifeLoggerz</span></h1>
+      <p class="hero-lede">
+        LifeLoggerz did not emerge from a single productivity method. It grew from life loggers,
+        designers, athletes, experimenters, apps, and communities that each revealed a different
+        way to record and understand a life.
+      </p>
+      <div class="hero-actions" aria-label="Explore this page">
+        <a class="button button-primary" href="#idea-map">Explore the idea map <span aria-hidden="true">↓</span></a>
+        <a class="button button-secondary" href="/about/">About LifeLoggerz <span aria-hidden="true">→</span></a>
+      </div>
+    </header>
 
-  {/* 2. Efficiency Is Everything */}
-  <section id="efficiency-is-everything" class="inspo">
-    <h2>⚡ Efficiency Is Everything</h2>
-    <a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/efficiency_is_everything.webp"
-        alt="Efficiency Is Everything site"
-      />
-    </a>
-    <p>
-      <a href="https://efficiencyiseverything.com" target="_blank" rel="noopener noreferrer">Efficiency Is Everything</a> was one of the first blogs that changed how I thought about time and optimization.
-      The creator breaks down things like the <strong>cheapest foods per calorie</strong> and how much time you lose on daily tasks like <strong>tying your shoes or making your bed.</strong>
-    </p>
-    <p>This mindset kindled my rush to save time since we all only have 24 hours a day.</p>
-  </section>
+    <InspirationCollage />
 
-  {/* 3. Michael Phelps */}
-  <section id="michael-phelps" class="inspo">
-    <h2>🏊 Michael Phelps and Journaling</h2>
-    <a href="https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/michael_phelps.webp"
-        alt="Michael Phelps journaling"
-      />
-    </a>
-    <p>
-      Even world-class athletes do it.
-      After reading
-      <a href="https://www.nytimes.com/athletic/6131365/2025/02/20/michael-phelps-journals-to-find-the-best-version-of-himself-when-i-tried-it-the-results-surprised-me/" target="_blank" rel="noopener noreferrer"> this article about Michael Phelps</a>,
-      I realized that technology can take this up a notch.
-    </p>
-    <p>You know what Google Sheets has over journaling?</p>
-    <ul>
-      <li>You can <strong>Ctrl + F</strong> for specific thoughts or entries.</li>
-      <li>You can <strong>see the data evolve</strong> over time.</li>
-      <li>A full year can be analyzed in minutes, and you still have every log.</li>
-    </ul>
-    <p>That’s when I knew structured journaling could become something bigger.</p>
-  </section>
+    <div class="chapters">
+      {chapters.map((chapter) => (
+        <section id={chapter.id} class="chapter" aria-labelledby={`${chapter.id}-title`}>
+          <header class="chapter-heading">
+            <p class="chapter-eyebrow">{chapter.eyebrow}</p>
+            <h2 id={`${chapter.id}-title`}>{chapter.title}</h2>
+            <p>{chapter.intro}</p>
+          </header>
 
-  {/* 4. Perfice */}
-  <section id="perfice" class="inspo">
-    <h2>📱 Perfice: Tracking Life as an App</h2>
-    <a href="https://perfice.adoe.dev/" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/perfice.webp"
-        alt="Perfice life-tracking app"
-      />
-    </a>
-    <p>
-      <a href="https://perfice.adoe.dev/" target="_blank" rel="noopener noreferrer">Perfice</a> is a minimal life-tracking app.
-      I could build something similar one day, but for now I enjoy the <strong>interactivity and transparency</strong> of my Google Sheets systems.
-    </p>
-  </section>
+          <div class="chapter-cards">
+            {chapter.items.map((item) => (
+              <article id={item.id} class:list={['inspiration-card', { reverse: item.reverse }]}>
+                <a
+                  class="inspiration-media"
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${item.cta}: ${item.title}`}
+                >
+                  <img src={item.src} alt={item.alt} loading="lazy" decoding="async" />
+                  <span class="media-number" aria-hidden="true">{item.number}</span>
+                  <span class="media-action" aria-hidden="true">Open ↗</span>
+                </a>
 
-  {/* 4.5 VeganTechNomad */}
-  <section id="vegantechnomad" class="inspo">
-    <h2>🌍 VeganTechNomad: Minimalist Lifestyle Logging</h2>
-    <a href="https://www.youtube.com/@VeganTechNomad" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/vegantechnomad.webp"
-        alt="VeganTechNomad YouTube channel"
-      />
-    </a>
-    <p>
-      <strong>VeganTechNomad</strong> approaches life-tracking from a simple, lightweight, habit-based perspective. Her work shows that even small-scale tracking can help people reflect on how they live.
-    </p>
-    <p>
-      My philosophy takes the opposite direction. I build deep, structured, lifelong data systems in Google Sheets that treat life as a measurable framework rather than a casual log.
-    </p>
-    <p>
-      I’ll be sharing more about this approach soon on my upcoming <strong>LifeLoggerz YouTube channel</strong>, where I’ll walk through the architecture behind my tracking systems and how they scale across years of life.
-    </p>
-  </section>
+                <div class="inspiration-copy">
+                  <div class="card-meta">
+                    <span class="card-number">{item.number}</span>
+                    <span class="category-pill">{item.category}</span>
+                  </div>
+                  <h3>{item.title}</h3>
+                  <p class="card-subtitle">{item.subtitle}</p>
 
-  {/* 5. Feltron */}
-  <section id="feltron" class="inspo">
-    <h2>🎨 Feltron’s 2014 Annual Report</h2>
-    <a href="http://feltron.com/FAR14.html" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/feltron.webp"
-        alt="Feltron 2014 Life Report"
-      />
-    </a>
-    <p>
-      Nicholas Felton’s
-      <a href="http://feltron.com/FAR14.html" target="_blank" rel="noopener noreferrer"> 2014 Life Report</a>
-      blew my mind. The design made the raw data feel <strong>alive</strong>.
-    </p>
-    <p>
-      Feel free to improve on my systems in the <strong>aesthetics department</strong>.
-      I haven’t explored Looker Studio or Power BI yet, but visual storytelling is high on my list for future upgrades.
-    </p>
-  </section>
+                  <div class="card-paragraphs">
+                    {item.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+                  </div>
 
-  {/* 6. Raptitude */}
-  <section id="raptitude" class="inspo">
-    <h2>🌱 Raptitude: Experiments in Living Better</h2>
-    <a href="https://www.raptitude.com" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/raptitude.webp"
-        alt="Raptitude blog"
-      />
-    </a>
-    <p>
-      <a href="https://www.raptitude.com" target="_blank" rel="noopener noreferrer">Raptitude</a> inspired me to view self-improvement as a series of
-      <strong> experiments</strong>. It’s not about perfection; it’s about iteration.
-    </p>
-    <p>This blog isn’t just about tracking. It’s about <strong>improving workflows, free time, and ultimately life</strong>.</p>
-  </section>
+                  <aside class="takeaway">
+                    <span>What I carried forward</span>
+                    <p>{item.takeaway}</p>
+                  </aside>
 
-  {/* 7. Quantified Self */}
-  <section id="quantified-self" class="inspo">
-    <h2>📊 Quantified Self</h2>
-    <a href="https://dailyvis.com/posts/quantified-self-why-i-track-my-life-in-data/" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/dailyvis.webp"
-        alt="Quantified Self"
-      />
-    </a>
-    <p>
-      The <a href="https://dailyvis.com/posts/quantified-self-why-i-track-my-life-in-data/" target="_blank" rel="noopener noreferrer">Quantified Self</a> community guided my work as I sought to track more and more aspects of my life.
-      It’s not about collecting data for data’s sake, but using it to make better decisions.
-    </p>
-  </section>
+                  <div class="card-actions">
+                    <a class="external-link" href={item.href} target="_blank" rel="noopener noreferrer">
+                      {item.cta} <span aria-hidden="true">↗</span>
+                    </a>
+                    {item.internalLinks.map((link) => (
+                      <a class="internal-link" href={link.href}>{link.label} <span aria-hidden="true">→</span></a>
+                    ))}
+                  </div>
 
-  {/* 8. RYOT */}
-  <section id="ryot" class="inspo">
-    <h2>📊 RYOT GitHub</h2>
-    <a href="https://github.com/IgnisDa/ryot" target="_blank" rel="noopener noreferrer">
-      <SectionHero
-        src="/images_webp/ryot.webp"
-        alt="RYOT GitHub"
-      />
-    </a>
-    <p>
-      This GitHub project introduced me to RainDrop, a service that helps with keeping a gallery for covers of your media (books, art, albums, etc). Check out those pages in the header.
-    </p>
-  </section>
+                  <a class="back-to-map" href="#idea-map">Back to the idea map <span aria-hidden="true">↑</span></a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
 
-  <h2>💬 Final Thoughts</h2>
-  <p>
-    You think you can do better? Try <strong>Looker Studio</strong>, <strong>Power BI</strong>, or any tool I haven’t explored yet.
-    I avoid deep biometrics for now (ex: calories, bathroom breaks, etc) since I track what I feel is important. That might be different for you.
-  </p>
+    <section class="synthesis" aria-labelledby="synthesis-title">
+      <header class="section-heading">
+        <p class="page-eyebrow">The synthesis</p>
+        <h2 id="synthesis-title">What these influences became</h2>
+        <p>
+          None of them supplied a complete blueprint. Together, they helped form four principles
+          that now guide what I track, what I automate, and what I choose to publish.
+        </p>
+      </header>
 
-  <hr />
-  <p class="centered-caption">
-    <em>Thanks to every creator who sparked the ideas for me to quantify life itself.</em>
-  </p>
+      <div class="principle-grid">
+        {principles.map((principle) => (
+          <article class="principle-card">
+            <span>{principle.number}</span>
+            <h3>{principle.title}</h3>
+            <p>{principle.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="closing-panel" aria-labelledby="closing-title">
+      <p class="page-eyebrow">From inspiration to system</p>
+      <h2 id="closing-title">These ideas became LifeLoggerz</h2>
+      <p>
+        I borrowed principles, adapted them to my own life, and built something different. That is
+        the point: take what helps, discard what does not, and create a system that fits the life
+        you actually live.
+      </p>
+      <div class="closing-actions">
+        <a class="button button-primary" href="/stats/">Explore the Data <span aria-hidden="true">→</span></a>
+        <a class="button button-secondary" href="/templates/">Use the Templates</a>
+        <a class="text-link" href="/about/">Read the About Page <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
 </Layout>
 
+<style is:global>
+  .inspirations-page {
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: rgba(15, 23, 42, 0.11);
+    --surface: rgba(255, 255, 255, 0.88);
+    --green: #166534;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    color: var(--ink);
+  }
 
-<style>
-  /* Center headings on this page */
-  .inspo h2,
-  h2 {
+  .inspirations-page *,
+  .inspirations-page *::before,
+  .inspirations-page *::after {
+    box-sizing: border-box;
+  }
+
+  .inspirations-page a {
+    text-underline-offset: 0.18em;
+  }
+
+  .page-hero {
+    position: relative;
+    overflow: hidden;
+    margin: 0.5rem auto 2.5rem;
+    padding: clamp(2.1rem, 5vw, 4.5rem) clamp(1.25rem, 5vw, 4.75rem);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(134, 239, 172, 0.36), transparent 31%),
+      radial-gradient(circle at 88% 15%, rgba(147, 197, 253, 0.35), transparent 33%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(254, 249, 195, 0.68));
+    box-shadow: 0 22px 58px rgba(15, 23, 42, 0.1);
     text-align: center;
-    margin: 2.5rem 0 1rem;
   }
 
-  /* Space out entries and add a subtle divider */
-  .inspo + .inspo { margin-top: 2.5rem; }
-  .inspo {
-    scroll-margin-top: 6rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(0,0,0,.08);
+  .page-hero::after {
+    position: absolute;
+    right: -4rem;
+    bottom: -5rem;
+    width: 15rem;
+    height: 15rem;
+    border: 1px solid rgba(37, 99, 235, 0.13);
+    border-radius: 50%;
+    content: '';
   }
 
-  /* Keep the image visually grouped with its title */
-  .inspo h2 + a > .section-hero,
-  .inspo h2 + .section-hero {
-    margin-top: 0.75rem;  /* heading → image */
-    margin-bottom: 1rem;  /* image → text */
+  .page-eyebrow,
+  .chapter-eyebrow {
+    margin: 0;
+    color: var(--green);
+    font-size: 0.77rem;
+    font-weight: 900;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
   }
 
-  /* Clickable image hover cue */
-  .inspo a > .section-hero img {
-    transition: transform 0.2s ease, opacity 0.2s ease;
+  .page-hero h1 {
+    max-width: 900px;
+    margin: 0.55rem auto 1rem;
+    color: var(--ink);
+    font-size: clamp(2.65rem, 7vw, 5.6rem);
+    line-height: 0.96;
+    letter-spacing: -0.065em;
   }
-  .inspo a:hover > .section-hero img {
-    transform: scale(1.02);
-    opacity: 0.9;
-    cursor: pointer;
+
+  .page-hero h1 span {
+    background: linear-gradient(90deg, #166534, #1d4ed8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-lede {
+    max-width: 790px;
+    margin: 0 auto;
+    color: #334155;
+    font-size: clamp(1.05rem, 1.9vw, 1.26rem);
+    line-height: 1.68;
+  }
+
+  .hero-actions,
+  .closing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.6rem;
+  }
+
+  .inspirations-page .button,
+  .inspirations-page .external-link {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.72rem 1.05rem;
+    border-radius: 999px;
+    font-size: 0.92rem;
+    font-weight: 850;
+    line-height: 1.1;
+    text-decoration: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  }
+
+  .button-primary,
+  .external-link {
+    border: 1px solid #0f172a;
+    background: #0f172a;
+    color: #fff !important;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+  }
+
+  .button-secondary {
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    background: rgba(255, 255, 255, 0.72);
+    color: #0f172a !important;
+  }
+
+  .inspirations-page .button:hover,
+  .inspirations-page .external-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  }
+
+  .chapters {
+    display: grid;
+    gap: 5.25rem;
+  }
+
+  .chapter {
+    scroll-margin-top: 5.5rem;
+  }
+
+  .chapter-heading,
+  .section-heading {
+    max-width: 800px;
+    margin: 0 auto 1.7rem;
+    text-align: center;
+  }
+
+  .chapter-heading h2,
+  .section-heading h2,
+  .closing-panel h2 {
+    margin: 0.35rem 0 0.65rem;
+    color: var(--ink);
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+  }
+
+  .chapter-heading > p:last-child,
+  .section-heading > p:last-child {
+    margin: 0 auto;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .chapter-cards {
+    display: grid;
+    gap: 1.35rem;
+  }
+
+  .inspiration-card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    overflow: hidden;
+    min-height: 430px;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--surface);
+    box-shadow: 0 17px 45px rgba(15, 23, 42, 0.085);
+    scroll-margin-top: 5.5rem;
+    backdrop-filter: blur(14px);
+  }
+
+  .inspiration-card.reverse .inspiration-media {
+    order: 2;
+  }
+
+  .inspiration-card.reverse .inspiration-copy {
+    order: 1;
+  }
+
+  .inspiration-media {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    min-height: 100%;
+    background: #111827;
+    text-decoration: none;
+    isolation: isolate;
+  }
+
+  .inspiration-media::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    content: '';
+    background: linear-gradient(to top, rgba(2, 6, 23, 0.44), transparent 55%);
+    pointer-events: none;
+  }
+
+  .inspiration-media img {
+    width: 100%;
+    height: 100%;
+    min-height: 430px;
+    object-fit: cover;
+    transition: transform 0.32s ease, filter 0.32s ease;
+  }
+
+  .inspiration-media:hover img,
+  .inspiration-media:focus-visible img {
+    transform: scale(1.035);
+    filter: saturate(1.04);
+  }
+
+  .media-number,
+  .media-action {
+    position: absolute;
+    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(15, 23, 42, 0.58);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+    backdrop-filter: blur(10px);
+  }
+
+  .media-number {
+    top: 1rem;
+    left: 1rem;
+    display: inline-grid;
+    width: 2.55rem;
+    height: 2.55rem;
+    place-items: center;
+    border-radius: 999px;
+  }
+
+  .media-action {
+    right: 1rem;
+    bottom: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  .inspiration-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(1.5rem, 3.6vw, 3.4rem);
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .card-number {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+  }
+
+  .category-pill {
+    display: inline-flex;
+    padding: 0.28rem 0.62rem;
+    border: 1px solid rgba(22, 101, 52, 0.2);
+    border-radius: 999px;
+    background: rgba(220, 252, 231, 0.72);
+    color: #166534;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .inspiration-copy h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(1.75rem, 3.3vw, 2.75rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+  }
+
+  .card-subtitle {
+    margin: 0.55rem 0 1.25rem;
+    color: #315cf6;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+
+  .card-paragraphs p {
+    margin: 0 0 0.85rem;
+    color: #334155;
+    line-height: 1.68;
+  }
+
+  .takeaway {
+    margin: 0.55rem 0 1.2rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(37, 99, 235, 0.14);
+    border-left: 4px solid #2563eb;
+    border-radius: 0 16px 16px 0;
+    background: linear-gradient(100deg, rgba(219, 234, 254, 0.7), rgba(240, 253, 244, 0.62));
+  }
+
+  .takeaway span {
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #1e40af;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .takeaway p {
+    margin: 0;
+    color: #172554;
+    font-weight: 700;
+    line-height: 1.52;
+  }
+
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.9rem;
+  }
+
+  .internal-link,
+  .text-link,
+  .back-to-map {
+    color: #1d4ed8 !important;
+    font-size: 0.87rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .internal-link:hover,
+  .text-link:hover,
+  .back-to-map:hover {
+    text-decoration: underline;
+  }
+
+  .back-to-map {
+    display: none;
+    margin-top: 1.05rem;
+  }
+
+  .synthesis {
+    margin-top: 5.5rem;
+    padding: clamp(1.5rem, 4vw, 3.25rem);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(191, 219, 254, 0.55), transparent 36%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.91), rgba(240, 253, 244, 0.78));
+    box-shadow: 0 17px 44px rgba(15, 23, 42, 0.075);
+  }
+
+  .principle-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .principle-card {
+    padding: 1.2rem;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 19px;
+    background: rgba(255, 255, 255, 0.74);
+  }
+
+  .principle-card > span {
+    color: #2563eb;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+  }
+
+  .principle-card h3 {
+    margin: 0.45rem 0 0.45rem;
+    color: var(--ink);
+    font-size: 1.1rem;
+    line-height: 1.18;
+  }
+
+  .principle-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .closing-panel {
+    margin: 2.2rem 0 1rem;
+    padding: clamp(2rem, 5vw, 4.5rem);
+    border: 1px solid rgba(15, 23, 42, 0.11);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at 8% 25%, rgba(134, 239, 172, 0.33), transparent 28%),
+      radial-gradient(circle at 92% 20%, rgba(147, 197, 253, 0.35), transparent 30%),
+      linear-gradient(130deg, rgba(254, 249, 195, 0.74), rgba(255, 255, 255, 0.9));
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.09);
+    text-align: center;
+  }
+
+  .closing-panel > p:not(.page-eyebrow) {
+    max-width: 760px;
+    margin: 0 auto;
+    color: #334155;
+    line-height: 1.7;
+  }
+
+  .closing-actions .text-link {
+    padding: 0.65rem;
+  }
+
+  .inspiration-media:focus-visible,
+  .inspirations-page a:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 980px) {
+    .inspiration-card {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    }
+
+    .principle-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    article.wrap,
+    .prose {
+      width: 100% !important;
+      max-width: none !important;
+      padding-inline: 0.55rem !important;
+    }
+
+    .inspirations-page {
+      width: 100%;
+      max-width: none;
+    }
+
+    .page-hero {
+      margin-top: 0.15rem;
+      margin-bottom: 2rem;
+      padding: 2rem 1rem;
+      border-radius: 22px;
+    }
+
+    .page-hero h1 {
+      margin-top: 0.45rem;
+      font-size: clamp(2.35rem, 13vw, 3.45rem);
+    }
+
+    .hero-lede {
+      font-size: 1rem;
+      line-height: 1.58;
+    }
+
+    .hero-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      gap: 0.55rem;
+      margin-top: 1.25rem;
+    }
+
+    .inspirations-page .button {
+      min-width: 0;
+      min-height: 44px;
+      padding: 0.68rem 0.72rem;
+      font-size: 0.82rem;
+    }
+
+    .chapters {
+      gap: 4rem;
+    }
+
+    .chapter-heading,
+    .section-heading {
+      padding-inline: 0.35rem;
+    }
+
+    .chapter-heading h2,
+    .section-heading h2,
+    .closing-panel h2 {
+      font-size: clamp(1.9rem, 10vw, 2.5rem);
+    }
+
+    .chapter-cards {
+      gap: 1rem;
+    }
+
+    .inspiration-card,
+    .inspiration-card.reverse {
+      display: flex;
+      min-height: 0;
+      flex-direction: column;
+      border-radius: 21px;
+    }
+
+    .inspiration-card.reverse .inspiration-media,
+    .inspiration-card.reverse .inspiration-copy {
+      order: initial;
+    }
+
+    .inspiration-media {
+      width: 100%;
+      min-height: 0;
+      aspect-ratio: 16 / 10;
+    }
+
+    .inspiration-media img {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+    }
+
+    .inspiration-copy {
+      padding: 1.15rem 1rem 1.2rem;
+    }
+
+    .card-meta {
+      margin-bottom: 0.65rem;
+    }
+
+    .inspiration-copy h3 {
+      font-size: clamp(1.65rem, 9vw, 2.15rem);
+    }
+
+    .card-subtitle {
+      margin: 0.42rem 0 0.9rem;
+      font-size: 0.93rem;
+    }
+
+    .card-paragraphs p {
+      margin-bottom: 0.72rem;
+      font-size: 0.95rem;
+      line-height: 1.62;
+    }
+
+    .takeaway {
+      margin: 0.38rem 0 1rem;
+      padding: 0.85rem 0.9rem;
+      border-radius: 0 14px 14px 0;
+    }
+
+    .takeaway p {
+      font-size: 0.92rem;
+    }
+
+    .card-actions {
+      align-items: stretch;
+    }
+
+    .external-link {
+      width: 100%;
+    }
+
+    .internal-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0;
+    }
+
+    .back-to-map {
+      display: inline-flex;
+    }
+
+    .synthesis {
+      margin-top: 4rem;
+      padding: 1.35rem 0.9rem;
+      border-radius: 22px;
+    }
+
+    .principle-grid {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    .principle-card {
+      padding: 1rem;
+      border-radius: 16px;
+    }
+
+    .closing-panel {
+      margin-top: 1.4rem;
+      padding: 2rem 1rem;
+      border-radius: 22px;
+    }
+
+    .closing-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      gap: 0.55rem;
+    }
+
+    .closing-actions .text-link {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 405px) {
+    article.wrap,
+    .prose {
+      padding-inline: 0.4rem !important;
+    }
+
+    .hero-actions,
+    .closing-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .closing-actions .text-link {
+      grid-column: auto;
+    }
+
+    .page-hero,
+    .inspiration-card,
+    .synthesis,
+    .closing-panel {
+      border-radius: 18px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .inspiration-media img,
+    .inspirations-page .button,
+    .inspirations-page .external-link {
+      transition: none;
+    }
   }
 </style>
