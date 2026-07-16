@@ -105,7 +105,7 @@ const metrics = [
         <strong id="summary-peak">—</strong>
       </article>
       <article class="summary-stat">
-        <span>Change from prior year</span>
+        <span id="summary-change-label">Change from prior year</span>
         <strong id="summary-change">—</strong>
       </article>
     </div>
@@ -153,7 +153,7 @@ const metrics = [
       <h2 id="hobby-heading">Where my hobby time went</h2>
     </div>
     <p>
-      This chart combines only activities measured in hours. Running remains in miles in the main explorer, and dance appears automatically once the public archive supplies monthly dance hours.
+      This chart compares activities on one time scale. Running miles are converted at an estimated 10 minutes per mile, while dance appears automatically once the public archive supplies monthly dance hours.
     </p>
   </div>
 
@@ -170,7 +170,7 @@ const metrics = [
     </div>
 
     <div class="hobby-summary">
-      <span>Total hour-based hobby time</span>
+      <span>Total hobby time</span>
       <strong id="hobby-total">—</strong>
       <p id="hobby-availability">Loading available hour-based activities…</p>
     </div>
@@ -219,7 +219,9 @@ const metrics = [
   (() => {
     const API_URL =
       'https://script.google.com/macros/s/AKfycbw2o8bsw-UGn-qizyftLnuFSUwqR_5RITxhmqkBBCS9YoGkMhIsx97wkzUtv99DoNBJsw/exec';
-    const CACHE_KEY = 'lifeloggerz-monthly-archive-v4';
+    const CACHE_KEY = 'lifeloggerz-monthly-archive-v5';
+    const RUNNING_MINUTES_PER_MILE = 10;
+    const RUNNING_HOURS_PER_MILE = RUNNING_MINUTES_PER_MILE / 60;
     const CURRENT_YEAR = new Date().getFullYear();
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const MONTH_LOOKUP = {
@@ -310,7 +312,7 @@ const metrics = [
       guitar: { key: 'guitar', label: 'Guitar', icon: '🎸', color: COLORS.guitar },
       audiobooks: { key: 'audiobooks', label: 'Audiobooks', icon: '📚', color: COLORS.audiobooks },
       dance: { key: 'dance', label: 'Dance', icon: '💃', color: COLORS.dance },
-      runninghours: { key: 'runninghours', label: 'Running time', icon: '🏃‍♂️', color: COLORS.runninghours },
+      runninghours: { key: 'runninghours', label: 'Running time (estimated)', icon: '🏃‍♂️', color: COLORS.runninghours },
     };
 
     const state = {
@@ -350,7 +352,7 @@ const metrics = [
     function normalizeData(rawData) {
       const source = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
 
-      return source
+      const normalized = source
         .map((row) => {
           const metric = canonicalMetric(row?.metric ?? row?.Metric ?? row?.category);
           const year = Number(row?.year ?? row?.Year);
@@ -362,9 +364,30 @@ const metrics = [
             year,
             month,
             value: Number.isFinite(value) ? value : 0,
+            estimated: false,
           };
         })
-        .filter((row) => row.metric && row.year && row.month && row.year <= CURRENT_YEAR)
+        .filter((row) => row.metric && row.year && row.month && row.year <= CURRENT_YEAR);
+
+      // Running is logged as distance. Derive an hour-based companion series for
+      // the hobby-time graph using the stated assumption of 10 minutes per mile.
+      // If measured running-hour rows are supplied later, they take precedence.
+      const explicitRunningHours = new Set(
+        normalized
+          .filter((row) => row.metric === 'runninghours')
+          .map((row) => `${row.year}-${row.month}`)
+      );
+      const derivedRunningHours = normalized
+        .filter((row) => row.metric === 'running')
+        .filter((row) => !explicitRunningHours.has(`${row.year}-${row.month}`))
+        .map((row) => ({
+          ...row,
+          metric: 'runninghours',
+          value: row.value * RUNNING_HOURS_PER_MILE,
+          estimated: true,
+        }));
+
+      return [...normalized, ...derivedRunningHours]
         .sort((a, b) => a.year - b.year || MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month));
     }
 
@@ -380,6 +403,10 @@ const metrics = [
       const metric = METRICS[metricKey] || METRICS.guitar;
       const formatted = formatNumber(value, metric.decimals);
       return includeUnit ? `${formatted} ${metric.unit}` : formatted;
+    }
+
+    function formatRunningWithEstimate(miles) {
+      return `${formatMetricValue('running', miles)} · ≈ ${formatNumber(miles * RUNNING_HOURS_PER_MILE, 1)} hours`;
     }
 
     function monthsForYear(year) {
@@ -402,6 +429,7 @@ const metrics = [
           month,
           value: record ? Number(record.value) || 0 : 0,
           recorded: Boolean(record),
+          estimated: Boolean(record?.estimated),
         };
       });
     }
@@ -428,8 +456,12 @@ const metrics = [
       });
     }
 
-    function summarizeYear(metricKey, year) {
-      const values = valuesForYear(metricKey, year);
+    function summarizeYear(metricKey, year, throughMonthIndex = null) {
+      let values = valuesForYear(metricKey, year);
+      if (Number.isInteger(throughMonthIndex) && throughMonthIndex >= 0) {
+        values = values.filter((item) => MONTHS.indexOf(item.month) <= throughMonthIndex);
+      }
+
       const recorded = values.filter((item) => item.recorded);
       const positive = recorded.filter((item) => item.value > 0);
       const metric = METRICS[metricKey] || METRICS.guitar;
@@ -458,6 +490,17 @@ const metrics = [
         count: recorded.length,
         metric,
       };
+    }
+
+    function lastRecordedMonthIndex(metricKey, year) {
+      const indices = state.data
+        .filter((row) => row.metric === metricKey && row.year === year)
+        .map((row) => MONTHS.indexOf(row.month))
+        .filter((index) => index >= 0);
+
+      if (!indices.length) return -1;
+      const latest = Math.max(...indices);
+      return year === CURRENT_YEAR ? Math.min(latest, new Date().getMonth()) : latest;
     }
 
     function percentageChange(current, previous) {
@@ -666,12 +709,15 @@ const metrics = [
 
     function updateSummaryCards() {
       const metric = METRICS[state.metric] || METRICS.guitar;
-      const summary = summarizeYear(state.metric, state.year);
-      const prior = summarizeYear(state.metric, state.year - 1);
-      const change = percentageChange(summary.primary, prior.primary);
+      const priorYear = state.year - 1;
+      const throughMonthIndex = lastRecordedMonthIndex(state.metric, state.year);
+      const summary = summarizeYear(state.metric, state.year, throughMonthIndex);
+      const prior = summarizeYear(state.metric, priorYear, throughMonthIndex);
+      const change = summary.count && prior.count ? percentageChange(summary.primary, prior.primary) : null;
 
       const primaryLabel = document.getElementById('summary-primary-label');
       const averageLabel = document.getElementById('summary-average-label');
+      const changeLabel = document.getElementById('summary-change-label');
       const primary = document.getElementById('summary-primary');
       const average = document.getElementById('summary-average');
       const peak = document.getElementById('summary-peak');
@@ -679,6 +725,12 @@ const metrics = [
 
       if (primaryLabel) primaryLabel.textContent = metric.primaryLabel;
       if (averageLabel) averageLabel.textContent = metric.averageLabel;
+      if (changeLabel) {
+        const throughLabel = throughMonthIndex >= 0 && throughMonthIndex < 11
+          ? ` through ${MONTHS[throughMonthIndex]}`
+          : '';
+        changeLabel.textContent = `Change vs ${priorYear}${throughLabel}`;
+      }
       if (primary) primary.textContent = formatMetricValue(state.metric, summary.primary);
       if (average) {
         average.textContent = state.metric === 'diary'
@@ -692,7 +744,7 @@ const metrics = [
       }
       if (changeElement) {
         if (change === null) {
-          changeElement.textContent = 'No prior-year baseline';
+          changeElement.textContent = 'No comparable baseline';
           changeElement.dataset.direction = 'neutral';
         } else {
           const sign = change > 0 ? '+' : '';
@@ -715,10 +767,14 @@ const metrics = [
         const viewText = state.view === 'cumulative'
           ? state.metric === 'diary' ? 'Running average' : 'Cumulative total'
           : 'Monthly values';
+        const runningEstimate = state.metric === 'running'
+          ? `<span>Estimated running time <strong>${escapeHtml(formatNumber(summary.primary * RUNNING_HOURS_PER_MILE, 1))} hours</strong></span>`
+          : '';
         facts.innerHTML = `
           <span>Selected period <strong>${escapeHtml(state.year)}</strong></span>
           <span>View <strong>${escapeHtml(viewText)}</strong></span>
           <span>Months recorded <strong>${escapeHtml(summary.count)}</strong></span>
+          ${runningEstimate}
         `;
       }
     }
@@ -937,12 +993,13 @@ const metrics = [
         if (yearOutput) {
           if (!currentSummary.count) yearOutput.textContent = 'No 2026 data yet';
           else if (metricKey === 'diary') yearOutput.textContent = `${formatNumber(currentSummary.primary)} words/day`;
+          else if (metricKey === 'running') yearOutput.textContent = formatRunningWithEstimate(currentSummary.primary);
           else yearOutput.textContent = formatMetricValue(metricKey, currentSummary.primary);
         }
 
         if (peakOutput) {
           peakOutput.textContent = peak
-            ? `${peak.month} ${peak.year} · ${formatMetricValue(metricKey, peak.value)}`
+            ? `${peak.month} ${peak.year} · ${metricKey === 'running' ? formatRunningWithEstimate(peak.value) : formatMetricValue(metricKey, peak.value)}`
             : 'No monthly data';
         }
       });
@@ -976,12 +1033,12 @@ const metrics = [
 
         if (monthOutput) {
           monthOutput.textContent = bestMonth
-            ? `${bestMonth.month} ${bestMonth.year} · ${formatMetricValue(metricKey, bestMonth.value)}`
+            ? `${bestMonth.month} ${bestMonth.year} · ${metricKey === 'running' ? formatRunningWithEstimate(bestMonth.value) : formatMetricValue(metricKey, bestMonth.value)}`
             : 'No data';
         }
         if (yearOutput) {
           yearOutput.textContent = bestYear
-            ? `${bestYear.year} · ${formatMetricValue(metricKey, bestYear.primary)}`
+            ? `${bestYear.year} · ${metricKey === 'running' ? formatRunningWithEstimate(bestYear.primary) : formatMetricValue(metricKey, bestYear.primary)}`
             : 'No data';
         }
         card.classList.remove('record-card--loading');
@@ -1062,8 +1119,9 @@ const metrics = [
         .filter((key) => !available.includes(key))
         .map((key) => HOBBY_METRICS[key].label);
 
+      const runningIsEstimated = available.includes('runninghours') && state.data.some((row) => row.metric === 'runninghours' && row.estimated);
       availability.textContent = available.length
-        ? `${available.map((key) => HOBBY_METRICS[key].label).join(' and ')} are currently available in hours.${missingLabels.length ? ` Waiting for: ${missingLabels.join(', ')}.` : ''}`
+        ? `${available.map((key) => HOBBY_METRICS[key].label).join(', ')} are available.${runningIsEstimated ? ` Running uses ${RUNNING_MINUTES_PER_MILE} minutes per mile.` : ''}${missingLabels.length ? ` Waiting for: ${missingLabels.join(', ')}.` : ''}`
         : 'The public archive does not yet contain hour-based hobby series.';
 
       if (!selectedKeys.length) {
@@ -1087,7 +1145,7 @@ const metrics = [
         }, 0),
       }));
       const total = totalSeries.reduce((sum, item) => sum + item.value, 0);
-      totalOutput.textContent = `${formatNumber(total, 0)} hours in ${state.hobbyYear}`;
+      totalOutput.textContent = `${formatNumber(total, 1)} hours in ${state.hobbyYear}`;
 
       drawHobbyChart(host, series, totalSeries);
       legend.innerHTML =
@@ -1112,7 +1170,7 @@ const metrics = [
         .append('svg')
         .attr('viewBox', `0 0 ${width} ${height}`)
         .attr('role', 'img')
-        .attr('aria-label', `Hour-based hobby chart for ${state.hobbyYear}`)
+        .attr('aria-label', `Hobby-time chart for ${state.hobbyYear}; running time is estimated at ${RUNNING_MINUTES_PER_MILE} minutes per mile`)
         .style('width', '100%')
         .style('height', 'auto');
 
