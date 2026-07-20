@@ -18,9 +18,38 @@ const albums = await fetchAllRaindrops({
   placeholder: '/images_webp/album-placeholder.webp',
 });
 
+const getAlbumLength = (note?: string | null): string => {
+  const raw = String(note || '').trim();
+  if (!raw) return '';
+
+  const parts = raw
+    .split(/\s*[·•]\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  // Find the duration by its contents instead of assuming it is always
+  // the seventh metadata field. This accepts values such as:
+  // "62 min", "1 hr 12 min", "1h 12m", "43:20", or "1:03:20".
+  const durationPart = parts.find((part) =>
+    /^(?:\d+(?:\.\d+)?\s*(?:h|hr|hrs|hour|hours)\s*)?(?:\d+(?:\.\d+)?\s*(?:m|min|mins|minute|minutes))$/i.test(part) ||
+    /^\d+:\d{1,2}(?::\d{1,2})?$/.test(part),
+  );
+
+  if (durationPart) return durationPart;
+
+  // Fallback for notes whose separators or spacing are inconsistent.
+  return (
+    raw.match(
+      /\b(?:\d+(?:\.\d+)?\s*(?:h|hr|hrs|hour|hours)\s*)?(?:\d+(?:\.\d+)?\s*(?:m|min|mins|minute|minutes))\b/i,
+    )?.[0] ||
+    raw.match(/\b\d+:\d{1,2}(?::\d{1,2})?\b/)?.[0] ||
+    ''
+  );
+};
+
 const getAlbumMeta = (note?: string | null) => {
   const parts = String(note || '')
-    .split('·')
+    .split(/\s*[·•]\s*/)
     .map((part) => part.trim());
 
   return {
@@ -29,7 +58,7 @@ const getAlbumMeta = (note?: string | null) => {
     yearReleased: parts[3] || '',
     style: parts[4] || '',
     country: parts[5] || '',
-    length: parts[6] || '',
+    length: getAlbumLength(note),
     context: parts.slice(7).join(' · ') || '',
   };
 };
@@ -58,32 +87,55 @@ const parseLengthMinutes = (value?: string | null): number | null => {
   const raw = String(value || '').toLowerCase().trim();
   if (!raw) return null;
 
-  const colonMatch = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
-  if (colonMatch) {
-    const first = Number(colonMatch[1]);
-    const second = Number(colonMatch[2]);
-    const third = colonMatch[3] ? Number(colonMatch[3]) : null;
-    return third === null ? first * 60 + second : first * 60 + second + third / 60;
+  // Three fields are treated as hours:minutes:seconds.
+  const hoursMinutesSeconds = raw.match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
+  if (hoursMinutesSeconds) {
+    const hours = Number(hoursMinutesSeconds[1]);
+    const minutes = Number(hoursMinutesSeconds[2]);
+    const seconds = Number(hoursMinutesSeconds[3]);
+    return hours * 60 + minutes + seconds / 60;
+  }
+
+  // Two fields are treated as minutes:seconds, the usual album-runtime format.
+  const minutesSeconds = raw.match(/^(\d+):(\d{1,2})$/);
+  if (minutesSeconds) {
+    const minutes = Number(minutesSeconds[1]);
+    const seconds = Number(minutesSeconds[2]);
+    return minutes + seconds / 60;
   }
 
   const hoursMatch = raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/);
   const minutesMatch = raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/);
 
-  if (hoursMatch || minutesMatch) {
-    return (hoursMatch ? Number(hoursMatch[1]) * 60 : 0) +
-      (minutesMatch ? Number(minutesMatch[1]) : 0);
-  }
+  if (!hoursMatch && !minutesMatch) return null;
 
-  const numeric = Number.parseFloat(raw.replace(/[^\d.]/g, ''));
-  return Number.isFinite(numeric) ? numeric : null;
+  const total =
+    (hoursMatch ? Number(hoursMatch[1]) * 60 : 0) +
+    (minutesMatch ? Number(minutesMatch[1]) : 0);
+
+  return Number.isFinite(total) ? total : null;
 };
 
 const totalListeningMinutes = Math.round(
   albums.reduce((total, album) => {
-    const minutes = parseLengthMinutes(getAlbumMeta(album.note).length);
+    const minutes = parseLengthMinutes(getAlbumLength(album.note));
     return total + (minutes ?? 0);
   }, 0),
 );
+
+const albumsWithoutDuration = albums.filter(
+  (album) => parseLengthMinutes(getAlbumLength(album.note)) === null,
+);
+
+if (albumsWithoutDuration.length > 0) {
+  console.warn(
+    `[Albums] ${albumsWithoutDuration.length} of ${albums.length} albums have no parseable runtime.`,
+    albumsWithoutDuration.map((album) => ({
+      title: album.title,
+      note: album.note,
+    })),
+  );
+}
 
 const formatDuration = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
@@ -228,7 +280,7 @@ const totalListeningTime = formatDuration(totalListeningMinutes);
     <div class="intro" role="region" aria-label="Albums header">
       <h1>🎵 Albums</h1>
       <p class="hint">
-        {(albums.length).toLocaleString('en-US')} full albums · {totalListeningTime} of intentional, front-to-back listening.
+        {(albums.length).toLocaleString('en-US')} full albums · <span class="js-total-listening-time">{totalListeningTime}</span> of intentional, front-to-back listening.
       </p>
 
       <div class="toolbar">
@@ -310,7 +362,7 @@ const totalListeningTime = formatDuration(totalListeningMinutes);
         <h2>The Collection</h2>
         <p>
           This archive currently contains <strong>{albums.length.toLocaleString('en-US')} albums</strong> totaling
-          <strong>{totalListeningTime}</strong>. Classical listening is also tracked separately when it does not fit
+          <strong class="js-total-listening-time">{totalListeningTime}</strong>. Classical listening is also tracked separately when it does not fit
           neatly into an album entry.
         </p>
 
@@ -372,6 +424,7 @@ const totalListeningTime = formatDuration(totalListeningMinutes);
                 data-release-year={releaseYear ?? ''}
                 data-release-decade={releaseDecade}
                 data-length={meta.length}
+                data-length-minutes={parseLengthMinutes(meta.length) ?? ''}
                 data-original-index={index}
                 data-note={(album.note || '').toLowerCase()}
                 data-note-raw={album.note || ''}
@@ -437,6 +490,32 @@ const totalListeningTime = formatDuration(totalListeningMinutes);
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
+
+    function formatDuration(minutes){
+      const roundedMinutes = Math.round(minutes);
+      const hours = Math.floor(roundedMinutes / 60);
+      const remainingMinutes = roundedMinutes % 60;
+
+      if (hours <= 0) return `${remainingMinutes.toLocaleString('en-US')} min`;
+
+      return `${hours.toLocaleString('en-US')} hr${hours === 1 ? '' : 's'}${
+        remainingMinutes ? ` ${remainingMinutes} min` : ''
+      }`;
+    }
+
+    function updateTotalListeningTime(){
+      const totalMinutes = cards.reduce((total, card) => {
+        const minutes = Number(card.dataset.lengthMinutes);
+        return total + (Number.isFinite(minutes) ? minutes : 0);
+      }, 0);
+
+      $$('.js-total-listening-time').forEach(element => {
+        element.textContent = formatDuration(totalMinutes);
+      });
+    }
+
+    updateTotalListeningTime();
+
     const haystack = new Map(
       cards.map(card => [
         card,
