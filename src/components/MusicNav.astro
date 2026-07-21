@@ -1,0 +1,97 @@
+---
+type MusicSection = 'albums' | 'composers';
+
+interface Props {
+  active: MusicSection;
+}
+
+const { active } = Astro.props;
+
+const sections: Array<{ id: MusicSection; label: string; href: string }> = [
+  { id: 'albums', label: 'Albums', href: '/music/albums/' },
+  { id: 'composers', label: 'Composers', href: '/music/composers/' },
+];
+
+// Add Guitar and Favorites here once those routes are ready.
+---
+
+<nav class="music-nav" aria-label="Music sections">
+  <div class="music-nav__inner">
+    {sections.map((section) => (
+      <a
+        href={section.href}
+        class:list={['music-nav__item', { 'music-nav__item--active': active === section.id }]}
+        aria-current={active === section.id ? 'page' : undefined}
+      >
+        {section.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .music-nav {
+    width: 100%;
+    padding: 4px clamp(16px, 3vw, 48px) 18px;
+  }
+
+  .music-nav__inner {
+    display: flex;
+    width: max-content;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 4px;
+    gap: 4px;
+    overflow-x: auto;
+    border: 1px solid rgba(230, 233, 239, .96);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .88);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .07);
+    scrollbar-width: none;
+  }
+
+  .music-nav__inner::-webkit-scrollbar { display: none; }
+
+  .music-nav__item {
+    flex: 0 0 auto;
+    min-width: 92px;
+    padding: 9px 15px;
+    border-radius: 999px;
+    color: #5e6573;
+    font-size: .86rem;
+    font-weight: 750;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    transition: color .15s ease, background .15s ease, box-shadow .15s ease, transform .12s ease;
+  }
+
+  a.music-nav__item:hover {
+    color: #1f35b7;
+    background: #f0f2ff;
+    transform: translateY(-1px);
+  }
+
+  a.music-nav__item:focus-visible {
+    outline: 2px solid #405cf5;
+    outline-offset: 2px;
+  }
+
+  .music-nav__item--active {
+    color: #fff;
+    background: #405cf5;
+    box-shadow: 0 6px 14px rgba(64, 92, 245, .24);
+  }
+
+  a.music-nav__item--active:hover {
+    color: #fff;
+    background: #354edb;
+  }
+
+
+  @media (max-width: 560px) {
+    .music-nav { padding: 0 10px 13px; }
+    .music-nav__inner { width: 100%; }
+    .music-nav__item { flex: 1 0 auto; min-width: 84px; padding: 8px 12px; font-size: .78rem; }
+  }
+</style>
