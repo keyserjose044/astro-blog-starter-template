@@ -1,12 +1,13 @@
 ---
-// src/pages/albums.astro
+// src/pages/music/albums.astro
 // Revision: List/Quilt views, richer filters and sorting, live counts, and dynamic listening time — July 2026
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import VideoBg from '../components/VideoBg.astro';
-import { SITE_TITLE } from '../consts';
-import { fetchAllRaindrops } from '../utils/raindrop';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import VideoBg from '../../components/VideoBg.astro';
+import { SITE_TITLE } from '../../consts';
+import { fetchAllRaindrops } from '../../utils/raindrop';
+import MusicNav from '../../components/MusicNav.astro';
 
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
 const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID || '54514878';
@@ -152,7 +153,7 @@ const totalListeningTime = formatDuration(totalListeningMinutes);
 ---
 
 <BaseHead
-  title={`${SITE_TITLE} — Albums`}
+  title={`${SITE_TITLE} — Music — Albums`}
   description="A searchable, auto-updated archive of the full albums I have listened to."
 />
 
@@ -277,6 +278,7 @@ const totalListeningTime = formatDuration(totalListeningMinutes);
 <VideoBg>
   <Header />
   <main class="wrap wrap--wide">
+    <MusicNav active="albums" />
     <div class="intro" role="region" aria-label="Albums header">
       <h1>🎵 Albums</h1>
       <p class="hint">
