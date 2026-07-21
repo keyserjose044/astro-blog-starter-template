@@ -1,0 +1,788 @@
+---
+// src/pages/music/composers.astro
+// Raindrop composer gallery with an optional Google Sheets CSV listening feed.
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import VideoBg from '../../components/VideoBg.astro';
+import MusicNav from '../../components/MusicNav.astro';
+import { SITE_TITLE } from '../../consts';
+import { fetchAllRaindrops } from '../../utils/raindrop';
+
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
+const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_COMPOSERS_ID || '58399760';
+const CLASSICAL_LISTENING_CSV_URL = import.meta.env.CLASSICAL_LISTENING_CSV_URL;
+
+const slugify = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const normalize = (value?: string | null) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const composersRaw = await fetchAllRaindrops({
+  token: RAINDROP_TOKEN,
+  collectionId: COLLECTION_ID,
+  label: 'composers',
+  placeholder: '/images_webp/album-placeholder.webp',
+});
+
+const PERIODS = [
+  'Medieval',
+  'Renaissance',
+  'Baroque',
+  'Classical',
+  'Romantic',
+  'Late Romantic',
+  'Impressionist',
+  'Modern',
+  'Contemporary',
+];
+
+const parseComposerMeta = (title: string, note?: string | null) => {
+  const rawTitle = String(title || '').trim();
+  const rawNote = String(note || '').trim();
+  const combined = `${rawTitle} · ${rawNote}`;
+  const lifespanMatch = combined.match(/\b(\d{3,4})\s*[–—-]\s*(\d{3,4}|present)\b/i);
+  const cleanName = rawTitle
+    .replace(/\s*[([]?\d{3,4}\s*[–—-]\s*(?:\d{3,4}|present)[)\]]?\s*/i, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const parts = rawNote
+    .split(/\s*(?:·|•|\||\n)\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => !/^\d{3,4}\s*[–—-]\s*(?:\d{3,4}|present)$/i.test(part));
+
+  const period = PERIODS.find((candidate) =>
+    normalize(rawNote).includes(normalize(candidate)),
+  ) || '';
+
+  const nationality = parts.find((part) =>
+    !PERIODS.some((candidate) => normalize(part).includes(normalize(candidate))) &&
+    !/\b(?:born|died|composer|music|biography)\b/i.test(part) &&
+    part.length <= 45,
+  ) || '';
+
+  return {
+    name: cleanName || rawTitle,
+    id: slugify(cleanName || rawTitle),
+    birthYear: lifespanMatch?.[1] || '',
+    deathYear: lifespanMatch?.[2] || '',
+    nationality,
+    period,
+    note: rawNote,
+  };
+};
+
+type CsvRow = Record<string, string>;
+
+const parseCsv = (text: string): CsvRow[] => {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    const next = text[index + 1];
+
+    if (character === '"') {
+      if (quoted && next === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (character === ',' && !quoted) {
+      row.push(cell);
+      cell = '';
+    } else if ((character === '\n' || character === '\r') && !quoted) {
+      if (character === '\r' && next === '\n') index += 1;
+      row.push(cell);
+      if (row.some((value) => value.trim())) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += character;
+    }
+  }
+
+  row.push(cell);
+  if (row.some((value) => value.trim())) rows.push(row);
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map((header) => normalize(header));
+  return rows.slice(1).map((values) =>
+    Object.fromEntries(headers.map((header, index) => [header, String(values[index] || '').trim()])),
+  );
+};
+
+const firstValue = (row: CsvRow, aliases: string[]) => {
+  for (const alias of aliases) {
+    const value = row[normalize(alias)];
+    if (value) return value;
+  }
+  return '';
+};
+
+const parseMinutes = (value?: string | null, assumeHours = false): number => {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return 0;
+
+  if (/^\d+(?:\.\d+)?$/.test(raw)) {
+    const number = Number(raw);
+    return Number.isFinite(number) ? number * (assumeHours ? 60 : 1) : 0;
+  }
+
+  const clock = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (clock) {
+    if (clock[3]) return Number(clock[1]) * 60 + Number(clock[2]) + Number(clock[3]) / 60;
+    return Number(clock[1]) + Number(clock[2]) / 60;
+  }
+
+  const hours = Number(raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/)?.[1] || 0);
+  const minutes = Number(raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/)?.[1] || 0);
+  const total = hours * 60 + minutes;
+  return Number.isFinite(total) ? total : 0;
+};
+
+const parseDateValue = (value?: string | null) => {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+
+  const cleaned = raw.replace(/(\d)(st|nd|rd|th)\b/gi, '$1');
+  const numeric = cleaned.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
+  if (numeric) {
+    const year = numeric[3].length === 2 ? 2000 + Number(numeric[3]) : Number(numeric[3]);
+    const result = new Date(Date.UTC(year, Number(numeric[1]) - 1, Number(numeric[2])));
+    return Number.isNaN(result.getTime()) ? null : result;
+  }
+
+  const result = new Date(cleaned);
+  return Number.isNaN(result.getTime()) ? null : result;
+};
+
+const formatDate = (date: Date | null) =>
+  date
+    ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(date)
+    : '';
+
+const formatHours = (minutes: number) => {
+  const hours = minutes / 60;
+  if (hours < 1) return `${Math.round(minutes)} min`;
+  return `${hours.toLocaleString('en-US', { maximumFractionDigits: 1 })} hr${Math.abs(hours - 1) < .05 ? '' : 's'}`;
+};
+
+let sheetRows: CsvRow[] = [];
+let sheetError = '';
+
+if (CLASSICAL_LISTENING_CSV_URL) {
+  try {
+    const response = await fetch(CLASSICAL_LISTENING_CSV_URL);
+    if (!response.ok) throw new Error(`Google Sheets returned ${response.status}`);
+    sheetRows = parseCsv(await response.text());
+  } catch (error) {
+    sheetError = error instanceof Error ? error.message : String(error);
+    console.warn('[Composers] Classical listening sheet could not be loaded:', error);
+  }
+}
+
+const composersBase = composersRaw.map((composer, originalIndex) => {
+  const meta = parseComposerMeta(composer.title, composer.note);
+  return {
+    ...meta,
+    cover: composer.cover,
+    href: composer.href,
+    originalIndex,
+  };
+});
+
+const byExactName = new Map(composersBase.map((composer) => [normalize(composer.name), composer.id]));
+const bySlug = new Map(composersBase.map((composer) => [composer.id, composer.id]));
+const surnameCandidates = new Map<string, string[]>();
+
+composersBase.forEach((composer) => {
+  const surname = normalize(composer.name).split(' ').filter(Boolean).at(-1) || '';
+  if (!surname) return;
+  surnameCandidates.set(surname, [...(surnameCandidates.get(surname) || []), composer.id]);
+});
+
+const resolveComposerId = (row: CsvRow) => {
+  const explicitId = slugify(firstValue(row, ['composer id', 'composerid', 'composer slug', 'slug']));
+  if (explicitId && bySlug.has(explicitId)) return explicitId;
+
+  const composerName = firstValue(row, ['composer', 'composer name', 'name']);
+  const exact = byExactName.get(normalize(composerName));
+  if (exact) return exact;
+
+  const surname = normalize(composerName).split(' ').filter(Boolean).at(-1) || '';
+  const candidates = surnameCandidates.get(surname) || [];
+  return candidates.length === 1 ? candidates[0] : explicitId || slugify(composerName);
+};
+
+type ListeningEntry = {
+  composerId: string;
+  composerName: string;
+  piece: string;
+  form: string;
+  rating: string;
+  minutes: number;
+  listenedDateRaw: string;
+  listenedDate: Date | null;
+  compositionYear: string;
+  recording: string;
+};
+
+const listeningEntries: ListeningEntry[] = sheetRows
+  .map((row) => {
+    const hoursValue = firstValue(row, ['hours', 'listening hours']);
+    const minutesValue = firstValue(row, ['minutes', 'mins', 'duration', 'length']);
+    const composerName = firstValue(row, ['composer', 'composer name', 'name']);
+    const listenedDateRaw = firstValue(row, ['listening date', 'listened date', 'date listened', 'date']);
+
+    return {
+      composerId: resolveComposerId(row),
+      composerName,
+      piece: firstValue(row, ['piece', 'work', 'composition', 'title']),
+      form: firstValue(row, ['genre form', 'genre/form', 'form', 'genre', 'type']),
+      rating: firstValue(row, ['rating', 'score']),
+      minutes: hoursValue ? parseMinutes(hoursValue, true) : parseMinutes(minutesValue),
+      listenedDateRaw,
+      listenedDate: parseDateValue(listenedDateRaw),
+      compositionYear: firstValue(row, ['composition year', 'year composed', 'year']),
+      recording: firstValue(row, ['recording', 'performance', 'performer', 'artist']),
+    };
+  })
+  .filter((entry) => entry.composerId && entry.piece);
+
+const entriesByComposer = new Map<string, ListeningEntry[]>();
+listeningEntries.forEach((entry) => {
+  entriesByComposer.set(entry.composerId, [...(entriesByComposer.get(entry.composerId) || []), entry]);
+});
+
+const worthwhileRatings = new Set(['amazing', 'gorgeous']);
+const ratingOrder = new Map([
+  ['gorgeous', 4],
+  ['amazing', 3],
+  ['great', 2],
+  ['nice', 1],
+]);
+
+const uniqueByPiece = (entries: ListeningEntry[]) => {
+  const unique = new Map<string, ListeningEntry>();
+
+  entries.forEach((entry) => {
+    const key = normalize(entry.piece);
+    const current = unique.get(key);
+    if (!current || (ratingOrder.get(normalize(entry.rating)) || 0) > (ratingOrder.get(normalize(current.rating)) || 0)) {
+      unique.set(key, entry);
+    }
+  });
+
+  return [...unique.values()];
+};
+
+const composers = composersBase.map((composer) => {
+  const entries = entriesByComposer.get(composer.id) || [];
+  const uniqueWorks = uniqueByPiece(entries);
+  const worthRevisiting = uniqueWorks
+    .filter((entry) => worthwhileRatings.has(normalize(entry.rating)))
+    .sort((a, b) => (ratingOrder.get(normalize(b.rating)) || 0) - (ratingOrder.get(normalize(a.rating)) || 0));
+  const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
+  const dates = entries.map((entry) => entry.listenedDate).filter((date): date is Date => Boolean(date));
+  const firstListened = dates.length ? new Date(Math.min(...dates.map((date) => date.getTime()))) : null;
+  const lastListened = dates.length ? new Date(Math.max(...dates.map((date) => date.getTime()))) : null;
+  const formCounts = new Map<string, number>();
+
+  uniqueWorks.forEach((entry) => {
+    if (!entry.form) return;
+    formCounts.set(entry.form, (formCounts.get(entry.form) || 0) + 1);
+  });
+
+  const topForm = [...formCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+  const allWorks = [...uniqueWorks].sort((a, b) => a.piece.localeCompare(b.piece, undefined, { sensitivity: 'base', numeric: true }));
+
+  return {
+    ...composer,
+    entries,
+    allWorks,
+    worthRevisiting,
+    worksHeard: uniqueWorks.length,
+    totalMinutes,
+    firstListened,
+    lastListened,
+    topForm,
+  };
+});
+
+const periodsInUse = [...new Set(composers.map((composer) => composer.period).filter(Boolean))]
+  .sort((a, b) => PERIODS.indexOf(a) - PERIODS.indexOf(b));
+const totalWorks = composers.reduce((total, composer) => total + composer.worksHeard, 0);
+const totalMinutes = composers.reduce((total, composer) => total + composer.totalMinutes, 0);
+const hasListeningFeed = Boolean(CLASSICAL_LISTENING_CSV_URL && !sheetError);
+const unresolvedRows = listeningEntries.filter((entry) => !bySlug.has(entry.composerId));
+
+if (unresolvedRows.length) {
+  console.warn(
+    `[Composers] ${unresolvedRows.length} listening rows did not match a Raindrop composer. Add a stable "Composer ID" column.`,
+    unresolvedRows.slice(0, 20).map((entry) => ({ composer: entry.composerName, piece: entry.piece, resolvedId: entry.composerId })),
+  );
+}
+---
+
+<BaseHead
+  title={`${SITE_TITLE} — Music — Composers`}
+  description="Classical composers explored, works heard, and pieces worth revisiting."
+/>
+
+<style>
+  :root { --ink:#0e121b; --muted:#5e6573; --border:#e6e9ef; --surface:rgba(255,255,255,.92); --accent:#405cf5; }
+  * { box-sizing: border-box; }
+  .wrap { width:100%; margin:0 auto; padding:28px clamp(16px,3vw,48px) 50px; }
+  .intro { max-width:1050px; margin:0 auto 21px; text-align:center; }
+  h1 { margin:0 0 10px; font-weight:800; letter-spacing:-.025em; }
+  .hint { margin:0 auto 18px; max-width:68ch; color:var(--muted); line-height:1.5; }
+  .feed-notice { max-width:850px; margin:0 auto 18px; padding:11px 14px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.82); color:var(--muted); font-size:.84rem; line-height:1.45; }
+  .feed-notice strong { color:var(--ink); }
+  .toolbar { display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin:0 auto 10px; }
+  .toolbar input,.toolbar select { min-height:42px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--ink); font:inherit; font-size:.88rem; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .toolbar input { width:min(310px,100%); }
+  .toolbar select { min-width:150px; }
+  .results-row { display:flex; align-items:center; justify-content:center; gap:9px; min-height:28px; margin-bottom:15px; color:var(--muted); font-size:.82rem; }
+  .results-row p { margin:0; }
+  .clear-filters { border:0; background:transparent; color:#314bd8; font:inherit; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+
+  .composer-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); gap:18px; max-width:1780px; margin:0 auto; align-items:start; }
+  .composer-card { min-width:0; }
+  .composer-button { width:100%; padding:0; border:0; border-radius:15px; background:var(--surface); color:inherit; text-align:left; cursor:pointer; overflow:hidden; box-shadow:0 9px 24px rgba(15,23,42,.09); transition:transform .16s ease,box-shadow .16s ease; }
+  .composer-button:hover { transform:translateY(-3px); box-shadow:0 14px 32px rgba(15,23,42,.14); }
+  .composer-button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  .composer-button[aria-expanded="true"] { box-shadow:0 0 0 2px var(--accent),0 14px 30px rgba(15,23,42,.13); }
+  .portrait-wrap { position:relative; aspect-ratio:4/5; overflow:hidden; background:#eef0f5; }
+  .portrait { width:100%; height:100%; object-fit:cover; object-position:center 18%; display:block; transition:transform .25s ease; }
+  .composer-button:hover .portrait { transform:scale(1.025); }
+  .expand-cue { position:absolute; right:10px; bottom:10px; display:grid; place-items:center; width:31px; height:31px; border-radius:999px; background:rgba(14,18,27,.78); color:#fff; font-size:1.1rem; line-height:1; backdrop-filter:blur(5px); }
+  .composer-button[aria-expanded="true"] .expand-cue { transform:rotate(45deg); }
+  .card-body { min-height:154px; padding:13px 14px 14px; }
+  .composer-name { display:block; margin-bottom:4px; font-size:1rem; font-weight:800; line-height:1.25; }
+  .composer-meta { display:block; min-height:2.55em; color:var(--muted); font-size:.78rem; line-height:1.35; }
+  .composer-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:11px; }
+  .stat { min-width:0; padding:7px 8px; border-radius:9px; background:#f4f5f9; }
+  .stat strong,.stat span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .stat strong { color:var(--ink); font-size:.85rem; }
+  .stat span { margin-top:1px; color:var(--muted); font-size:.68rem; }
+  .not-connected { display:block; margin-top:12px; color:var(--muted); font-size:.74rem; font-style:italic; }
+
+  .composer-detail-host { grid-column:1/-1; min-width:0; }
+  .composer-detail { padding:20px; border:1px solid rgba(64,92,245,.22); border-radius:16px; background:rgba(255,255,255,.94); box-shadow:0 16px 36px rgba(15,23,42,.11); scroll-margin-top:18px; }
+  .detail-header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:16px; }
+  .detail-header h2 { margin:0 0 5px; font-size:1.35rem; }
+  .detail-subtitle { margin:0; color:var(--muted); font-size:.86rem; line-height:1.45; }
+  .detail-actions { display:flex; gap:8px; flex:0 0 auto; }
+  .reference-link,.close-detail { display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:8px 11px; border-radius:10px; font:inherit; font-size:.78rem; font-weight:750; text-decoration:none; cursor:pointer; }
+  .reference-link { border:1px solid rgba(64,92,245,.25); background:#f0f2ff; color:#314bd8; }
+  .close-detail { width:36px; padding:0; border:1px solid var(--border); background:#fff; color:var(--ink); }
+  .detail-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:19px; }
+  .detail-summary div { padding:10px 11px; border-radius:11px; background:#f4f5f9; }
+  .detail-summary strong,.detail-summary span { display:block; }
+  .detail-summary strong { font-size:.95rem; }
+  .detail-summary span { margin-top:2px; color:var(--muted); font-size:.7rem; }
+  .detail-section + .detail-section { margin-top:20px; }
+  .detail-section h3 { margin:0 0 9px; font-size:1rem; }
+  .revisit-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:9px; margin:0; padding:0; list-style:none; }
+  .revisit-list li { padding:11px 12px; border:1px solid #eceef4; border-radius:11px; background:#fff; }
+  .piece-title { display:block; font-size:.86rem; font-weight:750; line-height:1.35; }
+  .piece-meta { display:block; margin-top:4px; color:var(--muted); font-size:.73rem; line-height:1.35; }
+  .rating { display:inline-block; margin-right:5px; padding:2px 6px; border-radius:999px; background:#eceffd; color:#314bd8; font-weight:800; }
+  .works-table-wrap { overflow-x:auto; border:1px solid #eceef4; border-radius:11px; background:#fff; }
+  .works-table { width:100%; border-collapse:collapse; min-width:720px; font-size:.78rem; }
+  .works-table th,.works-table td { padding:9px 10px; border-bottom:1px solid #eceef4; text-align:left; vertical-align:top; }
+  .works-table th { background:#f7f8fb; color:#4f5664; font-size:.7rem; letter-spacing:.02em; text-transform:uppercase; }
+  .works-table tr:last-child td { border-bottom:0; }
+  .empty-detail { margin:0; padding:15px; border-radius:11px; background:#f5f6f9; color:var(--muted); font-size:.86rem; line-height:1.5; }
+  .empty { grid-column:1/-1; padding:40px 16px; color:var(--muted); text-align:center; }
+
+  @media (max-width:900px) {
+    .wrap { padding:18px 10px 38px; }
+    .intro { margin-bottom:14px; padding-inline:4px; }
+    h1 { font-size:2rem; }
+    .hint { font-size:.86rem; }
+    .toolbar { display:grid; grid-template-columns:1fr 1fr; }
+    .toolbar input { grid-column:1/-1; width:100%; }
+    .toolbar select { min-width:0; width:100%; }
+    .composer-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 10px; }
+    .card-body { min-height:145px; padding:10px; }
+    .composer-name { font-size:.88rem; }
+    .composer-meta { font-size:.7rem; }
+    .composer-stats { gap:5px; }
+    .stat { padding:6px; }
+    .stat strong { font-size:.74rem; }
+    .stat span { font-size:.62rem; }
+    .composer-detail { padding:14px 12px; }
+    .detail-header { display:block; }
+    .detail-actions { margin-top:11px; }
+    .detail-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .revisit-list { grid-template-columns:1fr; }
+  }
+
+  @media (max-width:520px) {
+    .composer-grid { grid-template-columns:1fr; max-width:430px; }
+    .composer-button { display:grid; grid-template-columns:124px minmax(0,1fr); }
+    .portrait-wrap { aspect-ratio:4/5; height:155px; }
+    .card-body { min-height:155px; }
+  }
+</style>
+
+<VideoBg>
+  <Header />
+  <main class="wrap">
+    <MusicNav active="composers" />
+
+    <div class="intro">
+      <h1>🎼 Classical Composers</h1>
+      <p class="hint">
+        {composers.length.toLocaleString('en-US')} composers explored{
+          hasListeningFeed
+            ? ` · ${totalWorks.toLocaleString('en-US')} works heard · ${formatHours(totalMinutes)} listened`
+            : ''
+        }. Select a composer to see the works I have heard and the pieces rated Amazing or Gorgeous.
+      </p>
+
+      {!CLASSICAL_LISTENING_CSV_URL ? (
+        <p class="feed-notice">
+          <strong>Composer gallery connected.</strong> Add <code>CLASSICAL_LISTENING_CSV_URL</code> to connect the Google Sheets listening log and populate work counts, hours, ratings, and expanded lists.
+        </p>
+      ) : sheetError ? (
+        <p class="feed-notice">
+          <strong>The composer gallery loaded, but the listening sheet did not.</strong> {sheetError}
+        </p>
+      ) : null}
+
+      <div class="toolbar">
+        <input id="composer-search" type="search" placeholder="Search composer, country, or period…" aria-label="Search composers" />
+
+        <select id="period-filter" aria-label="Filter composers by period">
+          <option value="">All periods</option>
+          {periodsInUse.map((period) => <option value={period}>{period}</option>)}
+        </select>
+
+        <select id="composer-sort" aria-label="Sort composers">
+          <option value="name-asc">Composer A–Z</option>
+          <option value="works-desc">Most works heard</option>
+          <option value="hours-desc">Most listening time</option>
+          <option value="recent-desc">Most recently heard</option>
+        </select>
+      </div>
+
+      <div class="results-row">
+        <p id="composer-results" aria-live="polite">
+          Showing {composers.length.toLocaleString('en-US')} of {composers.length.toLocaleString('en-US')} composers
+        </p>
+        <button type="button" id="clear-composer-filters" class="clear-filters" hidden>Clear filters</button>
+      </div>
+    </div>
+
+    {composers.length === 0 ? (
+      <p class="empty">Composers are temporarily unavailable: Raindrop returned no items or its API failed during the build.</p>
+    ) : (
+      <div id="composer-grid" class="composer-grid" role="list" data-listening-feed={hasListeningFeed ? 'connected' : 'not-connected'}>
+        {composers.map((composer) => {
+          const life = composer.birthYear
+            ? `${composer.birthYear}–${composer.deathYear || ''}`
+            : '';
+          const identity = [life, composer.nationality, composer.period].filter(Boolean).join(' · ');
+
+          return (
+            <article
+              class="composer-card"
+              role="listitem"
+              data-composer-id={composer.id}
+              data-name={composer.name}
+              data-search={normalize(`${composer.name} ${composer.nationality} ${composer.period} ${composer.note}`)}
+              data-period={composer.period}
+              data-works={composer.worksHeard}
+              data-minutes={composer.totalMinutes}
+              data-last-listened={composer.lastListened?.getTime() || 0}
+              data-original-index={composer.originalIndex}
+            >
+              <button
+                type="button"
+                class="composer-button"
+                aria-expanded="false"
+                aria-controls={`composer-detail-${composer.id}`}
+                data-composer-trigger={composer.id}
+              >
+                <span class="portrait-wrap">
+                  <img
+                    class="portrait"
+                    src={composer.cover}
+                    alt={`Portrait of ${composer.name}`}
+                    loading="lazy"
+                    decoding="async"
+                    sizes="(max-width: 520px) 124px, (max-width: 900px) 50vw, 240px"
+                  />
+                  <span class="expand-cue" aria-hidden="true">+</span>
+                </span>
+
+                <span class="card-body">
+                  <span class="composer-name">{composer.name}</span>
+                  <span class="composer-meta">{identity || composer.note || 'Composer profile'}</span>
+
+                  {hasListeningFeed ? (
+                    <span class="composer-stats">
+                      <span class="stat"><strong>{composer.worksHeard.toLocaleString('en-US')}</strong><span>works heard</span></span>
+                      <span class="stat"><strong>{formatHours(composer.totalMinutes)}</strong><span>listening time</span></span>
+                      <span class="stat"><strong>{composer.worthRevisiting.length.toLocaleString('en-US')}</strong><span>worth revisiting</span></span>
+                      <span class="stat"><strong>{composer.lastListened ? formatDate(composer.lastListened) : '—'}</strong><span>last heard</span></span>
+                    </span>
+                  ) : (
+                    <span class="not-connected">Listening details ready to connect</span>
+                  )}
+                </span>
+              </button>
+
+              <template id={`composer-template-${composer.id}`}>
+                <section id={`composer-detail-${composer.id}`} class="composer-detail" aria-label={`${composer.name} listening details`}>
+                  <div class="detail-header">
+                    <div>
+                      <h2>{composer.name}</h2>
+                      <p class="detail-subtitle">
+                        {[identity, composer.topForm ? `Most explored: ${composer.topForm}` : ''].filter(Boolean).join(' · ') || 'Composer listening profile'}
+                      </p>
+                    </div>
+                    <div class="detail-actions">
+                      <a class="reference-link" href={composer.href} target="_blank" rel="noopener noreferrer">Reference ↗</a>
+                      <button type="button" class="close-detail" data-close-composer aria-label={`Close ${composer.name} details`}>×</button>
+                    </div>
+                  </div>
+
+                  {hasListeningFeed ? (
+                    <>
+                      <div class="detail-summary">
+                        <div><strong>{composer.worksHeard.toLocaleString('en-US')}</strong><span>unique works heard</span></div>
+                        <div><strong>{formatHours(composer.totalMinutes)}</strong><span>total listening time</span></div>
+                        <div><strong>{composer.firstListened ? formatDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
+                        <div><strong>{composer.lastListened ? formatDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
+                      </div>
+
+                      <section class="detail-section">
+                        <h3>Worth Revisiting</h3>
+                        {composer.worthRevisiting.length ? (
+                          <ul class="revisit-list">
+                            {composer.worthRevisiting.map((entry) => (
+                              <li>
+                                <span class="piece-title">{entry.piece}</span>
+                                <span class="piece-meta">
+                                  {entry.rating ? <span class="rating">{entry.rating}</span> : null}
+                                  {[entry.form, entry.compositionYear, entry.listenedDate ? `Heard ${formatDate(entry.listenedDate)}` : ''].filter(Boolean).join(' · ')}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p class="empty-detail">No works by this composer are currently rated Amazing or Gorgeous.</p>
+                        )}
+                      </section>
+
+                      <section class="detail-section">
+                        <h3>All Pieces Heard</h3>
+                        {composer.allWorks.length ? (
+                          <div class="works-table-wrap">
+                            <table class="works-table">
+                              <thead>
+                                <tr><th>Piece</th><th>Form</th><th>Year</th><th>Rating</th><th>Last logged</th><th>Recording</th></tr>
+                              </thead>
+                              <tbody>
+                                {composer.allWorks.map((entry) => (
+                                  <tr>
+                                    <td><strong>{entry.piece}</strong></td>
+                                    <td>{entry.form || '—'}</td>
+                                    <td>{entry.compositionYear || '—'}</td>
+                                    <td>{entry.rating || '—'}</td>
+                                    <td>{entry.listenedDate ? formatDate(entry.listenedDate) : entry.listenedDateRaw || '—'}</td>
+                                    <td>{entry.recording || '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p class="empty-detail">No matching listening entries were found for this composer.</p>
+                        )}
+                      </section>
+                    </>
+                  ) : (
+                    <p class="empty-detail">
+                      The Raindrop composer profile is live. Connect the Google Sheets CSV feed to add works heard, listening hours, ratings, and the Worth Revisiting list.
+                    </p>
+                  )}
+                </section>
+              </template>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </main>
+  <Footer />
+</VideoBg>
+
+<script>
+  (function () {
+    const grid = document.querySelector('#composer-grid');
+    if (!grid) return;
+
+    const search = document.querySelector('#composer-search');
+    const period = document.querySelector('#period-filter');
+    const sort = document.querySelector('#composer-sort');
+    const results = document.querySelector('#composer-results');
+    const clear = document.querySelector('#clear-composer-filters');
+    const cards = Array.from(grid.querySelectorAll('.composer-card'));
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+    let activeId = '';
+    let host = null;
+
+    const norm = (value) => String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+
+    function visibleCards() {
+      return cards.filter((card) => card.style.display !== 'none');
+    }
+
+    function closeDetail() {
+      if (host) host.remove();
+      host = null;
+      activeId = '';
+      cards.forEach((card) => {
+        const button = card.querySelector('[data-composer-trigger]');
+        if (button) button.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function placeHostAfterRow(card) {
+      if (!host || card.style.display === 'none') return;
+      const top = card.offsetTop;
+      const sameRow = visibleCards().filter((candidate) => Math.abs(candidate.offsetTop - top) < 4);
+      const lastInRow = sameRow.at(-1) || card;
+      lastInRow.insertAdjacentElement('afterend', host);
+    }
+
+    function openDetail(card, shouldScroll = true) {
+      const button = card.querySelector('[data-composer-trigger]');
+      const id = button?.dataset.composerTrigger;
+      if (!button || !id) return;
+
+      if (activeId === id) {
+        closeDetail();
+        button.focus();
+        return;
+      }
+
+      closeDetail();
+      const template = document.querySelector(`#composer-template-${CSS.escape(id)}`);
+      if (!template) return;
+
+      host = document.createElement('div');
+      host.className = 'composer-detail-host';
+      host.appendChild(template.content.cloneNode(true));
+      activeId = id;
+      button.setAttribute('aria-expanded', 'true');
+      placeHostAfterRow(card);
+
+      host.querySelector('[data-close-composer]')?.addEventListener('click', () => {
+        closeDetail();
+        button.focus();
+      });
+
+      if (shouldScroll) {
+        requestAnimationFrame(() => host?.querySelector('.composer-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+      }
+    }
+
+    cards.forEach((card) => {
+      card.querySelector('[data-composer-trigger]')?.addEventListener('click', () => openDetail(card));
+    });
+
+    function sortCards() {
+      const mode = sort?.value || 'name-asc';
+      const ordered = [...cards].sort((a, b) => {
+        let comparison = 0;
+
+        if (mode === 'works-desc') comparison = Number(b.dataset.works || 0) - Number(a.dataset.works || 0);
+        else if (mode === 'hours-desc') comparison = Number(b.dataset.minutes || 0) - Number(a.dataset.minutes || 0);
+        else if (mode === 'recent-desc') comparison = Number(b.dataset.lastListened || 0) - Number(a.dataset.lastListened || 0);
+        else comparison = collator.compare(a.dataset.name || '', b.dataset.name || '');
+
+        return comparison || Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
+      });
+
+      closeDetail();
+      ordered.forEach((card) => grid.appendChild(card));
+    }
+
+    function filterCards() {
+      const words = norm(search?.value).split(/\s+/).filter(Boolean);
+      const selectedPeriod = period?.value || '';
+      let visible = 0;
+
+      closeDetail();
+      cards.forEach((card) => {
+        const textMatches = !words.length || words.every((word) => (card.dataset.search || '').includes(word));
+        const periodMatches = !selectedPeriod || card.dataset.period === selectedPeriod;
+        const show = textMatches && periodMatches;
+        card.style.display = show ? '' : 'none';
+        if (show) visible += 1;
+      });
+
+      if (results) results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} composers`;
+      if (clear) clear.hidden = !(search?.value.trim() || selectedPeriod);
+    }
+
+    let debounceTimer;
+    search?.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(filterCards, 80);
+    });
+    period?.addEventListener('change', filterCards);
+    sort?.addEventListener('change', sortCards);
+    clear?.addEventListener('click', () => {
+      if (search) search.value = '';
+      if (period) period.value = '';
+      filterCards();
+      search?.focus();
+    });
+
+    window.addEventListener('resize', () => {
+      if (!activeId || !host) return;
+      const card = cards.find((candidate) => candidate.dataset.composerId === activeId);
+      if (card) placeHostAfterRow(card);
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && activeId) closeDetail();
+      else if (event.key === '/' && event.target === document.body) {
+        event.preventDefault();
+        search?.focus();
+      }
+    });
+
+    sortCards();
+    filterCards();
+  })();
+</script>
