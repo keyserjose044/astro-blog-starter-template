@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: live result counts, two-way publication sorting, and dynamic listening hours — July 14, 2026
+// Revision: expanded book metadata plus language and country filters — July 22, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -28,6 +28,9 @@ const getBookMeta = (note?: string | null) => {
     author: parts[2] || '',
     yearPublished: parts[3] || '',
     genre: parts[4] || '',
+    subgenre: parts[5] || '',
+    language: parts[7] || '',
+    country: parts[8] || '',
     length: parts[9] || '',
   };
 };
@@ -184,11 +187,45 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
   .toolbar #period-filter{flex-basis:135px}
   .toolbar #sort-books{flex-basis:140px}
 
-  /* Give the complete desktop filter row enough room to keep Info and Stats together. */
+  .more-filters-toggle{
+    min-height:40px;padding:9px 12px;border-radius:12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.94);color:var(--ink);font:inherit;font-size:.86rem;
+    font-weight:700;line-height:1;cursor:pointer;display:inline-flex;align-items:center;
+    justify-content:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.03);
+    transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,transform .08s ease;
+  }
+  .more-filters-toggle:hover{
+    background:#f6f7ff;border-color:rgba(64,92,245,.35);
+    box-shadow:0 4px 10px rgba(15,23,42,.07);transform:translateY(-1px)
+  }
+  .more-filters-toggle[aria-expanded="true"],
+  .more-filters-toggle.has-active-filters{
+    background:#405cf5;color:#fff;border-color:#405cf5;
+  }
+  .more-filters-toggle:focus-visible{outline:2px solid #405cf5;outline-offset:2px}
+  .more-filters-count{
+    min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#fff;color:#314bd8;
+    display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;
+  }
+  .more-filters-panel{
+    max-width:620px;margin:-4px auto 18px;padding:12px;border:1px solid var(--border);
+    border-radius:14px;background:rgba(255,255,255,.92);box-shadow:0 8px 20px rgba(15,23,42,.06);
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left;
+  }
+  .more-filters-panel[hidden]{display:none}
+  .more-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .more-filter-field span{font-size:.76rem;font-weight:700;color:var(--muted)}
+  .more-filter-field select{
+    width:100%;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+    background:var(--surface);color:var(--ink);font:inherit;font-size:.86rem;
+  }
+
+  /* Give the complete desktop filter row enough room to keep all controls together. */
   @media (min-width:901px){
-    .intro{max-width:1080px;padding-inline:20px}
+    .intro{max-width:1240px;padding-inline:20px}
     .toolbar{flex-wrap:nowrap}
     .toolbar > .info-toggle{flex:0 0 40px}
+    .toolbar > .more-filters-toggle{flex:0 0 118px}
   }
 
   .info-toggle{
@@ -451,14 +488,28 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       grid-row: 3;
     }
 
+    #more-filters-toggle {
+      grid-column: 1 / 3;
+      grid-row: 4;
+      width: 100%;
+    }
+
     #info-toggle {
       grid-column: 3;
-      grid-row: 3;
+      grid-row: 4;
     }
 
     .toolbar > a.info-toggle {
       grid-column: 4;
-      grid-row: 3;
+      grid-row: 4;
+    }
+
+    .more-filters-panel {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: none;
+      margin-top: -2px;
+      margin-bottom: 14px;
+      padding: 10px;
     }
 
     .view-toggle {
@@ -647,6 +698,16 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         </select>
         <button
           type="button"
+          id="more-filters-toggle"
+          class="more-filters-toggle"
+          aria-controls="more-filters-panel"
+          aria-expanded="false"
+        >
+          <span>More filters</span>
+          <span id="more-filters-count" class="more-filters-count" hidden>0</span>
+        </button>
+        <button
+          type="button"
           id="info-toggle"
           class="info-toggle"
           aria-label="About my reading"
@@ -664,6 +725,21 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         >
           📊
         </a>
+      </div>
+
+      <div id="more-filters-panel" class="more-filters-panel" hidden>
+        <label class="more-filter-field">
+          <span>Language</span>
+          <select id="language-filter" aria-label="Filter by language">
+            <option value="">All languages</option>
+          </select>
+        </label>
+        <label class="more-filter-field">
+          <span>Country of origin</span>
+          <select id="country-filter" aria-label="Filter by country of origin">
+            <option value="">All countries</option>
+          </select>
+        </label>
       </div>
 
       {books.length > 0 ? (
@@ -774,6 +850,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
               title={`${a.title} — opens in a new tab`}
               data-title={a.title.toLowerCase()}
               data-author={meta.author.toLowerCase()}
+              data-subgenre={meta.subgenre}
+              data-language={meta.language}
+              data-country={meta.country}
               data-date-finished={meta.dateFinished}
               data-finished-year={finishedYear}
               data-publication-year={publicationYear ?? ''}
@@ -799,7 +878,14 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
               </div>
               <div class="card-meta">
                 {meta.author ? <span><strong>{meta.author}</strong></span> : null}
-                {meta.genre ? <span>{meta.genre}{meta.yearPublished ? ` · ${meta.yearPublished}` : ''}</span> : null}
+                {(meta.genre || meta.subgenre || meta.yearPublished) ? (
+                  <span>
+                    {[meta.genre, meta.subgenre, meta.yearPublished].filter(Boolean).join(' · ')}
+                  </span>
+                ) : null}
+                {(meta.language || meta.country) ? (
+                  <span>{[meta.language, meta.country].filter(Boolean).join(' · ')}</span>
+                ) : null}
                 {meta.dateFinished ? <span>Finished {meta.dateFinished}{meta.length ? ` · ${meta.length}` : ''}</span> : null}
               </div>
               {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
@@ -825,7 +911,12 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           genreSelect = $('#genre-filter'),
           yearSelect = $('#year-filter'),
           periodSelect = $('#period-filter'),
+          languageSelect = $('#language-filter'),
+          countrySelect = $('#country-filter'),
           sortSelect = $('#sort-books'),
+          moreFiltersButton = $('#more-filters-toggle'),
+          moreFiltersPanel = $('#more-filters-panel'),
+          moreFiltersCount = $('#more-filters-count'),
           filterEmpty = $('#filter-empty'),
           resultsCount = $('#results-count'),
           clearFiltersButton = $('#clear-filters');
@@ -833,6 +924,14 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     if (!grid || !input) return;
 
     const cards = $$('.card', grid);
+
+    if (moreFiltersButton && moreFiltersPanel) {
+      moreFiltersButton.addEventListener('click', () => {
+        const willOpen = moreFiltersPanel.hidden;
+        moreFiltersPanel.hidden = !willOpen;
+        moreFiltersButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      });
+    }
 
     // Quilt/List layout switcher with separate defaults and saved choices by screen size.
     const MOBILE_VIEW_QUERY = window.matchMedia('(max-width: 900px)');
@@ -973,6 +1072,32 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     }
 
 
+    // Build Language and Country of Origin filters directly from the Raindrop metadata in use.
+    function populateMetadataFilter(select, datasetKey){
+      if (!select) return;
+
+      const values = new Map();
+      cards.forEach(card => {
+        const rawValue = String(card.dataset[datasetKey] || '').trim();
+        if (!rawValue) return;
+
+        const key = norm(rawValue);
+        if (!values.has(key)) values.set(key, rawValue);
+      });
+
+      [...values.values()]
+        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }))
+        .forEach(value => {
+          const opt = document.createElement('option');
+          opt.value = value;
+          opt.textContent = value;
+          select.appendChild(opt);
+        });
+    }
+
+    populateMetadataFilter(languageSelect, 'language');
+    populateMetadataFilter(countrySelect, 'country');
+
     // Generate completion-year options from the tracking start year through the visitor's current year.
     // On January 1, a new year appears automatically without a code change or rebuild.
     if (yearSelect) {
@@ -1111,6 +1236,10 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       const selectedKey = norm(selectedGenre);
       const selectedYear = yearSelect ? yearSelect.value : '';
       const selectedPeriod = periodSelect ? periodSelect.value : '';
+      const selectedLanguage = languageSelect ? languageSelect.value : '';
+      const selectedCountry = countrySelect ? countrySelect.value : '';
+      const selectedLanguageKey = norm(selectedLanguage);
+      const selectedCountryKey = norm(selectedCountry);
       let visibleCount = 0;
 
       cards.forEach(c => {
@@ -1120,7 +1249,13 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         const yearMatches = !selectedYear || c.dataset.finishedYear === selectedYear;
         const periodMatches =
           !selectedPeriod || c.dataset.publicationPeriod === selectedPeriod;
-        const isVisible = textMatches && genreMatches && yearMatches && periodMatches;
+        const languageMatches =
+          !selectedLanguage || norm(c.dataset.language) === selectedLanguageKey;
+        const countryMatches =
+          !selectedCountry || norm(c.dataset.country) === selectedCountryKey;
+        const isVisible =
+          textMatches && genreMatches && yearMatches && periodMatches &&
+          languageMatches && countryMatches;
         c.style.display = isVisible ? '' : 'none';
         if (isVisible) visibleCount += 1;
       });
@@ -1131,8 +1266,20 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         resultsCount.textContent = `Showing ${visibleCount.toLocaleString()} of ${cards.length.toLocaleString()} books`;
       }
 
+      const additionalFilterCount =
+        Number(Boolean(selectedLanguage)) + Number(Boolean(selectedCountry));
+
+      if (moreFiltersCount) {
+        moreFiltersCount.textContent = String(additionalFilterCount);
+        moreFiltersCount.hidden = additionalFilterCount === 0;
+      }
+      if (moreFiltersButton) {
+        moreFiltersButton.classList.toggle('has-active-filters', additionalFilterCount > 0);
+      }
+
       const hasActiveFilters = Boolean(
-        input.value.trim() || selectedGenre || selectedYear || selectedPeriod
+        input.value.trim() || selectedGenre || selectedYear || selectedPeriod ||
+        selectedLanguage || selectedCountry
       );
       if (clearFiltersButton) clearFiltersButton.hidden = !hasActiveFilters;
     }
@@ -1142,6 +1289,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       if (genreSelect) genreSelect.value = '';
       if (yearSelect) yearSelect.value = '';
       if (periodSelect) periodSelect.value = '';
+      if (languageSelect) languageSelect.value = '';
+      if (countrySelect) countrySelect.value = '';
       filter();
       input.focus();
     }
@@ -1150,6 +1299,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     if (genreSelect) genreSelect.addEventListener('change', filter);
     if (yearSelect) yearSelect.addEventListener('change', filter);
     if (periodSelect) periodSelect.addEventListener('change', filter);
+    if (languageSelect) languageSelect.addEventListener('change', filter);
+    if (countrySelect) countrySelect.addEventListener('change', filter);
     if (sortSelect) sortSelect.addEventListener('change', sortBooks);
     if (clearFiltersButton) clearFiltersButton.addEventListener('click', clearFilters);
 
