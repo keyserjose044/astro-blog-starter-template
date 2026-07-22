@@ -730,6 +730,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
             <option value="">All languages</option>
             <option value="english">English</option>
             <option value="spanish">Spanish</option>
+            <option value="other">Other</option>
           </select>
         </label>
         <label class="filter-field">
@@ -1075,7 +1076,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     }
 
 
-    // Canonicalize the two currently supported reading languages.
+    // Canonicalize the two expected reading languages.
+    // Anything unrecognized or blank is grouped under Other so metadata errors are easy to find.
     // Accept labels written in English or Spanish, with or without accents.
     function languageKeys(value){
       const normalized = norm(String(value || '')).trim();
@@ -1266,9 +1268,14 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         const yearMatches = !selectedYear || c.dataset.finishedYear === selectedYear;
         const periodMatches =
           !selectedPeriod || c.dataset.publicationPeriod === selectedPeriod;
+        const cardLanguageKeys = String(c.dataset.languageKeys || '')
+          .split(/\s+/)
+          .filter(Boolean);
         const languageMatches =
           !selectedLanguage ||
-          String(c.dataset.languageKeys || '').split(/\s+/).includes(selectedLanguage);
+          (selectedLanguage === 'other'
+            ? cardLanguageKeys.length === 0
+            : cardLanguageKeys.includes(selectedLanguage));
         const countryMatches =
           !selectedCountry || norm(c.dataset.country).trim() === selectedCountryKey;
         const isVisible =
