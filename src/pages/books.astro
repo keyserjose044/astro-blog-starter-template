@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: expanded book metadata plus language and country filters — July 22, 2026
+// Revision: unified filter panel, reliable language matching, and five-line metadata — July 22, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -180,52 +180,52 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
   h1{margin:0 0 12px;font-weight:800;letter-spacing:-.02em;display:flex;gap:.6rem;align-items:center;justify-content:center}
   .hint{color:var(--muted);margin:6px 0 20px}
   .toolbar{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
-  .toolbar input[type="search"]{flex:1 1 220px;width:100%;max-width:260px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
-  .toolbar select{flex:0 1 135px;min-width:120px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
-  .toolbar #genre-filter{flex-basis:145px}
-  .toolbar #year-filter{flex-basis:96px;min-width:92px}
-  .toolbar #period-filter{flex-basis:135px}
-  .toolbar #sort-books{flex-basis:140px}
+  .toolbar input[type="search"]{flex:1 1 260px;width:100%;max-width:340px;margin-inline:0;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .toolbar #sort-books{flex:0 1 155px;min-width:145px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.9rem;box-shadow:0 1px 2px rgba(0,0,0,.03);}
 
-  .more-filters-toggle{
-    min-height:40px;padding:9px 12px;border-radius:12px;border:1px solid var(--border);
+  .filters-toggle{
+    min-height:40px;padding:9px 13px;border-radius:12px;border:1px solid var(--border);
     background:rgba(255,255,255,.94);color:var(--ink);font:inherit;font-size:.86rem;
     font-weight:700;line-height:1;cursor:pointer;display:inline-flex;align-items:center;
     justify-content:center;gap:7px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.03);
     transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,transform .08s ease;
   }
-  .more-filters-toggle:hover{
+  .filters-toggle:hover{
     background:#f6f7ff;border-color:rgba(64,92,245,.35);
     box-shadow:0 4px 10px rgba(15,23,42,.07);transform:translateY(-1px)
   }
-  .more-filters-toggle[aria-expanded="true"],
-  .more-filters-toggle.has-active-filters{
-    background:#405cf5;color:#fff;border-color:#405cf5;
+  .filters-toggle[aria-expanded="true"]{
+    background:#f1f3ff;border-color:rgba(64,92,245,.45);color:#263ebd;
   }
-  .more-filters-toggle:focus-visible{outline:2px solid #405cf5;outline-offset:2px}
-  .more-filters-count{
-    min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#fff;color:#314bd8;
+  .filters-toggle.has-active-filters{
+    background:#f1f3ff;border-color:#405cf5;color:#263ebd;
+  }
+  .filters-toggle:focus-visible{outline:2px solid #405cf5;outline-offset:2px}
+  .filters-count{
+    min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#405cf5;color:#fff;
     display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;
   }
-  .more-filters-panel{
-    max-width:620px;margin:-4px auto 18px;padding:12px;border:1px solid var(--border);
-    border-radius:14px;background:rgba(255,255,255,.92);box-shadow:0 8px 20px rgba(15,23,42,.06);
-    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left;
+  .filters-chevron{font-size:.72rem;transition:transform .15s ease}
+  .filters-toggle[aria-expanded="true"] .filters-chevron{transform:rotate(180deg)}
+  .filters-panel{
+    width:min(1080px,calc(100% - 32px));margin:-4px auto 18px;padding:12px;
+    border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.94);
+    box-shadow:0 8px 20px rgba(15,23,42,.06);display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;text-align:left;
   }
-  .more-filters-panel[hidden]{display:none}
-  .more-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0}
-  .more-filter-field span{font-size:.76rem;font-weight:700;color:var(--muted)}
-  .more-filter-field select{
+  .filters-panel[hidden]{display:none}
+  .filter-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .filter-field span{font-size:.76rem;font-weight:700;color:var(--muted)}
+  .filter-field select{
     width:100%;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
     background:var(--surface);color:var(--ink);font:inherit;font-size:.86rem;
   }
 
-  /* Give the complete desktop filter row enough room to keep all controls together. */
   @media (min-width:901px){
-    .intro{max-width:1240px;padding-inline:20px}
+    .intro{max-width:1120px;padding-inline:20px}
     .toolbar{flex-wrap:nowrap}
     .toolbar > .info-toggle{flex:0 0 40px}
-    .toolbar > .more-filters-toggle{flex:0 0 118px}
+    .toolbar > .filters-toggle{flex:0 0 104px}
   }
 
   .info-toggle{
@@ -348,7 +348,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       width: 100%;
       max-width: 1700px;
       grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      grid-auto-rows: 176px;
+      grid-auto-rows: auto;
       gap: 16px;
       margin-inline: auto;
     }
@@ -357,8 +357,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       display: grid;
       width: 100%;
       height: 100%;
+      min-height: 196px;
       min-width: 0;
-      grid-template-columns: 104px minmax(0, 1fr);
+      grid-template-columns: 112px minmax(0, 1fr);
       grid-template-rows: auto 1fr;
       gap: 7px 14px;
       align-items: start;
@@ -380,8 +381,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     .grid[data-book-view="list"] .thumb {
       grid-column: 1;
       grid-row: 1 / span 2;
-      width: 104px;
-      height: 156px;
+      width: 112px;
+      height: 168px;
       aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: 9px;
@@ -406,7 +407,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       grid-column: 2;
       grid-row: 2;
       flex-direction: column;
-      gap: 5px;
+      gap: 3px;
       min-width: 0;
       color: var(--muted);
       font-size: .82rem;
@@ -415,9 +416,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
 
     .grid[data-book-view="list"] .card-meta span {
       display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .grid[data-book-view="list"] .note-bubble {
@@ -461,55 +461,41 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       font-size: 0.88rem;
     }
 
-    .toolbar select {
+    #filters-toggle {
+      grid-column: 1;
+      grid-row: 2;
+      width: 100%;
+    }
+
+    #sort-books {
+      grid-column: 2;
+      grid-row: 2;
       width: 100%;
       min-width: 0;
       padding: 9px 8px;
       font-size: 0.8rem;
     }
 
-    #genre-filter {
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    #year-filter {
-      grid-column: 2;
-      grid-row: 2;
-    }
-
-    #period-filter {
-      grid-column: 1;
-      grid-row: 3;
-    }
-
-    #sort-books {
-      grid-column: 2;
-      grid-row: 3;
-    }
-
-    #more-filters-toggle {
-      grid-column: 1 / 3;
-      grid-row: 4;
-      width: 100%;
-    }
-
     #info-toggle {
       grid-column: 3;
-      grid-row: 4;
+      grid-row: 2;
     }
 
     .toolbar > a.info-toggle {
       grid-column: 4;
-      grid-row: 4;
+      grid-row: 2;
     }
 
-    .more-filters-panel {
-      grid-template-columns: minmax(0, 1fr);
-      max-width: none;
+    .filters-panel {
+      width: calc(100% - 20px);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       margin-top: -2px;
       margin-bottom: 14px;
       padding: 10px;
+    }
+
+    .filters-panel .filter-field:last-child {
+      grid-column: 1 / -1;
     }
 
     .view-toggle {
@@ -562,7 +548,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       width: 100%;
       max-width: 680px;
       grid-template-columns: minmax(0, 1fr);
-      grid-auto-rows: 158px;
+      grid-auto-rows: auto;
       gap: 10px;
       margin-inline: auto;
     }
@@ -573,8 +559,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       max-width: none;
       height: 100%;
       min-width: 0;
-      min-height: 0;
-      grid-template-columns: 88px minmax(0, 1fr);
+      min-height: 184px;
+      grid-template-columns: 96px minmax(0, 1fr);
       grid-template-rows: auto 1fr;
       gap: 6px 12px;
       align-items: start;
@@ -591,8 +577,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     .grid[data-book-view="list"] .thumb {
       grid-column: 1;
       grid-row: 1 / span 2;
-      width: 88px;
-      height: 132px;
+      width: 96px;
+      height: 144px;
       aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: 8px;
@@ -626,9 +612,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
 
     .grid[data-book-view="list"] .card-meta span {
       display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     /* Metadata is already visible in list view, so no floating tooltip is needed. */
@@ -673,19 +658,18 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       </p>
 
       <div class="toolbar">
-        <input id="q" type="search" placeholder="Search title or note…" aria-label="Filter books" />
-        <select id="genre-filter" aria-label="Filter by genre">
-          <option value="">All genres</option>
-          <!-- Options will be filled in by JS -->
-        </select>
-        <select id="year-filter" aria-label="Filter by year finished">
-          <option value="">All years</option>
-          <!-- Current and future years are generated automatically by JS. -->
-        </select>
-        <select id="period-filter" aria-label="Filter by publication period">
-          <option value="">All periods</option>
-          <!-- Period options are generated from the publication metadata. -->
-        </select>
+        <input id="q" type="search" placeholder="Search title or note…" aria-label="Search books" />
+        <button
+          type="button"
+          id="filters-toggle"
+          class="filters-toggle"
+          aria-controls="filters-panel"
+          aria-expanded="false"
+        >
+          <span>Filters</span>
+          <span id="filters-count" class="filters-count" hidden>0</span>
+          <span class="filters-chevron" aria-hidden="true">▼</span>
+        </button>
         <select id="sort-books" aria-label="Sort books">
           <option value="date-desc">Newest finished</option>
           <option value="date-asc">Oldest finished</option>
@@ -698,16 +682,6 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         </select>
         <button
           type="button"
-          id="more-filters-toggle"
-          class="more-filters-toggle"
-          aria-controls="more-filters-panel"
-          aria-expanded="false"
-        >
-          <span>More filters</span>
-          <span id="more-filters-count" class="more-filters-count" hidden>0</span>
-        </button>
-        <button
-          type="button"
           id="info-toggle"
           class="info-toggle"
           aria-label="About my reading"
@@ -716,7 +690,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         >
           <span>?</span>
         </button>
-        
+
         <a
           href="/stats/?metric=audiobooks&year=current#graphs"
           class="info-toggle"
@@ -727,14 +701,34 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         </a>
       </div>
 
-      <div id="more-filters-panel" class="more-filters-panel" hidden>
-        <label class="more-filter-field">
+      <div id="filters-panel" class="filters-panel" hidden>
+        <label class="filter-field">
+          <span>Genre</span>
+          <select id="genre-filter" aria-label="Filter by genre">
+            <option value="">All genres</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span>Year finished</span>
+          <select id="year-filter" aria-label="Filter by year finished">
+            <option value="">All years</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span>Publication period</span>
+          <select id="period-filter" aria-label="Filter by publication period">
+            <option value="">All periods</option>
+          </select>
+        </label>
+        <label class="filter-field">
           <span>Language</span>
           <select id="language-filter" aria-label="Filter by language">
             <option value="">All languages</option>
+            <option value="english">English</option>
+            <option value="spanish">Spanish</option>
           </select>
         </label>
-        <label class="more-filter-field">
+        <label class="filter-field">
           <span>Country of origin</span>
           <select id="country-filter" aria-label="Filter by country of origin">
             <option value="">All countries</option>
@@ -878,15 +872,20 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
               </div>
               <div class="card-meta">
                 {meta.author ? <span><strong>{meta.author}</strong></span> : null}
-                {(meta.genre || meta.subgenre || meta.yearPublished) ? (
-                  <span>
-                    {[meta.genre, meta.subgenre, meta.yearPublished].filter(Boolean).join(' · ')}
-                  </span>
+                {meta.genre ? <span>{meta.genre}</span> : null}
+                {(meta.subgenre || meta.yearPublished) ? (
+                  <span>{[meta.subgenre, meta.yearPublished].filter(Boolean).join(' · ')}</span>
                 ) : null}
                 {(meta.language || meta.country) ? (
                   <span>{[meta.language, meta.country].filter(Boolean).join(' · ')}</span>
                 ) : null}
-                {meta.dateFinished ? <span>Finished {meta.dateFinished}{meta.length ? ` · ${meta.length}` : ''}</span> : null}
+                {(meta.dateFinished || meta.length) ? (
+                  <span>
+                    {meta.dateFinished ? `Finished ${meta.dateFinished}` : ''}
+                    {meta.dateFinished && meta.length ? ' · ' : ''}
+                    {meta.length}
+                  </span>
+                ) : null}
               </div>
               {a.note ? <div class="note-bubble" role="tooltip">{a.note}</div> : null}
             </a>
@@ -914,9 +913,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           languageSelect = $('#language-filter'),
           countrySelect = $('#country-filter'),
           sortSelect = $('#sort-books'),
-          moreFiltersButton = $('#more-filters-toggle'),
-          moreFiltersPanel = $('#more-filters-panel'),
-          moreFiltersCount = $('#more-filters-count'),
+          filtersButton = $('#filters-toggle'),
+          filtersPanel = $('#filters-panel'),
+          filtersCount = $('#filters-count'),
           filterEmpty = $('#filter-empty'),
           resultsCount = $('#results-count'),
           clearFiltersButton = $('#clear-filters');
@@ -925,11 +924,11 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
 
     const cards = $$('.card', grid);
 
-    if (moreFiltersButton && moreFiltersPanel) {
-      moreFiltersButton.addEventListener('click', () => {
-        const willOpen = moreFiltersPanel.hidden;
-        moreFiltersPanel.hidden = !willOpen;
-        moreFiltersButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (filtersButton && filtersPanel) {
+      filtersButton.addEventListener('click', () => {
+        const willOpen = filtersPanel.hidden;
+        filtersPanel.hidden = !willOpen;
+        filtersButton.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
       });
     }
 
@@ -1072,16 +1071,32 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     }
 
 
-    // Build Language and Country of Origin filters directly from the Raindrop metadata in use.
-    function populateMetadataFilter(select, datasetKey){
-      if (!select) return;
+    // Canonicalize the two currently supported reading languages.
+    // Accept labels written in English or Spanish, with or without accents.
+    function languageKeys(value){
+      const normalized = norm(String(value || '')).trim();
+      const keys = [];
+
+      if (/\b(english|ingles|en)\b/.test(normalized)) keys.push('english');
+      if (/\b(spanish|espanol|castilian|castellano|es)\b/.test(normalized)) keys.push('spanish');
+
+      return keys;
+    }
+
+    cards.forEach(card => {
+      card.dataset.languageKeys = languageKeys(card.dataset.language).join(' ');
+    });
+
+    // Country remains dynamic because the collection spans many countries.
+    function populateCountryFilter(){
+      if (!countrySelect) return;
 
       const values = new Map();
       cards.forEach(card => {
-        const rawValue = String(card.dataset[datasetKey] || '').trim();
+        const rawValue = String(card.dataset.country || '').trim();
         if (!rawValue) return;
 
-        const key = norm(rawValue);
+        const key = norm(rawValue).trim();
         if (!values.has(key)) values.set(key, rawValue);
       });
 
@@ -1091,12 +1106,11 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
           const opt = document.createElement('option');
           opt.value = value;
           opt.textContent = value;
-          select.appendChild(opt);
+          countrySelect.appendChild(opt);
         });
     }
 
-    populateMetadataFilter(languageSelect, 'language');
-    populateMetadataFilter(countrySelect, 'country');
+    populateCountryFilter();
 
     // Generate completion-year options from the tracking start year through the visitor's current year.
     // On January 1, a new year appears automatically without a code change or rebuild.
@@ -1238,8 +1252,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       const selectedPeriod = periodSelect ? periodSelect.value : '';
       const selectedLanguage = languageSelect ? languageSelect.value : '';
       const selectedCountry = countrySelect ? countrySelect.value : '';
-      const selectedLanguageKey = norm(selectedLanguage);
-      const selectedCountryKey = norm(selectedCountry);
+      const selectedCountryKey = norm(selectedCountry).trim();
       let visibleCount = 0;
 
       cards.forEach(c => {
@@ -1250,9 +1263,10 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         const periodMatches =
           !selectedPeriod || c.dataset.publicationPeriod === selectedPeriod;
         const languageMatches =
-          !selectedLanguage || norm(c.dataset.language) === selectedLanguageKey;
+          !selectedLanguage ||
+          String(c.dataset.languageKeys || '').split(/\s+/).includes(selectedLanguage);
         const countryMatches =
-          !selectedCountry || norm(c.dataset.country) === selectedCountryKey;
+          !selectedCountry || norm(c.dataset.country).trim() === selectedCountryKey;
         const isVisible =
           textMatches && genreMatches && yearMatches && periodMatches &&
           languageMatches && countryMatches;
@@ -1266,15 +1280,19 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
         resultsCount.textContent = `Showing ${visibleCount.toLocaleString()} of ${cards.length.toLocaleString()} books`;
       }
 
-      const additionalFilterCount =
-        Number(Boolean(selectedLanguage)) + Number(Boolean(selectedCountry));
+      const activeFilterCount =
+        Number(Boolean(selectedGenre)) +
+        Number(Boolean(selectedYear)) +
+        Number(Boolean(selectedPeriod)) +
+        Number(Boolean(selectedLanguage)) +
+        Number(Boolean(selectedCountry));
 
-      if (moreFiltersCount) {
-        moreFiltersCount.textContent = String(additionalFilterCount);
-        moreFiltersCount.hidden = additionalFilterCount === 0;
+      if (filtersCount) {
+        filtersCount.textContent = String(activeFilterCount);
+        filtersCount.hidden = activeFilterCount === 0;
       }
-      if (moreFiltersButton) {
-        moreFiltersButton.classList.toggle('has-active-filters', additionalFilterCount > 0);
+      if (filtersButton) {
+        filtersButton.classList.toggle('has-active-filters', activeFilterCount > 0);
       }
 
       const hasActiveFilters = Boolean(
@@ -1308,6 +1326,10 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     window.addEventListener('keydown', e=>{
       if (e.key==='Escape'){
         if (sortSelect) sortSelect.value = 'date-desc';
+        if (filtersPanel && filtersButton){
+          filtersPanel.hidden = true;
+          filtersButton.setAttribute('aria-expanded', 'false');
+        }
         sortBooks();
         clearFilters();
       } else if (e.key==='/' && e.target===document.body){
