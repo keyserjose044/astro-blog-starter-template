@@ -1,6 +1,6 @@
 ---
 // src/pages/books.astro
-// Revision: unified filter panel, reliable language matching, and five-line metadata — July 22, 2026
+// Revision: restored reliable page styling, unified filters, and five-line metadata — July 22, 2026
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -171,7 +171,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
   description="books gallery powered by Raindrop, auto-updated from my collection."
 />
 
-<style>
+<style is:inline>
   :root{--gap:22px;--ink:#0e121b;--muted:#5e6573;--border:#e6e9ef;--surface:#fff}
   *{box-sizing:border-box}
   .wrap{margin:0 auto;padding-block:28px 48px;padding-inline:clamp(16px,3vw,48px);max-width:100%}
@@ -348,7 +348,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       width: 100%;
       max-width: 1700px;
       grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      grid-auto-rows: auto;
+      grid-auto-rows: 184px;
       gap: 16px;
       margin-inline: auto;
     }
@@ -357,9 +357,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       display: grid;
       width: 100%;
       height: 100%;
-      min-height: 196px;
+      min-height: 184px;
       min-width: 0;
-      grid-template-columns: 112px minmax(0, 1fr);
+      grid-template-columns: 104px minmax(0, 1fr);
       grid-template-rows: auto 1fr;
       gap: 7px 14px;
       align-items: start;
@@ -381,8 +381,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     .grid[data-book-view="list"] .thumb {
       grid-column: 1;
       grid-row: 1 / span 2;
-      width: 112px;
-      height: 168px;
+      width: 104px;
+      height: 156px;
       aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: 9px;
@@ -417,7 +417,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     .grid[data-book-view="list"] .card-meta span {
       display: block;
       min-width: 0;
-      overflow-wrap: anywhere;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .grid[data-book-view="list"] .note-bubble {
@@ -548,7 +550,7 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       width: 100%;
       max-width: 680px;
       grid-template-columns: minmax(0, 1fr);
-      grid-auto-rows: auto;
+      grid-auto-rows: 176px;
       gap: 10px;
       margin-inline: auto;
     }
@@ -559,8 +561,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
       max-width: none;
       height: 100%;
       min-width: 0;
-      min-height: 184px;
-      grid-template-columns: 96px minmax(0, 1fr);
+      min-height: 176px;
+      grid-template-columns: 92px minmax(0, 1fr);
       grid-template-rows: auto 1fr;
       gap: 6px 12px;
       align-items: start;
@@ -577,8 +579,8 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     .grid[data-book-view="list"] .thumb {
       grid-column: 1;
       grid-row: 1 / span 2;
-      width: 96px;
-      height: 144px;
+      width: 92px;
+      height: 138px;
       aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: 8px;
@@ -613,7 +615,9 @@ const getPublicationPeriod = (yearPublished?: string | null) => {
     .grid[data-book-view="list"] .card-meta span {
       display: block;
       min-width: 0;
-      overflow-wrap: anywhere;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* Metadata is already visible in list view, so no floating tooltip is needed. */
