@@ -12,6 +12,7 @@ interface FetchRaindropsOptions {
   collectionId?: string;
   label: string;
   placeholder: string;
+  cleanVideoCovers?: boolean;
 }
 
 const PER_PAGE = 50;
@@ -87,11 +88,77 @@ async function fetchPage(
   return null;
 }
 
+function getYouTubeVideoId(rawLink?: string | null): string | null {
+  if (!rawLink) return null;
+
+  try {
+    const url = new URL(rawLink);
+    const hostname = url.hostname.replace(/^www\./, '').toLowerCase();
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    let videoId: string | null = null;
+
+    if (hostname === 'youtu.be') {
+      videoId = pathParts[0] ?? null;
+    } else if (
+      hostname === 'youtube.com' ||
+      hostname === 'm.youtube.com' ||
+      hostname === 'music.youtube.com'
+    ) {
+      videoId = url.searchParams.get('v');
+
+      if (!videoId && ['embed', 'shorts', 'live'].includes(pathParts[0] ?? '')) {
+        videoId = pathParts[1] ?? null;
+      }
+    } else if (hostname === 'youtube-nocookie.com' && pathParts[0] === 'embed') {
+      videoId = pathParts[1] ?? null;
+    }
+
+    if (!videoId || !/^[A-Za-z0-9_-]{6,}$/.test(videoId)) return null;
+    return videoId;
+  } catch {
+    return null;
+  }
+}
+
+function getYouTubeThumbnail(rawLink?: string | null): string | null {
+  const videoId = getYouTubeVideoId(rawLink);
+  return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
+}
+
+function getFirstMediaCover(media?: Array<{ link?: string }>): string | null {
+  const mediaLink = media?.find(
+    (entry) => typeof entry?.link === 'string' && entry.link.trim().length > 0
+  )?.link;
+
+  return mediaLink?.trim() || null;
+}
+
+function chooseCover(
+  item: any,
+  placeholder: string,
+  cleanVideoCovers: boolean
+): string {
+  const mediaCover = getFirstMediaCover(item.media);
+
+  if (cleanVideoCovers) {
+    // Raindrop may place a play badge on its generated video cover.
+    // YouTube's source thumbnail does not include Raindrop's overlay.
+    const youtubeThumbnail = getYouTubeThumbnail(item.link);
+    if (youtubeThumbnail) return youtubeThumbnail;
+
+    // For other video providers, prefer the underlying media image when present.
+    if (item.type === 'video' && mediaCover) return mediaCover;
+  }
+
+  return item.cover || mediaCover || placeholder;
+}
+
 export async function fetchAllRaindrops({
   token,
   collectionId,
   label,
   placeholder,
+  cleanVideoCovers = false,
 }: FetchRaindropsOptions): Promise<RaindropGalleryItem[]> {
   if (!token) {
     console.warn(`RAINDROP_TOKEN is missing; ${label} will build without remote items.`);
@@ -137,7 +204,7 @@ export async function fetchAllRaindrops({
     id: item._id,
     title: item.title ?? 'Untitled',
     href: item.link ?? '#',
-    cover: item.cover || item.media?.[0]?.link || placeholder,
+    cover: chooseCover(item, placeholder, cleanVideoCovers),
     note:
       (typeof item.note === 'string' ? item.note : '') ||
       (typeof item.excerpt === 'string' ? item.excerpt : ''),
