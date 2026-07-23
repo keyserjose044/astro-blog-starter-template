@@ -13,6 +13,7 @@ interface FetchRaindropsOptions {
   label: string;
   placeholder: string;
   cleanVideoCovers?: boolean;
+  cleanVideoCoversAfter?: string;
 }
 
 const PER_PAGE = 50;
@@ -133,14 +134,73 @@ function getFirstMediaCover(media?: Array<{ link?: string }>): string | null {
   return mediaLink?.trim() || null;
 }
 
+function parseCalendarDate(rawValue?: string | null): number | null {
+  const raw = String(rawValue || '').trim();
+  if (!raw) return null;
+
+  const isoDate = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const usDate = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
+
+  let year: number;
+  let month: number;
+  let day: number;
+
+  if (isoDate) {
+    year = Number(isoDate[1]);
+    month = Number(isoDate[2]);
+    day = Number(isoDate[3]);
+  } else if (usDate) {
+    month = Number(usDate[1]);
+    day = Number(usDate[2]);
+    year = Number(usDate[3]);
+    if (year < 100) year += 2000;
+  } else {
+    const parsed = Date.parse(raw);
+    if (Number.isNaN(parsed)) return null;
+
+    const date = new Date(parsed);
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getDate();
+  }
+
+  const timestamp = Date.UTC(year, month - 1, day);
+  const date = new Date(timestamp);
+
+  // Reject impossible dates such as 2/30/26 instead of letting JavaScript roll them forward.
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return timestamp;
+}
+
+function getLoggedDate(note?: string | null): number | null {
+  const firstMetadataField = String(note || '')
+    .split(/\s*[·•]\s*/, 1)[0]
+    .trim();
+
+  return parseCalendarDate(firstMetadataField);
+}
+
 function chooseCover(
   item: any,
   placeholder: string,
-  cleanVideoCovers: boolean
+  cleanVideoCovers: boolean,
+  cleanVideoCoversAfter: number | null,
+  note: string
 ): string {
   const mediaCover = getFirstMediaCover(item.media);
+  const loggedDate = getLoggedDate(note);
+  const isAfterCutoff =
+    cleanVideoCoversAfter === null ||
+    (loggedDate !== null && loggedDate > cleanVideoCoversAfter);
 
-  if (cleanVideoCovers) {
+  if (cleanVideoCovers && isAfterCutoff) {
     // Raindrop may place a play badge on its generated video cover.
     // YouTube's source thumbnail does not include Raindrop's overlay.
     const youtubeThumbnail = getYouTubeThumbnail(item.link);
@@ -150,6 +210,7 @@ function chooseCover(
     if (item.type === 'video' && mediaCover) return mediaCover;
   }
 
+  // Items on/before the cutoff, or without a parseable logged date, keep Raindrop's cover.
   return item.cover || mediaCover || placeholder;
 }
 
@@ -159,6 +220,7 @@ export async function fetchAllRaindrops({
   label,
   placeholder,
   cleanVideoCovers = false,
+  cleanVideoCoversAfter,
 }: FetchRaindropsOptions): Promise<RaindropGalleryItem[]> {
   if (!token) {
     console.warn(`RAINDROP_TOKEN is missing; ${label} will build without remote items.`);
@@ -200,14 +262,34 @@ export async function fetchAllRaindrops({
       new Date(a.created || a.lastUpdate || 0).getTime()
   );
 
-  return items.map((item) => ({
-    id: item._id,
-    title: item.title ?? 'Untitled',
-    href: item.link ?? '#',
-    cover: chooseCover(item, placeholder, cleanVideoCovers),
-    note:
+  const cleanVideoCoversAfterTimestamp = cleanVideoCoversAfter
+    ? parseCalendarDate(cleanVideoCoversAfter)
+    : null;
+
+  if (cleanVideoCoversAfter && cleanVideoCoversAfterTimestamp === null) {
+    console.warn(
+      `Invalid cleanVideoCoversAfter date "${cleanVideoCoversAfter}" while building ${label}; video-cover cleanup is disabled.`
+    );
+  }
+
+  return items.map((item) => {
+    const note =
       (typeof item.note === 'string' ? item.note : '') ||
-      (typeof item.excerpt === 'string' ? item.excerpt : ''),
-    tags: item.tags ?? [],
-  }));
+      (typeof item.excerpt === 'string' ? item.excerpt : '');
+
+    return {
+      id: item._id,
+      title: item.title ?? 'Untitled',
+      href: item.link ?? '#',
+      cover: chooseCover(
+        item,
+        placeholder,
+        cleanVideoCovers && (!cleanVideoCoversAfter || cleanVideoCoversAfterTimestamp !== null),
+        cleanVideoCoversAfterTimestamp,
+        note
+      ),
+      note,
+      tags: item.tags ?? [],
+    };
+  });
 }
