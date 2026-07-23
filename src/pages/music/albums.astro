@@ -18,6 +18,7 @@ const albums = await fetchAllRaindrops({
   label: 'albums',
   placeholder: '/images_webp/album-placeholder.webp',
   cleanVideoCovers: true,
+  cleanVideoCoversAfter: '2026-07-20',
 });
 
 const getAlbumLength = (note?: string | null): string => {
