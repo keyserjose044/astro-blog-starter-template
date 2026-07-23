@@ -17,6 +17,7 @@ const albums = await fetchAllRaindrops({
   collectionId: COLLECTION_ID,
   label: 'albums',
   placeholder: '/images_webp/album-placeholder.webp',
+  cleanVideoCovers: true,
 });
 
 const getAlbumLength = (note?: string | null): string => {
