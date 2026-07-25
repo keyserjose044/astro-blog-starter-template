@@ -24,6 +24,8 @@ jobs:
       RAINDROP_COLLECTION_BOOKS_ID: ${{ secrets.RAINDROP_COLLECTION_BOOKS_ID }}
       RAINDROP_COLLECTION_ALBUMS_ID: ${{ secrets.RAINDROP_COLLECTION_ALBUMS_ID }}
       RAINDROP_COLLECTION_ART_ID: ${{ secrets.RAINDROP_COLLECTION_ART_ID }}
+      RAINDROP_COLLECTION_COMPOSERS_ID: ${{ secrets.RAINDROP_COLLECTION_COMPOSERS_ID }}
+      CLASSICAL_LISTENING_DATA_URL: ${{ secrets.CLASSICAL_LISTENING_DATA_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +43,8 @@ jobs:
         run: |
           if [ -z "${RAINDROP_TOKEN}" ]; then echo "❌ RAINDROP_TOKEN missing"; exit 1; else echo "✅ RAINDROP_TOKEN present"; fi
           if [ -z "${RAINDROP_COLLECTION_BOOKS_ID}" ]; then echo "❌ RAINDROP_COLLECTION_BOOKS_ID missing"; exit 1; else echo "✅ RAINDROP_COLLECTION_BOOKS_ID present"; fi
+          if [ -z "${RAINDROP_COLLECTION_COMPOSERS_ID}" ]; then echo "⚠️ RAINDROP_COLLECTION_COMPOSERS_ID missing; fallback ID will be used"; else echo "✅ RAINDROP_COLLECTION_COMPOSERS_ID present"; fi
+          if [ -z "${CLASSICAL_LISTENING_DATA_URL}" ]; then echo "⚠️ CLASSICAL_LISTENING_DATA_URL missing; composer listening stats will be disabled"; else echo "✅ CLASSICAL_LISTENING_DATA_URL present"; fi
 
       - name: 🔎 Show homepage file CI is using
         run: |
