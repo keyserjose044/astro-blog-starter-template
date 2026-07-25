@@ -100,6 +100,16 @@ const formatGeneratedAt = (value: string) => {
   }).format(date);
 };
 
+const formatCardDate = (date: Date | null) => {
+  if (!date) return '—';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit',
+    timeZone: 'UTC',
+  }).format(date);
+};
+
 let listeningEntries: ListeningEntry[] = [];
 let feedGeneratedAt = '';
 let feedSourceSheet = '';
@@ -151,23 +161,23 @@ composersBase.forEach((composer) => {
 // Ambiguous abbreviations and recurring variants already present in the source sheet.
 // The feed may later supply composer_id directly, which takes precedence over this map.
 const COMPOSER_ALIASES: Record<string, string> = {
-  bach: 'johann-sebastian-bach',
-  'j s bach': 'johann-sebastian-bach',
-  'js bach': 'johann-sebastian-bach',
-  'c p e bach': 'carl-philipp-emanuel-bach',
-  'cpe bach': 'carl-philipp-emanuel-bach',
-  'j c bach': 'johann-christian-bach',
-  'jc bach': 'johann-christian-bach',
-  'w f bach': 'wilhelm-friedemann-bach',
-  'wf bach': 'wilhelm-friedemann-bach',
-  scarlatti: 'domenico-scarlatti',
-  'd scarlatti': 'domenico-scarlatti',
-  'a scarlatti': 'alessandro-scarlatti',
-  haydn: 'joseph-haydn',
-  schumann: 'robert-schumann',
-  mendelssohn: 'felix-mendelssohn',
-  mozart: 'wolfgang-amadeus-mozart',
-  'vaughn williams': 'ralph-vaughan-williams',
+  bach: 'johann sebastian bach',
+  'j s bach': 'johann sebastian bach',
+  'js bach': 'johann sebastian bach',
+  'c p e bach': 'carl philipp emanuel bach',
+  'cpe bach': 'carl philipp emanuel bach',
+  'j c bach': 'johann christian bach',
+  'jc bach': 'johann christian bach',
+  'w f bach': 'wilhelm friedemann bach',
+  'wf bach': 'wilhelm friedemann bach',
+  scarlatti: 'domenico scarlatti',
+  'd scarlatti': 'domenico scarlatti',
+  'a scarlatti': 'alessandro scarlatti',
+  haydn: 'joseph haydn',
+  schumann: 'robert schumann',
+  mendelssohn: 'felix mendelssohn',
+  mozart: 'wolfgang amadeus mozart',
+  'vaughn williams': 'ralph vaughan williams',
 };
 
 const resolveComposerId = (entry: ListeningEntry) => {
@@ -178,14 +188,17 @@ const resolveComposerId = (entry: ListeningEntry) => {
   const exact = byExactName.get(normalizedName);
   if (exact) return exact;
 
-  const alias = COMPOSER_ALIASES[normalizedName];
-  if (alias && bySlug.has(alias)) return alias;
+  const aliasName = COMPOSER_ALIASES[normalizedName];
+  if (aliasName) {
+    const aliasId = byExactName.get(aliasName) || bySlug.get(slugify(aliasName));
+    if (aliasId) return aliasId;
+  }
 
   const surname = normalizedName.split(' ').filter(Boolean).at(-1) || '';
   const candidates = surnameCandidates.get(surname) || [];
   if (candidates.length === 1) return candidates[0];
 
-  return entry.composerId || alias || slugify(cleanedName);
+  return entry.composerId || slugify(aliasName || cleanedName);
 };
 
 type ResolvedEntry = ListeningEntry & {
@@ -210,11 +223,8 @@ resolvedEntries.forEach((entry) => {
   ]);
 });
 
-const ratingRank = new Map([
-  ['gorgeous', 3],
-  ['amazing', 2],
-  ['other', 1],
-]);
+const isGorgeousEntry = (entry: ResolvedEntry) =>
+  entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous';
 
 const getUniqueTitleCount = (entries: ResolvedEntry[]) =>
   new Set(entries.map((entry) => normalizeText(entry.piece)).filter(Boolean)).size;
@@ -236,29 +246,24 @@ const getTopForm = (entries: ResolvedEntry[]) => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
 };
 
-const getRevisitEntries = (entries: ResolvedEntry[]) => {
+const getGorgeousWorks = (entries: ResolvedEntry[]) => {
   const unique = new Map<string, ResolvedEntry>();
 
-  entries
-    .filter((entry) => entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous')
-    .forEach((entry) => {
-      const key = `${normalizeText(entry.piece)}|${entry.youtubeUrl}`;
-      const current = unique.get(key);
-      const entryRank = ratingRank.get(entry.ratingBucket) || 0;
-      const currentRank = current ? ratingRank.get(current.ratingBucket) || 0 : -1;
-      const entryDate = entry.date?.getTime() || 0;
-      const currentDate = current?.date?.getTime() || 0;
+  entries.filter(isGorgeousEntry).forEach((entry) => {
+    const key = normalizeText(entry.piece);
+    if (!key) return;
+    const current = unique.get(key);
+    const entryDate = entry.date?.getTime() || 0;
+    const currentDate = current?.date?.getTime() || 0;
+    const hasBetterLink = Boolean(entry.youtubeUrl && !current?.youtubeUrl);
+    const sameLinkQuality = Boolean(entry.youtubeUrl) === Boolean(current?.youtubeUrl);
 
-      if (!current || entryRank > currentRank || (entryRank === currentRank && entryDate > currentDate)) {
-        unique.set(key, entry);
-      }
-    });
-
-  return [...unique.values()].sort((a, b) => {
-    const ratingDifference = (ratingRank.get(b.ratingBucket) || 0) - (ratingRank.get(a.ratingBucket) || 0);
-    if (ratingDifference) return ratingDifference;
-    return (b.date?.getTime() || 0) - (a.date?.getTime() || 0);
+    if (!current || hasBetterLink || (sameLinkQuality && entryDate > currentDate)) unique.set(key, entry);
   });
+
+  return [...unique.values()].sort(
+    (a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber,
+  );
 };
 
 const composers = composersBase.map((composer) => {
@@ -267,10 +272,9 @@ const composers = composersBase.map((composer) => {
   );
   const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
   const bounds = getDateBounds(entries);
-  const amazingCount = entries.filter((entry) => entry.ratingBucket === 'amazing').length;
-  const gorgeousCount = entries.filter((entry) => entry.ratingBucket === 'gorgeous').length;
-  const favoriteCount = amazingCount + gorgeousCount;
   const uniqueTitleCount = getUniqueTitleCount(entries);
+  const gorgeousWorks = getGorgeousWorks(entries);
+  const gorgeousEntryCount = entries.filter(isGorgeousEntry).length;
 
   return {
     ...composer,
@@ -278,31 +282,28 @@ const composers = composersBase.map((composer) => {
     totalMinutes,
     firstListened: bounds.first,
     lastListened: bounds.last,
-    amazingCount,
-    gorgeousCount,
-    favoriteCount,
-    favoriteRate: entries.length ? (favoriteCount / entries.length) * 100 : 0,
     uniqueTitleCount,
     repeatCount: Math.max(0, entries.length - uniqueTitleCount),
     topForm: getTopForm(entries),
-    revisitEntries: getRevisitEntries(entries),
+    gorgeousWorks,
+    gorgeousWorkCount: gorgeousWorks.length,
+    gorgeousEntryCount,
+    gorgeousRate: uniqueTitleCount ? (gorgeousWorks.length / uniqueTitleCount) * 100 : 0,
     linkedCount: entries.filter((entry) => entry.youtubeUrl).length,
   };
 });
 
 const globalComposerGroups = [...entriesByComposer.entries()].map(([id, entries]) => {
   const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
-  const amazingCount = entries.filter((entry) => entry.ratingBucket === 'amazing').length;
-  const gorgeousCount = entries.filter((entry) => entry.ratingBucket === 'gorgeous').length;
+  const gorgeousWorks = getGorgeousWorks(entries);
   return {
     id,
     name: composerNameById.get(id) || entries[0]?.displayComposer || id,
     entries: entries.length,
     uniqueTitles: getUniqueTitleCount(entries),
     totalMinutes,
-    amazingCount,
-    gorgeousCount,
-    favoriteCount: amazingCount + gorgeousCount,
+    gorgeousWorks: gorgeousWorks.length,
+    gorgeousEntries: entries.filter(isGorgeousEntry).length,
   };
 });
 
@@ -312,9 +313,8 @@ const totalUniqueTitles = new Set(
   resolvedEntries.map((entry) => `${entry.resolvedComposerId}|${normalizeText(entry.piece)}`),
 ).size;
 const totalComposersLogged = globalComposerGroups.length;
-const totalAmazing = resolvedEntries.filter((entry) => entry.ratingBucket === 'amazing').length;
-const totalGorgeous = resolvedEntries.filter((entry) => entry.ratingBucket === 'gorgeous').length;
-const totalOther = totalEntries - totalAmazing - totalGorgeous;
+const totalGorgeous = resolvedEntries.filter(isGorgeousEntry).length;
+const totalOther = totalEntries - totalGorgeous;
 const globalBounds = getDateBounds(resolvedEntries);
 const profiledComposerIds = new Set(composersBase.map((composer) => composer.id));
 const unprofiledComposerCount = globalComposerGroups.filter((group) => !profiledComposerIds.has(group.id)).length;
@@ -340,10 +340,10 @@ const topHours = [...globalComposerGroups]
 const maxChartMinutes = Math.max(...topHours.map((group) => group.totalMinutes), 1);
 
 const topFavorites = [...globalComposerGroups]
-  .filter((group) => group.favoriteCount > 0)
-  .sort((a, b) => b.favoriteCount - a.favoriteCount || b.gorgeousCount - a.gorgeousCount)
+  .filter((group) => group.gorgeousWorks > 0)
+  .sort((a, b) => b.gorgeousWorks - a.gorgeousWorks || b.uniqueTitles - a.uniqueTitles)
   .slice(0, 12);
-const maxFavoriteCount = Math.max(...topFavorites.map((group) => group.favoriteCount), 1);
+const maxFavoriteWorks = Math.max(...topFavorites.map((group) => group.uniqueTitles), 1);
 
 const periodsInUse = [...new Set(composers.map((composer) => composer.period).filter(Boolean))].sort(
   (a, b) => {
@@ -357,16 +357,11 @@ const hasListeningFeed = Boolean(CLASSICAL_LISTENING_DATA_URL && !sheetError);
 const generatedLabel = formatGeneratedAt(feedGeneratedAt);
 
 const luckyPool = resolvedEntries
-  .filter(
-    (entry) =>
-      entry.youtubeUrl &&
-      (entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous'),
-  )
+  .filter((entry) => entry.youtubeUrl && isGorgeousEntry(entry))
   .map((entry) => ({
     key: `${entry.rowNumber}|${entry.youtubeUrl}`,
     composer: entry.displayComposer,
     piece: entry.piece,
-    rating: entry.ratingBucket,
     url: entry.youtubeUrl,
   }));
 
@@ -375,7 +370,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
 
 <BaseHead
   title={`${SITE_TITLE} — Music — Composers`}
-  description="A data-driven archive of classical composers explored, listening hours, ratings, and performances worth revisiting."
+  description="A data-driven archive of classical composers explored, listening hours, Gorgeous works, and performances worth revisiting."
 />
 
 <style>
@@ -385,8 +380,8 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     --border: #e6e9ef;
     --surface: rgba(255, 255, 255, .92);
     --accent: #405cf5;
-    --amazing: #6d7df7;
-    --gorgeous: #b56ce5;
+    --gorgeous: #a85ed6;
+    --heard: #dce2ff;
   }
 
   * { box-sizing: border-box; }
@@ -394,8 +389,8 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
   .intro { max-width: 1120px; margin: 0 auto 22px; text-align: center; }
   h1 { margin: 0 0 9px; font-weight: 800; letter-spacing: -.025em; }
   .hint { margin: 0 auto 10px; max-width: 78ch; color: var(--muted); line-height: 1.55; }
-  .tracking-note { margin: 0 auto 18px; max-width: 83ch; color: #454d5c; font-size: .88rem; line-height: 1.55; }
-  .updated-note { margin: -8px auto 17px; color: var(--muted); font-size: .74rem; }
+  .tracking-note { margin: 0 auto 13px; max-width: 83ch; color: #454d5c; font-size: .88rem; line-height: 1.55; }
+  .updated-note { margin: 0 auto 17px; color: var(--muted); font-size: .74rem; }
   .feed-notice { max-width: 880px; margin: 0 auto 18px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255, 255, 255, .84); color: var(--muted); font-size: .84rem; line-height: 1.45; }
   .feed-notice strong { color: var(--ink); }
 
@@ -405,33 +400,32 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
   .overall-stat strong { overflow: hidden; color: var(--ink); font-size: 1.08rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
   .overall-stat span { margin-top: 4px; color: var(--muted); font-size: .7rem; line-height: 1.25; }
 
-  .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 1120px; margin: 0 auto 21px; text-align: left; }
+  .insights-toggle { max-width: 1120px; margin: 0 auto 21px; }
+  .insights-toggle > summary { display: none; }
+  .insights-toggle:not([open]) > .charts { display: grid; }
+  .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; text-align: left; }
   .chart-card { min-width: 0; padding: 16px; border: 1px solid rgba(230, 233, 239, .94); border-radius: 15px; background: rgba(255, 255, 255, .9); box-shadow: 0 9px 24px rgba(15, 23, 42, .07); }
   .chart-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
   .chart-header h2 { margin: 0; font-size: 1rem; }
   .chart-header p { margin: 3px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.35; }
   .chart-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-  .chart-row { display: grid; grid-template-columns: minmax(86px, 126px) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
-  .chart-name { overflow: hidden; color: #323946; font-size: .72rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  .chart-row { display: grid; grid-template-columns: minmax(145px, 180px) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .chart-name { color: #323946; font-size: .72rem; font-weight: 700; line-height: 1.25; }
   .bar-track { display: block; height: 9px; overflow: hidden; border-radius: 999px; background: #edf0f5; }
   .bar-fill { display: block; width: var(--bar-width); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #405cf5, #7284ff); }
-  .stack-width { display: block; width: var(--bar-width); height: 100%; }
-  .stacked-bar { display: flex; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; }
-  .stacked-bar .amazing { width: var(--amazing-width); background: var(--amazing); }
-  .stacked-bar .gorgeous { width: var(--gorgeous-width); background: var(--gorgeous); }
+  .works-width { display: block; width: var(--bar-width); height: 100%; overflow: hidden; border-radius: inherit; background: var(--heard); }
+  .gorgeous-fill { display: block; width: var(--gorgeous-width); height: 100%; border-radius: inherit; background: var(--gorgeous); }
   .chart-value { color: var(--muted); font-size: .68rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .chart-legend { display: flex; gap: 12px; align-items: center; color: var(--muted); font-size: .67rem; }
   .legend-item::before { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 999px; content: ''; }
-  .legend-item.amazing::before { background: var(--amazing); }
+  .legend-item.heard::before { background: var(--heard); }
   .legend-item.gorgeous::before { background: var(--gorgeous); }
 
   .toolbar { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 1120px; margin: 0 auto 10px; }
   .toolbar input, .toolbar select, .lucky-button { min-height: 42px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: .86rem; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
-  .toolbar input { width: min(300px, 100%); }
-  .toolbar select { min-width: 145px; }
-  .lucky-group { display: flex; align-items: stretch; }
-  .lucky-group select { min-width: 128px; border-radius: 12px 0 0 12px; }
-  .lucky-button { border-left: 0; border-radius: 0 12px 12px 0; background: #405cf5; color: #fff; font-weight: 800; cursor: pointer; }
+  .toolbar input { width: min(320px, 100%); }
+  .toolbar select { min-width: 150px; }
+  .lucky-button { background: #405cf5; color: #fff; font-weight: 800; cursor: pointer; }
   .lucky-button:hover { background: #354edb; }
   .lucky-button:disabled { cursor: not-allowed; opacity: .55; }
   .lucky-status { min-height: 18px; margin: 0 auto 4px; color: var(--muted); font-size: .72rem; }
@@ -448,63 +442,64 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
   .portrait-wrap { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #eef0f5; }
   .portrait { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 18%; transition: transform .25s ease; }
   .composer-button:hover .portrait { transform: scale(1.025); }
-  .expand-cue { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 999px; background: rgba(14, 18, 27, .78); color: #fff; font-size: 1.1rem; line-height: 1; backdrop-filter: blur(5px); }
+  .expand-cue { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 999px; background: rgba(14, 18, 27, .8); color: #fff; font-size: 1rem; line-height: 1; backdrop-filter: blur(5px); }
   .composer-button[aria-expanded='true'] .expand-cue { transform: rotate(45deg); }
   .card-body { display: block; min-height: 154px; padding: 13px 14px 14px; }
   .composer-name { display: block; margin-bottom: 4px; font-size: 1rem; font-weight: 800; line-height: 1.25; }
   .composer-meta { display: block; min-height: 2.55em; color: var(--muted); font-size: .78rem; line-height: 1.35; }
   .composer-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 11px; }
   .stat { min-width: 0; padding: 7px 8px; border-radius: 9px; background: #f4f5f9; }
-  .stat strong, .stat span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .stat strong { color: var(--ink); font-size: .85rem; }
-  .stat span { margin-top: 1px; color: var(--muted); font-size: .68rem; }
+  .stat strong, .stat span { display: block; }
+  .stat strong { color: var(--ink); font-size: .85rem; line-height: 1.15; }
+  .stat span { margin-top: 2px; color: var(--muted); font-size: .68rem; line-height: 1.2; }
   .not-connected { display: block; margin-top: 12px; color: var(--muted); font-size: .74rem; font-style: italic; }
+  .empty { grid-column: 1 / -1; padding: 40px 16px; color: var(--muted); text-align: center; }
 
-  .composer-detail-host { grid-column: 1 / -1; min-width: 0; }
-  .composer-detail { padding: 21px; border: 1px solid rgba(64, 92, 245, .22); border-radius: 16px; background: rgba(255, 255, 255, .95); box-shadow: 0 16px 36px rgba(15, 23, 42, .11); scroll-margin-top: 18px; }
-  .detail-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
-  .detail-header h2 { margin: 0 0 5px; font-size: 1.4rem; }
+  .composer-dialog { width: min(1180px, calc(100vw - 40px)); max-width: none; height: min(88dvh, 900px); max-height: 88dvh; margin: auto; padding: 0; overflow: hidden; border: 0; border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 28px 90px rgba(10, 17, 35, .28); }
+  .composer-dialog::backdrop { background: rgba(9, 14, 25, .58); backdrop-filter: blur(4px); }
+  .composer-dialog-content, .composer-detail { height: 100%; }
+  .composer-detail { display: flex; min-height: 0; flex-direction: column; background: #fff; }
+  .detail-header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: #fff; }
+  .detail-header h2 { margin: 0 0 5px; font-size: 1.5rem; }
   .detail-subtitle { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.45; }
   .detail-actions { display: flex; gap: 8px; flex: 0 0 auto; }
-  .reference-link, .close-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 10px; font: inherit; font-size: .78rem; font-weight: 750; text-decoration: none; cursor: pointer; }
+  .reference-link, .close-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border-radius: 10px; font: inherit; font-size: .8rem; font-weight: 800; text-decoration: none; cursor: pointer; }
   .reference-link { border: 1px solid rgba(64, 92, 245, .25); background: #f0f2ff; color: #314bd8; }
-  .close-detail { width: 36px; padding: 0; border: 1px solid var(--border); background: #fff; color: var(--ink); }
-  .detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 21px; }
-  .detail-summary div { min-width: 0; padding: 10px 11px; border-radius: 11px; background: #f4f5f9; }
+  .close-detail { min-width: 78px; border: 1px solid var(--border); background: #fff; color: var(--ink); }
+  .detail-tabs { display: flex; gap: 4px; padding: 10px 24px; overflow-x: auto; border-bottom: 1px solid var(--border); background: #fff; }
+  .detail-tab { flex: 0 0 auto; min-height: 38px; padding: 8px 13px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+  .detail-tab[aria-selected='true'] { background: #eef1ff; color: #314bd8; }
+  .detail-panel-wrap { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding: 20px 24px 28px; }
+  .detail-panel[hidden] { display: none; }
+  .detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+  .detail-summary div { min-width: 0; padding: 11px; border-radius: 11px; background: #f4f5f9; }
   .detail-summary strong, .detail-summary span { display: block; }
-  .detail-summary strong { overflow: hidden; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
-  .detail-summary span { margin-top: 2px; color: var(--muted); font-size: .68rem; }
-  .detail-section + .detail-section { margin-top: 22px; }
-  .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 9px; }
-  .section-heading h3 { margin: 0; font-size: 1rem; }
+  .detail-summary strong { font-size: .95rem; line-height: 1.2; }
+  .detail-summary span { margin-top: 3px; color: var(--muted); font-size: .68rem; line-height: 1.25; }
+  .overview-note { margin: 0; padding: 15px 16px; border: 1px solid #e8eafd; border-radius: 12px; background: #f8f8ff; color: #41495a; font-size: .85rem; line-height: 1.55; }
+  .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 10px; }
+  .section-heading h3 { margin: 0; font-size: 1.05rem; }
   .section-heading p { margin: 0; color: var(--muted); font-size: .72rem; }
 
-  .revisit-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 9px; margin: 0; padding: 0; list-style: none; }
-  .revisit-card { min-width: 0; padding: 11px 12px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
-  .revisit-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-  .piece-title { display: block; color: var(--ink); font-size: .86rem; font-weight: 750; line-height: 1.35; }
-  .piece-meta { display: block; margin-top: 5px; color: var(--muted); font-size: .72rem; line-height: 1.4; }
-  .play-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 34px; height: 32px; padding: 0 9px; border-radius: 9px; background: #eef1ff; color: #314bd8; font-size: .72rem; font-weight: 800; text-decoration: none; }
+  .browser-toolbar { position: sticky; top: -20px; z-index: 4; display: grid; grid-template-columns: minmax(220px, 1fr) 180px 180px; gap: 8px; margin: -20px -24px 11px; padding: 14px 24px 10px; border-bottom: 1px solid rgba(230, 233, 239, .9); background: rgba(255, 255, 255, .96); backdrop-filter: blur(10px); }
+  .browser-toolbar.two-controls { grid-template-columns: minmax(220px, 1fr) 180px; }
+  .browser-toolbar input, .browser-toolbar select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: .78rem; }
+  .entry-results { margin: 0 0 9px; color: var(--muted); font-size: .72rem; }
+  .entry-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .entry-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 11px 12px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
+  .entry-main { min-width: 0; }
+  .entry-title { display: block; color: var(--ink); font-size: .84rem; font-weight: 800; line-height: 1.35; }
+  .entry-meta { display: block; margin-top: 4px; color: var(--muted); font-size: .7rem; line-height: 1.4; }
+  .entry-side { min-width: 100px; text-align: right; }
+  .entry-side time, .entry-side span { display: block; color: var(--muted); font-size: .69rem; line-height: 1.4; }
+  .play-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 38px; height: 34px; padding: 0 10px; border-radius: 9px; background: #eef1ff; color: #314bd8; font-size: .72rem; font-weight: 800; text-decoration: none; }
   .play-link:hover { background: #dde3ff; }
-  .play-missing { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 34px; height: 32px; border-radius: 9px; background: #f1f2f5; color: #8a909b; font-size: .72rem; }
+  .play-missing { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 38px; height: 34px; border-radius: 9px; background: #f1f2f5; color: #8a909b; font-size: .72rem; }
   .rating { display: inline-block; margin-right: 5px; padding: 2px 6px; border-radius: 999px; font-weight: 800; }
-  .rating.amazing { background: #edf0ff; color: #4054d8; }
   .rating.gorgeous { background: #f5eafa; color: #8d43ba; }
   .rating.other { background: #f0f1f4; color: #656c78; }
-
-  .entry-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 170px 170px; gap: 8px; margin-bottom: 9px; }
-  .entry-toolbar input, .entry-toolbar select { min-height: 39px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: .78rem; }
-  .entry-results { margin: 0 0 8px; color: var(--muted); font-size: .72rem; }
-  .entry-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
-  .entry-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 10px 11px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
-  .entry-main { min-width: 0; }
-  .entry-title { display: block; color: var(--ink); font-size: .82rem; font-weight: 750; line-height: 1.35; }
-  .entry-meta { display: block; margin-top: 3px; color: var(--muted); font-size: .69rem; line-height: 1.35; }
-  .entry-side { min-width: 96px; text-align: right; }
-  .entry-side time, .entry-side span { display: block; color: var(--muted); font-size: .68rem; line-height: 1.35; }
-  .show-more { display: block; min-height: 38px; margin: 11px auto 0; padding: 8px 14px; border: 1px solid rgba(64, 92, 245, .25); border-radius: 10px; background: #f0f2ff; color: #314bd8; font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
+  .show-more { display: block; min-height: 40px; margin: 12px auto 0; padding: 8px 15px; border: 1px solid rgba(64, 92, 245, .25); border-radius: 10px; background: #f0f2ff; color: #314bd8; font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
   .empty-detail { margin: 0; padding: 15px; border-radius: 11px; background: #f5f6f9; color: var(--muted); font-size: .86rem; line-height: 1.5; }
-  .empty { grid-column: 1 / -1; padding: 40px 16px; color: var(--muted); text-align: center; }
 
   @media (max-width: 1050px) {
     .overall-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -519,9 +514,8 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     .charts { grid-template-columns: 1fr; }
     .toolbar { display: grid; grid-template-columns: 1fr 1fr; }
     .toolbar > input { grid-column: 1 / -1; width: 100%; }
-    .toolbar > select { min-width: 0; width: 100%; }
-    .lucky-group { grid-column: 1 / -1; }
-    .lucky-group select { flex: 1; min-width: 0; }
+    .toolbar > select, .lucky-button { min-width: 0; width: 100%; }
+    .lucky-button { grid-column: 1 / -1; }
     .composer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
     .card-body { min-height: 145px; padding: 10px; }
     .composer-name { font-size: .88rem; }
@@ -530,18 +524,40 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     .stat { padding: 6px; }
     .stat strong { font-size: .74rem; }
     .stat span { font-size: .62rem; }
-    .composer-detail { padding: 14px 12px; }
-    .detail-header { display: block; }
-    .detail-actions { margin-top: 11px; }
-    .revisit-list { grid-template-columns: 1fr; }
-    .entry-toolbar { grid-template-columns: 1fr 1fr; }
-    .entry-toolbar input { grid-column: 1 / -1; }
+    .browser-toolbar { grid-template-columns: 1fr 1fr; }
+    .browser-toolbar input { grid-column: 1 / -1; }
+    .browser-toolbar.two-controls { grid-template-columns: 1fr 1fr; }
+    .browser-toolbar.two-controls input { grid-column: auto; }
+  }
+
+  @media (max-width: 700px) {
+    .insights-toggle { margin-bottom: 12px; }
+    .insights-toggle > summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255, 255, 255, .9); color: #314bd8; font-size: .82rem; font-weight: 800; cursor: pointer; list-style: none; }
+    .insights-toggle > summary::-webkit-details-marker { display: none; }
+    .insights-toggle > summary::after { content: '+'; font-size: 1.1rem; }
+    .insights-toggle[open] > summary::after { content: '–'; }
+    .insights-toggle:not([open]) > .charts { display: none; }
+    .insights-toggle[open] > .charts { display: grid; margin-top: 10px; }
+    .toolbar { position: sticky; top: 66px; z-index: 20; padding: 8px; border: 1px solid rgba(230, 233, 239, .9); border-radius: 13px; background: rgba(255, 255, 255, .94); box-shadow: 0 8px 24px rgba(15, 23, 42, .1); backdrop-filter: blur(12px); }
+    .chart-row { grid-template-columns: 112px minmax(0, 1fr) auto; }
+    .chart-name { font-size: .69rem; }
   }
 
   @media (max-width: 620px) {
     .overall-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .chart-row { grid-template-columns: 90px minmax(0, 1fr) auto; }
+    .composer-dialog { inset: 0; width: 100vw; height: 100dvh; max-height: none; margin: 0; border-radius: 0; }
+    .detail-header { padding: 15px 14px 12px; }
+    .detail-header h2 { font-size: 1.25rem; }
+    .detail-subtitle { font-size: .76rem; }
+    .detail-actions { gap: 5px; }
+    .reference-link { min-height: 36px; padding: 7px 9px; font-size: .72rem; }
+    .close-detail { min-width: 64px; min-height: 36px; padding: 7px 9px; font-size: .72rem; }
+    .detail-tabs { padding: 8px 12px; }
+    .detail-tab { min-height: 36px; padding: 7px 11px; font-size: .76rem; }
+    .detail-panel-wrap { padding: 14px 12px 22px; }
     .detail-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .browser-toolbar, .browser-toolbar.two-controls { top: -14px; grid-template-columns: 1fr; margin: -14px -12px 10px; padding: 10px 12px; }
+    .browser-toolbar input, .browser-toolbar.two-controls input { grid-column: auto; }
     .entry-item { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
     .entry-side { grid-column: 2; min-width: 0; text-align: left; }
     .entry-side time, .entry-side span { display: inline; }
@@ -554,9 +570,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     .portrait-wrap { height: 155px; aspect-ratio: 4 / 5; }
     .card-body { min-height: 155px; }
     .chart-card { padding: 13px 11px; }
-    .chart-row { grid-template-columns: 78px minmax(0, 1fr) auto; gap: 6px; }
-    .entry-toolbar { grid-template-columns: 1fr; }
-    .entry-toolbar input { grid-column: auto; }
+    .chart-row { grid-template-columns: 92px minmax(0, 1fr) auto; gap: 6px; }
   }
 </style>
 
@@ -569,7 +583,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
       <h1>🎼 Classical Composers</h1>
       <p class="hint">
         A listening archive of the Western classical canon: composer profiles, performances heard,
-        time invested, and the works I marked for another listen.
+        time invested, and the works I marked Gorgeous.
       </p>
       <p class="tracking-note">
         I began tracking this project on {globalBounds.first ? formatListeningDate(globalBounds.first) : 'November 23, 2024'},
@@ -598,87 +612,76 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
         <>
           <section class="overall-stats" aria-label="Classical listening totals">
             <div class="overall-stat"><strong>{totalEntries.toLocaleString('en-US')}</strong><span>listening entries</span></div>
-            <div class="overall-stat"><strong>{totalUniqueTitles.toLocaleString('en-US')}</strong><span>unique titles logged</span></div>
+            <div class="overall-stat"><strong>{totalUniqueTitles.toLocaleString('en-US')}</strong><span>unique works logged</span></div>
             <div class="overall-stat"><strong>{formatListeningHours(totalMinutes)}</strong><span>total listening time</span></div>
             <div class="overall-stat"><strong>{totalComposersLogged.toLocaleString('en-US')}</strong><span>composers logged</span></div>
-            <div class="overall-stat"><strong>{totalAmazing.toLocaleString('en-US')}</strong><span>rated Amazing</span></div>
+            <div class="overall-stat"><strong>{composers.length.toLocaleString('en-US')}</strong><span>portrait profiles</span></div>
             <div class="overall-stat"><strong>{totalGorgeous.toLocaleString('en-US')}</strong><span>rated Gorgeous</span></div>
           </section>
 
           {(topHours.length || topFavorites.length) ? (
-            <section class="charts" aria-label="Classical listening charts">
-              <article class="chart-card">
-                <div class="chart-header">
-                  <div>
-                    <h2>Most Explored by Time</h2>
-                    <p>Top composers by recorded listening hours.</p>
+            <details class="insights-toggle" open>
+              <summary>View listening insights</summary>
+              <section class="charts" aria-label="Classical listening charts">
+                <article class="chart-card">
+                  <div class="chart-header">
+                    <div>
+                      <h2>Most Explored by Time</h2>
+                      <p>Top composers by recorded listening hours.</p>
+                    </div>
                   </div>
-                </div>
-                <ol class="chart-list">
-                  {topHours.map((group) => (
-                    <li class="chart-row">
-                      <span class="chart-name" title={group.name}>{group.name}</span>
-                      <span class="bar-track" aria-hidden="true">
-                        <span
-                          class="bar-fill"
-                          style={`--bar-width:${Math.max(2, (group.totalMinutes / maxChartMinutes) * 100)}%`}
-                        ></span>
-                      </span>
-                      <span class="chart-value">{formatListeningHours(group.totalMinutes)}</span>
-                    </li>
-                  ))}
-                </ol>
-              </article>
-
-              <article class="chart-card">
-                <div class="chart-header">
-                  <div>
-                    <h2>Favorites by Composer</h2>
-                    <p>Entries rated Amazing or Gorgeous.</p>
-                  </div>
-                  <div class="chart-legend" aria-label="Chart legend">
-                    <span class="legend-item amazing">Amazing</span>
-                    <span class="legend-item gorgeous">Gorgeous</span>
-                  </div>
-                </div>
-                <ol class="chart-list">
-                  {topFavorites.map((group) => {
-                    const total = Math.max(group.favoriteCount, 1);
-                    return (
+                  <ol class="chart-list">
+                    {topHours.map((group) => (
                       <li class="chart-row">
-                        <span class="chart-name" title={group.name}>{group.name}</span>
+                        <span class="chart-name">{group.name}</span>
+                        <span class="bar-track" aria-hidden="true">
+                          <span class="bar-fill" style={`--bar-width:${Math.max(2, (group.totalMinutes / maxChartMinutes) * 100)}%`}></span>
+                        </span>
+                        <span class="chart-value">{formatListeningHours(group.totalMinutes)}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </article>
+
+                <article class="chart-card">
+                  <div class="chart-header">
+                    <div>
+                      <h2>Favorites by Composer</h2>
+                      <p>Unique works heard compared with those marked Gorgeous.</p>
+                    </div>
+                    <div class="chart-legend" aria-label="Chart legend">
+                      <span class="legend-item heard">Works heard</span>
+                      <span class="legend-item gorgeous">Gorgeous</span>
+                    </div>
+                  </div>
+                  <ol class="chart-list">
+                    {topFavorites.map((group) => (
+                      <li class="chart-row">
+                        <span class="chart-name">{group.name}</span>
                         <span class="bar-track" aria-hidden="true">
                           <span
-                            class="stack-width"
-                            style={`--bar-width:${Math.max(2, (group.favoriteCount / maxFavoriteCount) * 100)}%`}
+                            class="works-width"
+                            style={`--bar-width:${Math.max(2, (group.uniqueTitles / maxFavoriteWorks) * 100)}%`}
                           >
                             <span
-                              class="stacked-bar"
-                              style={`--amazing-width:${(group.amazingCount / total) * 100}%;--gorgeous-width:${(group.gorgeousCount / total) * 100}%`}
-                            >
-                              <span class="amazing"></span>
-                              <span class="gorgeous"></span>
-                            </span>
+                              class="gorgeous-fill"
+                              style={`--gorgeous-width:${group.uniqueTitles ? (group.gorgeousWorks / group.uniqueTitles) * 100 : 0}%`}
+                            ></span>
                           </span>
                         </span>
-                        <span class="chart-value">{group.favoriteCount.toLocaleString('en-US')}</span>
+                        <span class="chart-value">{group.gorgeousWorks.toLocaleString('en-US')} / {group.uniqueTitles.toLocaleString('en-US')}</span>
                       </li>
-                    );
-                  })}
-                </ol>
-              </article>
-            </section>
+                    ))}
+                  </ol>
+                </article>
+              </section>
+            </details>
           ) : null}
         </>
       ) : null}
 
       <div class="toolbar">
-        <input
-          id="composer-search"
-          type="search"
-          placeholder="Search composer, country, period, or form…"
-          aria-label="Search composers"
-        />
+        <input id="composer-search" type="search" placeholder="Search composer, country, period, or form…" aria-label="Search composers" />
 
         <select id="period-filter" aria-label="Filter composers by period">
           <option value="">All periods</option>
@@ -688,34 +691,22 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
         <select id="composer-sort" aria-label="Sort composers">
           <option value="name-asc">Composer A–Z</option>
           <option value="entries-desc">Most entries</option>
-          <option value="unique-desc">Most unique titles</option>
+          <option value="unique-desc">Most unique works</option>
           <option value="hours-desc">Most listening time</option>
-          <option value="favorites-desc">Most favorites</option>
+          <option value="favorites-desc">Most Gorgeous works</option>
           <option value="recent-desc">Most recently heard</option>
         </select>
 
-        <div class="lucky-group">
-          <select id="lucky-rating" aria-label="Feeling Lucky rating pool">
-            <option value="gorgeous">Gorgeous</option>
-            <option value="amazing">Amazing</option>
-            <option value="favorites">Either favorite</option>
-          </select>
-          <button
-            type="button"
-            id="feeling-lucky"
-            class="lucky-button"
-            disabled={!luckyPool.length}
-          >
-            🎲 Feeling Lucky
-          </button>
-        </div>
+        <button type="button" id="feeling-lucky" class="lucky-button" disabled={!luckyPool.length}>
+          🎲 Feeling Lucky
+        </button>
       </div>
 
       <p id="lucky-status" class="lucky-status" aria-live="polite"></p>
 
       <div class="results-row">
         <p id="composer-results" aria-live="polite">
-          Showing {composers.length.toLocaleString('en-US')} of {composers.length.toLocaleString('en-US')} composer profiles
+          Showing {composers.length.toLocaleString('en-US')} of {composers.length.toLocaleString('en-US')} portrait profiles · {totalComposersLogged.toLocaleString('en-US')} composers logged
         </p>
         <button type="button" id="clear-composer-filters" class="clear-filters" hidden>Clear filters</button>
       </div>
@@ -750,7 +741,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
               data-entries={composer.entries.length}
               data-unique={composer.uniqueTitleCount}
               data-minutes={composer.totalMinutes}
-              data-favorites={composer.favoriteCount}
+              data-favorites={composer.gorgeousWorkCount}
               data-last-listened={composer.lastListened?.getTime() || 0}
               data-original-index={composer.originalIndex}
             >
@@ -758,7 +749,8 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
                 type="button"
                 class="composer-button"
                 aria-expanded="false"
-                aria-controls={`composer-detail-${composer.id}`}
+                aria-haspopup="dialog"
+                aria-controls="composer-dialog"
                 data-composer-trigger={composer.id}
               >
                 <span class="portrait-wrap">
@@ -781,8 +773,8 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
                     <span class="composer-stats">
                       <span class="stat"><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></span>
                       <span class="stat"><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></span>
-                      <span class="stat"><strong>{composer.favoriteCount.toLocaleString('en-US')}</strong><span>favorites</span></span>
-                      <span class="stat"><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></span>
+                      <span class="stat"><strong>{composer.gorgeousWorkCount.toLocaleString('en-US')}</strong><span>Gorgeous works</span></span>
+                      <span class="stat"><strong>{formatCardDate(composer.lastListened)}</strong><span>last heard</span></span>
                     </span>
                   ) : (
                     <span class="not-connected">Listening details ready to connect</span>
@@ -791,14 +783,10 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
               </button>
 
               <template id={`composer-template-${composer.id}`}>
-                <section
-                  id={`composer-detail-${composer.id}`}
-                  class="composer-detail"
-                  aria-label={`${composer.name} listening details`}
-                >
-                  <div class="detail-header">
+                <article class="composer-detail" data-composer-detail>
+                  <header class="detail-header">
                     <div>
-                      <h2>{composer.name}</h2>
+                      <h2 id={`composer-dialog-title-${composer.id}`}>{composer.name}</h2>
                       <p class="detail-subtitle">
                         {[identity, composer.topForm ? `Most explored form: ${composer.topForm}` : '']
                           .filter(Boolean)
@@ -807,157 +795,218 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
                     </div>
                     <div class="detail-actions">
                       <a class="reference-link" href={composer.href} target="_blank" rel="noopener noreferrer">Reference ↗</a>
-                      <button
-                        type="button"
-                        class="close-detail"
-                        data-close-composer
-                        aria-label={`Close ${composer.name} details`}
-                      >×</button>
+                      <button type="button" class="close-detail" data-close-composer>Close</button>
                     </div>
+                  </header>
+
+                  <div class="detail-tabs" role="tablist" aria-label={`${composer.name} listening sections`}>
+                    <button
+                      type="button"
+                      class="detail-tab"
+                      role="tab"
+                      id={`tab-overview-${composer.id}`}
+                      aria-controls={`panel-overview-${composer.id}`}
+                      aria-selected="true"
+                      data-detail-tab="overview"
+                    >Overview</button>
+                    <button
+                      type="button"
+                      class="detail-tab"
+                      role="tab"
+                      id={`tab-gorgeous-${composer.id}`}
+                      aria-controls={`panel-gorgeous-${composer.id}`}
+                      aria-selected="false"
+                      tabindex="-1"
+                      data-detail-tab="gorgeous"
+                    >Gorgeous ({composer.gorgeousWorkCount.toLocaleString('en-US')})</button>
+                    <button
+                      type="button"
+                      class="detail-tab"
+                      role="tab"
+                      id={`tab-all-${composer.id}`}
+                      aria-controls={`panel-all-${composer.id}`}
+                      aria-selected="false"
+                      tabindex="-1"
+                      data-detail-tab="all"
+                    >All Listening ({composer.entries.length.toLocaleString('en-US')})</button>
                   </div>
 
-                  {hasListeningFeed ? (
-                    <>
-                      <div class="detail-summary">
-                        <div><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></div>
-                        <div><strong>{composer.uniqueTitleCount.toLocaleString('en-US')}</strong><span>unique titles</span></div>
-                        <div><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></div>
-                        <div><strong>{composer.favoriteCount.toLocaleString('en-US')}</strong><span>favorites ({composer.favoriteRate.toFixed(0)}%)</span></div>
-                        <div><strong>{composer.firstListened ? formatListeningDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
-                        <div><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
+                  <div class="detail-panel-wrap">
+                    <section
+                      class="detail-panel"
+                      id={`panel-overview-${composer.id}`}
+                      role="tabpanel"
+                      aria-labelledby={`tab-overview-${composer.id}`}
+                      data-detail-panel="overview"
+                    >
+                      {hasListeningFeed ? (
+                        <>
+                          <div class="detail-summary">
+                            <div><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></div>
+                            <div><strong>{composer.uniqueTitleCount.toLocaleString('en-US')}</strong><span>unique works</span></div>
+                            <div><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></div>
+                            <div><strong>{composer.gorgeousWorkCount.toLocaleString('en-US')}</strong><span>Gorgeous works ({composer.gorgeousRate.toFixed(0)}%)</span></div>
+                            <div><strong>{composer.firstListened ? formatListeningDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
+                            <div><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
+                          </div>
+                          <p class="overview-note">
+                            {composer.gorgeousWorkCount.toLocaleString('en-US')} of {composer.uniqueTitleCount.toLocaleString('en-US')} unique works are marked Gorgeous.
+                            {composer.repeatCount ? ` The log also contains ${composer.repeatCount.toLocaleString('en-US')} repeat listening entr${composer.repeatCount === 1 ? 'y' : 'ies'}.` : ''}
+                            {composer.topForm ? ` The most explored form is ${composer.topForm}.` : ''}
+                          </p>
+                        </>
+                      ) : (
+                        <p class="empty-detail">Listening details are not connected for this build.</p>
+                      )}
+                    </section>
+
+                    <section
+                      class="detail-panel"
+                      id={`panel-gorgeous-${composer.id}`}
+                      role="tabpanel"
+                      aria-labelledby={`tab-gorgeous-${composer.id}`}
+                      data-detail-panel="gorgeous"
+                      hidden
+                    >
+                      <div class="section-heading">
+                        <h3>Gorgeous Works</h3>
+                        <p>{composer.gorgeousWorkCount.toLocaleString('en-US')} of {composer.uniqueTitleCount.toLocaleString('en-US')} unique works</p>
                       </div>
 
-                      <section class="detail-section">
-                        <div class="section-heading">
-                          <h3>Worth Revisiting</h3>
-                          <p>{composer.gorgeousCount.toLocaleString('en-US')} Gorgeous · {composer.amazingCount.toLocaleString('en-US')} Amazing</p>
-                        </div>
-                        {composer.revisitEntries.length ? (
-                          <ul class="revisit-list">
-                            {composer.revisitEntries.map((entry) => (
-                              <li class="revisit-card">
-                                <div class="revisit-top">
-                                  <span class="piece-title">{entry.piece}</span>
-                                  {entry.youtubeUrl ? (
-                                    <a
-                                      class="play-link"
-                                      href={entry.youtubeUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      aria-label={`Play ${entry.piece} on YouTube`}
-                                    >▶ Play</a>
-                                  ) : (
-                                    <span class="play-missing" title="No performance link was exported">—</span>
-                                  )}
-                                </div>
-                                <span class="piece-meta">
-                                  <span class={`rating ${entry.ratingBucket}`}>{entry.rating || 'Other'}</span>
-                                  {[entry.form, entry.compositionYear, formatCompactDuration(entry.minutes), entry.date ? `Heard ${formatListeningDate(entry.date)}` : entry.dateRaw]
-                                    .filter(Boolean)
-                                    .join(' · ')}
+                      {composer.gorgeousWorks.length ? (
+                        <div data-list-browser data-page-desktop="18" data-page-mobile="8" data-item-label="works">
+                          <div class="browser-toolbar two-controls">
+                            <input type="search" placeholder="Search Gorgeous works…" aria-label={`Search ${composer.name} Gorgeous works`} data-list-search />
+                            <select aria-label="Sort Gorgeous works" data-list-sort>
+                              <option value="latest">Latest heard</option>
+                              <option value="earliest">Earliest heard</option>
+                              <option value="title">Title A–Z</option>
+                              <option value="longest">Longest first</option>
+                            </select>
+                          </div>
+                          <p class="entry-results" data-list-results></p>
+                          <ul class="entry-list" data-list>
+                            {composer.gorgeousWorks.map((entry) => (
+                              <li
+                                class="entry-item"
+                                data-list-item
+                                data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${entry.period}`)}
+                                data-rating="gorgeous"
+                                data-date={entry.date?.getTime() || 0}
+                                data-minutes={entry.minutes}
+                                data-title={normalizeText(entry.piece)}
+                                data-row={entry.rowNumber}
+                              >
+                                {entry.youtubeUrl ? (
+                                  <a class="play-link" href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${entry.piece} on YouTube`}>▶</a>
+                                ) : (
+                                  <span class="play-missing" title="No performance link was exported">—</span>
+                                )}
+                                <span class="entry-main">
+                                  <span class="entry-title">{entry.piece}</span>
+                                  <span class="entry-meta">
+                                    <span class="rating gorgeous">Gorgeous</span>
+                                    {[entry.form, entry.period, entry.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
+                                  </span>
+                                </span>
+                                <span class="entry-side">
+                                  <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw}</time>
+                                  <span>{formatCompactDuration(entry.minutes)}</span>
                                 </span>
                               </li>
                             ))}
                           </ul>
-                        ) : (
-                          <p class="empty-detail">No entries by this composer are currently rated Amazing or Gorgeous.</p>
-                        )}
-                      </section>
-
-                      <section class="detail-section" data-entry-browser>
-                        <div class="section-heading">
-                          <h3>All Listening Entries</h3>
-                          <p>{composer.linkedCount.toLocaleString('en-US')} of {composer.entries.length.toLocaleString('en-US')} include a performance link</p>
+                          <p class="empty-detail" data-list-empty hidden>No Gorgeous works match this search.</p>
+                          <button type="button" class="show-more" data-list-more hidden>Show more</button>
                         </div>
+                      ) : (
+                        <p class="empty-detail">No works by this composer are currently marked Gorgeous.</p>
+                      )}
+                    </section>
 
-                        <div class="entry-toolbar">
-                          <input
-                            type="search"
-                            placeholder="Search title, form, year, or rating…"
-                            aria-label={`Search ${composer.name} listening entries`}
-                            data-entry-search
-                          />
-                          <select aria-label="Filter listening entries by rating" data-entry-rating>
-                            <option value="all">All ratings</option>
-                            <option value="gorgeous">Gorgeous</option>
-                            <option value="amazing">Amazing</option>
-                            <option value="other">Other</option>
-                          </select>
-                          <select aria-label="Sort listening entries" data-entry-sort>
-                            <option value="latest">Latest heard</option>
-                            <option value="earliest">Earliest heard</option>
-                            <option value="title">Title A–Z</option>
-                            <option value="longest">Longest first</option>
-                          </select>
-                        </div>
+                    <section
+                      class="detail-panel"
+                      id={`panel-all-${composer.id}`}
+                      role="tabpanel"
+                      aria-labelledby={`tab-all-${composer.id}`}
+                      data-detail-panel="all"
+                      hidden
+                    >
+                      <div class="section-heading">
+                        <h3>All Listening Entries</h3>
+                        <p>{composer.linkedCount.toLocaleString('en-US')} of {composer.entries.length.toLocaleString('en-US')} include a performance link</p>
+                      </div>
 
-                        <p class="entry-results" data-entry-results></p>
-
-                        {composer.entries.length ? (
-                          <>
-                            <ul class="entry-list" data-entry-list>
-                              {composer.entries.map((entry) => (
+                      {composer.entries.length ? (
+                        <div data-list-browser data-page-desktop="24" data-page-mobile="12" data-item-label="entries">
+                          <div class="browser-toolbar">
+                            <input type="search" placeholder="Search title, form, year, or rating…" aria-label={`Search ${composer.name} listening entries`} data-list-search />
+                            <select aria-label="Filter listening entries" data-list-rating>
+                              <option value="all">All ratings</option>
+                              <option value="gorgeous">Gorgeous</option>
+                              <option value="other">Other</option>
+                            </select>
+                            <select aria-label="Sort listening entries" data-list-sort>
+                              <option value="latest">Latest heard</option>
+                              <option value="earliest">Earliest heard</option>
+                              <option value="title">Title A–Z</option>
+                              <option value="longest">Longest first</option>
+                            </select>
+                          </div>
+                          <p class="entry-results" data-list-results></p>
+                          <ul class="entry-list" data-list>
+                            {composer.entries.map((entry) => {
+                              const gorgeous = isGorgeousEntry(entry);
+                              return (
                                 <li
                                   class="entry-item"
-                                  data-entry-item
-                                  data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${entry.rating} ${entry.period}`)}
-                                  data-rating={entry.ratingBucket}
+                                  data-list-item
+                                  data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${gorgeous ? 'Gorgeous' : entry.rating} ${entry.period}`)}
+                                  data-rating={gorgeous ? 'gorgeous' : 'other'}
                                   data-date={entry.date?.getTime() || 0}
                                   data-minutes={entry.minutes}
                                   data-title={normalizeText(entry.piece)}
                                   data-row={entry.rowNumber}
                                 >
                                   {entry.youtubeUrl ? (
-                                    <a
-                                      class="play-link"
-                                      href={entry.youtubeUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      aria-label={`Play ${entry.piece} on YouTube`}
-                                    >▶</a>
+                                    <a class="play-link" href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${entry.piece} on YouTube`}>▶</a>
                                   ) : (
                                     <span class="play-missing" title="No performance link was exported">—</span>
                                   )}
-
                                   <span class="entry-main">
                                     <span class="entry-title">{entry.piece}</span>
                                     <span class="entry-meta">
-                                      <span class={`rating ${entry.ratingBucket}`}>{entry.rating || 'Other'}</span>
-                                      {[entry.form, entry.period, entry.compositionYear]
-                                        .filter(Boolean)
-                                        .join(' · ') || 'Metadata not logged'}
+                                      <span class={`rating ${gorgeous ? 'gorgeous' : 'other'}`}>{gorgeous ? 'Gorgeous' : entry.rating || 'Other'}</span>
+                                      {[entry.form, entry.period, entry.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
                                     </span>
                                   </span>
-
                                   <span class="entry-side">
-                                    <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>
-                                      {entry.date ? formatListeningDate(entry.date) : entry.dateRaw}
-                                    </time>
+                                    <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw}</time>
                                     <span>{formatCompactDuration(entry.minutes)}</span>
                                   </span>
                                 </li>
-                              ))}
-                            </ul>
-                            <p class="empty-detail" data-entry-empty hidden>No entries match these filters.</p>
-                            <button type="button" class="show-more" data-entry-more hidden>Show more</button>
-                          </>
-                        ) : (
-                          <p class="empty-detail">No dated listening entries matched this composer profile.</p>
-                        )}
-                      </section>
-                    </>
-                  ) : (
-                    <p class="empty-detail">
-                      The Raindrop composer profile is live. Connect the normalized Google Sheets feed to add listening entries, hours, performance links, ratings, charts, and Feeling Lucky.
-                    </p>
-                  )}
-                </section>
+                              );
+                            })}
+                          </ul>
+                          <p class="empty-detail" data-list-empty hidden>No entries match these filters.</p>
+                          <button type="button" class="show-more" data-list-more hidden>Show more</button>
+                        </div>
+                      ) : (
+                        <p class="empty-detail">No dated listening entries matched this composer profile.</p>
+                      )}
+                    </section>
+                  </div>
+                </article>
               </template>
             </article>
           );
         })}
       </div>
     )}
+
+    <dialog id="composer-dialog" class="composer-dialog" aria-modal="true">
+      <div id="composer-dialog-content" class="composer-dialog-content"></div>
+    </dialog>
 
     <script id="composer-page-data" type="application/json" set:html={clientPageData}></script>
   </main>
@@ -975,12 +1024,14 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     const results = document.querySelector('#composer-results');
     const clear = document.querySelector('#clear-composer-filters');
     const luckyButton = document.querySelector('#feeling-lucky');
-    const luckyRating = document.querySelector('#lucky-rating');
     const luckyStatus = document.querySelector('#lucky-status');
+    const dialog = document.querySelector('#composer-dialog');
+    const dialogContent = document.querySelector('#composer-dialog-content');
     const cards = Array.from(grid.querySelectorAll('.composer-card'));
     const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
     let activeId = '';
-    let host = null;
+    let activeButton = null;
+    let suppressFocusRestore = false;
 
     const norm = (value) =>
       String(value || '')
@@ -999,6 +1050,8 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     };
 
     const pageData = parsePageData();
+    const insights = document.querySelector('.insights-toggle');
+    if (window.matchMedia('(max-width: 700px)').matches) insights?.removeAttribute('open');
 
     function visibleCards() {
       return cards.filter((card) => card.style.display !== 'none');
@@ -1010,45 +1063,83 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
       history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     }
 
-    function closeDetail(options = {}) {
-      const { preserveHash = false } = options;
-      if (host) host.remove();
-      host = null;
-      activeId = '';
+    function resetDialogState({ preserveHash = false } = {}) {
       cards.forEach((card) => {
         card.querySelector('[data-composer-trigger]')?.setAttribute('aria-expanded', 'false');
       });
+      if (dialogContent) dialogContent.replaceChildren();
+      const buttonToRestore = activeButton;
+      activeId = '';
+      activeButton = null;
       if (!preserveHash) updateHash('');
+      if (!suppressFocusRestore) buttonToRestore?.focus();
+      suppressFocusRestore = false;
     }
 
-    function placeHostAfterRow(card) {
-      if (!host || card.style.display === 'none') return;
-      const top = card.offsetTop;
-      const sameRow = visibleCards().filter((candidate) => Math.abs(candidate.offsetTop - top) < 4);
-      const lastInRow = sameRow.at(-1) || card;
-      lastInRow.insertAdjacentElement('afterend', host);
+    function closeDialog(options = {}) {
+      const { preserveHash = false, restoreFocus = true } = options;
+      suppressFocusRestore = !restoreFocus;
+      if (dialog?.open) {
+        dialog.dataset.preserveHash = preserveHash ? 'true' : 'false';
+        dialog.close();
+      } else {
+        resetDialogState({ preserveHash });
+      }
     }
 
-    function setupEntryBrowser(detail) {
-      const browser = detail.querySelector('[data-entry-browser]');
-      if (!browser) return;
+    function setupTabs(detail) {
+      const tabs = Array.from(detail.querySelectorAll('[data-detail-tab]'));
+      const panels = Array.from(detail.querySelectorAll('[data-detail-panel]'));
+      if (!tabs.length) return;
 
-      const entrySearch = browser.querySelector('[data-entry-search]');
-      const ratingFilter = browser.querySelector('[data-entry-rating]');
-      const entrySort = browser.querySelector('[data-entry-sort]');
-      const list = browser.querySelector('[data-entry-list]');
-      const resultText = browser.querySelector('[data-entry-results]');
-      const empty = browser.querySelector('[data-entry-empty]');
-      const more = browser.querySelector('[data-entry-more]');
-      const items = Array.from(browser.querySelectorAll('[data-entry-item]'));
-      let visibleLimit = 40;
+      function activate(name, focus = false) {
+        tabs.forEach((tab) => {
+          const selected = tab.dataset.detailTab === name;
+          tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+          tab.tabIndex = selected ? 0 : -1;
+          if (selected && focus) tab.focus();
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.detailPanel !== name;
+        });
+        detail.querySelector('.detail-panel-wrap')?.scrollTo({ top: 0, behavior: 'auto' });
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activate(tab.dataset.detailTab || 'overview'));
+        tab.addEventListener('keydown', (event) => {
+          let nextIndex = index;
+          if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+          else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+          else if (event.key === 'Home') nextIndex = 0;
+          else if (event.key === 'End') nextIndex = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          activate(tabs[nextIndex].dataset.detailTab || 'overview', true);
+        });
+      });
+    }
+
+    function setupListBrowser(browser) {
+      const listSearch = browser.querySelector('[data-list-search]');
+      const ratingFilter = browser.querySelector('[data-list-rating]');
+      const listSort = browser.querySelector('[data-list-sort]');
+      const list = browser.querySelector('[data-list]');
+      const resultText = browser.querySelector('[data-list-results]');
+      const empty = browser.querySelector('[data-list-empty]');
+      const more = browser.querySelector('[data-list-more]');
+      const items = Array.from(browser.querySelectorAll('[data-list-item]'));
+      const mobile = window.matchMedia('(max-width: 620px)').matches;
+      const pageSize = Number(mobile ? browser.dataset.pageMobile : browser.dataset.pageDesktop) || (mobile ? 10 : 24);
+      const itemLabel = browser.dataset.itemLabel || 'works';
+      let visibleLimit = pageSize;
 
       if (!list || !items.length) return;
 
-      function applyEntries() {
-        const words = norm(entrySearch?.value).split(/\s+/).filter(Boolean);
+      function applyItems() {
+        const words = norm(listSearch?.value).split(/\s+/).filter(Boolean);
         const selectedRating = ratingFilter?.value || 'all';
-        const mode = entrySort?.value || 'latest';
+        const mode = listSort?.value || 'latest';
 
         const filtered = items.filter((item) => {
           const searchMatches = !words.length || words.every((word) => (item.dataset.search || '').includes(word));
@@ -1065,10 +1156,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
           return comparison || Number(b.dataset.row || 0) - Number(a.dataset.row || 0);
         });
 
-        items.forEach((item) => {
-          item.hidden = true;
-        });
-
+        items.forEach((item) => { item.hidden = true; });
         filtered.forEach((item, index) => {
           list.appendChild(item);
           item.hidden = index >= visibleLimit;
@@ -1077,73 +1165,62 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
         if (resultText) {
           const shown = Math.min(filtered.length, visibleLimit);
           resultText.textContent = filtered.length
-            ? `Showing ${shown.toLocaleString()} of ${filtered.length.toLocaleString()} matching entries`
-            : 'No matching entries';
+            ? `Showing ${shown.toLocaleString()} of ${filtered.length.toLocaleString()} matching ${itemLabel}`
+            : `No matching ${itemLabel}`;
         }
         if (empty) empty.hidden = filtered.length > 0;
         if (more) more.hidden = filtered.length <= visibleLimit;
       }
 
-      entrySearch?.addEventListener('input', () => {
-        visibleLimit = 40;
-        applyEntries();
-      });
-      ratingFilter?.addEventListener('change', () => {
-        visibleLimit = 40;
-        applyEntries();
-      });
-      entrySort?.addEventListener('change', applyEntries);
-      more?.addEventListener('click', () => {
-        visibleLimit += 40;
-        applyEntries();
-      });
-
-      applyEntries();
+      listSearch?.addEventListener('input', () => { visibleLimit = pageSize; applyItems(); });
+      ratingFilter?.addEventListener('change', () => { visibleLimit = pageSize; applyItems(); });
+      listSort?.addEventListener('change', applyItems);
+      more?.addEventListener('click', () => { visibleLimit += pageSize; applyItems(); });
+      applyItems();
     }
 
     function openDetail(card, options = {}) {
-      const { shouldScroll = true, updateUrl = true } = options;
+      const { updateUrl = true, focusClose = true } = options;
       const button = card.querySelector('[data-composer-trigger]');
       const id = button?.dataset.composerTrigger;
-      if (!button || !id) return;
+      if (!button || !id || !dialog || !dialogContent) return;
 
-      if (activeId === id) {
-        closeDetail();
-        button.focus();
-        return;
-      }
-
-      closeDetail({ preserveHash: true });
       const template = document.querySelector(`#composer-template-${CSS.escape(id)}`);
       if (!template) return;
 
-      host = document.createElement('div');
-      host.className = 'composer-detail-host';
-      host.appendChild(template.content.cloneNode(true));
+      if (dialog.open) closeDialog({ preserveHash: true, restoreFocus: false });
+      dialogContent.replaceChildren(template.content.cloneNode(true));
       activeId = id;
+      activeButton = button;
       button.setAttribute('aria-expanded', 'true');
-      placeHostAfterRow(card);
 
-      const detail = host.querySelector('.composer-detail');
-      setupEntryBrowser(detail);
-
-      host.querySelector('[data-close-composer]')?.addEventListener('click', () => {
-        closeDetail();
-        button.focus();
-      });
+      const detail = dialogContent.querySelector('[data-composer-detail]');
+      if (!detail) return;
+      dialog.setAttribute('aria-labelledby', `composer-dialog-title-${id}`);
+      setupTabs(detail);
+      detail.querySelectorAll('[data-list-browser]').forEach(setupListBrowser);
+      detail.querySelector('[data-close-composer]')?.addEventListener('click', () => closeDialog());
 
       if (updateUrl) updateHash(id);
-      if (shouldScroll) {
-        requestAnimationFrame(() => detail?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
-      }
+      dialog.showModal();
+      if (focusClose) requestAnimationFrame(() => detail.querySelector('[data-close-composer]')?.focus());
     }
 
     cards.forEach((card) => {
       card.querySelector('[data-composer-trigger]')?.addEventListener('click', () => openDetail(card));
     });
 
-    function sortCards(options = {}) {
-      const { closeOpen = true } = options;
+    dialog?.addEventListener('close', () => {
+      const preserveHash = dialog.dataset.preserveHash === 'true';
+      delete dialog.dataset.preserveHash;
+      resetDialogState({ preserveHash });
+    });
+
+    dialog?.addEventListener('click', (event) => {
+      if (event.target === dialog) closeDialog();
+    });
+
+    function sortCards() {
       const mode = sort?.value || 'name-asc';
       const ordered = [...cards].sort((a, b) => {
         let comparison = 0;
@@ -1155,18 +1232,14 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
         else comparison = collator.compare(a.dataset.name || '', b.dataset.name || '');
         return comparison || Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
       });
-
-      if (closeOpen) closeDetail();
       ordered.forEach((card) => grid.appendChild(card));
     }
 
-    function filterCards(options = {}) {
-      const { closeOpen = true } = options;
+    function filterCards() {
       const words = norm(search?.value).split(/\s+/).filter(Boolean);
       const selectedPeriod = period?.value || '';
       let visible = 0;
 
-      if (closeOpen) closeDetail();
       cards.forEach((card) => {
         const textMatches = !words.length || words.every((word) => (card.dataset.search || '').includes(word));
         const periodMatches = !selectedPeriod || card.dataset.period === selectedPeriod;
@@ -1175,100 +1248,49 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
         if (show) visible += 1;
       });
 
-      if (results) results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} composer profiles`;
-      if (clear) clear.hidden = !(search?.value.trim() || selectedPeriod);
+      if (results) {
+        const logged = Number(grid.dataset.unprofiledComposers || 0) + cards.length;
+        results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} portrait profiles · ${logged.toLocaleString()} composers logged`;
+      }
+      if (clear) clear.hidden = !(words.length || selectedPeriod || (sort?.value || 'name-asc') !== 'name-asc');
     }
 
-    function randomIndex(length) {
-      if (window.crypto?.getRandomValues) {
-        const values = new Uint32Array(1);
-        window.crypto.getRandomValues(values);
-        return values[0] % length;
-      }
-      return Math.floor(Math.random() * length);
-    }
-
-    luckyButton?.addEventListener('click', () => {
-      const pool = Array.isArray(pageData.luckyPool) ? pageData.luckyPool : [];
-      const selected = luckyRating?.value || 'gorgeous';
-      const candidates = pool.filter((entry) => selected === 'favorites' || entry.rating === selected);
-
-      if (!candidates.length) {
-        if (luckyStatus) luckyStatus.textContent = 'No linked performances are available in that rating pool.';
-        return;
-      }
-
-      const storageKey = 'lifeloggerz-classical-lucky-recent';
-      let recent = [];
-      try {
-        recent = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      } catch {
-        recent = [];
-      }
-      if (!Array.isArray(recent)) recent = [];
-
-      const fresh = candidates.filter((entry) => !recent.includes(entry.key));
-      const available = fresh.length ? fresh : candidates;
-      const choice = available[randomIndex(available.length)];
-
-      recent = [choice.key, ...recent.filter((key) => key !== choice.key)].slice(0, 15);
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(recent));
-      } catch {
-        // Storage is optional; selection still works without it.
-      }
-
-      if (luckyStatus) luckyStatus.textContent = `${choice.composer} — ${choice.piece}`;
-      const opened = window.open(choice.url, '_blank');
-      if (opened) opened.opener = null;
-      else window.location.href = choice.url;
-    });
-
-    let debounceTimer;
-    search?.addEventListener('input', () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => filterCards(), 80);
-    });
-    period?.addEventListener('change', () => filterCards());
-    sort?.addEventListener('change', () => sortCards());
+    search?.addEventListener('input', filterCards);
+    period?.addEventListener('change', filterCards);
+    sort?.addEventListener('change', () => { sortCards(); filterCards(); });
     clear?.addEventListener('click', () => {
       if (search) search.value = '';
       if (period) period.value = '';
+      if (sort) sort.value = 'name-asc';
+      sortCards();
       filterCards();
       search?.focus();
     });
 
-    window.addEventListener('resize', () => {
-      if (!activeId || !host) return;
-      const card = cards.find((candidate) => candidate.dataset.composerId === activeId);
-      if (card) placeHostAfterRow(card);
+    luckyButton?.addEventListener('click', () => {
+      const pool = Array.isArray(pageData.luckyPool) ? pageData.luckyPool : [];
+      if (!pool.length) return;
+
+      let recent = [];
+      try { recent = JSON.parse(localStorage.getItem('lifeloggerz-classical-lucky-recent') || '[]'); } catch {}
+      const available = pool.filter((entry) => !recent.includes(entry.key));
+      const candidates = available.length ? available : pool;
+      const selected = candidates[Math.floor(Math.random() * candidates.length)];
+      if (!selected) return;
+
+      recent = [selected.key, ...recent.filter((key) => key !== selected.key)].slice(0, Math.min(25, pool.length));
+      try { localStorage.setItem('lifeloggerz-classical-lucky-recent', JSON.stringify(recent)); } catch {}
+      if (luckyStatus) luckyStatus.textContent = `${selected.composer} — ${selected.piece}`;
+      window.open(selected.url, '_blank', 'noopener,noreferrer');
     });
 
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && activeId) closeDetail();
-      else if (event.key === '/' && event.target === document.body) {
-        event.preventDefault();
-        search?.focus();
-      }
-    });
+    sortCards();
+    filterCards();
 
-    window.addEventListener('hashchange', () => {
-      const id = window.location.hash.replace(/^#composer-/, '');
-      if (!id) {
-        if (activeId) closeDetail({ preserveHash: true });
-        return;
-      }
-      const card = cards.find((candidate) => candidate.dataset.composerId === id);
-      if (card && activeId !== id) openDetail(card, { shouldScroll: true, updateUrl: false });
-    });
-
-    sortCards({ closeOpen: false });
-    filterCards({ closeOpen: false });
-
-    const initialId = window.location.hash.replace(/^#composer-/, '');
-    if (initialId) {
-      const initialCard = cards.find((candidate) => candidate.dataset.composerId === initialId);
-      if (initialCard) requestAnimationFrame(() => openDetail(initialCard, { shouldScroll: true, updateUrl: false }));
+    const hashId = decodeURIComponent(window.location.hash.replace(/^#composer-/, ''));
+    if (hashId) {
+      const card = cards.find((candidate) => candidate.dataset.composerId === hashId);
+      if (card) openDetail(card, { updateUrl: false, focusClose: false });
     }
   })();
 </script>
