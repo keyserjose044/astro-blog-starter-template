@@ -1,6 +1,7 @@
 ---
 // src/pages/music/composers.astro
-// Raindrop composer gallery with an optional Google Sheets CSV listening feed.
+// Raindrop supplies composer portraits/metadata. A build-time Google Apps Script
+// JSON feed supplies the listening log, performance links, ratings, and statistics.
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
@@ -8,27 +9,20 @@ import VideoBg from '../../components/VideoBg.astro';
 import MusicNav from '../../components/MusicNav.astro';
 import { SITE_TITLE } from '../../consts';
 import { fetchAllRaindrops } from '../../utils/raindrop';
+import {
+  formatListeningDate,
+  formatListeningHours,
+  normalizeText,
+  parseClassicalListeningFeed,
+  slugify,
+  type ListeningEntry,
+} from '../../utils/classicalListening';
 
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
 const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_COMPOSERS_ID || '58399760';
-const CLASSICAL_LISTENING_CSV_URL = import.meta.env.CLASSICAL_LISTENING_CSV_URL;
-
-const slugify = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-const normalize = (value?: string | null) =>
-  String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
+const CLASSICAL_LISTENING_DATA_URL =
+  import.meta.env.CLASSICAL_LISTENING_DATA_URL ||
+  import.meta.env.CLASSICAL_LISTENING_CSV_URL;
 
 const composersRaw = await fetchAllRaindrops({
   token: RAINDROP_TOKEN,
@@ -41,6 +35,7 @@ const PERIODS = [
   'Medieval',
   'Renaissance',
   'Baroque',
+  'Galant',
   'Classical',
   'Romantic',
   'Late Romantic',
@@ -65,15 +60,16 @@ const parseComposerMeta = (title: string, note?: string | null) => {
     .filter(Boolean)
     .filter((part) => !/^\d{3,4}\s*[–—-]\s*(?:\d{3,4}|present)$/i.test(part));
 
-  const period = PERIODS.find((candidate) =>
-    normalize(rawNote).includes(normalize(candidate)),
-  ) || '';
+  const period =
+    PERIODS.find((candidate) => normalizeText(rawNote).includes(normalizeText(candidate))) || '';
 
-  const nationality = parts.find((part) =>
-    !PERIODS.some((candidate) => normalize(part).includes(normalize(candidate))) &&
-    !/\b(?:born|died|composer|music|biography)\b/i.test(part) &&
-    part.length <= 45,
-  ) || '';
+  const nationality =
+    parts.find(
+      (part) =>
+        !PERIODS.some((candidate) => normalizeText(part).includes(normalizeText(candidate))) &&
+        !/\b(?:born|died|composer|music|biography)\b/i.test(part) &&
+        part.length <= 45,
+    ) || '';
 
   return {
     name: cleanName || rawTitle,
@@ -86,116 +82,48 @@ const parseComposerMeta = (title: string, note?: string | null) => {
   };
 };
 
-type CsvRow = Record<string, string>;
-
-const parseCsv = (text: string): CsvRow[] => {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = '';
-  let quoted = false;
-
-  for (let index = 0; index < text.length; index += 1) {
-    const character = text[index];
-    const next = text[index + 1];
-
-    if (character === '"') {
-      if (quoted && next === '"') {
-        cell += '"';
-        index += 1;
-      } else {
-        quoted = !quoted;
-      }
-    } else if (character === ',' && !quoted) {
-      row.push(cell);
-      cell = '';
-    } else if ((character === '\n' || character === '\r') && !quoted) {
-      if (character === '\r' && next === '\n') index += 1;
-      row.push(cell);
-      if (row.some((value) => value.trim())) rows.push(row);
-      row = [];
-      cell = '';
-    } else {
-      cell += character;
-    }
-  }
-
-  row.push(cell);
-  if (row.some((value) => value.trim())) rows.push(row);
-  if (rows.length < 2) return [];
-
-  const headers = rows[0].map((header) => normalize(header));
-  return rows.slice(1).map((values) =>
-    Object.fromEntries(headers.map((header, index) => [header, String(values[index] || '').trim()])),
-  );
+const formatCompactDuration = (minutes: number) => {
+  if (!minutes) return 'Length not logged';
+  if (minutes < 90) return `${Math.round(minutes).toLocaleString('en-US')} min`;
+  return formatListeningHours(minutes);
 };
 
-const firstValue = (row: CsvRow, aliases: string[]) => {
-  for (const alias of aliases) {
-    const value = row[normalize(alias)];
-    if (value) return value;
-  }
-  return '';
+const formatGeneratedAt = (value: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'America/Chicago',
+  }).format(date);
 };
 
-const parseMinutes = (value?: string | null, assumeHours = false): number => {
-  const raw = String(value || '').trim().toLowerCase();
-  if (!raw) return 0;
-
-  if (/^\d+(?:\.\d+)?$/.test(raw)) {
-    const number = Number(raw);
-    return Number.isFinite(number) ? number * (assumeHours ? 60 : 1) : 0;
-  }
-
-  const clock = raw.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
-  if (clock) {
-    if (clock[3]) return Number(clock[1]) * 60 + Number(clock[2]) + Number(clock[3]) / 60;
-    return Number(clock[1]) + Number(clock[2]) / 60;
-  }
-
-  const hours = Number(raw.match(/([\d.]+)\s*(?:h|hr|hrs|hour|hours)\b/)?.[1] || 0);
-  const minutes = Number(raw.match(/([\d.]+)\s*(?:m|min|mins|minute|minutes)\b/)?.[1] || 0);
-  const total = hours * 60 + minutes;
-  return Number.isFinite(total) ? total : 0;
-};
-
-const parseDateValue = (value?: string | null) => {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-
-  const cleaned = raw.replace(/(\d)(st|nd|rd|th)\b/gi, '$1');
-  const numeric = cleaned.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
-  if (numeric) {
-    const year = numeric[3].length === 2 ? 2000 + Number(numeric[3]) : Number(numeric[3]);
-    const result = new Date(Date.UTC(year, Number(numeric[1]) - 1, Number(numeric[2])));
-    return Number.isNaN(result.getTime()) ? null : result;
-  }
-
-  const result = new Date(cleaned);
-  return Number.isNaN(result.getTime()) ? null : result;
-};
-
-const formatDate = (date: Date | null) =>
-  date
-    ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(date)
-    : '';
-
-const formatHours = (minutes: number) => {
-  const hours = minutes / 60;
-  if (hours < 1) return `${Math.round(minutes)} min`;
-  return `${hours.toLocaleString('en-US', { maximumFractionDigits: 1 })} hr${Math.abs(hours - 1) < .05 ? '' : 's'}`;
-};
-
-let sheetRows: CsvRow[] = [];
+let listeningEntries: ListeningEntry[] = [];
+let feedGeneratedAt = '';
+let feedSourceSheet = '';
+let feedRejectedRows = 0;
 let sheetError = '';
 
-if (CLASSICAL_LISTENING_CSV_URL) {
+if (CLASSICAL_LISTENING_DATA_URL) {
   try {
-    const response = await fetch(CLASSICAL_LISTENING_CSV_URL);
-    if (!response.ok) throw new Error(`Google Sheets returned ${response.status}`);
-    sheetRows = parseCsv(await response.text());
+    const response = await fetch(CLASSICAL_LISTENING_DATA_URL, {
+      headers: { Accept: 'application/json, text/csv;q=0.9, text/plain;q=0.8' },
+    });
+    if (!response.ok) throw new Error(`Listening feed returned ${response.status}`);
+
+    const parsed = parseClassicalListeningFeed(
+      await response.text(),
+      response.headers.get('content-type') || '',
+    );
+    listeningEntries = parsed.entries;
+    feedGeneratedAt = parsed.generatedAt;
+    feedSourceSheet = parsed.sourceSheet;
+    feedRejectedRows = parsed.rejectedRows;
   } catch (error) {
     sheetError = error instanceof Error ? error.message : String(error);
-    console.warn('[Composers] Classical listening sheet could not be loaded:', error);
+    console.warn('[Composers] Classical listening feed could not be loaded:', error);
   }
 }
 
@@ -209,239 +137,426 @@ const composersBase = composersRaw.map((composer, originalIndex) => {
   };
 });
 
-const byExactName = new Map(composersBase.map((composer) => [normalize(composer.name), composer.id]));
+const byExactName = new Map(composersBase.map((composer) => [normalizeText(composer.name), composer.id]));
 const bySlug = new Map(composersBase.map((composer) => [composer.id, composer.id]));
+const composerNameById = new Map(composersBase.map((composer) => [composer.id, composer.name]));
 const surnameCandidates = new Map<string, string[]>();
 
 composersBase.forEach((composer) => {
-  const surname = normalize(composer.name).split(' ').filter(Boolean).at(-1) || '';
+  const surname = normalizeText(composer.name).split(' ').filter(Boolean).at(-1) || '';
   if (!surname) return;
   surnameCandidates.set(surname, [...(surnameCandidates.get(surname) || []), composer.id]);
 });
 
-const resolveComposerId = (row: CsvRow) => {
-  const explicitId = slugify(firstValue(row, ['composer id', 'composerid', 'composer slug', 'slug']));
-  if (explicitId && bySlug.has(explicitId)) return explicitId;
+// Ambiguous abbreviations and recurring variants already present in the source sheet.
+// The feed may later supply composer_id directly, which takes precedence over this map.
+const COMPOSER_ALIASES: Record<string, string> = {
+  bach: 'johann-sebastian-bach',
+  'j s bach': 'johann-sebastian-bach',
+  'js bach': 'johann-sebastian-bach',
+  'c p e bach': 'carl-philipp-emanuel-bach',
+  'cpe bach': 'carl-philipp-emanuel-bach',
+  'j c bach': 'johann-christian-bach',
+  'jc bach': 'johann-christian-bach',
+  'w f bach': 'wilhelm-friedemann-bach',
+  'wf bach': 'wilhelm-friedemann-bach',
+  scarlatti: 'domenico-scarlatti',
+  'd scarlatti': 'domenico-scarlatti',
+  'a scarlatti': 'alessandro-scarlatti',
+  haydn: 'joseph-haydn',
+  schumann: 'robert-schumann',
+  mendelssohn: 'felix-mendelssohn',
+  mozart: 'wolfgang-amadeus-mozart',
+  'vaughn williams': 'ralph-vaughan-williams',
+};
 
-  const composerName = firstValue(row, ['composer', 'composer name', 'name']);
-  const exact = byExactName.get(normalize(composerName));
+const resolveComposerId = (entry: ListeningEntry) => {
+  if (entry.composerId && bySlug.has(entry.composerId)) return entry.composerId;
+
+  const cleanedName = entry.composer.replace(/\?+/g, '').replace(/\s+/g, ' ').trim();
+  const normalizedName = normalizeText(cleanedName);
+  const exact = byExactName.get(normalizedName);
   if (exact) return exact;
 
-  const surname = normalize(composerName).split(' ').filter(Boolean).at(-1) || '';
+  const alias = COMPOSER_ALIASES[normalizedName];
+  if (alias && bySlug.has(alias)) return alias;
+
+  const surname = normalizedName.split(' ').filter(Boolean).at(-1) || '';
   const candidates = surnameCandidates.get(surname) || [];
-  return candidates.length === 1 ? candidates[0] : explicitId || slugify(composerName);
+  if (candidates.length === 1) return candidates[0];
+
+  return entry.composerId || alias || slugify(cleanedName);
 };
 
-type ListeningEntry = {
-  composerId: string;
-  composerName: string;
-  piece: string;
-  form: string;
-  rating: string;
-  minutes: number;
-  listenedDateRaw: string;
-  listenedDate: Date | null;
-  compositionYear: string;
-  recording: string;
+type ResolvedEntry = ListeningEntry & {
+  resolvedComposerId: string;
+  displayComposer: string;
 };
 
-const listeningEntries: ListeningEntry[] = sheetRows
-  .map((row) => {
-    const hoursValue = firstValue(row, ['hours', 'listening hours']);
-    const minutesValue = firstValue(row, ['minutes', 'mins', 'duration', 'length']);
-    const composerName = firstValue(row, ['composer', 'composer name', 'name']);
-    const listenedDateRaw = firstValue(row, ['listening date', 'listened date', 'date listened', 'date']);
-
-    return {
-      composerId: resolveComposerId(row),
-      composerName,
-      piece: firstValue(row, ['piece', 'work', 'composition', 'title']),
-      form: firstValue(row, ['genre form', 'genre/form', 'form', 'genre', 'type']),
-      rating: firstValue(row, ['rating', 'score']),
-      minutes: hoursValue ? parseMinutes(hoursValue, true) : parseMinutes(minutesValue),
-      listenedDateRaw,
-      listenedDate: parseDateValue(listenedDateRaw),
-      compositionYear: firstValue(row, ['composition year', 'year composed', 'year']),
-      recording: firstValue(row, ['recording', 'performance', 'performer', 'artist']),
-    };
-  })
-  .filter((entry) => entry.composerId && entry.piece);
-
-const entriesByComposer = new Map<string, ListeningEntry[]>();
-listeningEntries.forEach((entry) => {
-  entriesByComposer.set(entry.composerId, [...(entriesByComposer.get(entry.composerId) || []), entry]);
+const resolvedEntries: ResolvedEntry[] = listeningEntries.map((entry) => {
+  const resolvedComposerId = resolveComposerId(entry);
+  return {
+    ...entry,
+    resolvedComposerId,
+    displayComposer: composerNameById.get(resolvedComposerId) || entry.composer.replace(/\?+/g, '').trim(),
+  };
 });
 
-const worthwhileRatings = new Set(['amazing', 'gorgeous']);
-const ratingOrder = new Map([
-  ['gorgeous', 4],
-  ['amazing', 3],
-  ['great', 2],
-  ['nice', 1],
+const entriesByComposer = new Map<string, ResolvedEntry[]>();
+resolvedEntries.forEach((entry) => {
+  entriesByComposer.set(entry.resolvedComposerId, [
+    ...(entriesByComposer.get(entry.resolvedComposerId) || []),
+    entry,
+  ]);
+});
+
+const ratingRank = new Map([
+  ['gorgeous', 3],
+  ['amazing', 2],
+  ['other', 1],
 ]);
 
-const uniqueByPiece = (entries: ListeningEntry[]) => {
-  const unique = new Map<string, ListeningEntry>();
+const getUniqueTitleCount = (entries: ResolvedEntry[]) =>
+  new Set(entries.map((entry) => normalizeText(entry.piece)).filter(Boolean)).size;
 
+const getDateBounds = (entries: ResolvedEntry[]) => {
+  const dates = entries.map((entry) => entry.date).filter((date): date is Date => Boolean(date));
+  return {
+    first: dates.length ? new Date(Math.min(...dates.map((date) => date.getTime()))) : null,
+    last: dates.length ? new Date(Math.max(...dates.map((date) => date.getTime()))) : null,
+  };
+};
+
+const getTopForm = (entries: ResolvedEntry[]) => {
+  const counts = new Map<string, number>();
   entries.forEach((entry) => {
-    const key = normalize(entry.piece);
-    const current = unique.get(key);
-    if (!current || (ratingOrder.get(normalize(entry.rating)) || 0) > (ratingOrder.get(normalize(current.rating)) || 0)) {
-      unique.set(key, entry);
-    }
+    if (!entry.form) return;
+    counts.set(entry.form, (counts.get(entry.form) || 0) + 1);
   });
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+};
 
-  return [...unique.values()];
+const getRevisitEntries = (entries: ResolvedEntry[]) => {
+  const unique = new Map<string, ResolvedEntry>();
+
+  entries
+    .filter((entry) => entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous')
+    .forEach((entry) => {
+      const key = `${normalizeText(entry.piece)}|${entry.youtubeUrl}`;
+      const current = unique.get(key);
+      const entryRank = ratingRank.get(entry.ratingBucket) || 0;
+      const currentRank = current ? ratingRank.get(current.ratingBucket) || 0 : -1;
+      const entryDate = entry.date?.getTime() || 0;
+      const currentDate = current?.date?.getTime() || 0;
+
+      if (!current || entryRank > currentRank || (entryRank === currentRank && entryDate > currentDate)) {
+        unique.set(key, entry);
+      }
+    });
+
+  return [...unique.values()].sort((a, b) => {
+    const ratingDifference = (ratingRank.get(b.ratingBucket) || 0) - (ratingRank.get(a.ratingBucket) || 0);
+    if (ratingDifference) return ratingDifference;
+    return (b.date?.getTime() || 0) - (a.date?.getTime() || 0);
+  });
 };
 
 const composers = composersBase.map((composer) => {
-  const entries = entriesByComposer.get(composer.id) || [];
-  const uniqueWorks = uniqueByPiece(entries);
-  const worthRevisiting = uniqueWorks
-    .filter((entry) => worthwhileRatings.has(normalize(entry.rating)))
-    .sort((a, b) => (ratingOrder.get(normalize(b.rating)) || 0) - (ratingOrder.get(normalize(a.rating)) || 0));
+  const entries = [...(entriesByComposer.get(composer.id) || [])].sort(
+    (a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber,
+  );
   const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
-  const dates = entries.map((entry) => entry.listenedDate).filter((date): date is Date => Boolean(date));
-  const firstListened = dates.length ? new Date(Math.min(...dates.map((date) => date.getTime()))) : null;
-  const lastListened = dates.length ? new Date(Math.max(...dates.map((date) => date.getTime()))) : null;
-  const formCounts = new Map<string, number>();
-
-  uniqueWorks.forEach((entry) => {
-    if (!entry.form) return;
-    formCounts.set(entry.form, (formCounts.get(entry.form) || 0) + 1);
-  });
-
-  const topForm = [...formCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
-  const allWorks = [...uniqueWorks].sort((a, b) => a.piece.localeCompare(b.piece, undefined, { sensitivity: 'base', numeric: true }));
+  const bounds = getDateBounds(entries);
+  const amazingCount = entries.filter((entry) => entry.ratingBucket === 'amazing').length;
+  const gorgeousCount = entries.filter((entry) => entry.ratingBucket === 'gorgeous').length;
+  const favoriteCount = amazingCount + gorgeousCount;
+  const uniqueTitleCount = getUniqueTitleCount(entries);
 
   return {
     ...composer,
     entries,
-    allWorks,
-    worthRevisiting,
-    worksHeard: uniqueWorks.length,
     totalMinutes,
-    firstListened,
-    lastListened,
-    topForm,
+    firstListened: bounds.first,
+    lastListened: bounds.last,
+    amazingCount,
+    gorgeousCount,
+    favoriteCount,
+    favoriteRate: entries.length ? (favoriteCount / entries.length) * 100 : 0,
+    uniqueTitleCount,
+    repeatCount: Math.max(0, entries.length - uniqueTitleCount),
+    topForm: getTopForm(entries),
+    revisitEntries: getRevisitEntries(entries),
+    linkedCount: entries.filter((entry) => entry.youtubeUrl).length,
   };
 });
 
-const periodsInUse = [...new Set(composers.map((composer) => composer.period).filter(Boolean))]
-  .sort((a, b) => PERIODS.indexOf(a) - PERIODS.indexOf(b));
-const totalWorks = composers.reduce((total, composer) => total + composer.worksHeard, 0);
-const totalMinutes = composers.reduce((total, composer) => total + composer.totalMinutes, 0);
-const hasListeningFeed = Boolean(CLASSICAL_LISTENING_CSV_URL && !sheetError);
-const unresolvedRows = listeningEntries.filter((entry) => !bySlug.has(entry.composerId));
+const globalComposerGroups = [...entriesByComposer.entries()].map(([id, entries]) => {
+  const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
+  const amazingCount = entries.filter((entry) => entry.ratingBucket === 'amazing').length;
+  const gorgeousCount = entries.filter((entry) => entry.ratingBucket === 'gorgeous').length;
+  return {
+    id,
+    name: composerNameById.get(id) || entries[0]?.displayComposer || id,
+    entries: entries.length,
+    uniqueTitles: getUniqueTitleCount(entries),
+    totalMinutes,
+    amazingCount,
+    gorgeousCount,
+    favoriteCount: amazingCount + gorgeousCount,
+  };
+});
+
+const totalEntries = resolvedEntries.length;
+const totalMinutes = resolvedEntries.reduce((total, entry) => total + entry.minutes, 0);
+const totalUniqueTitles = new Set(
+  resolvedEntries.map((entry) => `${entry.resolvedComposerId}|${normalizeText(entry.piece)}`),
+).size;
+const totalComposersLogged = globalComposerGroups.length;
+const totalAmazing = resolvedEntries.filter((entry) => entry.ratingBucket === 'amazing').length;
+const totalGorgeous = resolvedEntries.filter((entry) => entry.ratingBucket === 'gorgeous').length;
+const totalOther = totalEntries - totalAmazing - totalGorgeous;
+const globalBounds = getDateBounds(resolvedEntries);
+const profiledComposerIds = new Set(composersBase.map((composer) => composer.id));
+const unprofiledComposerCount = globalComposerGroups.filter((group) => !profiledComposerIds.has(group.id)).length;
+const unresolvedRows = resolvedEntries.filter((entry) => !profiledComposerIds.has(entry.resolvedComposerId));
 
 if (unresolvedRows.length) {
   console.warn(
-    `[Composers] ${unresolvedRows.length} listening rows did not match a Raindrop composer. Add a stable "Composer ID" column.`,
-    unresolvedRows.slice(0, 20).map((entry) => ({ composer: entry.composerName, piece: entry.piece, resolvedId: entry.composerId })),
+    `[Composers] ${unresolvedRows.length} dated listening rows across ${unprofiledComposerCount} composer labels do not currently match a Raindrop profile.`,
+    [...new Set(unresolvedRows.map((entry) => entry.composer))].slice(0, 30),
   );
 }
+
+if (feedRejectedRows) {
+  console.warn(
+    `[Composers] ${feedRejectedRows} feed rows were excluded because the date, composer, or piece was blank.`,
+  );
+}
+
+const topHours = [...globalComposerGroups]
+  .filter((group) => group.totalMinutes > 0)
+  .sort((a, b) => b.totalMinutes - a.totalMinutes)
+  .slice(0, 12);
+const maxChartMinutes = Math.max(...topHours.map((group) => group.totalMinutes), 1);
+
+const topFavorites = [...globalComposerGroups]
+  .filter((group) => group.favoriteCount > 0)
+  .sort((a, b) => b.favoriteCount - a.favoriteCount || b.gorgeousCount - a.gorgeousCount)
+  .slice(0, 12);
+const maxFavoriteCount = Math.max(...topFavorites.map((group) => group.favoriteCount), 1);
+
+const periodsInUse = [...new Set(composers.map((composer) => composer.period).filter(Boolean))].sort(
+  (a, b) => {
+    const aIndex = PERIODS.indexOf(a);
+    const bIndex = PERIODS.indexOf(b);
+    return (aIndex < 0 ? 999 : aIndex) - (bIndex < 0 ? 999 : bIndex);
+  },
+);
+
+const hasListeningFeed = Boolean(CLASSICAL_LISTENING_DATA_URL && !sheetError);
+const generatedLabel = formatGeneratedAt(feedGeneratedAt);
+
+const luckyPool = resolvedEntries
+  .filter(
+    (entry) =>
+      entry.youtubeUrl &&
+      (entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous'),
+  )
+  .map((entry) => ({
+    key: `${entry.rowNumber}|${entry.youtubeUrl}`,
+    composer: entry.displayComposer,
+    piece: entry.piece,
+    rating: entry.ratingBucket,
+    url: entry.youtubeUrl,
+  }));
+
+const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
 ---
 
 <BaseHead
   title={`${SITE_TITLE} — Music — Composers`}
-  description="Classical composers explored, works heard, and pieces worth revisiting."
+  description="A data-driven archive of classical composers explored, listening hours, ratings, and performances worth revisiting."
 />
 
 <style>
-  :root { --ink:#0e121b; --muted:#5e6573; --border:#e6e9ef; --surface:rgba(255,255,255,.92); --accent:#405cf5; }
-  * { box-sizing: border-box; }
-  .wrap { width:100%; margin:0 auto; padding:28px clamp(16px,3vw,48px) 50px; }
-  .intro { max-width:1050px; margin:0 auto 21px; text-align:center; }
-  h1 { margin:0 0 10px; font-weight:800; letter-spacing:-.025em; }
-  .hint { margin:0 auto 18px; max-width:68ch; color:var(--muted); line-height:1.5; }
-  .feed-notice { max-width:850px; margin:0 auto 18px; padding:11px 14px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.82); color:var(--muted); font-size:.84rem; line-height:1.45; }
-  .feed-notice strong { color:var(--ink); }
-  .toolbar { display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin:0 auto 10px; }
-  .toolbar input,.toolbar select { min-height:42px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--ink); font:inherit; font-size:.88rem; box-shadow:0 1px 2px rgba(0,0,0,.03); }
-  .toolbar input { width:min(310px,100%); }
-  .toolbar select { min-width:150px; }
-  .results-row { display:flex; align-items:center; justify-content:center; gap:9px; min-height:28px; margin-bottom:15px; color:var(--muted); font-size:.82rem; }
-  .results-row p { margin:0; }
-  .clear-filters { border:0; background:transparent; color:#314bd8; font:inherit; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
-
-  .composer-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); gap:18px; max-width:1780px; margin:0 auto; align-items:start; }
-  .composer-card { min-width:0; }
-  .composer-button { width:100%; padding:0; border:0; border-radius:15px; background:var(--surface); color:inherit; text-align:left; cursor:pointer; overflow:hidden; box-shadow:0 9px 24px rgba(15,23,42,.09); transition:transform .16s ease,box-shadow .16s ease; }
-  .composer-button:hover { transform:translateY(-3px); box-shadow:0 14px 32px rgba(15,23,42,.14); }
-  .composer-button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
-  .composer-button[aria-expanded="true"] { box-shadow:0 0 0 2px var(--accent),0 14px 30px rgba(15,23,42,.13); }
-  .portrait-wrap { position:relative; aspect-ratio:4/5; overflow:hidden; background:#eef0f5; }
-  .portrait { width:100%; height:100%; object-fit:cover; object-position:center 18%; display:block; transition:transform .25s ease; }
-  .composer-button:hover .portrait { transform:scale(1.025); }
-  .expand-cue { position:absolute; right:10px; bottom:10px; display:grid; place-items:center; width:31px; height:31px; border-radius:999px; background:rgba(14,18,27,.78); color:#fff; font-size:1.1rem; line-height:1; backdrop-filter:blur(5px); }
-  .composer-button[aria-expanded="true"] .expand-cue { transform:rotate(45deg); }
-  .card-body { min-height:154px; padding:13px 14px 14px; }
-  .composer-name { display:block; margin-bottom:4px; font-size:1rem; font-weight:800; line-height:1.25; }
-  .composer-meta { display:block; min-height:2.55em; color:var(--muted); font-size:.78rem; line-height:1.35; }
-  .composer-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:11px; }
-  .stat { min-width:0; padding:7px 8px; border-radius:9px; background:#f4f5f9; }
-  .stat strong,.stat span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .stat strong { color:var(--ink); font-size:.85rem; }
-  .stat span { margin-top:1px; color:var(--muted); font-size:.68rem; }
-  .not-connected { display:block; margin-top:12px; color:var(--muted); font-size:.74rem; font-style:italic; }
-
-  .composer-detail-host { grid-column:1/-1; min-width:0; }
-  .composer-detail { padding:20px; border:1px solid rgba(64,92,245,.22); border-radius:16px; background:rgba(255,255,255,.94); box-shadow:0 16px 36px rgba(15,23,42,.11); scroll-margin-top:18px; }
-  .detail-header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:16px; }
-  .detail-header h2 { margin:0 0 5px; font-size:1.35rem; }
-  .detail-subtitle { margin:0; color:var(--muted); font-size:.86rem; line-height:1.45; }
-  .detail-actions { display:flex; gap:8px; flex:0 0 auto; }
-  .reference-link,.close-detail { display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:8px 11px; border-radius:10px; font:inherit; font-size:.78rem; font-weight:750; text-decoration:none; cursor:pointer; }
-  .reference-link { border:1px solid rgba(64,92,245,.25); background:#f0f2ff; color:#314bd8; }
-  .close-detail { width:36px; padding:0; border:1px solid var(--border); background:#fff; color:var(--ink); }
-  .detail-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:19px; }
-  .detail-summary div { padding:10px 11px; border-radius:11px; background:#f4f5f9; }
-  .detail-summary strong,.detail-summary span { display:block; }
-  .detail-summary strong { font-size:.95rem; }
-  .detail-summary span { margin-top:2px; color:var(--muted); font-size:.7rem; }
-  .detail-section + .detail-section { margin-top:20px; }
-  .detail-section h3 { margin:0 0 9px; font-size:1rem; }
-  .revisit-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:9px; margin:0; padding:0; list-style:none; }
-  .revisit-list li { padding:11px 12px; border:1px solid #eceef4; border-radius:11px; background:#fff; }
-  .piece-title { display:block; font-size:.86rem; font-weight:750; line-height:1.35; }
-  .piece-meta { display:block; margin-top:4px; color:var(--muted); font-size:.73rem; line-height:1.35; }
-  .rating { display:inline-block; margin-right:5px; padding:2px 6px; border-radius:999px; background:#eceffd; color:#314bd8; font-weight:800; }
-  .works-table-wrap { overflow-x:auto; border:1px solid #eceef4; border-radius:11px; background:#fff; }
-  .works-table { width:100%; border-collapse:collapse; min-width:720px; font-size:.78rem; }
-  .works-table th,.works-table td { padding:9px 10px; border-bottom:1px solid #eceef4; text-align:left; vertical-align:top; }
-  .works-table th { background:#f7f8fb; color:#4f5664; font-size:.7rem; letter-spacing:.02em; text-transform:uppercase; }
-  .works-table tr:last-child td { border-bottom:0; }
-  .empty-detail { margin:0; padding:15px; border-radius:11px; background:#f5f6f9; color:var(--muted); font-size:.86rem; line-height:1.5; }
-  .empty { grid-column:1/-1; padding:40px 16px; color:var(--muted); text-align:center; }
-
-  @media (max-width:900px) {
-    .wrap { padding:18px 10px 38px; }
-    .intro { margin-bottom:14px; padding-inline:4px; }
-    h1 { font-size:2rem; }
-    .hint { font-size:.86rem; }
-    .toolbar { display:grid; grid-template-columns:1fr 1fr; }
-    .toolbar input { grid-column:1/-1; width:100%; }
-    .toolbar select { min-width:0; width:100%; }
-    .composer-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 10px; }
-    .card-body { min-height:145px; padding:10px; }
-    .composer-name { font-size:.88rem; }
-    .composer-meta { font-size:.7rem; }
-    .composer-stats { gap:5px; }
-    .stat { padding:6px; }
-    .stat strong { font-size:.74rem; }
-    .stat span { font-size:.62rem; }
-    .composer-detail { padding:14px 12px; }
-    .detail-header { display:block; }
-    .detail-actions { margin-top:11px; }
-    .detail-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .revisit-list { grid-template-columns:1fr; }
+  :root {
+    --ink: #0e121b;
+    --muted: #5e6573;
+    --border: #e6e9ef;
+    --surface: rgba(255, 255, 255, .92);
+    --accent: #405cf5;
+    --amazing: #6d7df7;
+    --gorgeous: #b56ce5;
   }
 
-  @media (max-width:520px) {
-    .composer-grid { grid-template-columns:1fr; max-width:430px; }
-    .composer-button { display:grid; grid-template-columns:124px minmax(0,1fr); }
-    .portrait-wrap { aspect-ratio:4/5; height:155px; }
-    .card-body { min-height:155px; }
+  * { box-sizing: border-box; }
+  .wrap { width: 100%; margin: 0 auto; padding: 28px clamp(16px, 3vw, 48px) 50px; }
+  .intro { max-width: 1120px; margin: 0 auto 22px; text-align: center; }
+  h1 { margin: 0 0 9px; font-weight: 800; letter-spacing: -.025em; }
+  .hint { margin: 0 auto 10px; max-width: 78ch; color: var(--muted); line-height: 1.55; }
+  .tracking-note { margin: 0 auto 18px; max-width: 83ch; color: #454d5c; font-size: .88rem; line-height: 1.55; }
+  .updated-note { margin: -8px auto 17px; color: var(--muted); font-size: .74rem; }
+  .feed-notice { max-width: 880px; margin: 0 auto 18px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255, 255, 255, .84); color: var(--muted); font-size: .84rem; line-height: 1.45; }
+  .feed-notice strong { color: var(--ink); }
+
+  .overall-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; max-width: 1120px; margin: 0 auto 20px; }
+  .overall-stat { min-width: 0; padding: 13px 10px; border: 1px solid rgba(230, 233, 239, .94); border-radius: 13px; background: rgba(255, 255, 255, .88); box-shadow: 0 7px 20px rgba(15, 23, 42, .06); }
+  .overall-stat strong, .overall-stat span { display: block; }
+  .overall-stat strong { overflow: hidden; color: var(--ink); font-size: 1.08rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+  .overall-stat span { margin-top: 4px; color: var(--muted); font-size: .7rem; line-height: 1.25; }
+
+  .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 1120px; margin: 0 auto 21px; text-align: left; }
+  .chart-card { min-width: 0; padding: 16px; border: 1px solid rgba(230, 233, 239, .94); border-radius: 15px; background: rgba(255, 255, 255, .9); box-shadow: 0 9px 24px rgba(15, 23, 42, .07); }
+  .chart-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .chart-header h2 { margin: 0; font-size: 1rem; }
+  .chart-header p { margin: 3px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.35; }
+  .chart-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .chart-row { display: grid; grid-template-columns: minmax(86px, 126px) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .chart-name { overflow: hidden; color: #323946; font-size: .72rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { display: block; height: 9px; overflow: hidden; border-radius: 999px; background: #edf0f5; }
+  .bar-fill { display: block; width: var(--bar-width); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #405cf5, #7284ff); }
+  .stack-width { display: block; width: var(--bar-width); height: 100%; }
+  .stacked-bar { display: flex; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; }
+  .stacked-bar .amazing { width: var(--amazing-width); background: var(--amazing); }
+  .stacked-bar .gorgeous { width: var(--gorgeous-width); background: var(--gorgeous); }
+  .chart-value { color: var(--muted); font-size: .68rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chart-legend { display: flex; gap: 12px; align-items: center; color: var(--muted); font-size: .67rem; }
+  .legend-item::before { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 999px; content: ''; }
+  .legend-item.amazing::before { background: var(--amazing); }
+  .legend-item.gorgeous::before { background: var(--gorgeous); }
+
+  .toolbar { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 1120px; margin: 0 auto 10px; }
+  .toolbar input, .toolbar select, .lucky-button { min-height: 42px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: .86rem; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
+  .toolbar input { width: min(300px, 100%); }
+  .toolbar select { min-width: 145px; }
+  .lucky-group { display: flex; align-items: stretch; }
+  .lucky-group select { min-width: 128px; border-radius: 12px 0 0 12px; }
+  .lucky-button { border-left: 0; border-radius: 0 12px 12px 0; background: #405cf5; color: #fff; font-weight: 800; cursor: pointer; }
+  .lucky-button:hover { background: #354edb; }
+  .lucky-button:disabled { cursor: not-allowed; opacity: .55; }
+  .lucky-status { min-height: 18px; margin: 0 auto 4px; color: var(--muted); font-size: .72rem; }
+  .results-row { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 28px; margin-bottom: 15px; color: var(--muted); font-size: .82rem; }
+  .results-row p { margin: 0; }
+  .clear-filters { border: 0; background: transparent; color: #314bd8; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+  .composer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 18px; max-width: 1780px; margin: 0 auto; align-items: start; }
+  .composer-card { min-width: 0; }
+  .composer-button { width: 100%; padding: 0; overflow: hidden; border: 0; border-radius: 15px; background: var(--surface); color: inherit; text-align: left; cursor: pointer; box-shadow: 0 9px 24px rgba(15, 23, 42, .09); transition: transform .16s ease, box-shadow .16s ease; }
+  .composer-button:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(15, 23, 42, .14); }
+  .composer-button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .composer-button[aria-expanded='true'] { box-shadow: 0 0 0 2px var(--accent), 0 14px 30px rgba(15, 23, 42, .13); }
+  .portrait-wrap { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #eef0f5; }
+  .portrait { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 18%; transition: transform .25s ease; }
+  .composer-button:hover .portrait { transform: scale(1.025); }
+  .expand-cue { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 999px; background: rgba(14, 18, 27, .78); color: #fff; font-size: 1.1rem; line-height: 1; backdrop-filter: blur(5px); }
+  .composer-button[aria-expanded='true'] .expand-cue { transform: rotate(45deg); }
+  .card-body { display: block; min-height: 154px; padding: 13px 14px 14px; }
+  .composer-name { display: block; margin-bottom: 4px; font-size: 1rem; font-weight: 800; line-height: 1.25; }
+  .composer-meta { display: block; min-height: 2.55em; color: var(--muted); font-size: .78rem; line-height: 1.35; }
+  .composer-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 11px; }
+  .stat { min-width: 0; padding: 7px 8px; border-radius: 9px; background: #f4f5f9; }
+  .stat strong, .stat span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stat strong { color: var(--ink); font-size: .85rem; }
+  .stat span { margin-top: 1px; color: var(--muted); font-size: .68rem; }
+  .not-connected { display: block; margin-top: 12px; color: var(--muted); font-size: .74rem; font-style: italic; }
+
+  .composer-detail-host { grid-column: 1 / -1; min-width: 0; }
+  .composer-detail { padding: 21px; border: 1px solid rgba(64, 92, 245, .22); border-radius: 16px; background: rgba(255, 255, 255, .95); box-shadow: 0 16px 36px rgba(15, 23, 42, .11); scroll-margin-top: 18px; }
+  .detail-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+  .detail-header h2 { margin: 0 0 5px; font-size: 1.4rem; }
+  .detail-subtitle { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.45; }
+  .detail-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+  .reference-link, .close-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 11px; border-radius: 10px; font: inherit; font-size: .78rem; font-weight: 750; text-decoration: none; cursor: pointer; }
+  .reference-link { border: 1px solid rgba(64, 92, 245, .25); background: #f0f2ff; color: #314bd8; }
+  .close-detail { width: 36px; padding: 0; border: 1px solid var(--border); background: #fff; color: var(--ink); }
+  .detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 21px; }
+  .detail-summary div { min-width: 0; padding: 10px 11px; border-radius: 11px; background: #f4f5f9; }
+  .detail-summary strong, .detail-summary span { display: block; }
+  .detail-summary strong { overflow: hidden; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
+  .detail-summary span { margin-top: 2px; color: var(--muted); font-size: .68rem; }
+  .detail-section + .detail-section { margin-top: 22px; }
+  .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 9px; }
+  .section-heading h3 { margin: 0; font-size: 1rem; }
+  .section-heading p { margin: 0; color: var(--muted); font-size: .72rem; }
+
+  .revisit-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 9px; margin: 0; padding: 0; list-style: none; }
+  .revisit-card { min-width: 0; padding: 11px 12px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
+  .revisit-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .piece-title { display: block; color: var(--ink); font-size: .86rem; font-weight: 750; line-height: 1.35; }
+  .piece-meta { display: block; margin-top: 5px; color: var(--muted); font-size: .72rem; line-height: 1.4; }
+  .play-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 34px; height: 32px; padding: 0 9px; border-radius: 9px; background: #eef1ff; color: #314bd8; font-size: .72rem; font-weight: 800; text-decoration: none; }
+  .play-link:hover { background: #dde3ff; }
+  .play-missing { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 34px; height: 32px; border-radius: 9px; background: #f1f2f5; color: #8a909b; font-size: .72rem; }
+  .rating { display: inline-block; margin-right: 5px; padding: 2px 6px; border-radius: 999px; font-weight: 800; }
+  .rating.amazing { background: #edf0ff; color: #4054d8; }
+  .rating.gorgeous { background: #f5eafa; color: #8d43ba; }
+  .rating.other { background: #f0f1f4; color: #656c78; }
+
+  .entry-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 170px 170px; gap: 8px; margin-bottom: 9px; }
+  .entry-toolbar input, .entry-toolbar select { min-height: 39px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: .78rem; }
+  .entry-results { margin: 0 0 8px; color: var(--muted); font-size: .72rem; }
+  .entry-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+  .entry-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 10px 11px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
+  .entry-main { min-width: 0; }
+  .entry-title { display: block; color: var(--ink); font-size: .82rem; font-weight: 750; line-height: 1.35; }
+  .entry-meta { display: block; margin-top: 3px; color: var(--muted); font-size: .69rem; line-height: 1.35; }
+  .entry-side { min-width: 96px; text-align: right; }
+  .entry-side time, .entry-side span { display: block; color: var(--muted); font-size: .68rem; line-height: 1.35; }
+  .show-more { display: block; min-height: 38px; margin: 11px auto 0; padding: 8px 14px; border: 1px solid rgba(64, 92, 245, .25); border-radius: 10px; background: #f0f2ff; color: #314bd8; font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
+  .empty-detail { margin: 0; padding: 15px; border-radius: 11px; background: #f5f6f9; color: var(--muted); font-size: .86rem; line-height: 1.5; }
+  .empty { grid-column: 1 / -1; padding: 40px 16px; color: var(--muted); text-align: center; }
+
+  @media (max-width: 1050px) {
+    .overall-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .detail-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 900px) {
+    .wrap { padding: 18px 10px 38px; }
+    .intro { margin-bottom: 14px; padding-inline: 4px; }
+    h1 { font-size: 2rem; }
+    .hint, .tracking-note { font-size: .84rem; }
+    .charts { grid-template-columns: 1fr; }
+    .toolbar { display: grid; grid-template-columns: 1fr 1fr; }
+    .toolbar > input { grid-column: 1 / -1; width: 100%; }
+    .toolbar > select { min-width: 0; width: 100%; }
+    .lucky-group { grid-column: 1 / -1; }
+    .lucky-group select { flex: 1; min-width: 0; }
+    .composer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
+    .card-body { min-height: 145px; padding: 10px; }
+    .composer-name { font-size: .88rem; }
+    .composer-meta { font-size: .7rem; }
+    .composer-stats { gap: 5px; }
+    .stat { padding: 6px; }
+    .stat strong { font-size: .74rem; }
+    .stat span { font-size: .62rem; }
+    .composer-detail { padding: 14px 12px; }
+    .detail-header { display: block; }
+    .detail-actions { margin-top: 11px; }
+    .revisit-list { grid-template-columns: 1fr; }
+    .entry-toolbar { grid-template-columns: 1fr 1fr; }
+    .entry-toolbar input { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 620px) {
+    .overall-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .chart-row { grid-template-columns: 90px minmax(0, 1fr) auto; }
+    .detail-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .entry-item { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .entry-side { grid-column: 2; min-width: 0; text-align: left; }
+    .entry-side time, .entry-side span { display: inline; }
+    .entry-side span::before { content: ' · '; }
+  }
+
+  @media (max-width: 520px) {
+    .composer-grid { grid-template-columns: 1fr; max-width: 430px; }
+    .composer-button { display: grid; grid-template-columns: 124px minmax(0, 1fr); }
+    .portrait-wrap { height: 155px; aspect-ratio: 4 / 5; }
+    .card-body { min-height: 155px; }
+    .chart-card { padding: 13px 11px; }
+    .chart-row { grid-template-columns: 78px minmax(0, 1fr) auto; gap: 6px; }
+    .entry-toolbar { grid-template-columns: 1fr; }
+    .entry-toolbar input { grid-column: auto; }
   }
 </style>
 
@@ -453,25 +568,117 @@ if (unresolvedRows.length) {
     <div class="intro">
       <h1>🎼 Classical Composers</h1>
       <p class="hint">
-        {composers.length.toLocaleString('en-US')} composers explored{
-          hasListeningFeed
-            ? ` · ${totalWorks.toLocaleString('en-US')} works heard · ${formatHours(totalMinutes)} listened`
-            : ''
-        }. Select a composer to see the works I have heard and the pieces rated Amazing or Gorgeous.
+        A listening archive of the Western classical canon: composer profiles, performances heard,
+        time invested, and the works I marked for another listen.
+      </p>
+      <p class="tracking-note">
+        I began tracking this project on {globalBounds.first ? formatListeningDate(globalBounds.first) : 'November 23, 2024'},
+        starting with Haydn’s symphonies and then moving through the wider repertoire of other composers.
+        Select a composer to open the full listening record.
       </p>
 
-      {!CLASSICAL_LISTENING_CSV_URL ? (
-        <p class="feed-notice">
-          <strong>Composer gallery connected.</strong> Add <code>CLASSICAL_LISTENING_CSV_URL</code> to connect the Google Sheets listening log and populate work counts, hours, ratings, and expanded lists.
-        </p>
-      ) : sheetError ? (
-        <p class="feed-notice">
-          <strong>The composer gallery loaded, but the listening sheet did not.</strong> {sheetError}
+      {hasListeningFeed && generatedLabel ? (
+        <p class="updated-note">
+          Listening data refreshed {generatedLabel}{feedSourceSheet ? ` from ${feedSourceSheet}` : ''}.
         </p>
       ) : null}
 
+      {!CLASSICAL_LISTENING_DATA_URL ? (
+        <p class="feed-notice">
+          <strong>Composer portraits are connected.</strong> Add <code>CLASSICAL_LISTENING_DATA_URL</code>
+          to connect the normalized Google Sheets feed and activate totals, links, charts, and Feeling Lucky.
+        </p>
+      ) : sheetError ? (
+        <p class="feed-notice">
+          <strong>The composer gallery loaded, but the listening feed did not.</strong> {sheetError}
+        </p>
+      ) : null}
+
+      {hasListeningFeed ? (
+        <>
+          <section class="overall-stats" aria-label="Classical listening totals">
+            <div class="overall-stat"><strong>{totalEntries.toLocaleString('en-US')}</strong><span>listening entries</span></div>
+            <div class="overall-stat"><strong>{totalUniqueTitles.toLocaleString('en-US')}</strong><span>unique titles logged</span></div>
+            <div class="overall-stat"><strong>{formatListeningHours(totalMinutes)}</strong><span>total listening time</span></div>
+            <div class="overall-stat"><strong>{totalComposersLogged.toLocaleString('en-US')}</strong><span>composers logged</span></div>
+            <div class="overall-stat"><strong>{totalAmazing.toLocaleString('en-US')}</strong><span>rated Amazing</span></div>
+            <div class="overall-stat"><strong>{totalGorgeous.toLocaleString('en-US')}</strong><span>rated Gorgeous</span></div>
+          </section>
+
+          {(topHours.length || topFavorites.length) ? (
+            <section class="charts" aria-label="Classical listening charts">
+              <article class="chart-card">
+                <div class="chart-header">
+                  <div>
+                    <h2>Most Explored by Time</h2>
+                    <p>Top composers by recorded listening hours.</p>
+                  </div>
+                </div>
+                <ol class="chart-list">
+                  {topHours.map((group) => (
+                    <li class="chart-row">
+                      <span class="chart-name" title={group.name}>{group.name}</span>
+                      <span class="bar-track" aria-hidden="true">
+                        <span
+                          class="bar-fill"
+                          style={`--bar-width:${Math.max(2, (group.totalMinutes / maxChartMinutes) * 100)}%`}
+                        ></span>
+                      </span>
+                      <span class="chart-value">{formatListeningHours(group.totalMinutes)}</span>
+                    </li>
+                  ))}
+                </ol>
+              </article>
+
+              <article class="chart-card">
+                <div class="chart-header">
+                  <div>
+                    <h2>Favorites by Composer</h2>
+                    <p>Entries rated Amazing or Gorgeous.</p>
+                  </div>
+                  <div class="chart-legend" aria-label="Chart legend">
+                    <span class="legend-item amazing">Amazing</span>
+                    <span class="legend-item gorgeous">Gorgeous</span>
+                  </div>
+                </div>
+                <ol class="chart-list">
+                  {topFavorites.map((group) => {
+                    const total = Math.max(group.favoriteCount, 1);
+                    return (
+                      <li class="chart-row">
+                        <span class="chart-name" title={group.name}>{group.name}</span>
+                        <span class="bar-track" aria-hidden="true">
+                          <span
+                            class="stack-width"
+                            style={`--bar-width:${Math.max(2, (group.favoriteCount / maxFavoriteCount) * 100)}%`}
+                          >
+                            <span
+                              class="stacked-bar"
+                              style={`--amazing-width:${(group.amazingCount / total) * 100}%;--gorgeous-width:${(group.gorgeousCount / total) * 100}%`}
+                            >
+                              <span class="amazing"></span>
+                              <span class="gorgeous"></span>
+                            </span>
+                          </span>
+                        </span>
+                        <span class="chart-value">{group.favoriteCount.toLocaleString('en-US')}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </article>
+            </section>
+          ) : null}
+        </>
+      ) : null}
+
       <div class="toolbar">
-        <input id="composer-search" type="search" placeholder="Search composer, country, or period…" aria-label="Search composers" />
+        <input
+          id="composer-search"
+          type="search"
+          placeholder="Search composer, country, period, or form…"
+          aria-label="Search composers"
+        />
 
         <select id="period-filter" aria-label="Filter composers by period">
           <option value="">All periods</option>
@@ -480,29 +687,57 @@ if (unresolvedRows.length) {
 
         <select id="composer-sort" aria-label="Sort composers">
           <option value="name-asc">Composer A–Z</option>
-          <option value="works-desc">Most works heard</option>
+          <option value="entries-desc">Most entries</option>
+          <option value="unique-desc">Most unique titles</option>
           <option value="hours-desc">Most listening time</option>
+          <option value="favorites-desc">Most favorites</option>
           <option value="recent-desc">Most recently heard</option>
         </select>
+
+        <div class="lucky-group">
+          <select id="lucky-rating" aria-label="Feeling Lucky rating pool">
+            <option value="gorgeous">Gorgeous</option>
+            <option value="amazing">Amazing</option>
+            <option value="favorites">Either favorite</option>
+          </select>
+          <button
+            type="button"
+            id="feeling-lucky"
+            class="lucky-button"
+            disabled={!luckyPool.length}
+          >
+            🎲 Feeling Lucky
+          </button>
+        </div>
       </div>
+
+      <p id="lucky-status" class="lucky-status" aria-live="polite"></p>
 
       <div class="results-row">
         <p id="composer-results" aria-live="polite">
-          Showing {composers.length.toLocaleString('en-US')} of {composers.length.toLocaleString('en-US')} composers
+          Showing {composers.length.toLocaleString('en-US')} of {composers.length.toLocaleString('en-US')} composer profiles
         </p>
         <button type="button" id="clear-composer-filters" class="clear-filters" hidden>Clear filters</button>
       </div>
     </div>
 
     {composers.length === 0 ? (
-      <p class="empty">Composers are temporarily unavailable: Raindrop returned no items or its API failed during the build.</p>
+      <p class="empty">Composer profiles are temporarily unavailable because Raindrop returned no items during the build.</p>
     ) : (
-      <div id="composer-grid" class="composer-grid" role="list" data-listening-feed={hasListeningFeed ? 'connected' : 'not-connected'}>
+      <div
+        id="composer-grid"
+        class="composer-grid"
+        role="list"
+        data-listening-feed={hasListeningFeed ? 'connected' : 'not-connected'}
+        data-unprofiled-composers={unprofiledComposerCount}
+        data-other-ratings={totalOther}
+      >
         {composers.map((composer) => {
-          const life = composer.birthYear
-            ? `${composer.birthYear}–${composer.deathYear || ''}`
-            : '';
+          const life = composer.birthYear ? `${composer.birthYear}–${composer.deathYear || ''}` : '';
           const identity = [life, composer.nationality, composer.period].filter(Boolean).join(' · ');
+          const searchText = normalizeText(
+            `${composer.name} ${composer.nationality} ${composer.period} ${composer.note} ${composer.topForm} ${composer.entries.map((entry) => entry.form).join(' ')}`,
+          );
 
           return (
             <article
@@ -510,10 +745,12 @@ if (unresolvedRows.length) {
               role="listitem"
               data-composer-id={composer.id}
               data-name={composer.name}
-              data-search={normalize(`${composer.name} ${composer.nationality} ${composer.period} ${composer.note}`)}
+              data-search={searchText}
               data-period={composer.period}
-              data-works={composer.worksHeard}
+              data-entries={composer.entries.length}
+              data-unique={composer.uniqueTitleCount}
               data-minutes={composer.totalMinutes}
+              data-favorites={composer.favoriteCount}
               data-last-listened={composer.lastListened?.getTime() || 0}
               data-original-index={composer.originalIndex}
             >
@@ -542,10 +779,10 @@ if (unresolvedRows.length) {
 
                   {hasListeningFeed ? (
                     <span class="composer-stats">
-                      <span class="stat"><strong>{composer.worksHeard.toLocaleString('en-US')}</strong><span>works heard</span></span>
-                      <span class="stat"><strong>{formatHours(composer.totalMinutes)}</strong><span>listening time</span></span>
-                      <span class="stat"><strong>{composer.worthRevisiting.length.toLocaleString('en-US')}</strong><span>worth revisiting</span></span>
-                      <span class="stat"><strong>{composer.lastListened ? formatDate(composer.lastListened) : '—'}</strong><span>last heard</span></span>
+                      <span class="stat"><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></span>
+                      <span class="stat"><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></span>
+                      <span class="stat"><strong>{composer.favoriteCount.toLocaleString('en-US')}</strong><span>favorites</span></span>
+                      <span class="stat"><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></span>
                     </span>
                   ) : (
                     <span class="not-connected">Listening details ready to connect</span>
@@ -554,78 +791,164 @@ if (unresolvedRows.length) {
               </button>
 
               <template id={`composer-template-${composer.id}`}>
-                <section id={`composer-detail-${composer.id}`} class="composer-detail" aria-label={`${composer.name} listening details`}>
+                <section
+                  id={`composer-detail-${composer.id}`}
+                  class="composer-detail"
+                  aria-label={`${composer.name} listening details`}
+                >
                   <div class="detail-header">
                     <div>
                       <h2>{composer.name}</h2>
                       <p class="detail-subtitle">
-                        {[identity, composer.topForm ? `Most explored: ${composer.topForm}` : ''].filter(Boolean).join(' · ') || 'Composer listening profile'}
+                        {[identity, composer.topForm ? `Most explored form: ${composer.topForm}` : '']
+                          .filter(Boolean)
+                          .join(' · ') || 'Composer listening profile'}
                       </p>
                     </div>
                     <div class="detail-actions">
                       <a class="reference-link" href={composer.href} target="_blank" rel="noopener noreferrer">Reference ↗</a>
-                      <button type="button" class="close-detail" data-close-composer aria-label={`Close ${composer.name} details`}>×</button>
+                      <button
+                        type="button"
+                        class="close-detail"
+                        data-close-composer
+                        aria-label={`Close ${composer.name} details`}
+                      >×</button>
                     </div>
                   </div>
 
                   {hasListeningFeed ? (
                     <>
                       <div class="detail-summary">
-                        <div><strong>{composer.worksHeard.toLocaleString('en-US')}</strong><span>unique works heard</span></div>
-                        <div><strong>{formatHours(composer.totalMinutes)}</strong><span>total listening time</span></div>
-                        <div><strong>{composer.firstListened ? formatDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
-                        <div><strong>{composer.lastListened ? formatDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
+                        <div><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></div>
+                        <div><strong>{composer.uniqueTitleCount.toLocaleString('en-US')}</strong><span>unique titles</span></div>
+                        <div><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></div>
+                        <div><strong>{composer.favoriteCount.toLocaleString('en-US')}</strong><span>favorites ({composer.favoriteRate.toFixed(0)}%)</span></div>
+                        <div><strong>{composer.firstListened ? formatListeningDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
+                        <div><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
                       </div>
 
                       <section class="detail-section">
-                        <h3>Worth Revisiting</h3>
-                        {composer.worthRevisiting.length ? (
+                        <div class="section-heading">
+                          <h3>Worth Revisiting</h3>
+                          <p>{composer.gorgeousCount.toLocaleString('en-US')} Gorgeous · {composer.amazingCount.toLocaleString('en-US')} Amazing</p>
+                        </div>
+                        {composer.revisitEntries.length ? (
                           <ul class="revisit-list">
-                            {composer.worthRevisiting.map((entry) => (
-                              <li>
-                                <span class="piece-title">{entry.piece}</span>
+                            {composer.revisitEntries.map((entry) => (
+                              <li class="revisit-card">
+                                <div class="revisit-top">
+                                  <span class="piece-title">{entry.piece}</span>
+                                  {entry.youtubeUrl ? (
+                                    <a
+                                      class="play-link"
+                                      href={entry.youtubeUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      aria-label={`Play ${entry.piece} on YouTube`}
+                                    >▶ Play</a>
+                                  ) : (
+                                    <span class="play-missing" title="No performance link was exported">—</span>
+                                  )}
+                                </div>
                                 <span class="piece-meta">
-                                  {entry.rating ? <span class="rating">{entry.rating}</span> : null}
-                                  {[entry.form, entry.compositionYear, entry.listenedDate ? `Heard ${formatDate(entry.listenedDate)}` : ''].filter(Boolean).join(' · ')}
+                                  <span class={`rating ${entry.ratingBucket}`}>{entry.rating || 'Other'}</span>
+                                  {[entry.form, entry.compositionYear, formatCompactDuration(entry.minutes), entry.date ? `Heard ${formatListeningDate(entry.date)}` : entry.dateRaw]
+                                    .filter(Boolean)
+                                    .join(' · ')}
                                 </span>
                               </li>
                             ))}
                           </ul>
                         ) : (
-                          <p class="empty-detail">No works by this composer are currently rated Amazing or Gorgeous.</p>
+                          <p class="empty-detail">No entries by this composer are currently rated Amazing or Gorgeous.</p>
                         )}
                       </section>
 
-                      <section class="detail-section">
-                        <h3>All Pieces Heard</h3>
-                        {composer.allWorks.length ? (
-                          <div class="works-table-wrap">
-                            <table class="works-table">
-                              <thead>
-                                <tr><th>Piece</th><th>Form</th><th>Year</th><th>Rating</th><th>Last logged</th><th>Recording</th></tr>
-                              </thead>
-                              <tbody>
-                                {composer.allWorks.map((entry) => (
-                                  <tr>
-                                    <td><strong>{entry.piece}</strong></td>
-                                    <td>{entry.form || '—'}</td>
-                                    <td>{entry.compositionYear || '—'}</td>
-                                    <td>{entry.rating || '—'}</td>
-                                    <td>{entry.listenedDate ? formatDate(entry.listenedDate) : entry.listenedDateRaw || '—'}</td>
-                                    <td>{entry.recording || '—'}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+                      <section class="detail-section" data-entry-browser>
+                        <div class="section-heading">
+                          <h3>All Listening Entries</h3>
+                          <p>{composer.linkedCount.toLocaleString('en-US')} of {composer.entries.length.toLocaleString('en-US')} include a performance link</p>
+                        </div>
+
+                        <div class="entry-toolbar">
+                          <input
+                            type="search"
+                            placeholder="Search title, form, year, or rating…"
+                            aria-label={`Search ${composer.name} listening entries`}
+                            data-entry-search
+                          />
+                          <select aria-label="Filter listening entries by rating" data-entry-rating>
+                            <option value="all">All ratings</option>
+                            <option value="gorgeous">Gorgeous</option>
+                            <option value="amazing">Amazing</option>
+                            <option value="other">Other</option>
+                          </select>
+                          <select aria-label="Sort listening entries" data-entry-sort>
+                            <option value="latest">Latest heard</option>
+                            <option value="earliest">Earliest heard</option>
+                            <option value="title">Title A–Z</option>
+                            <option value="longest">Longest first</option>
+                          </select>
+                        </div>
+
+                        <p class="entry-results" data-entry-results></p>
+
+                        {composer.entries.length ? (
+                          <>
+                            <ul class="entry-list" data-entry-list>
+                              {composer.entries.map((entry) => (
+                                <li
+                                  class="entry-item"
+                                  data-entry-item
+                                  data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${entry.rating} ${entry.period}`)}
+                                  data-rating={entry.ratingBucket}
+                                  data-date={entry.date?.getTime() || 0}
+                                  data-minutes={entry.minutes}
+                                  data-title={normalizeText(entry.piece)}
+                                  data-row={entry.rowNumber}
+                                >
+                                  {entry.youtubeUrl ? (
+                                    <a
+                                      class="play-link"
+                                      href={entry.youtubeUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      aria-label={`Play ${entry.piece} on YouTube`}
+                                    >▶</a>
+                                  ) : (
+                                    <span class="play-missing" title="No performance link was exported">—</span>
+                                  )}
+
+                                  <span class="entry-main">
+                                    <span class="entry-title">{entry.piece}</span>
+                                    <span class="entry-meta">
+                                      <span class={`rating ${entry.ratingBucket}`}>{entry.rating || 'Other'}</span>
+                                      {[entry.form, entry.period, entry.compositionYear]
+                                        .filter(Boolean)
+                                        .join(' · ') || 'Metadata not logged'}
+                                    </span>
+                                  </span>
+
+                                  <span class="entry-side">
+                                    <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>
+                                      {entry.date ? formatListeningDate(entry.date) : entry.dateRaw}
+                                    </time>
+                                    <span>{formatCompactDuration(entry.minutes)}</span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                            <p class="empty-detail" data-entry-empty hidden>No entries match these filters.</p>
+                            <button type="button" class="show-more" data-entry-more hidden>Show more</button>
+                          </>
                         ) : (
-                          <p class="empty-detail">No matching listening entries were found for this composer.</p>
+                          <p class="empty-detail">No dated listening entries matched this composer profile.</p>
                         )}
                       </section>
                     </>
                   ) : (
                     <p class="empty-detail">
-                      The Raindrop composer profile is live. Connect the Google Sheets CSV feed to add works heard, listening hours, ratings, and the Worth Revisiting list.
+                      The Raindrop composer profile is live. Connect the normalized Google Sheets feed to add listening entries, hours, performance links, ratings, charts, and Feeling Lucky.
                     </p>
                   )}
                 </section>
@@ -635,6 +958,8 @@ if (unresolvedRows.length) {
         })}
       </div>
     )}
+
+    <script id="composer-page-data" type="application/json" set:html={clientPageData}></script>
   </main>
   <Footer />
 </VideoBg>
@@ -649,30 +974,51 @@ if (unresolvedRows.length) {
     const sort = document.querySelector('#composer-sort');
     const results = document.querySelector('#composer-results');
     const clear = document.querySelector('#clear-composer-filters');
+    const luckyButton = document.querySelector('#feeling-lucky');
+    const luckyRating = document.querySelector('#lucky-rating');
+    const luckyStatus = document.querySelector('#lucky-status');
     const cards = Array.from(grid.querySelectorAll('.composer-card'));
     const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
     let activeId = '';
     let host = null;
 
-    const norm = (value) => String(value || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim();
+    const norm = (value) =>
+      String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+
+    const parsePageData = () => {
+      try {
+        return JSON.parse(document.querySelector('#composer-page-data')?.textContent || '{}');
+      } catch {
+        return { luckyPool: [] };
+      }
+    };
+
+    const pageData = parsePageData();
 
     function visibleCards() {
       return cards.filter((card) => card.style.display !== 'none');
     }
 
-    function closeDetail() {
+    function updateHash(id) {
+      const url = new URL(window.location.href);
+      url.hash = id ? `composer-${id}` : '';
+      history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    function closeDetail(options = {}) {
+      const { preserveHash = false } = options;
       if (host) host.remove();
       host = null;
       activeId = '';
       cards.forEach((card) => {
-        const button = card.querySelector('[data-composer-trigger]');
-        if (button) button.setAttribute('aria-expanded', 'false');
+        card.querySelector('[data-composer-trigger]')?.setAttribute('aria-expanded', 'false');
       });
+      if (!preserveHash) updateHash('');
     }
 
     function placeHostAfterRow(card) {
@@ -683,7 +1029,80 @@ if (unresolvedRows.length) {
       lastInRow.insertAdjacentElement('afterend', host);
     }
 
-    function openDetail(card, shouldScroll = true) {
+    function setupEntryBrowser(detail) {
+      const browser = detail.querySelector('[data-entry-browser]');
+      if (!browser) return;
+
+      const entrySearch = browser.querySelector('[data-entry-search]');
+      const ratingFilter = browser.querySelector('[data-entry-rating]');
+      const entrySort = browser.querySelector('[data-entry-sort]');
+      const list = browser.querySelector('[data-entry-list]');
+      const resultText = browser.querySelector('[data-entry-results]');
+      const empty = browser.querySelector('[data-entry-empty]');
+      const more = browser.querySelector('[data-entry-more]');
+      const items = Array.from(browser.querySelectorAll('[data-entry-item]'));
+      let visibleLimit = 40;
+
+      if (!list || !items.length) return;
+
+      function applyEntries() {
+        const words = norm(entrySearch?.value).split(/\s+/).filter(Boolean);
+        const selectedRating = ratingFilter?.value || 'all';
+        const mode = entrySort?.value || 'latest';
+
+        const filtered = items.filter((item) => {
+          const searchMatches = !words.length || words.every((word) => (item.dataset.search || '').includes(word));
+          const ratingMatches = selectedRating === 'all' || item.dataset.rating === selectedRating;
+          return searchMatches && ratingMatches;
+        });
+
+        filtered.sort((a, b) => {
+          let comparison = 0;
+          if (mode === 'earliest') comparison = Number(a.dataset.date || 0) - Number(b.dataset.date || 0);
+          else if (mode === 'title') comparison = collator.compare(a.dataset.title || '', b.dataset.title || '');
+          else if (mode === 'longest') comparison = Number(b.dataset.minutes || 0) - Number(a.dataset.minutes || 0);
+          else comparison = Number(b.dataset.date || 0) - Number(a.dataset.date || 0);
+          return comparison || Number(b.dataset.row || 0) - Number(a.dataset.row || 0);
+        });
+
+        items.forEach((item) => {
+          item.hidden = true;
+        });
+
+        filtered.forEach((item, index) => {
+          list.appendChild(item);
+          item.hidden = index >= visibleLimit;
+        });
+
+        if (resultText) {
+          const shown = Math.min(filtered.length, visibleLimit);
+          resultText.textContent = filtered.length
+            ? `Showing ${shown.toLocaleString()} of ${filtered.length.toLocaleString()} matching entries`
+            : 'No matching entries';
+        }
+        if (empty) empty.hidden = filtered.length > 0;
+        if (more) more.hidden = filtered.length <= visibleLimit;
+      }
+
+      entrySearch?.addEventListener('input', () => {
+        visibleLimit = 40;
+        applyEntries();
+      });
+      ratingFilter?.addEventListener('change', () => {
+        visibleLimit = 40;
+        applyEntries();
+      });
+      entrySort?.addEventListener('change', applyEntries);
+      more?.addEventListener('click', () => {
+        visibleLimit += 40;
+        applyEntries();
+      });
+
+      applyEntries();
+    }
+
+    function openDetail(card, options = {}) {
+      const { shouldScroll = true, updateUrl = true } = options;
       const button = card.querySelector('[data-composer-trigger]');
       const id = button?.dataset.composerTrigger;
       if (!button || !id) return;
@@ -694,7 +1113,7 @@ if (unresolvedRows.length) {
         return;
       }
 
-      closeDetail();
+      closeDetail({ preserveHash: true });
       const template = document.querySelector(`#composer-template-${CSS.escape(id)}`);
       if (!template) return;
 
@@ -705,13 +1124,17 @@ if (unresolvedRows.length) {
       button.setAttribute('aria-expanded', 'true');
       placeHostAfterRow(card);
 
+      const detail = host.querySelector('.composer-detail');
+      setupEntryBrowser(detail);
+
       host.querySelector('[data-close-composer]')?.addEventListener('click', () => {
         closeDetail();
         button.focus();
       });
 
+      if (updateUrl) updateHash(id);
       if (shouldScroll) {
-        requestAnimationFrame(() => host?.querySelector('.composer-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+        requestAnimationFrame(() => detail?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
       }
     }
 
@@ -719,29 +1142,31 @@ if (unresolvedRows.length) {
       card.querySelector('[data-composer-trigger]')?.addEventListener('click', () => openDetail(card));
     });
 
-    function sortCards() {
+    function sortCards(options = {}) {
+      const { closeOpen = true } = options;
       const mode = sort?.value || 'name-asc';
       const ordered = [...cards].sort((a, b) => {
         let comparison = 0;
-
-        if (mode === 'works-desc') comparison = Number(b.dataset.works || 0) - Number(a.dataset.works || 0);
+        if (mode === 'entries-desc') comparison = Number(b.dataset.entries || 0) - Number(a.dataset.entries || 0);
+        else if (mode === 'unique-desc') comparison = Number(b.dataset.unique || 0) - Number(a.dataset.unique || 0);
         else if (mode === 'hours-desc') comparison = Number(b.dataset.minutes || 0) - Number(a.dataset.minutes || 0);
+        else if (mode === 'favorites-desc') comparison = Number(b.dataset.favorites || 0) - Number(a.dataset.favorites || 0);
         else if (mode === 'recent-desc') comparison = Number(b.dataset.lastListened || 0) - Number(a.dataset.lastListened || 0);
         else comparison = collator.compare(a.dataset.name || '', b.dataset.name || '');
-
         return comparison || Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
       });
 
-      closeDetail();
+      if (closeOpen) closeDetail();
       ordered.forEach((card) => grid.appendChild(card));
     }
 
-    function filterCards() {
+    function filterCards(options = {}) {
+      const { closeOpen = true } = options;
       const words = norm(search?.value).split(/\s+/).filter(Boolean);
       const selectedPeriod = period?.value || '';
       let visible = 0;
 
-      closeDetail();
+      if (closeOpen) closeDetail();
       cards.forEach((card) => {
         const textMatches = !words.length || words.every((word) => (card.dataset.search || '').includes(word));
         const periodMatches = !selectedPeriod || card.dataset.period === selectedPeriod;
@@ -750,17 +1175,62 @@ if (unresolvedRows.length) {
         if (show) visible += 1;
       });
 
-      if (results) results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} composers`;
+      if (results) results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} composer profiles`;
       if (clear) clear.hidden = !(search?.value.trim() || selectedPeriod);
     }
+
+    function randomIndex(length) {
+      if (window.crypto?.getRandomValues) {
+        const values = new Uint32Array(1);
+        window.crypto.getRandomValues(values);
+        return values[0] % length;
+      }
+      return Math.floor(Math.random() * length);
+    }
+
+    luckyButton?.addEventListener('click', () => {
+      const pool = Array.isArray(pageData.luckyPool) ? pageData.luckyPool : [];
+      const selected = luckyRating?.value || 'gorgeous';
+      const candidates = pool.filter((entry) => selected === 'favorites' || entry.rating === selected);
+
+      if (!candidates.length) {
+        if (luckyStatus) luckyStatus.textContent = 'No linked performances are available in that rating pool.';
+        return;
+      }
+
+      const storageKey = 'lifeloggerz-classical-lucky-recent';
+      let recent = [];
+      try {
+        recent = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      } catch {
+        recent = [];
+      }
+      if (!Array.isArray(recent)) recent = [];
+
+      const fresh = candidates.filter((entry) => !recent.includes(entry.key));
+      const available = fresh.length ? fresh : candidates;
+      const choice = available[randomIndex(available.length)];
+
+      recent = [choice.key, ...recent.filter((key) => key !== choice.key)].slice(0, 15);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(recent));
+      } catch {
+        // Storage is optional; selection still works without it.
+      }
+
+      if (luckyStatus) luckyStatus.textContent = `${choice.composer} — ${choice.piece}`;
+      const opened = window.open(choice.url, '_blank');
+      if (opened) opened.opener = null;
+      else window.location.href = choice.url;
+    });
 
     let debounceTimer;
     search?.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(filterCards, 80);
+      debounceTimer = setTimeout(() => filterCards(), 80);
     });
-    period?.addEventListener('change', filterCards);
-    sort?.addEventListener('change', sortCards);
+    period?.addEventListener('change', () => filterCards());
+    sort?.addEventListener('change', () => sortCards());
     clear?.addEventListener('click', () => {
       if (search) search.value = '';
       if (period) period.value = '';
@@ -782,7 +1252,23 @@ if (unresolvedRows.length) {
       }
     });
 
-    sortCards();
-    filterCards();
+    window.addEventListener('hashchange', () => {
+      const id = window.location.hash.replace(/^#composer-/, '');
+      if (!id) {
+        if (activeId) closeDetail({ preserveHash: true });
+        return;
+      }
+      const card = cards.find((candidate) => candidate.dataset.composerId === id);
+      if (card && activeId !== id) openDetail(card, { shouldScroll: true, updateUrl: false });
+    });
+
+    sortCards({ closeOpen: false });
+    filterCards({ closeOpen: false });
+
+    const initialId = window.location.hash.replace(/^#composer-/, '');
+    if (initialId) {
+      const initialCard = cards.find((candidate) => candidate.dataset.composerId === initialId);
+      if (initialCard) requestAnimationFrame(() => openDetail(initialCard, { shouldScroll: true, updateUrl: false }));
+    }
   })();
 </script>
