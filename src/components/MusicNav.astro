@@ -1,5 +1,5 @@
 ---
-type MusicSection = 'albums' | 'composers';
+type MusicSection = 'albums' | 'composers' | 'guitar';
 
 interface Props {
   active: MusicSection;
@@ -10,9 +10,8 @@ const { active } = Astro.props;
 const sections: Array<{ id: MusicSection; label: string; href: string }> = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
   { id: 'composers', label: 'Composers', href: '/music/composers/' },
+  { id: 'guitar', label: 'Guitar', href: '/music/guitar/' },
 ];
-
-// Add Guitar and Favorites here once those routes are ready.
 ---
 
 <nav class="music-nav" aria-label="Music sections">
@@ -88,10 +87,9 @@ const sections: Array<{ id: MusicSection; label: string; href: string }> = [
     background: #354edb;
   }
 
-
   @media (max-width: 560px) {
     .music-nav { padding: 0 10px 13px; }
     .music-nav__inner { width: 100%; }
-    .music-nav__item { flex: 1 0 auto; min-width: 84px; padding: 8px 12px; font-size: .78rem; }
+    .music-nav__item { flex: 1 1 0; min-width: 0; padding: 8px 9px; font-size: .76rem; }
   }
 </style>
