@@ -1,0 +1,227 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import VideoBg from '../../components/VideoBg.astro';
+import MusicNav from '../../components/MusicNav.astro';
+import { SITE_TITLE } from '../../consts';
+import { fetchAllRaindrops } from '../../utils/raindrop';
+
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
+const COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_GUITAR_ID || '59630582';
+
+const guitar = await fetchAllRaindrops({
+  token: RAINDROP_TOKEN,
+  collectionId: COLLECTION_ID,
+  label: 'guitar',
+  placeholder: '/images_webp/album-placeholder.webp',
+  cleanVideoCovers: true,
+});
+
+const tagCounts = new Map<string, number>();
+guitar.forEach((item) => {
+  item.tags.forEach((tag) => {
+    const cleanTag = String(tag || '').trim();
+    if (!cleanTag) return;
+    tagCounts.set(cleanTag, (tagCounts.get(cleanTag) || 0) + 1);
+  });
+});
+
+const tags = [...tagCounts.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .map(([name, count]) => ({ name, count }));
+---
+
+<BaseHead
+  title={`${SITE_TITLE} — Music — Guitar`}
+  description="My guitar practice system, tracked progress, and a searchable library of lessons, performances, and ideas."
+/>
+
+<style>
+  :root { --ink:#0e121b; --muted:#5e6573; --border:#e6e9ef; --surface:#fff; }
+  * { box-sizing:border-box; }
+  .wrap { width:100%; margin:0 auto; padding:0 0 48px; }
+  .hero { position:relative; width:100%; height:clamp(300px,52vh,610px); overflow:hidden; margin-bottom:0; background:#15171d; }
+  .hero video { width:100%; height:100%; object-fit:cover; display:block; filter:brightness(.62) saturate(.88); }
+  .hero-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; color:#fff; text-shadow:0 2px 18px rgba(0,0,0,.65); }
+  .hero-overlay h1 { margin:0 0 8px; font-size:clamp(2.4rem,6vw,5rem); line-height:.95; letter-spacing:-.04em; }
+  .hero-overlay p { max-width:720px; margin:0; font-size:clamp(1rem,2vw,1.35rem); line-height:1.45; }
+  .audio-toggle { position:absolute; right:18px; bottom:18px; width:44px; height:44px; border:1px solid rgba(255,255,255,.55); border-radius:999px; background:rgba(0,0,0,.52); color:#fff; font-size:1.15rem; cursor:pointer; backdrop-filter:blur(8px); }
+  .content { padding:24px clamp(12px,3vw,48px) 0; }
+  .intro { max-width:1120px; margin:0 auto 22px; text-align:center; }
+  .intro-copy { max-width:760px; margin:7px auto 18px; color:var(--muted); line-height:1.6; }
+  .summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; max-width:760px; margin:0 auto 18px; }
+  .summary div { padding:14px 12px; border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.9); box-shadow:0 8px 22px rgba(15,23,42,.05); }
+  .summary strong { display:block; font-size:1.35rem; color:var(--ink); }
+  .summary span { color:var(--muted); font-size:.78rem; }
+  .toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; max-width:920px; margin:0 auto 12px; }
+  .toolbar input, .toolbar select { min-height:42px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--ink); font:inherit; }
+  .toolbar input { flex:1 1 300px; padding:10px 13px; }
+  .toolbar select { flex:0 1 190px; padding:9px 11px; }
+  .icon-button { display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border:1px solid var(--border); border-radius:999px; background:#f0f2f7; color:var(--ink); text-decoration:none; font:inherit; font-weight:800; cursor:pointer; }
+  .results { min-height:24px; margin:0 auto 16px; color:var(--muted); font-size:.82rem; text-align:center; }
+  .method { max-width:920px; margin:0 auto 22px; padding:18px 20px; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.92); box-shadow:0 12px 30px rgba(15,23,42,.08); line-height:1.58; }
+  .method[hidden] { display:none; }
+  .method h2 { margin:0 0 7px; font-size:1.05rem; }
+  .method p { margin:6px 0; }
+  .method ul { margin:8px 0 12px 20px; padding:0; color:var(--muted); }
+  .method img { display:block; width:100%; margin-top:13px; border-radius:12px; box-shadow:0 8px 22px rgba(15,23,42,.15); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; max-width:1800px; margin:0 auto; }
+  .card { display:flex; min-width:0; flex-direction:column; gap:7px; color:inherit; text-decoration:none; }
+  .thumb { width:100%; aspect-ratio:16/9; object-fit:cover; border:1px solid var(--border); border-radius:12px; background:#f0f2f7; box-shadow:0 9px 22px rgba(0,0,0,.11); transition:transform .15s ease, box-shadow .15s ease; }
+  .card:hover .thumb { transform:translateY(-2px); box-shadow:0 13px 28px rgba(0,0,0,.16); }
+  .title { display:-webkit-box; overflow:hidden; font-weight:750; font-size:.92rem; line-height:1.3; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+  .card-tags { color:var(--muted); font-size:.72rem; line-height:1.35; }
+  .empty { padding:40px 16px; color:var(--muted); text-align:center; }
+  @media (max-width:700px) {
+    .hero { height:330px; }
+    .content { padding-top:16px; }
+    .summary { grid-template-columns:1fr 1fr; }
+    .summary div:last-child { grid-column:1 / -1; }
+    .toolbar { display:grid; grid-template-columns:minmax(0,1fr) 42px 42px; }
+    .toolbar input { grid-column:1 / -1; width:100%; }
+    .toolbar select { grid-column:1; width:100%; min-width:0; }
+    .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px 10px; }
+    .title { font-size:.78rem; }
+    .card-tags { display:none; }
+  }
+</style>
+
+<VideoBg>
+  <Header />
+  <main class="wrap">
+    <MusicNav active="guitar" />
+
+    <section class="hero" aria-labelledby="guitar-title">
+      <video autoplay muted loop playsinline preload="metadata">
+        <source src="/videos/guitar.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-overlay">
+        <h1 id="guitar-title">🎸 Guitar</h1>
+        <p>A living library of what I practice, study, save, and want to return to.</p>
+      </div>
+      <button class="audio-toggle" id="audio-toggle" type="button" aria-label="Unmute guitar video">🔇</button>
+    </section>
+
+    <div class="content">
+      <section class="intro" aria-label="Guitar library overview">
+        <p class="intro-copy">
+          This page combines my practice philosophy with the lessons, performances, techniques, and references I have collected over time. It is both a public resource and a personal dashboard for finding material again.
+        </p>
+
+        <div class="summary" aria-label="Guitar library totals">
+          <div><strong>{guitar.length.toLocaleString('en-US')}</strong><span>saved resources</span></div>
+          <div><strong>{tags.length.toLocaleString('en-US')}</strong><span>resource tags</span></div>
+          <div><strong>10 min</strong><span>daily minimum</span></div>
+        </div>
+
+        <div class="toolbar">
+          <input id="guitar-search" type="search" placeholder="Search lesson, technique, song, or note…" aria-label="Search guitar resources" />
+          <select id="tag-filter" aria-label="Filter guitar resources by tag">
+            <option value="">All categories</option>
+            {tags.map((tag) => <option value={tag.name.toLowerCase()}>{tag.name} ({tag.count})</option>)}
+          </select>
+          <button class="icon-button" id="method-toggle" type="button" aria-label="Show how I practice and track guitar" aria-expanded="false">?</button>
+          <a class="icon-button" href="/stats/?metric=guitar&amp;year=current#graphs" aria-label="View guitar statistics" title="View guitar statistics">📊</a>
+        </div>
+
+        <p class="results" id="guitar-results" aria-live="polite">Showing {guitar.length.toLocaleString('en-US')} resources</p>
+      </section>
+
+      <section class="method" id="guitar-method" hidden>
+        <h2>How I Practice and Track Guitar</h2>
+        <p>I use a low-friction system designed to survive busy periods rather than depend on motivation.</p>
+        <ul>
+          <li><strong>Daily floor:</strong> play for at least 10 minutes, even when the rest of the routine collapses.</li>
+          <li><strong>Two streams:</strong> technique and acquisition on one side; songs and composition on the other.</li>
+          <li><strong>Dated logging:</strong> each meaningful learning event is recorded in Google Sheets.</li>
+          <li><strong>Boredom as feedback:</strong> stale repetition means the system needs new material, not abandonment.</li>
+        </ul>
+        <p>The Stats page shows the time trend; this page preserves the actual materials behind that time.</p>
+        <img src="/images_webp/guitartracking.webp" alt="Guitar practice log with dated techniques and songs in Google Sheets" loading="lazy" decoding="async" />
+      </section>
+
+      {guitar.length === 0 ? (
+        <p class="empty">Guitar resources are temporarily unavailable because Raindrop returned no items during the build.</p>
+      ) : (
+        <div class="grid" id="guitar-grid" role="list">
+          {guitar.map((item) => (
+            <a
+              class="card"
+              role="listitem"
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-search={`${item.title} ${item.note} ${item.tags.join(' ')}`.toLowerCase()}
+              data-tags={item.tags.map((tag) => tag.toLowerCase()).join('|')}
+            >
+              <img class="thumb" src={item.cover} alt={item.title} loading="lazy" decoding="async" />
+              <span class="title">{item.title} <span aria-hidden="true">↗</span></span>
+              {item.tags.length ? <span class="card-tags">{item.tags.slice(0, 4).join(' · ')}</span> : null}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </main>
+  <Footer />
+</VideoBg>
+
+<script>
+  const search = document.querySelector('#guitar-search');
+  const tagFilter = document.querySelector('#tag-filter');
+  const grid = document.querySelector('#guitar-grid');
+  const resultLabel = document.querySelector('#guitar-results');
+  const methodToggle = document.querySelector('#method-toggle');
+  const method = document.querySelector('#guitar-method');
+  const video = document.querySelector('.hero video');
+  const audioToggle = document.querySelector('#audio-toggle');
+
+  const normalize = (value = '') => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const filterCards = () => {
+    if (!grid) return;
+    const query = normalize(search?.value.trim() || '');
+    const tag = normalize(tagFilter?.value || '');
+    let visible = 0;
+
+    grid.querySelectorAll('.card').forEach((card) => {
+      const text = normalize(card.dataset.search || '');
+      const tags = normalize(card.dataset.tags || '').split('|');
+      const matches = (!query || query.split(/\s+/).every((word) => text.includes(word))) && (!tag || tags.includes(tag));
+      card.hidden = !matches;
+      if (matches) visible += 1;
+    });
+
+    if (resultLabel) resultLabel.textContent = `Showing ${visible.toLocaleString('en-US')} resources`;
+  };
+
+  search?.addEventListener('input', filterCards);
+  tagFilter?.addEventListener('change', filterCards);
+
+  methodToggle?.addEventListener('click', () => {
+    if (!method) return;
+    method.hidden = !method.hidden;
+    methodToggle.setAttribute('aria-expanded', String(!method.hidden));
+  });
+
+  audioToggle?.addEventListener('click', () => {
+    if (!video) return;
+    video.muted = !video.muted;
+    audioToggle.textContent = video.muted ? '🔇' : '🔊';
+    audioToggle.setAttribute('aria-label', video.muted ? 'Unmute guitar video' : 'Mute guitar video');
+    if (video.paused) video.play().catch(() => {});
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === '/' && event.target === document.body) {
+      event.preventDefault();
+      search?.focus();
+    }
+    if (event.key === 'Escape' && search) {
+      search.value = '';
+      if (tagFilter) tagFilter.value = '';
+      filterCards();
+    }
+  });
+</script>
