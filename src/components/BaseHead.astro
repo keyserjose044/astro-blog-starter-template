@@ -19,7 +19,9 @@ const absoluteImageURL = new URL(image, Astro.site);
 const base = import.meta.env.BASE_URL || '/';
 const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/books');
+const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const booksAssetVersion = '20260726-1235';
+const albumsAssetVersion = '20260726-1445';
 ---
 
 <!-- Global Metadata -->
@@ -43,6 +45,10 @@ const booksAssetVersion = '20260726-1235';
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-insights.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-refinement.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-final-polish.css?v=${booksAssetVersion}`} /> : null}
+
+{isAlbumsPage ? <meta name="lifeloggerz-albums-assets" content={albumsAssetVersion} /> : null}
+{isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer.css?v=${albumsAssetVersion}`} /> : null}
+{isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer-responsive.css?v=${albumsAssetVersion}`} /> : null}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL.toString()} />
@@ -77,3 +83,4 @@ const booksAssetVersion = '20260726-1235';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
+{isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}

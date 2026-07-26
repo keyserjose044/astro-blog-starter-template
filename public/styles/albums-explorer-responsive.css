@@ -1,0 +1,207 @@
+.albums-timeline-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 14px;
+}
+
+.albums-timeline-controls > div {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--albums-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.albums-timeline-controls button {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--albums-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.albums-timeline-controls button[aria-pressed='true'] { background: var(--albums-accent); color: #fff; }
+.albums-timeline-controls p { margin: 0; color: var(--albums-muted); font-size: 0.75rem; }
+
+.albums-timeline-viewport {
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+}
+
+.albums-timeline-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(190px, 220px);
+  gap: 11px;
+  align-items: stretch;
+}
+
+.albums-timeline-stop {
+  min-width: 0;
+}
+
+.albums-timeline-stop button {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12px;
+  border: 1px solid var(--albums-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.77);
+  color: var(--albums-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.albums-timeline-stop button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(64, 92, 245, 0.36);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+.albums-timeline-period { font-size: 0.94rem; font-weight: 800; }
+.albums-timeline-count { margin-top: 2px; color: var(--albums-muted); font-size: 0.72rem; }
+
+.albums-timeline-covers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 10px 0;
+}
+
+.albums-timeline-covers img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+.albums-timeline-bars { display: flex; height: 48px; align-items: end; gap: 3px; margin-top: auto; }
+.albums-timeline-bars i { flex: 1; min-height: 5px; border-radius: 4px 4px 1px 1px; background: rgba(64, 92, 245, 0.32); }
+.albums-timeline-bars i[data-peak='true'] { background: var(--albums-accent); }
+.albums-timeline-caption { margin-top: 7px; color: var(--albums-muted); font-size: 0.67rem; line-height: 1.3; }
+.albums-timeline-empty { padding: 32px; color: var(--albums-muted); text-align: center; }
+
+@media (max-width: 1100px) {
+  .albums-filters-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .albums-map-layout { grid-template-columns: 1fr; }
+  .albums-map-stage { min-height: 380px; }
+  .albums-country-panel { min-height: 0; }
+  .albums-country-albums { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .albums-page { padding: 18px 10px 36px; }
+  .albums-intro { margin-bottom: 12px; }
+  .albums-intro h1 { margin-bottom: 5px; font-size: 2rem; }
+  .albums-hint { max-width: 39ch; margin: 4px auto 12px; font-size: 0.84rem; line-height: 1.4; }
+
+  .albums-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px 42px;
+    gap: 7px;
+  }
+
+  .albums-toolbar input[type='search'] { grid-column: 1 / -1; max-width: none; }
+  #album-filters-toggle { grid-column: 1; grid-row: 2; width: 100%; }
+  #album-sort { grid-column: 2; grid-row: 2; width: 100%; min-width: 0; font-size: 0.76rem; }
+  .albums-surprise { grid-column: 1 / 3; grid-row: 3; }
+  .albums-surprise > button { width: 100%; }
+  #albums-info-toggle { grid-column: 3; grid-row: 2; }
+  .albums-toolbar > a.albums-round-button { grid-column: 4; grid-row: 2; }
+
+  .albums-filters-panel {
+    width: calc(100% - 8px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: -2px;
+    padding: 10px;
+  }
+
+  .albums-view-toggle { border-radius: 16px; }
+  .albums-view-button { padding: 7px 9px; font-size: 0.74rem; }
+  .albums-results-row { margin-bottom: 12px; font-size: 0.76rem; }
+
+  .albums-grid[data-album-view='quilt'] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 10px; }
+  .albums-grid[data-album-view='quilt'] .album-title { font-size: 0.76rem; }
+
+  .albums-grid[data-album-view='list'] {
+    max-width: 680px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: 142px;
+    gap: 10px;
+  }
+
+  .albums-grid[data-album-view='list'] .album-card {
+    grid-template-columns: 112px minmax(0, 1fr);
+    padding: 10px;
+    gap: 6px 12px;
+  }
+
+  .albums-grid[data-album-view='list'] .album-cover { width: 112px; height: 112px; border-radius: 8px; }
+  .albums-grid[data-album-view='list'] .album-title { font-size: 0.91rem; }
+  .albums-grid[data-album-view='list'] .album-card-meta { font-size: 0.73rem; }
+
+  .album-note-bubble {
+    top: auto;
+    bottom: -10px;
+    max-width: min(310px, 88vw);
+    padding: 8px 10px;
+    transform: translate(calc(-50% + var(--shift, 0px)), 100%);
+    font-size: 0.76rem;
+  }
+
+  .album-note-bubble::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: rgba(20, 23, 31, 0.97);
+  }
+
+  .albums-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .albums-map-stage { min-height: 300px; }
+  .albums-map-footer { align-items: flex-start; flex-direction: column; }
+  .albums-country-albums { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .albums-timeline-controls { align-items: flex-start; flex-direction: column; }
+  .albums-timeline-controls p { text-align: left; }
+}
+
+@media (max-width: 520px) {
+  .albums-filters-panel { grid-template-columns: 1fr 1fr; }
+  .albums-filter-field:nth-child(4),
+  .albums-filter-field:nth-child(6) { grid-column: 1 / -1; }
+  .albums-view-button span:first-child { display: none; }
+  .albums-metrics { grid-template-columns: 1fr 1fr; }
+  .albums-metric { padding: 10px; }
+  .albums-metric-value { font-size: 0.92rem; }
+  .albums-explorer-view { padding: 12px; border-radius: 14px; }
+  .albums-map-stage { min-height: 235px; }
+  .albums-timeline-track { grid-auto-columns: minmax(175px, 82vw); }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --albums-ink: #f1f4fb;
+    --albums-muted: #aeb6c7;
+    --albums-border: #343b49;
+    --albums-surface: rgba(20, 24, 32, 0.92);
+    --albums-surface-solid: #171b23;
+    --albums-soft: #222936;
+    --albums-accent-dark: #aeb9ff;
+  }
+
+  .albums-control-button:hover,
+  .albums-round-button:hover,
+  .albums-control-button[aria-expanded='true'],
+  .albums-control-button.has-active-filters { background: #252c44; }
+  .albums-metric,
+  .albums-country-panel,
+  .albums-timeline-controls > div,
+  .albums-timeline-stop button { background: rgba(21, 25, 34, 0.83); }
+  .albums-map-stage { background: rgba(19, 24, 34, 0.84); }
+  .albums-map-ocean { fill: rgba(30, 37, 50, 0.78); }
+  .albums-map-country { stroke: rgba(18, 22, 30, 0.9); }
+}
