@@ -5,15 +5,27 @@ import { SITE_TITLE } from '../consts';
 
 const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
-const link = (p: string = '') => `${base}${p}`;
-
-// base-aware path so it works on subpaths too
+const link = (path: string = '') => `${base}${path}`;
 const iconSrc = `${base}favicon.svg`;
+
+const navItems = [
+  { href: '', label: 'Home', tip: 'Start here: overview and latest from the blog', exact: true },
+  { href: 'blog/', label: 'Blog', tip: 'Essays on systems, stats, and experiments' },
+  { href: 'templates/', label: 'Templates', tip: 'Downloadable tools and Google Sheets systems' },
+  { href: 'stats/', label: 'Stats', tip: 'Live graphs and metrics from my Raw Data logs' },
+  { href: 'books/', label: 'Books', tip: 'Every book I’ve read, with genres and notes' },
+  { href: 'music/albums/', label: 'Music', tip: 'Albums and classical music, powered by the archive' },
+  { href: 'art/', label: 'Art', tip: 'Art I’ve logged that shaped my thinking' },
+  { href: 'pursuits/', label: 'Pursuits', tip: 'Guitar, dance, running, languages, and future skills' },
+  { href: 'inspirations/', label: 'Inspirations', tip: 'Ideas and people influencing LifeLoggerz' },
+  { href: 'timeline/', label: 'Timeline', tip: 'My life up to this point…' },
+  { href: 'about/', label: 'About', tip: 'What LifeLoggerz is and who’s behind it' },
+  { href: 'faq/', label: 'FAQ', tip: 'Questions about the project, privacy, and tracking' },
+];
 ---
 
 <header class="site-header">
-  <!-- ===== DESKTOP NAV ===== -->
-  <nav class="desktop-nav">
+  <nav class="desktop-nav" aria-label="Primary navigation">
     <h2>
       <a href={base} class="brand-link">
         <span class="site-title">{SITE_TITLE}</span>
@@ -22,76 +34,25 @@ const iconSrc = `${base}favicon.svg`;
     </h2>
 
     <div class="internal-links" id="desktop-links">
-      <NavTooltipLink href={link('')} exact tip="Start here: overview and latest from the blog">
-        Home
-      </NavTooltipLink>
-      <NavTooltipLink href={link('blog/')} tip="Essays on systems, stats, and experiments">
-        Blog
-      </NavTooltipLink>
-      <NavTooltipLink href={link('templates/')} tip="Downloadable tools and Google Sheets systems">
-        Templates
-      </NavTooltipLink>
-      <NavTooltipLink href={link('stats/')} tip="Live graphs and metrics from my Raw Data logs">
-        Stats
-      </NavTooltipLink>
-      <NavTooltipLink href={link('books/')} tip="Every book I’ve read, with genres and notes">
-        Books
-      </NavTooltipLink>
-      <NavTooltipLink href={link('music/albums/')} tip="Albums and Classical Music, powered by Raindrop">
-        Music
-      </NavTooltipLink>
-      <NavTooltipLink href={link('art/')} tip="Art I’ve logged that shaped my thinking">
-        Art
-      </NavTooltipLink>
-{/* 
-      <NavTooltipLink href={link('guitar/')} tip="My guitar journey, pieces, and practice logs">
-        Guitar
-      </NavTooltipLink>
-*/}
-      <NavTooltipLink href={link('inspirations/')} tip="Ideas and people influencing LifeLoggerz">
-        Inspirations
-      </NavTooltipLink>
-      <NavTooltipLink href={link('timeline/')} tip="My life up to this point...">
-        Timeline
-      </NavTooltipLink>
-      <NavTooltipLink href={link('about/')} tip="What LifeLoggerz is and who’s behind it">
-        About
-      </NavTooltipLink>
-      <NavTooltipLink href={link('faq/')} tip="Got a Question? Answers here">
-        FAQ
-      </NavTooltipLink>
+      {navItems.map((item) => (
+        <NavTooltipLink href={link(item.href)} exact={item.exact} tip={item.tip}>
+          {item.label}
+        </NavTooltipLink>
+      ))}
     </div>
 
-    <!-- Socials + Contact -->
     <div class="right-rail">
-      <a
-        class="social reddit"
-        href="https://www.reddit.com/user/LifeLoggerz/"
-        aria-label="LifeLoggerz on Reddit"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a class="social reddit" href="https://www.reddit.com/user/LifeLoggerz/" aria-label="LifeLoggerz on Reddit" target="_blank" rel="noopener noreferrer">
         <img src="/reddit.svg" width="22" height="22" alt="Reddit" />
       </a>
-
-      <a
-        class="social youtube"
-        href="https://www.youtube.com/@LifeLoggerz"
-        aria-label="LifeLoggerz on YouTube"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a class="social youtube" href="https://www.youtube.com/@LifeLoggerz" aria-label="LifeLoggerz on YouTube" target="_blank" rel="noopener noreferrer">
         <img src="/youtube.svg" width="22" height="22" alt="YouTube" />
       </a>
-
-      <div class="contact-button">
-        <a href="mailto:lifeloggerz.official@gmail.com">Contact</a>
-      </div>
+      <div class="contact-button"><a href="mailto:lifeloggerz.official@gmail.com">Contact</a></div>
     </div>
   </nav>
 
-  <!-- ===== MOBILE NAV ===== -->
-  <nav class="mobile-nav">
+  <nav class="mobile-nav" aria-label="Mobile navigation">
     <h2 class="brand">
       <a href={base} class="brand-link">
         <span class="site-title">{SITE_TITLE}</span>
@@ -101,46 +62,18 @@ const iconSrc = `${base}favicon.svg`;
 
     <details class="nav-toggle">
       <summary aria-label="Open menu">☰</summary>
-
       <div class="menu-panel">
         <div class="internal-links">
-          <HeaderLink href={link('')}>Home</HeaderLink>
-          <HeaderLink href={link('blog/')}>Blog</HeaderLink>
-          <HeaderLink href={link('templates/')}>Templates</HeaderLink>
-          <HeaderLink href={link('stats/')}>Stats</HeaderLink>
-          <HeaderLink href={link('books/')}>Books</HeaderLink>
-          <HeaderLink href={link('music/albums/')}>Music</HeaderLink>
-          <HeaderLink href={link('art/')}>Art</HeaderLink>
-          {/* <HeaderLink href={link('guitar/')}>Guitar</HeaderLink> */}
-          <HeaderLink href={link('inspirations/')}>Inspirations</HeaderLink>
-          <HeaderLink href={link('timeline/')}>Timeline</HeaderLink>
-          <HeaderLink href={link('about/')}>About</HeaderLink>
-          <HeaderLink href={link('faq/')}>FAQ</HeaderLink>
+          {navItems.map((item) => <HeaderLink href={link(item.href)}>{item.label}</HeaderLink>)}
         </div>
-
-        <!-- Socials in mobile menu -->
         <div class="social-row">
-          <a
-            class="social reddit"
-            href="https://www.reddit.com/user/LifeLoggerz/"
-            aria-label="LifeLoggerz on Reddit"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a class="social reddit" href="https://www.reddit.com/user/LifeLoggerz/" aria-label="LifeLoggerz on Reddit" target="_blank" rel="noopener noreferrer">
             <img src="/reddit.svg" width="22" height="22" alt="Reddit" />
           </a>
-
-          <a
-            class="social youtube"
-            href="https://www.youtube.com/@LifeLoggerz"
-            aria-label="LifeLoggerz on YouTube"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a class="social youtube" href="https://www.youtube.com/@LifeLoggerz" aria-label="LifeLoggerz on YouTube" target="_blank" rel="noopener noreferrer">
             <img src="/youtube.svg" width="22" height="22" alt="YouTube" />
           </a>
         </div>
-
         <a class="contact-btn" href="mailto:lifeloggerz.official@gmail.com">Contact</a>
       </div>
     </details>
@@ -148,198 +81,40 @@ const iconSrc = `${base}favicon.svg`;
 </header>
 
 <style>
-  /* Shared shell */
-  .site-header {
-    margin: 0;
-    padding: 0 1rem;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
-    position: sticky; top: 0; z-index: 50;
-  }
-
-  /* ===== DESKTOP styles ===== */
-  .desktop-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-  }
-  .desktop-nav h2 { margin: 0; font-size: 1em; }
-  .desktop-nav h2 a { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
-
-  /* title + favicon inline */
-  .brand-link { display: inline-flex; align-items: center; gap: .4rem; }
-  .brandmark { display: block; width: 20px; height: 20px; }
-  .site-title { line-height: 1; }
-
-  .desktop-nav .internal-links {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: .25rem;
-  }
-  
-  /* Base link styles */
-  .desktop-nav .internal-links :global(a) {
-    position: relative;
-    padding: 1em .5em;
-    color: var(--black, #0e121b);
-    text-decoration: none;
-    transition: transform 0.15s ease-out;
-  }
-  
-  /* Underline pseudo-element (starts hidden) */
-  .desktop-nav .internal-links :global(a)::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0.35rem; /* tweak if you want it closer/farther */
-    width: 100%;
-    height: 3px;
-    border-radius: 999px;
-    background: transparent;   /* no color by default */
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.15s ease-out, background 0.15s ease-out;
-  }
-  
-  /* Hover / focus = softer blue underline */
+  .site-header { margin:0; padding:0 1rem; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.05); position:sticky; top:0; z-index:50; }
+  .desktop-nav { display:flex; align-items:center; justify-content:space-between; gap:.35rem; }
+  .desktop-nav h2, .mobile-nav .brand { margin:0; font-size:1em; }
+  .brand-link { display:inline-flex; align-items:center; gap:.4rem; color:var(--black,#0e121b); font-weight:600; text-decoration:none; }
+  .brandmark { display:block; width:20px; height:20px; }
+  .site-title { line-height:1; }
+  .desktop-nav .internal-links { display:flex; flex-wrap:nowrap; gap:.08rem; }
+  .desktop-nav .internal-links :global(a) { position:relative; padding:1em .42em; color:var(--black,#0e121b); text-decoration:none; transition:transform .15s ease-out; }
+  .desktop-nav .internal-links :global(a)::after { content:''; position:absolute; left:0; bottom:.35rem; width:100%; height:3px; border-radius:999px; background:transparent; transform:scaleX(0); transform-origin:center; transition:transform .15s ease-out,background .15s ease-out; }
   .desktop-nav .internal-links :global(a:hover)::after,
-  .desktop-nav .internal-links :global(a:focus-visible)::after {
-    background: #3b7bff;       /* hover color */
-    transform: scaleX(1);
-  }
-  
-  /* Active page = stronger blue underline (wins even on hover) */
-  .desktop-nav .internal-links :global(a.active)::after {
-    background: #2563eb;       /* active color */
-    transform: scaleX(1);
-  }
-  
-  /* Tiny bump on hover */
+  .desktop-nav .internal-links :global(a:focus-visible)::after { background:#3b7bff; transform:scaleX(1); }
+  .desktop-nav .internal-links :global(a.active)::after { background:#2563eb; transform:scaleX(1); }
   .desktop-nav .internal-links :global(a:hover),
-  .desktop-nav .internal-links :global(a:focus-visible) {
-    transform: translateY(-2px);
+  .desktop-nav .internal-links :global(a:focus-visible) { transform:translateY(-2px); }
+  .right-rail { display:flex; align-items:center; gap:.5rem; }
+  .contact-button a, .contact-btn { background:transparent; color:#2563eb; border:2px solid #2563eb; padding:.5rem 1rem; border-radius:9999px; font-weight:600; transition:all .25s; text-decoration:none; white-space:nowrap; }
+  .contact-button a:hover, .contact-btn:hover { background:#2563eb; color:#fff; }
+  .social { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; transition:transform .2s ease,opacity .2s ease,background .2s ease; opacity:.9; }
+  .social:hover { transform:translateY(-1px); opacity:1; }
+  .social.reddit:hover { background:rgba(255,69,0,.1); }
+  .social.youtube:hover { background:rgba(255,0,0,.1); }
+  .mobile-nav { display:none; align-items:center; justify-content:space-between; gap:.5rem; position:relative; }
+  .mobile-nav .nav-toggle > summary { display:inline-block; border:1px solid rgba(0,0,0,.12); background:#fff; border-radius:.6rem; padding:.45rem .65rem; font-size:1.15rem; line-height:1; cursor:pointer; list-style:none; user-select:none; }
+  .mobile-nav .nav-toggle > summary::-webkit-details-marker { display:none; }
+  .mobile-nav .menu-panel { position:absolute; left:0; right:0; top:100%; background:#fff; border-top:1px solid rgba(0,0,0,.06); box-shadow:0 8px 24px rgba(0,0,0,.06); display:none; flex-direction:column; align-items:stretch; padding:.25rem 0; z-index:40; }
+  .mobile-nav .nav-toggle[open] .menu-panel { display:flex; }
+  .mobile-nav .internal-links { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .mobile-nav .internal-links :global(a) { padding:.85rem 1rem; border-bottom:1px solid rgba(0,0,0,.04); color:var(--black,#0e121b); text-decoration:none; }
+  .mobile-nav .social-row { display:flex; gap:.6rem; padding:.5rem 1rem .25rem; }
+  .mobile-nav .contact-btn { margin:.35rem 1rem .6rem; text-align:center; }
+  @media (max-width:1080px) {
+    .desktop-nav .internal-links :global(a) { padding-inline:.3em; font-size:.91rem; }
+    .right-rail { gap:.32rem; }
+    .contact-button a { padding-inline:.75rem; }
   }
-
-
-  /* Contact + Social area */
-  .right-rail {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-  }
-
-  .contact-button a {
-    background: transparent;
-    color: #2563eb;
-    border: 2px solid #2563eb;
-    padding: .5rem 1.1rem;
-    border-radius: 9999px;
-    font-weight: 600;
-    transition: all .25s;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .contact-button a:hover {
-    background: #2563eb;
-    color: #fff;
-  }
-
-  .social {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    transition: transform .2s ease, opacity .2s ease, background .2s ease;
-    opacity: 0.9;
-  }
-  .social:hover {
-    transform: translateY(-1px);
-    opacity: 1;
-  }
-  .social.reddit:hover { background: rgba(255, 69, 0, 0.1); }
-  .social.youtube:hover { background: rgba(255, 0, 0, 0.1); }
-
-  /* ===== MOBILE styles ===== */
-  .mobile-nav {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-    position: relative;
-  }
-  .mobile-nav .brand { margin: 0; font-size: 1em; }
-  .mobile-nav .brand a { text-decoration: none; color: var(--black, #0e121b); font-weight: 600; }
-
-  .mobile-nav .nav-toggle > summary {
-    display: inline-block;
-    border: 1px solid rgba(0,0,0,.12);
-    background: #fff;
-    border-radius: .6rem;
-    padding: .45rem .65rem;
-    font-size: 1.15rem;
-    line-height: 1;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-  }
-  .mobile-nav .nav-toggle > summary::-webkit-details-marker { display: none; }
-
-  .mobile-nav .menu-panel {
-    position: absolute;
-    left: 0; right: 0; top: 100%;
-    background: #fff;
-    border-top: 1px solid rgba(0,0,0,.06);
-    box-shadow: 0 8px 24px rgba(0,0,0,.06);
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    padding: .25rem 0;
-    z-index: 40;
-  }
-  .mobile-nav .nav-toggle[open] .menu-panel { display: flex; }
-
-  .mobile-nav .internal-links {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-  }
-  .mobile-nav .internal-links :global(a) {
-    padding: .85rem 1rem;
-    border-bottom: 1px solid rgba(0,0,0,.04);
-    color: var(--black, #0e121b);
-    text-decoration: none;
-  }
-
-  .mobile-nav .social-row {
-    display: flex;
-    gap: .6rem;
-    padding: .5rem 1rem .25rem;
-  }
-
-  .mobile-nav .contact-btn {
-    margin: .35rem 1rem .6rem;
-    text-align: center;
-    background: transparent;
-    color: #2563eb;
-    border: 2px solid #2563eb;
-    padding: .5rem 1.1rem;
-    border-radius: 9999px;
-    font-weight: 600;
-    transition: all .25s;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .mobile-nav .contact-btn:hover {
-    background: #2563eb;
-    color: #fff;
-  }
-
-  /* ===== RESPONSIVE SWITCH ===== */
-  @media (max-width: 900px) {
-    .desktop-nav { display: none; }
-    .mobile-nav { display: flex; }
-  }
+  @media (max-width:900px) { .desktop-nav { display:none; } .mobile-nav { display:flex; } }
 </style>
