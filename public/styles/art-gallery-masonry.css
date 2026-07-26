@@ -1,0 +1,130 @@
+/* Natural-proportion Art masonry.
+   Columns are fixed once per view instead of browser-balanced while images load,
+   so artworks never jump between columns during scrolling. */
+
+.art-page:has(#art-grid[data-art-view='gallery']:not([hidden])) #art-sort {
+  display: none;
+}
+
+/* Safe pre-script fallback: a normal natural-image grid for the brief moment
+   before the fixed masonry columns are assigned. */
+.art-grid[data-art-view='gallery']:not(.art-masonry-ready) {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  columns: initial !important;
+  column-gap: 0 !important;
+  align-items: start;
+}
+
+.art-grid[data-art-view='gallery'].art-masonry-ready {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  columns: initial !important;
+  column-gap: 0 !important;
+}
+
+.art-masonry-column {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.art-grid[data-art-view='gallery'] .art-card {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  break-inside: auto;
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: var(--art-placeholder-ratio, 4 / 5);
+  background: rgba(246, 247, 250, 0.96);
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-ready {
+  aspect-ratio: var(--art-natural-ratio, var(--art-placeholder-ratio, 4 / 5));
+}
+
+.art-grid[data-art-view='gallery'] .art-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 140ms ease, transform .22s ease;
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-ready .art-cover {
+  opacity: 1;
+}
+
+.art-grid[data-art-view='gallery'] .art-card:hover .art-cover,
+.art-grid[data-art-view='gallery'] .art-card:focus-visible .art-cover {
+  transform: scale(1.012);
+}
+
+/* Column wrappers do not interfere with the existing sortable List layout. */
+.art-grid[data-art-view='list'] > .art-masonry-column {
+  display: contents;
+}
+
+@media (max-width: 1539px) {
+  .art-grid[data-art-view='gallery']:not(.art-masonry-ready) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1259px) {
+  .art-grid[data-art-view='gallery']:not(.art-masonry-ready) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 979px) {
+  .art-grid[data-art-view='gallery']:not(.art-masonry-ready) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .art-page:has(#art-grid[data-art-view='gallery']:not([hidden])) .art-toolbar {
+    grid-template-columns: minmax(0, 1fr) 42px;
+  }
+
+  .art-page:has(#art-grid[data-art-view='gallery']:not([hidden])) #art-filters-toggle {
+    grid-column: 1;
+  }
+
+  .art-page:has(#art-grid[data-art-view='gallery']:not([hidden])) #art-info-toggle {
+    grid-column: 2;
+  }
+
+  .art-grid[data-art-view='gallery'].art-masonry-ready,
+  .art-masonry-column {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 659px) {
+  .art-grid[data-art-view='gallery']:not(.art-masonry-ready) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art-grid[data-art-view='gallery'] .art-cover {
+    transition: none;
+  }
+}
