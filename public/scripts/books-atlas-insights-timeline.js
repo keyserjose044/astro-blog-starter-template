@@ -1,66 +1,94 @@
 import {
   MONTH_NAMES, escapeHtml, formatNumber, parseFinishedDate, visibleCards,
-  cardCountry, publicationEra, topSeries, legendMarkup, groupReadingYears,
-  groupPublication, chartMarkup, toggleSelect, distinctCount,
+  cardCountry, cardGenre, cardLanguage, publicationEra, toggleSelect, normalize,
 } from './books-atlas-insights-utils.js';
 
 export function installTimelineInsights({ cards, timelineContent, timelineView }) {
-  const state = { readingBreakdown: 'genre', monthYear: 'all', publicationBreakdown: 'genre', signature: '', busy: false };
+  const state = { signature: '', busy: false };
+  const controls = {
+    search: document.querySelector('#q'),
+    genre: document.querySelector('#genre-filter'),
+    year: document.querySelector('#year-filter'),
+    period: document.querySelector('#period-filter'),
+    language: document.querySelector('#language-filter'),
+    country: document.querySelector('#country-filter'),
+  };
 
   const mode = () => timelineView.querySelector('[data-timeline-mode][aria-pressed="true"]')?.dataset.timelineMode || 'publication';
-  const sourceCards = () => visibleCards(cards, true);
-  const labelFor = (value) => ({ genre: 'genre', country: 'author country', era: 'publication era', language: 'language', total: 'total books' }[value] || value);
+  const currentCards = () => visibleCards(cards, true);
 
-  function busiestMonth(items) {
+  function matchesControls(card, ignored = new Set()) {
+    if (card.classList.contains('atlas-country-hidden')) return false;
+
+    if (!ignored.has('search')) {
+      const words = normalize(controls.search?.value || '').split(/\s+/).filter(Boolean);
+      const haystack = normalize(`${card.dataset.title || ''} ${card.dataset.note || ''} ${card.dataset.noteRaw || ''}`);
+      if (words.length && !words.every((word) => haystack.includes(word))) return false;
+    }
+
+    if (!ignored.has('genre') && controls.genre?.value) {
+      const selected = normalize(controls.genre.value);
+      const actual = normalize(card.dataset.genreKey || card.dataset.genre || cardGenre(card));
+      if (actual !== selected) return false;
+    }
+
+    if (!ignored.has('year') && controls.year?.value && card.dataset.finishedYear !== controls.year.value) return false;
+    if (!ignored.has('period') && controls.period?.value && card.dataset.publicationPeriod !== controls.period.value) return false;
+
+    if (!ignored.has('language') && controls.language?.value) {
+      const keys = String(card.dataset.languageKeys || '').split(/\s+/).filter(Boolean);
+      const selected = controls.language.value;
+      const matches = selected === 'other' ? keys.length === 0 : keys.includes(selected);
+      if (!matches) return false;
+    }
+
+    if (!ignored.has('country') && controls.country?.value) {
+      if (normalize(card.dataset.country) !== normalize(controls.country.value)) return false;
+    }
+
+    return true;
+  }
+
+  const cardsIgnoring = (filterName) => cards.filter((card) => matchesControls(card, new Set([filterName])));
+
+  function categoryEntries(items, getter, limit = 5) {
     const counts = new Map();
     items.forEach((card) => {
-      const date = parseFinishedDate(card.dataset.dateFinished);
-      if (!date) return;
-      const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
-      counts.set(key, (counts.get(key) || 0) + 1);
+      const label = String(getter(card) || 'Unknown').trim() || 'Unknown';
+      counts.set(label, (counts.get(label) || 0) + 1);
     });
-    const top = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
-    if (!top) return null;
-    const [year, month] = top[0].split('-').map(Number);
-    return { label: `${MONTH_NAMES[month]} ${year}`, count: top[1] };
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    if (sorted.length <= limit) return sorted;
+    const head = sorted.slice(0, limit);
+    const other = sorted.slice(limit).reduce((sum, entry) => sum + entry[1], 0);
+    return [...head, ['Other', other]];
   }
 
-  function activeMonthSpan(items) {
-    const dates = items.map((card) => parseFinishedDate(card.dataset.dateFinished)).filter(Boolean).sort((a, b) => a - b);
-    if (!dates.length) return 0;
-    return ((dates.at(-1).getUTCFullYear() - dates[0].getUTCFullYear()) * 12)
-      + dates.at(-1).getUTCMonth() - dates[0].getUTCMonth() + 1;
-  }
+  function donutMarkup(items, getter, title, subtitle) {
+    const entries = categoryEntries(items, getter);
+    const total = entries.reduce((sum, entry) => sum + entry[1], 0);
+    if (!total) {
+      return `<article class="books-donut-card"><div class="books-donut-card-heading"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(subtitle)}</p></div><p class="books-donut-empty">No matching metadata.</p></article>`;
+    }
 
-  function readingMarkup(items) {
-    const groups = groupReadingYears(items);
-    const years = groups.map((group) => group.key);
-    if (state.monthYear !== 'all' && !years.includes(state.monthYear)) state.monthYear = 'all';
-    const monthlyItems = state.monthYear === 'all' ? items : items.filter((card) =>
-      parseFinishedDate(card.dataset.dateFinished)?.getUTCFullYear() === Number(state.monthYear));
-    const series = topSeries(items, state.readingBreakdown);
-    const monthSeries = topSeries(monthlyItems, state.readingBreakdown);
-    const monthGroups = MONTH_NAMES.map((label, month) => ({ key: String(month), label, cards: monthlyItems.filter((card) =>
-      parseFinishedDate(card.dataset.dateFinished)?.getUTCMonth() === month) }));
-    const peak = busiestMonth(items);
-    const span = activeMonthSpan(items);
-    const pace = span ? items.length / span : 0;
+    let running = 0;
+    const stops = entries.map(([, count], index) => {
+      const start = running;
+      running += (count / total) * 100;
+      return `var(--insight-${Math.min(index + 1, 6)}) ${start.toFixed(3)}% ${running.toFixed(3)}%`;
+    }).join(', ');
 
-    return `<section class="books-timeline-insights" data-books-timeline-insights="reading">
-      <div class="books-insight-section-heading"><div><p class="books-insight-kicker">Reading rhythm</p><h3>How the collection grew year by year</h3><p>Bar height shows books finished. Colored segments show the mix within each year.</p></div>
-      <label class="books-insight-select-label"><span>Color bars by</span><select data-reading-breakdown>
-        <option value="genre" ${state.readingBreakdown === 'genre' ? 'selected' : ''}>Genre</option><option value="country" ${state.readingBreakdown === 'country' ? 'selected' : ''}>Author country</option>
-        <option value="era" ${state.readingBreakdown === 'era' ? 'selected' : ''}>Publication era</option><option value="language" ${state.readingBreakdown === 'language' ? 'selected' : ''}>Language</option>
-        <option value="total" ${state.readingBreakdown === 'total' ? 'selected' : ''}>Total only</option></select></label></div>
-      ${legendMarkup(series)}<div class="books-insight-chart books-insight-chart--years" aria-label="Books finished per year, colored by ${escapeHtml(labelFor(state.readingBreakdown))}">${chartMarkup(groups, series, state.readingBreakdown, 'reading')}</div>
-      <div class="books-reading-pulse"><div><span>Busiest month</span><strong>${peak ? peak.label : '—'}</strong><small>${peak ? `${formatNumber(peak.count)} books` : 'No dates'}</small></div>
-      <div><span>Monthly pace</span><strong>${pace ? pace.toFixed(1) : '—'}</strong><small>books per calendar month</small></div>
-      <div><span>Countries reached</span><strong>${formatNumber(distinctCount(items, cardCountry))}</strong><small>in the current view</small></div></div>
-      <div class="books-month-panel"><div class="books-insight-section-heading books-insight-section-heading--compact"><div><p class="books-insight-kicker">By month</p>
-      <h3>${state.monthYear === 'all' ? 'The recurring shape of a reading year' : `Reading activity in ${state.monthYear}`}</h3><p>${state.monthYear === 'all' ? 'All tracked years combined by calendar month.' : 'One year shown month by month.'}</p></div>
-      <label class="books-insight-select-label"><span>Year</span><select data-reading-month-year><option value="all" ${state.monthYear === 'all' ? 'selected' : ''}>All years</option>${years.map((year) => `<option value="${year}" ${state.monthYear === year ? 'selected' : ''}>${year}</option>`).join('')}</select></label></div>
-      ${legendMarkup(monthSeries)}<div class="books-insight-chart books-insight-chart--months" aria-label="Books by calendar month">${chartMarkup(monthGroups, monthSeries, state.readingBreakdown, 'month')}</div></div>
-    </section>`;
+    return `<article class="books-donut-card">
+      <div class="books-donut-card-heading"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(subtitle)}</p></div>
+      <div class="books-donut-layout">
+        <div class="books-donut" role="img" aria-label="${escapeHtml(title)} distribution for ${formatNumber(total)} books" style="--donut-fill:conic-gradient(${stops})">
+          <div class="books-donut-center"><strong>${formatNumber(total)}</strong><span>${total === 1 ? 'book' : 'books'}</span></div>
+        </div>
+        <ol class="books-donut-legend">
+          ${entries.map(([label, count], index) => `<li><i class="books-insight-series-${Math.min(index, 5)}"></i><span>${escapeHtml(label)}</span><strong>${formatNumber(count)}</strong><small>${Math.round((count / total) * 100)}%</small></li>`).join('')}
+        </ol>
+      </div>
+    </article>`;
   }
 
   function ageBand(card) {
@@ -78,82 +106,208 @@ export function installTimelineInsights({ cards, timelineContent, timelineView }
     const counts = new Map(labels.map((label) => [label, 0]));
     items.forEach((card) => counts.set(ageBand(card), (counts.get(ageBand(card)) || 0) + 1));
     const total = Math.max(items.length, 1);
-    return `<div class="books-age-profile"><div class="books-age-profile-track">${labels.map((label, index) => {
-      const count = counts.get(label) || 0; return count ? `<span class="books-insight-series-${index}" style="width:${count / total * 100}%" title="${label}: ${count}"></span>` : '';
-    }).join('')}</div><div class="books-age-profile-legend">${labels.map((label, index) => counts.get(label) ? `<span><i class="books-insight-series-${index}"></i>${label} <strong>${counts.get(label)}</strong></span>` : '').join('')}</div></div>`;
-  }
 
-  function medianYear(items) {
-    const years = items.map((card) => Number(card.dataset.publicationYear)).filter(Number.isFinite).sort((a, b) => a - b);
-    if (!years.length) return null;
-    const middle = Math.floor(years.length / 2);
-    const value = years.length % 2 ? years[middle] : Math.round((years[middle - 1] + years[middle]) / 2);
-    return value < 0 ? `${Math.abs(value)} BCE` : String(value);
-  }
-
-  function publicationMarkup(items) {
-    const groups = groupPublication(items);
-    const series = topSeries(items, state.publicationBreakdown);
-    const years = items.map((card) => Number(card.dataset.publicationYear)).filter(Number.isFinite).sort((a, b) => a - b);
-    const formatYear = (year) => year < 0 ? `${Math.abs(year)} BCE` : String(year);
-    return `<section class="books-timeline-insights" data-books-timeline-insights="publication">
-      <div class="books-insight-section-heading"><div><p class="books-insight-kicker">Collection shape</p><h3>Where the books sit in literary time</h3><p>Bar height shows works in each era. Select one to use the publication-period filter.</p></div>
-      <label class="books-insight-select-label"><span>Color bars by</span><select data-publication-breakdown>
-      <option value="genre" ${state.publicationBreakdown === 'genre' ? 'selected' : ''}>Genre</option><option value="country" ${state.publicationBreakdown === 'country' ? 'selected' : ''}>Author country</option>
-      <option value="language" ${state.publicationBreakdown === 'language' ? 'selected' : ''}>Language</option><option value="total" ${state.publicationBreakdown === 'total' ? 'selected' : ''}>Total only</option></select></label></div>
-      ${legendMarkup(series)}<div class="books-insight-chart books-insight-chart--eras" aria-label="Books by publication era">${chartMarkup(groups, series, state.publicationBreakdown, 'publication')}</div>
-      <div class="books-publication-summary"><div><span>Median publication year</span><strong>${medianYear(items) || '—'}</strong></div>
-      <div><span>Historical span</span><strong>${years.length ? `${formatYear(years[0])} to ${formatYear(years.at(-1))}` : '—'}</strong></div><div><span>Distinct eras</span><strong>${groups.filter((group) => group.key !== 'unknown').length}</strong></div></div>
-      <div class="books-age-profile-panel"><div class="books-insight-section-heading books-insight-section-heading--compact"><div><p class="books-insight-kicker">Age profile</p><h3>The collection at a glance</h3><p>A proportional view of the broad periods represented.</p></div></div>${ageProfile(items)}</div>
+    return `<section class="books-age-profile-panel books-age-profile-panel--constant">
+      <div class="books-insight-section-heading books-insight-section-heading--compact">
+        <div><p class="books-insight-kicker">Full collection</p><h3>Age profile</h3><p>This reference remains stable when a single publication period is selected.</p></div>
+      </div>
+      <div class="books-age-profile">
+        <div class="books-age-profile-track" role="img" aria-label="Broad publication periods across ${formatNumber(items.length)} books">
+          ${labels.map((label, index) => {
+            const count = counts.get(label) || 0;
+            return count ? `<span class="books-insight-series-${index}" style="width:${(count / total) * 100}%" title="${escapeHtml(label)}: ${formatNumber(count)}"></span>` : '';
+          }).join('')}
+        </div>
+        <div class="books-age-profile-legend">
+          ${labels.map((label, index) => {
+            const count = counts.get(label) || 0;
+            return count ? `<span><i class="books-insight-series-${index}"></i>${escapeHtml(label)} <strong>${formatNumber(count)}</strong></span>` : '';
+          }).join('')}
+        </div>
+      </div>
     </section>`;
   }
 
-  function addSnapshotsHeading() {
+  function calendarMarkup(items) {
+    const groups = new Map();
+    items.forEach((card) => {
+      const date = parseFinishedDate(card.dataset.dateFinished);
+      if (!date) return;
+      const year = date.getUTCFullYear();
+      if (!groups.has(year)) groups.set(year, Array(12).fill(0));
+      groups.get(year)[date.getUTCMonth()] += 1;
+    });
+    const years = [...groups.keys()].sort((a, b) => a - b);
+    const maximum = Math.max(1, ...[...groups.values()].flat());
+    const activeYear = controls.year?.value || '';
+
+    return `<section class="books-reading-calendar-panel">
+      <div class="books-insight-section-heading books-insight-section-heading--compact">
+        <div><p class="books-insight-kicker">Full reading log</p><h3>Reading calendar</h3><p>Each square is a month. Darker squares contain more completed books; select a year to filter the page.</p></div>
+      </div>
+      <div class="books-reading-calendar" role="table" aria-label="Books completed by month and year">
+        <div class="books-reading-calendar-header" role="row"><span></span>${MONTH_NAMES.map((month) => `<b role="columnheader">${month}</b>`).join('')}</div>
+        ${years.map((year) => `<div class="books-reading-calendar-row" role="row" data-active="${String(year) === activeYear}">
+          <button type="button" data-calendar-year="${year}" aria-pressed="${String(year) === activeYear}">${year}</button>
+          ${groups.get(year).map((count, month) => {
+            const level = count ? Math.max(1, Math.min(5, Math.ceil((count / maximum) * 5))) : 0;
+            return `<span class="books-reading-calendar-cell" role="cell" data-level="${level}" title="${MONTH_NAMES[month]} ${year}: ${formatNumber(count)} ${count === 1 ? 'book' : 'books'}"><i>${count || ''}</i></span>`;
+          }).join('')}
+        </div>`).join('')}
+      </div>
+    </section>`;
+  }
+
+  function formatYear(year) {
+    return year < 0 ? `${Math.abs(year)} BCE` : String(year);
+  }
+
+  function bucketLabel(start, size) {
+    const end = start + size - 1;
+    if (end < 0) return `${Math.abs(end)}–${Math.abs(start)} BCE`;
+    if (start < 0) return `${Math.abs(start)} BCE–${end}`;
+    return size === 10 ? `${start}s` : `${start}–${end}`;
+  }
+
+  function representativeCards(sorted, maximum = 7) {
+    if (sorted.length <= maximum) return sorted;
+    const selected = [];
+    for (let index = 0; index < maximum; index += 1) {
+      selected.push(sorted[Math.round((index / (maximum - 1)) * (sorted.length - 1))]);
+    }
+    return [...new Set(selected)];
+  }
+
+  function withinPeriodMarkup(items) {
+    const selectedKey = controls.period?.value || '';
+    if (!selectedKey) return '';
+    const label = controls.period?.selectedOptions?.[0]?.textContent || selectedKey;
+    const dated = items.map((card) => ({ card, year: Number(card.dataset.publicationYear) }))
+      .filter((entry) => Number.isFinite(entry.year)).sort((a, b) => a.year - b.year);
+
+    if (!dated.length) {
+      return `<section class="books-period-detail"><div class="books-insight-section-heading books-insight-section-heading--compact"><div><p class="books-insight-kicker">Inside the selection</p><h3>${escapeHtml(label)}</h3><p>No precise publication years are available for this period.</p></div></div></section>`;
+    }
+
+    const span = dated.at(-1).year - dated[0].year;
+    const bucketSize = span > 500 ? 500 : span > 180 ? 100 : 10;
+    const buckets = new Map();
+    dated.forEach((entry) => {
+      const start = Math.floor(entry.year / bucketSize) * bucketSize;
+      if (!buckets.has(start)) buckets.set(start, []);
+      buckets.get(start).push(entry.card);
+    });
+    const entries = [...buckets.entries()].sort((a, b) => a[0] - b[0]);
+    const maximum = Math.max(1, ...entries.map((entry) => entry[1].length));
+    const samples = representativeCards(dated).map((entry) => entry.card);
+
+    return `<section class="books-period-detail">
+      <div class="books-insight-section-heading books-insight-section-heading--compact">
+        <div><p class="books-insight-kicker">Inside the selection</p><h3>${escapeHtml(label)} in detail</h3><p>The stable age profile stays above; this view now opens the selected period into its internal chronology.</p></div>
+      </div>
+      <div class="books-period-heatstrip" role="img" aria-label="Books within ${escapeHtml(label)} grouped chronologically">
+        ${entries.map(([start, bucketCards]) => {
+          const level = Math.max(1, Math.min(5, Math.ceil((bucketCards.length / maximum) * 5)));
+          return `<div class="books-period-bucket" data-level="${level}" title="${escapeHtml(bucketLabel(start, bucketSize))}: ${formatNumber(bucketCards.length)} books"><strong>${formatNumber(bucketCards.length)}</strong><span>${escapeHtml(bucketLabel(start, bucketSize))}</span></div>`;
+        }).join('')}
+      </div>
+      <div class="books-period-samples" aria-label="Representative works across ${escapeHtml(label)}">
+        ${samples.map((card) => `<a href="${escapeHtml(card.getAttribute('href') || '#')}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(card.querySelector('.thumb')?.getAttribute('src') || '')}" alt="" loading="lazy"><span>${escapeHtml(card.querySelector('.title')?.textContent?.replace('↗', '').trim() || card.dataset.title || 'Untitled')}</span><small>${formatYear(Number(card.dataset.publicationYear))}</small></a>`).join('')}
+      </div>
+    </section>`;
+  }
+
+  function readingMarkup(items) {
+    const calendarItems = cardsIgnoring('year');
+    const selectedYear = controls.year?.value;
+    return `<section class="books-timeline-insights" data-books-timeline-insights="reading">
+      <div class="books-insight-section-heading">
+        <div><p class="books-insight-kicker">Reading journey</p><h3>${selectedYear ? `The shape of ${escapeHtml(selectedYear)}` : 'What entered the reading log'}</h3><p>Composition charts summarize the current selection. The calendar remains anchored to the full filtered reading history.</p></div>
+      </div>
+      <div class="books-donut-grid books-donut-grid--three">
+        ${donutMarkup(items, cardGenre, 'Genres', 'The kinds of books finished')}
+        ${donutMarkup(items, (card) => publicationEra(card).label, 'Work ages', 'When those books were written')}
+        ${donutMarkup(items, cardCountry, 'Author origins', 'Countries represented by the authors')}
+      </div>
+      ${calendarMarkup(calendarItems)}
+    </section>`;
+  }
+
+  function publicationMarkup(items) {
+    const ageItems = cardsIgnoring('period');
+    return `<section class="books-timeline-insights" data-books-timeline-insights="publication">
+      ${ageProfile(ageItems)}
+      <div class="books-insight-section-heading books-insight-section-heading--distribution">
+        <div><p class="books-insight-kicker">Current selection</p><h3>What the literary timeline contains</h3><p>These distributions respond to active filters without forcing unlike historical periods into competing bar heights.</p></div>
+      </div>
+      <div class="books-donut-grid books-donut-grid--two">
+        ${donutMarkup(items, cardGenre, 'Genres', 'Genre mix in the current timeline view')}
+        ${donutMarkup(items, cardCountry, 'Author origins', 'Country mix in the current timeline view')}
+      </div>
+      ${withinPeriodMarkup(items)}
+    </section>`;
+  }
+
+  function configureBaseTimeline() {
+    timelineContent.querySelector('.books-base-timeline-heading')?.remove();
     const viewport = timelineContent.querySelector('.books-timeline-viewport');
     if (!viewport) return;
-    viewport.classList.add('books-timeline-viewport--snapshots');
+    viewport.classList.remove('books-timeline-viewport--snapshots');
+
+    const hideForPeriodDetail = mode() === 'publication' && Boolean(controls.period?.value);
+    viewport.hidden = hideForPeriodDetail;
+    if (hideForPeriodDetail) return;
+
     const heading = document.createElement('div');
-    heading.className = 'books-snapshot-heading';
-    heading.innerHTML = `<div><p class="books-insight-kicker">Snapshots</p><h3>${mode() === 'reading' ? 'Year-by-year details' : 'Period-by-period details'}</h3></div><span>Select a card to filter the collection.</span>`;
+    heading.className = 'books-base-timeline-heading';
+    heading.innerHTML = mode() === 'reading'
+      ? '<div><p class="books-insight-kicker">Years</p><h3>Year-by-year entries</h3></div><span>Select a year card to filter the collection.</span>'
+      : '<div><p class="books-insight-kicker">Periods</p><h3>Browse the literary timeline</h3></div><span>Select a period card to open it in detail.</span>';
     viewport.before(heading);
   }
 
   function wire(panel) {
-    panel.querySelector('[data-reading-breakdown]')?.addEventListener('change', (event) => { state.readingBreakdown = event.target.value; state.signature = ''; enhance(true); });
-    panel.querySelector('[data-reading-month-year]')?.addEventListener('change', (event) => { state.monthYear = event.target.value; state.signature = ''; enhance(true); });
-    panel.querySelector('[data-publication-breakdown]')?.addEventListener('change', (event) => { state.publicationBreakdown = event.target.value; state.signature = ''; enhance(true); });
-    panel.querySelectorAll('[data-insight-reading-key]').forEach((button) => button.addEventListener('click', () => toggleSelect(document.querySelector('#year-filter'), button.dataset.insightReadingKey)));
-    panel.querySelectorAll('[data-insight-publication-key]').forEach((button) => button.addEventListener('click', () => toggleSelect(document.querySelector('#period-filter'), button.dataset.insightPublicationKey)));
-    panel.querySelectorAll('[data-insight-month-key]').forEach((button) => { button.disabled = true; button.setAttribute('aria-disabled', 'true'); });
+    panel.querySelectorAll('[data-calendar-year]').forEach((button) => {
+      button.addEventListener('click', () => toggleSelect(controls.year, button.dataset.calendarYear));
+    });
   }
 
   function signature(items) {
-    return [mode(), state.readingBreakdown, state.monthYear, state.publicationBreakdown,
-      ...items.map((card) => `${card.dataset.originalIndex}:${card.style.display}:${card.classList.contains('atlas-country-hidden')}`)].join('|');
+    return [
+      mode(), controls.search?.value || '', controls.genre?.value || '', controls.year?.value || '',
+      controls.period?.value || '', controls.language?.value || '', controls.country?.value || '',
+      ...items.map((card) => `${card.dataset.originalIndex}:${card.style.display}:${card.classList.contains('atlas-country-hidden')}`),
+    ].join('|');
   }
 
   function enhance(force = false) {
     if (state.busy || timelineView.hidden) return;
-    const items = sourceCards();
+    const items = currentCards();
     const next = signature(items);
     if (!force && next === state.signature && timelineContent.querySelector('[data-books-timeline-insights]')) return;
+
     state.busy = true;
     timelineContent.querySelector('[data-books-timeline-insights]')?.remove();
-    timelineContent.querySelector('.books-snapshot-heading')?.remove();
+    timelineContent.querySelector('.books-base-timeline-heading')?.remove();
     const holder = document.createElement('div');
     holder.innerHTML = mode() === 'reading' ? readingMarkup(items) : publicationMarkup(items);
     timelineContent.prepend(holder.firstElementChild);
     wire(timelineContent.firstElementChild);
-    addSnapshotsHeading();
+    configureBaseTimeline();
     state.signature = next;
     state.busy = false;
   }
 
   let frame = 0;
-  const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => enhance()); };
+  const schedule = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => enhance());
+  };
+
   new MutationObserver(schedule).observe(timelineContent, { childList: true, subtree: true });
-  timelineView.querySelectorAll('[data-timeline-mode]').forEach((button) => button.addEventListener('click', schedule));
-  document.querySelectorAll('#q, #genre-filter, #year-filter, #period-filter, #language-filter, #country-filter')
-    .forEach((control) => control.addEventListener(control.matches('input') ? 'input' : 'change', () => { state.signature = ''; schedule(); }));
+  timelineView.querySelectorAll('[data-timeline-mode]').forEach((button) => button.addEventListener('click', () => { state.signature = ''; schedule(); }));
+  Object.values(controls).filter(Boolean).forEach((control) => {
+    control.addEventListener(control.matches('input') ? 'input' : 'change', () => { state.signature = ''; schedule(); });
+  });
   schedule();
 }
