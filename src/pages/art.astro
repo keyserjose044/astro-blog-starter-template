@@ -21,7 +21,6 @@ const art = await fetchAllRaindrops({
 
 const metadata = art.map((item) => parseArtMeta(item.note));
 const artistCount = new Set(metadata.map((meta) => meta.artist.trim().toLowerCase()).filter(Boolean)).size;
-const movementCount = new Set(metadata.map((meta) => meta.movement.trim().toLowerCase()).filter(Boolean)).size;
 ---
 
 <BaseHead
@@ -37,7 +36,7 @@ const movementCount = new Set(metadata.map((meta) => meta.movement.trim().toLowe
       <p class="art-hint">
         One small museum visit a day through
         <a href="https://getdailyart.com" target="_blank" rel="noopener noreferrer"><strong>DailyArt</strong></a>:
-        {art.length.toLocaleString('en-US')} works by {artistCount.toLocaleString('en-US')} artists across {movementCount.toLocaleString('en-US')} recorded movements.
+        {art.length.toLocaleString('en-US')} works by {artistCount.toLocaleString('en-US')} artists.
       </p>
 
       <div class="art-toolbar">
@@ -106,7 +105,7 @@ const movementCount = new Set(metadata.map((meta) => meta.movement.trim().toLowe
         <h2>A visual diary</h2>
         <p>I view one work at a time, read its story, and keep a structured record of the encounter. This is a personal collection explorer rather than a claim to a complete art-historical catalog.</p>
         <h2>How to browse</h2>
-        <p>Gallery preserves the works' natural proportions. List exposes the metadata. Artists groups the collection by creator. Timeline moves between art history and my viewing journey. World Map uses the recorded country or nationality field when it can be matched confidently.</p>
+        <p>Gallery provides a stable framed overview without cropping the works. List exposes the metadata. Artists groups the collection by creator. Timeline moves between art history and my viewing journey. World Map uses the recorded country or nationality field when it can be matched confidently.</p>
         <h2>Metadata</h2>
         <p>The archive supports both <strong>Date · Title · Artist · Country · Medium · Movement · Year · Source</strong> and <strong>Date · Title · Artist · Year · Medium · Movement · Country · Source</strong>. Dates and historical groupings are approximate when entries use ranges, “circa,” or century labels.</p>
       </section>
@@ -158,7 +157,7 @@ const movementCount = new Set(metadata.map((meta) => meta.movement.trim().toLowe
                 data-artwork-sort={dateInfo.sortYear ?? ''} data-artwork-precision={dateInfo.precision} data-artwork-period={dateInfo.periodKey}
                 data-artwork-period-label={dateInfo.periodLabel} data-artwork-period-order={dateInfo.periodOrder} data-source={meta.source}
                 data-cover={item.cover} data-href={item.href} data-note-raw={item.note || ''} data-original-index={index}>
-                <figure class="art-card-figure"><img class="art-cover" src={item.cover} alt={item.title} loading="lazy" decoding="async" /><figcaption class="art-gallery-caption"><strong>{item.title}</strong>{meta.artist ? <span>{meta.artist}</span> : null}</figcaption></figure>
+                <figure class="art-card-figure"><img class="art-cover" src={item.cover} alt={item.title} loading={index < 12 ? 'eager' : 'lazy'} decoding="async" /><figcaption class="art-gallery-caption"><strong>{item.title}</strong>{meta.artist ? <span>{meta.artist}</span> : null}</figcaption></figure>
                 <div class="art-card-copy">
                   <div class="art-title">{item.title}<span aria-hidden="true">↗</span><span class="sr-only"> (opens artwork viewer)</span></div>
                   <div class="art-card-meta">
