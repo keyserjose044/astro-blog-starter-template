@@ -30,8 +30,8 @@ interface Props {
   currentState: string;
   currentFocus: string;
   nextMilestone: string;
-  roadmap: RoadmapItem[];
-  chapters: Chapter[];
+  roadmap: readonly RoadmapItem[];
+  chapters: readonly Chapter[];
   archiveNote: string;
 }
 
@@ -49,6 +49,10 @@ const {
   chapters,
   archiveNote,
 } = Astro.props;
+
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const link = (path: string) => `${base}${path}`;
 
 const statusLabels: Record<RoadmapStatus, string> = {
   established: 'Established',
@@ -78,7 +82,7 @@ const statusLabels: Record<RoadmapStatus, string> = {
         <p>{description}</p>
         <div class="hero-actions">
           <a href="#roadmap">See the development map ↓</a>
-          <a href="/pursuits/#calendar">Open the calendar ↗</a>
+          <a href={link('pursuits/#calendar')}>Open the calendar ↗</a>
         </div>
       </div>
     </section>
@@ -135,8 +139,8 @@ const statusLabels: Record<RoadmapStatus, string> = {
         <p>{archiveNote}</p>
       </div>
       <div class="archive-actions">
-        <a class="primary" href="/pursuits/#calendar">View Pursuits calendar</a>
-        <a href={`/stats/?metric=${active}&year=current#graphs`}>View related statistics</a>
+        <a class="primary" href={link('pursuits/#calendar')}>View Pursuits calendar</a>
+        <a href={link(`stats/?metric=${active}&year=current#graphs`)}>View related statistics</a>
       </div>
     </section>
   </main>
@@ -144,12 +148,34 @@ const statusLabels: Record<RoadmapStatus, string> = {
 </VideoBg>
 
 <style>
-  .pursuit-page { --accent:#405cf5; --accent-soft:#eef1ff; --accent-deep:#2c3fb8; min-height:100vh; padding-bottom:54px; }
+  .pursuit-page {
+    --accent:#405cf5;
+    --accent-soft:#eef1ff;
+    --accent-deep:#2c3fb8;
+    width:100%;
+    max-width:none;
+    min-height:100vh;
+    margin:0;
+    padding:0 0 54px;
+  }
   .pursuit-page--dance { --accent:#c3428f; --accent-soft:#fff0f8; --accent-deep:#912861; }
   .pursuit-page--running { --accent:#278a63; --accent-soft:#edf9f3; --accent-deep:#176244; }
   .pursuit-page--languages { --accent:#405cf5; --accent-soft:#eef1ff; --accent-deep:#2c3fb8; }
   * { box-sizing:border-box; }
-  .hero { position:relative; display:grid; place-items:center; min-height:460px; margin:0 clamp(12px,3vw,48px) 24px; overflow:hidden; border-radius:30px; background:radial-gradient(circle at 20% 20%,color-mix(in srgb,var(--accent) 72%,#fff),transparent 34%),linear-gradient(135deg,var(--accent-deep),#111827 72%); color:#fff; box-shadow:0 24px 70px rgba(15,23,42,.2); }
+  .hero {
+    position:relative;
+    display:grid;
+    place-items:center;
+    width:calc(100% - clamp(24px,6vw,96px));
+    max-width:1380px;
+    min-height:460px;
+    margin:0 auto 24px;
+    overflow:hidden;
+    border-radius:30px;
+    background:radial-gradient(circle at 20% 20%,color-mix(in srgb,var(--accent) 72%,#fff),transparent 34%),linear-gradient(135deg,var(--accent-deep),#111827 72%);
+    color:#fff;
+    box-shadow:0 24px 70px rgba(15,23,42,.2);
+  }
   .hero::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.22)); pointer-events:none; }
   .hero-orbit { position:absolute; border:1px solid rgba(255,255,255,.22); border-radius:50%; }
   .hero-orbit--one { width:420px; height:420px; right:-90px; top:-150px; }
@@ -162,17 +188,18 @@ const statusLabels: Record<RoadmapStatus, string> = {
   .hero-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:9px; margin-top:23px; }
   .hero-actions a { padding:10px 14px; border:1px solid rgba(255,255,255,.48); border-radius:999px; background:rgba(0,0,0,.2); color:#fff; font-size:.78rem; font-weight:800; text-decoration:none; backdrop-filter:blur(8px); }
   .hero-actions a:hover { background:rgba(255,255,255,.18); }
-  .snapshot { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; max-width:1260px; margin:0 auto 44px; padding:0 clamp(12px,3vw,32px); }
-  .snapshot article { padding:17px; border:1px solid #e2e7ee; border-radius:17px; background:rgba(255,255,255,.93); box-shadow:0 10px 28px rgba(15,23,42,.06); }
+  .hero-actions a:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+  .snapshot { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; width:100%; max-width:1260px; margin:0 auto 44px; padding:0 clamp(12px,3vw,32px); }
+  .snapshot article { min-width:0; padding:17px; border:1px solid #e2e7ee; border-radius:17px; background:rgba(255,255,255,.93); box-shadow:0 10px 28px rgba(15,23,42,.06); }
   .snapshot span { display:block; color:#747b88; font-size:.68rem; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
-  .snapshot strong { display:block; margin-top:6px; color:#171b25; font-size:clamp(.88rem,1.5vw,1.08rem); line-height:1.35; }
-  .page-section { max-width:1260px; margin:0 auto 48px; padding:0 clamp(14px,3vw,32px); }
+  .snapshot strong { display:block; margin-top:6px; color:#171b25; font-size:clamp(.88rem,1.5vw,1.08rem); line-height:1.35; overflow-wrap:anywhere; }
+  .page-section { width:100%; max-width:1260px; margin:0 auto 48px; padding:0 clamp(14px,3vw,32px); }
   .section-heading { max-width:790px; margin-bottom:18px; }
   .eyebrow { margin:0 0 5px; color:var(--accent-deep); font-size:.71rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
   .section-heading h2, .archive-section h2 { margin:0; color:#141923; font-size:clamp(1.75rem,4vw,3rem); letter-spacing:-.045em; }
   .section-heading > p:last-child, .archive-section p:last-child { margin:8px 0 0; color:#626978; line-height:1.65; }
   .roadmap-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-  .roadmap-item { display:grid; grid-template-columns:48px minmax(0,1fr); gap:14px; padding:18px; border:1px solid #e2e7ee; border-radius:19px; background:rgba(255,255,255,.93); box-shadow:0 10px 28px rgba(15,23,42,.055); }
+  .roadmap-item { display:grid; grid-template-columns:48px minmax(0,1fr); gap:14px; min-width:0; padding:18px; border:1px solid #e2e7ee; border-radius:19px; background:rgba(255,255,255,.93); box-shadow:0 10px 28px rgba(15,23,42,.055); }
   .roadmap-number { display:grid; place-items:center; width:44px; height:44px; border-radius:14px; background:var(--accent-soft); color:var(--accent-deep); font-weight:900; }
   .status { display:inline-block; margin-bottom:5px; color:#7a818e; font-size:.63rem; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
   .roadmap-item[data-status='developing'] .status, .roadmap-item[data-status='next'] .status { color:var(--accent-deep); }
@@ -180,14 +207,15 @@ const statusLabels: Record<RoadmapStatus, string> = {
   .roadmap-item h3 { margin:0 0 5px; color:#191e29; font-size:1rem; }
   .roadmap-item p { margin:0; color:#656d79; font-size:.82rem; line-height:1.52; }
   .chapter-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; }
-  .chapter-grid article { min-height:165px; padding:20px; border:1px solid color-mix(in srgb,var(--accent) 24%,#e2e7ee); border-radius:20px; background:linear-gradient(145deg,var(--accent-soft),rgba(255,255,255,.94)); }
+  .chapter-grid article { min-width:0; min-height:165px; padding:20px; border:1px solid color-mix(in srgb,var(--accent) 24%,#e2e7ee); border-radius:20px; background:linear-gradient(145deg,var(--accent-soft),rgba(255,255,255,.94)); }
   .chapter-grid h3 { margin:0 0 8px; color:#171c27; font-size:1.05rem; }
   .chapter-grid p { margin:0; color:#626978; font-size:.84rem; line-height:1.58; }
   .archive-section { display:flex; align-items:center; justify-content:space-between; gap:28px; padding:26px clamp(22px,4vw,42px); border:1px solid color-mix(in srgb,var(--accent) 25%,#e2e7ee); border-radius:25px; background:linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,.95)); box-shadow:0 16px 42px rgba(15,23,42,.07); }
-  .archive-section > div:first-child { max-width:760px; }
-  .archive-actions { display:flex; flex-direction:column; gap:8px; min-width:215px; }
+  .archive-section > div:first-child { min-width:0; max-width:760px; }
+  .archive-actions { display:flex; flex:0 0 auto; flex-direction:column; gap:8px; min-width:215px; }
   .archive-actions a { padding:10px 14px; border:1px solid color-mix(in srgb,var(--accent) 35%,#dfe4ec); border-radius:999px; color:var(--accent-deep); font-size:.77rem; font-weight:850; text-align:center; text-decoration:none; }
   .archive-actions a.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .archive-actions a:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
   @media (max-width:850px) {
     .hero { min-height:390px; border-radius:22px; }
     .snapshot { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -196,7 +224,7 @@ const statusLabels: Record<RoadmapStatus, string> = {
     .archive-actions { margin-top:18px; }
   }
   @media (max-width:600px) {
-    .hero { min-height:370px; margin-inline:10px; }
+    .hero { width:calc(100% - 20px); min-height:370px; }
     .snapshot, .roadmap-grid { grid-template-columns:1fr; }
     .snapshot { margin-bottom:34px; }
     .roadmap-item { grid-template-columns:40px minmax(0,1fr); padding:15px; }
