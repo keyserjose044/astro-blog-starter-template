@@ -19,6 +19,7 @@ const absoluteImageURL = new URL(image, Astro.site);
 const base = import.meta.env.BASE_URL || '/';
 const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/books');
+const booksAssetVersion = '20260726-1220';
 ---
 
 <!-- Global Metadata -->
@@ -37,9 +38,10 @@ const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/boo
 <link rel="preload" href={`${base}fonts/atkinson-regular.woff`} as="font" type="font/woff" crossorigin />
 <link rel="preload" href={`${base}fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
 
-{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas.css`} /> : null}
-{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-insights.css`} /> : null}
-{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-refinement.css`} /> : null}
+{isBooksPage ? <meta name="lifeloggerz-books-assets" content={booksAssetVersion} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas.css?v=${booksAssetVersion}`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-insights.css?v=${booksAssetVersion}`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-refinement.css?v=${booksAssetVersion}`} /> : null}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL.toString()} />
@@ -71,5 +73,5 @@ const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/boo
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={absoluteImageURL.toString()} />
 
-{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js`}></script> : null}
-{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
