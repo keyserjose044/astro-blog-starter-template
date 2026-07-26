@@ -1,26 +1,25 @@
 ---
-// src/pages/templates.astro
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BaseHead from '../components/BaseHead.astro';
 import DownloadMeta from '../components/DownloadMeta.astro';
 import VideoBg from '../components/VideoBg.astro';
 
-// GitHub Pages–safe base URL handling
 const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
 type Item = {
   title: string;
   description?: string;
-  href: string; // download link
+  href: string;
   filetype: 'Google Sheet' | 'Excel' | 'PDF' | 'Word' | 'ZIP' | 'Other' | 'App';
   updated?: string;
   imageSrc?: string;
   imageAlt?: string;
   imageOrientation?: 'portrait' | 'landscape';
-  postUrl?: string; // optional blog post link
-  downloadKey?: string; // optional KV/download counter key
+  postUrl?: string;
+  downloadKey?: string;
+  countOffset?: number;
 };
 
 const templates: Item[] = [
@@ -35,24 +34,9 @@ const templates: Item[] = [
     imageOrientation: 'landscape',
     postUrl: `${base}blog/2026interactivegstemplate/`,
     downloadKey: 'template/2026-raw-data-template',
+    // The current counter began at 6 after the key changed. Add 193 so the visible total resumes at 199.
+    countOffset: 193,
   },
-
-/*
-  // New StudyTimer card
-  {
-    title: 'StudyTimer (Windows)',
-    description:
-      'A custom study timer app I use in my own workflow to track exact time spent working, packaged as a Windows .exe.',
-    href: 'https://drive.google.com/uc?export=download&id=1NQiGppbn5UM5vrc66gBMaUwQPAlk5Nk9',
-    filetype: 'App',
-    updated: 'Nov 2025',
-    imageSrc: `${base}images/studytimer.png`,
-    imageAlt: 'StudyTimer app preview',
-    imageOrientation: 'landscape',
-    postUrl: `${base}blog/studytimer/`,
-  },
-*/
-
   {
     title: 'Weekly To-Do List Template',
     description: 'Simple, customizable weekly list with weekday blocks.',
@@ -87,7 +71,6 @@ const templates: Item[] = [
     />
     <style>
       :root {
-        --bg: #ffffff;
         --text: #0e121b;
         --muted: #5b6473;
         --accent: #405cf5;
@@ -97,7 +80,9 @@ const templates: Item[] = [
       }
 
       .templates-page,
-      .templates-page * { box-sizing: border-box; }
+      .templates-page * {
+        box-sizing: border-box;
+      }
 
       .templates-page {
         display: block;
@@ -105,9 +90,9 @@ const templates: Item[] = [
         max-inline-size: 1120px;
         margin-inline: auto;
         padding: 2rem 1rem 4rem;
-        text-align: center;
         overflow-x: hidden;
         contain: layout;
+        text-align: center;
       }
 
       .templates-page section,
@@ -115,15 +100,6 @@ const templates: Item[] = [
       .templates-page .content {
         min-width: 0;
         max-inline-size: 100%;
-      }
-
-      .templates-page img,
-      .templates-page video,
-      .templates-page figure {
-        display: block;
-        max-inline-size: 100%;
-        height: auto;
-        margin-inline: auto;
       }
 
       .page-title {
@@ -135,8 +111,8 @@ const templates: Item[] = [
 
       .subtitle {
         max-width: 760px;
-        color: var(--muted);
         margin: 0 auto 2rem;
+        color: var(--muted);
         font-size: 1.05rem;
         line-height: 1.6;
         overflow-wrap: anywhere;
@@ -144,26 +120,25 @@ const templates: Item[] = [
 
       .grid {
         display: grid;
-        gap: 1rem;
         grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-        justify-items: stretch;
+        gap: 1rem;
         align-items: stretch;
-        margin-inline: auto;
         inline-size: 100%;
+        margin-inline: auto;
       }
 
       .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        overflow: hidden;
         display: flex;
         flex-direction: column;
-        inline-size: 100%;
         min-width: 0;
+        inline-size: 100%;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--card);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
         text-align: left;
         contain: content;
-        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       }
 
@@ -176,23 +151,25 @@ const templates: Item[] = [
       .thumb {
         position: relative;
         display: block;
-        block-size: 300px;
-        background: white;
-        border-bottom: 1px solid var(--border);
-        overflow: hidden;
-        border-radius: 18px 18px 0 0;
         inline-size: 100%;
+        block-size: 300px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--border);
+        border-radius: 18px 18px 0 0;
+        background: white;
         text-decoration: none;
       }
 
       .thumb img {
+        display: block;
         inline-size: 100%;
         block-size: 100%;
-        object-fit: contain;
-        background: white;
+        margin: 0;
         padding: 0.35rem;
+        border-radius: 0;
+        background: white;
+        object-fit: contain;
         transition: transform 0.3s ease, filter 0.3s ease;
-        display: block;
       }
 
       .thumb:hover img {
@@ -220,9 +197,9 @@ const templates: Item[] = [
         top: 0.8rem;
         left: 0.8rem;
         padding: 0.48rem 0.66rem;
+        border: 1px solid rgba(64, 92, 245, 0.25);
         background: rgba(255, 255, 255, 0.94);
         color: #3049c9;
-        border: 1px solid rgba(64, 92, 245, 0.25);
         box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -240,32 +217,32 @@ const templates: Item[] = [
 
       .thumb:hover .thumb-cta {
         transform: translateX(2px);
-        background: #405cf5;
+        background: var(--accent);
       }
 
       .content {
-        flex: 1;
-        padding: 1.15rem;
         display: flex;
+        flex: 1;
         flex-direction: column;
         align-items: center;
         gap: 0.5rem;
         min-width: 0;
+        padding: 1.1rem 1rem 1rem;
         text-align: center;
       }
 
       .eyebrow,
       .card h3,
       .desc {
-        overflow-wrap: anywhere;
-        word-break: break-word;
         min-width: 0;
         max-inline-size: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .eyebrow {
-        font-size: 0.76rem;
         color: var(--muted);
+        font-size: 0.76rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
@@ -301,32 +278,66 @@ const templates: Item[] = [
       }
 
       .download-block {
+        display: flex;
         width: 100%;
         margin-top: auto;
-        padding-top: 0.55rem;
+        padding-top: 0.45rem;
+        align-items: center;
+        justify-content: center;
       }
 
       @media (max-width: 768px) {
-        .templates-page { padding-inline: clamp(1rem, 4vw, 2rem); }
-        .grid { grid-template-columns: 1fr !important; justify-items: center; text-align: center; }
-        .card { max-width: 520px; text-align: center; }
-        .card h3 { font-size: clamp(1rem, 4.5vw, 1.15rem); }
-        .thumb { block-size: 280px; }
+        .templates-page {
+          padding-inline: clamp(1rem, 4vw, 2rem);
+        }
+
+        .grid {
+          grid-template-columns: 1fr !important;
+          justify-items: center;
+        }
+
+        .card {
+          max-width: 520px;
+          margin-inline: auto;
+        }
+
+        .card h3 {
+          font-size: clamp(1rem, 4.5vw, 1.15rem);
+        }
+
+        .thumb {
+          block-size: 280px;
+        }
       }
 
       @media (max-width: 420px) {
-        .thumb { block-size: 240px; }
-        .guide-badge { top: 0.6rem; left: 0.6rem; }
-        .thumb-cta { right: 0.6rem; bottom: 0.6rem; }
+        .thumb {
+          block-size: 240px;
+        }
+
+        .guide-badge {
+          top: 0.6rem;
+          left: 0.6rem;
+        }
+
+        .thumb-cta {
+          right: 0.6rem;
+          bottom: 0.6rem;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
         .card,
         .thumb img,
-        .thumb-cta { transition: none; }
+        .thumb-cta {
+          transition: none;
+        }
+
         .card:hover,
         .thumb:hover img,
-        .thumb:hover .thumb-cta { transform: none; }
+        .thumb:hover .thumb-cta {
+          transform: none;
+        }
       }
     </style>
   </head>
@@ -359,20 +370,21 @@ const templates: Item[] = [
                   {t.postUrl && <span class="thumb-cta">View guide →</span>}
                 </a>
               )}
+
               <div class="content">
                 <div class="eyebrow">{t.filetype}</div>
                 <h3>
                   {t.postUrl ? <a href={t.postUrl}>{t.title}</a> : t.title}
                 </h3>
                 {t.description && <p class="desc">{t.description}</p>}
+
                 <div class="download-block">
                   <DownloadMeta
                     href={t.href}
                     updated={t.updated!}
                     text={t.filetype === 'Google Sheet' ? 'Make a copy' : 'Download'}
-                    secondaryHref={t.postUrl}
-                    secondaryText="Read guide"
                     downloadKey={t.downloadKey}
+                    countOffset={t.countOffset}
                   />
                 </div>
               </div>
