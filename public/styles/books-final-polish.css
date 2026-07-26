@@ -27,8 +27,12 @@
 
 .books-donut-segment {
   stroke-width: 8;
-  cursor: pointer;
+  cursor: default;
   transition: opacity 150ms ease, stroke-width 150ms ease, filter 150ms ease;
+}
+
+.books-donut-segment[data-donut-filter] {
+  cursor: pointer;
 }
 
 .books-donut-segment.books-insight-series-0 { stroke: var(--insight-1); }
@@ -38,8 +42,8 @@
 .books-donut-segment.books-insight-series-4 { stroke: var(--insight-5); }
 .books-donut-segment.books-insight-series-5 { stroke: var(--insight-6); }
 
-.books-donut-segment:hover,
-.books-donut-segment:focus {
+.books-donut-segment[data-donut-filter]:hover,
+.books-donut-segment[data-donut-filter]:focus {
   stroke-width: 9.5;
   filter: drop-shadow(0 2px 2px rgba(30, 42, 96, 0.2));
   outline: none;
