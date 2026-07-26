@@ -1,0 +1,33 @@
+---
+import PursuitStarter from '../../components/PursuitStarter.astro';
+
+const roadmap = [
+  { title: 'Make running repeatable', status: 'established', note: 'Running has survived multiple seasons because the basic habit and logging system already exist.' },
+  { title: 'Rebuild weekly consistency', status: 'developing', note: 'Return from quieter periods without trying to recover all lost mileage at once.' },
+  { title: 'Strengthen aerobic comfort', status: 'next', note: 'Make ordinary runs feel easier through regular volume rather than sporadic hard efforts.' },
+  { title: 'Track meaningful records', status: 'next', note: 'Separate fastest efforts, longest runs, monthly totals, and consistency streaks.' },
+  { title: 'Understand interruptions', status: 'future', note: 'Compare running gaps with illness, workload, dance, weather, and changing priorities.' },
+  { title: 'Build a durable long-term practice', status: 'future', note: 'Keep running useful for health and mental clarity without making it dominate the week.' },
+] as const;
+
+const chapters = [
+  { title: 'The mileage archive', note: 'Distance and estimated time have been logged since September 26, 2023, creating a long view of consistency and decline.' },
+  { title: 'Returns matter', note: 'The most useful story is not an uninterrupted streak. It is how the habit changes, disappears, and is rebuilt.' },
+  { title: 'Running beside other pursuits', note: 'The page can show when dance, guitar, research demands, illness, or weather changed the amount of running possible.' },
+];
+---
+
+<PursuitStarter
+  active="running"
+  title="Running"
+  icon="🏃"
+  kicker="Distance · Consistency · Return"
+  description="A long-term record of miles, conditioning, personal records, interruptions, and the repeated work of returning to motion."
+  started="September 26, 2023"
+  currentState="Established habit in a quieter phase"
+  currentFocus="Restore a steady weekly rhythm"
+  nextMilestone="Sustain consistent mileage again"
+  roadmap={roadmap}
+  chapters={chapters}
+  archiveNote="The Archive Google Sheet can eventually supply each run date, mileage, duration, pace when available, monthly totals, records, and notes. The calendar is designed to show activity immediately even when an entry contains only a date and distance."
+/>
