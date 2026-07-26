@@ -1,0 +1,291 @@
+/* Final Books interaction polish — July 26, 2026 */
+
+/* Interactive donut charts */
+.books-donut {
+  position: relative;
+  background: transparent;
+  box-shadow: none;
+}
+
+.books-donut-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+.books-donut-track,
+.books-donut-segment {
+  fill: none;
+}
+
+.books-donut-track {
+  stroke: #e8ebf2;
+  stroke-width: 8;
+}
+
+.books-donut-segment {
+  stroke-width: 8;
+  cursor: pointer;
+  transition: opacity 150ms ease, stroke-width 150ms ease, filter 150ms ease;
+}
+
+.books-donut-segment.books-insight-series-0 { stroke: var(--insight-1); }
+.books-donut-segment.books-insight-series-1 { stroke: var(--insight-2); }
+.books-donut-segment.books-insight-series-2 { stroke: var(--insight-3); }
+.books-donut-segment.books-insight-series-3 { stroke: var(--insight-4); }
+.books-donut-segment.books-insight-series-4 { stroke: var(--insight-5); }
+.books-donut-segment.books-insight-series-5 { stroke: var(--insight-6); }
+
+.books-donut-segment:hover,
+.books-donut-segment:focus {
+  stroke-width: 9.5;
+  filter: drop-shadow(0 2px 2px rgba(30, 42, 96, 0.2));
+  outline: none;
+}
+
+.books-donut-card[data-has-active="true"] .books-donut-segment[data-active="false"] {
+  opacity: 0.22;
+}
+
+.books-donut-segment[data-active="true"] {
+  stroke-width: 9.5;
+}
+
+.books-donut-center {
+  position: absolute;
+  inset: 21%;
+  width: auto;
+  aspect-ratio: auto;
+  pointer-events: none;
+}
+
+.books-donut-legend li {
+  display: block;
+}
+
+.books-donut-legend button,
+.books-donut-legend-static {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 9px minmax(0, 1fr) auto auto;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--atlas-muted);
+  font: inherit;
+  font-size: 0.67rem;
+  text-align: left;
+}
+
+.books-donut-legend button {
+  cursor: pointer;
+  transition: background 140ms ease, opacity 140ms ease, transform 140ms ease;
+}
+
+.books-donut-legend button:hover,
+.books-donut-legend button:focus-visible {
+  background: rgba(64, 92, 245, 0.08);
+  outline: none;
+  transform: translateX(2px);
+}
+
+.books-donut-legend button[aria-pressed="true"] {
+  background: rgba(64, 92, 245, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(64, 92, 245, 0.2);
+}
+
+.books-donut-card[data-has-active="true"] .books-donut-legend button[aria-pressed="false"] {
+  opacity: 0.38;
+}
+
+/* Future calendar months are neither empty nor completed. */
+.books-reading-calendar-cell[data-future="true"] {
+  border-color: rgba(132, 140, 158, 0.18);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(132, 140, 158, 0.04) 0,
+      rgba(132, 140, 158, 0.04) 5px,
+      rgba(132, 140, 158, 0.13) 5px,
+      rgba(132, 140, 158, 0.13) 7px
+    ),
+    #f4f5f8;
+  color: transparent;
+}
+
+/* Filter-aware surprise menu */
+.books-surprise {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.books-surprise-trigger {
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid rgba(64, 92, 245, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f4f6ff);
+  color: #263ebd;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: transform 120ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.books-surprise-trigger:hover,
+.books-surprise-trigger:focus-visible,
+.books-surprise-trigger[aria-expanded="true"] {
+  border-color: rgba(64, 92, 245, 0.62);
+  box-shadow: 0 7px 16px rgba(39, 57, 151, 0.12);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.books-surprise-chevron {
+  font-size: 0.66rem;
+  transition: transform 150ms ease;
+}
+
+.books-surprise-trigger[aria-expanded="true"] .books-surprise-chevron {
+  transform: rotate(180deg);
+}
+
+.books-surprise-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: min(286px, calc(100vw - 28px));
+  padding: 7px;
+  border: 1px solid rgba(218, 223, 236, 0.98);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+
+.books-surprise-menu[hidden] {
+  display: none;
+}
+
+.books-surprise-menu button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.books-surprise-menu button:hover,
+.books-surprise-menu button:focus-visible {
+  background: #f1f3ff;
+  outline: none;
+}
+
+.books-surprise-menu button > span:first-child {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.books-surprise-menu button > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.books-surprise-menu strong {
+  font-size: 0.8rem;
+}
+
+.books-surprise-menu small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.67rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-surprise-toast {
+  position: fixed;
+  z-index: 120;
+  right: 18px;
+  bottom: 18px;
+  max-width: min(360px, calc(100vw - 36px));
+  padding: 10px 13px;
+  border: 1px solid rgba(64, 92, 245, 0.24);
+  border-radius: 12px;
+  background: rgba(22, 28, 44, 0.94);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.22);
+}
+
+.books-surprise-toast[hidden] {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .books-surprise {
+    order: 4;
+  }
+
+  .books-surprise-trigger {
+    min-height: 38px;
+    font-size: 0.79rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .books-surprise {
+    width: auto;
+  }
+
+  .books-surprise-trigger > span:nth-child(2) {
+    display: none;
+  }
+
+  .books-surprise-trigger {
+    width: 40px;
+    justify-content: center;
+    padding-inline: 0;
+    border-radius: 999px;
+  }
+
+  .books-surprise-chevron {
+    display: none;
+  }
+
+  .books-surprise-menu {
+    position: fixed;
+    top: auto;
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    width: auto;
+    transform: none;
+  }
+}
