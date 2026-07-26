@@ -5,6 +5,10 @@ interface Props {
   updated: string;
   text?: string;
 
+  /** Optional secondary action shown beside the download button */
+  secondaryHref?: string;
+  secondaryText?: string;
+
   /** Preferred: explicit counter key, e.g. "template/2026-raw-data-template" */
   downloadKey?: string;
 
@@ -17,6 +21,8 @@ const {
   href,
   updated,
   text = "Download",
+  secondaryHref,
+  secondaryText = "Read guide",
   downloadKey,
   type,
   slug,
@@ -98,6 +104,11 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
 </div>
 
 <div class="actions">
+  {secondaryHref && (
+    <a class="btn btn--secondary" href={secondaryHref}>
+      {secondaryText}
+    </a>
+  )}
   <a class="btn" href={dlHref} {...(addDownloadAttr ? { download: "" } : {})}>
     {text}
   </a>
@@ -109,16 +120,26 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
     color: #6b7280;
     display: inline-flex;
     align-items: baseline;
+    justify-content: center;
     gap: 0.4rem;
+    flex-wrap: wrap;
+    text-align: center;
   }
   .download-meta .meta-sep { opacity: 0.6; }
 
-  .actions { margin-top: 0.6rem; display: flex; justify-content: center; }
+  .actions {
+    margin-top: 0.7rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
 
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-height: 44px;
     padding: 0.6rem 1.2rem;
     border-radius: 9999px;
     font-weight: 700;
@@ -127,8 +148,31 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
     background: var(--accent, #405cf5);
     color: white;
     box-shadow: 0 6px 20px var(--ring, rgba(64,92,245,0.25));
-    transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
     max-inline-size: 100%;
   }
-  .btn:hover { transform: translateY(-1px); }
+  .btn:hover {
+    transform: translateY(-1px);
+    color: white;
+    box-shadow: 0 9px 24px var(--ring, rgba(64,92,245,0.25));
+  }
+  .btn:focus-visible {
+    outline: 3px solid var(--ring, rgba(64,92,245,0.25));
+    outline-offset: 3px;
+  }
+  .btn--secondary {
+    background: white;
+    color: var(--accent, #405cf5);
+    box-shadow: none;
+  }
+  .btn--secondary:hover {
+    background: #eef1ff;
+    color: var(--accent, #405cf5);
+    box-shadow: none;
+  }
+
+  @media (max-width: 420px) {
+    .actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+    .btn { width: 100%; }
+  }
 </style>
