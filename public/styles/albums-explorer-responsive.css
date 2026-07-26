@@ -1,3 +1,7 @@
+.albums-page {
+  color-scheme: light;
+}
+
 .albums-timeline-controls {
   display: flex;
   align-items: center;
@@ -180,28 +184,4 @@
   .albums-explorer-view { padding: 12px; border-radius: 14px; }
   .albums-map-stage { min-height: 235px; }
   .albums-timeline-track { grid-auto-columns: minmax(175px, 82vw); }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --albums-ink: #f1f4fb;
-    --albums-muted: #aeb6c7;
-    --albums-border: #343b49;
-    --albums-surface: rgba(20, 24, 32, 0.92);
-    --albums-surface-solid: #171b23;
-    --albums-soft: #222936;
-    --albums-accent-dark: #aeb9ff;
-  }
-
-  .albums-control-button:hover,
-  .albums-round-button:hover,
-  .albums-control-button[aria-expanded='true'],
-  .albums-control-button.has-active-filters { background: #252c44; }
-  .albums-metric,
-  .albums-country-panel,
-  .albums-timeline-controls > div,
-  .albums-timeline-stop button { background: rgba(21, 25, 34, 0.83); }
-  .albums-map-stage { background: rgba(19, 24, 34, 0.84); }
-  .albums-map-ocean { fill: rgba(30, 37, 50, 0.78); }
-  .albums-map-country { stroke: rgba(18, 22, 30, 0.9); }
 }
