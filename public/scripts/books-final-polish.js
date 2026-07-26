@@ -215,6 +215,7 @@ function installSurprise(cards) {
       const values = candidatesFor('country');
       const choice = randomChoice(values, last.country);
       if (!choice || !countrySelect) return;
+      document.querySelector('[data-clear-map-country]')?.click();
       last.country = choice;
       countrySelect.value = choice;
       countrySelect.dispatchEvent(new Event('change', { bubbles: true }));
