@@ -39,6 +39,7 @@ const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/boo
 
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas.css`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-insights.css`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-refinement.css`} /> : null}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL.toString()} />
