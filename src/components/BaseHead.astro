@@ -23,7 +23,7 @@ const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/a
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const booksAssetVersion = '20260726-1235';
 const albumsAssetVersion = '20260726-1535';
-const artAssetVersion = '20260726-1646';
+const artAssetVersion = '20260726-1700';
 ---
 
 <!-- Global Metadata -->
@@ -92,3 +92,4 @@ const artAssetVersion = '20260726-1646';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
+{isArtPage ? <script is:inline type="module" src={`${base}scripts/art-gallery-quilt.js?v=${artAssetVersion}`}></script> : null}
