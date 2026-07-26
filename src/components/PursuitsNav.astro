@@ -6,13 +6,16 @@ interface Props {
 }
 
 const { active } = Astro.props;
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const link = (path: string) => `${base}${path}`;
 
 const sections: Array<{ id: PursuitSection; label: string; href: string }> = [
-  { id: 'overview', label: 'Overview', href: '/pursuits/' },
-  { id: 'guitar', label: 'Guitar', href: '/pursuits/guitar/' },
-  { id: 'dance', label: 'Dance', href: '/pursuits/dance/' },
-  { id: 'running', label: 'Running', href: '/pursuits/running/' },
-  { id: 'languages', label: 'Languages', href: '/pursuits/languages/' },
+  { id: 'overview', label: 'Overview', href: link('pursuits/') },
+  { id: 'guitar', label: 'Guitar', href: link('pursuits/guitar/') },
+  { id: 'dance', label: 'Dance', href: link('pursuits/dance/') },
+  { id: 'running', label: 'Running', href: link('pursuits/running/') },
+  { id: 'languages', label: 'Languages', href: link('pursuits/languages/') },
 ];
 ---
 
@@ -31,17 +34,115 @@ const sections: Array<{ id: PursuitSection; label: string; href: string }> = [
 </nav>
 
 <style>
-  .pursuits-nav { width:100%; padding:4px clamp(12px,3vw,48px) 18px; }
-  .pursuits-nav__inner { display:flex; width:max-content; max-width:100%; margin:0 auto; padding:4px; gap:4px; overflow-x:auto; border:1px solid rgba(230,233,239,.96); border-radius:999px; background:rgba(255,255,255,.9); box-shadow:0 8px 22px rgba(15,23,42,.07); scrollbar-width:none; }
-  .pursuits-nav__inner::-webkit-scrollbar { display:none; }
-  .pursuits-nav__item { flex:0 0 auto; min-width:92px; padding:9px 15px; border-radius:999px; color:#5e6573; font-size:.84rem; font-weight:750; line-height:1; text-align:center; text-decoration:none; transition:color .15s ease,background .15s ease,box-shadow .15s ease,transform .12s ease; }
-  a.pursuits-nav__item:hover { color:#1f35b7; background:#f0f2ff; transform:translateY(-1px); }
-  a.pursuits-nav__item:focus-visible { outline:2px solid #405cf5; outline-offset:2px; }
-  .pursuits-nav__item--active { color:#fff; background:#405cf5; box-shadow:0 6px 14px rgba(64,92,245,.24); }
-  a.pursuits-nav__item--active:hover { color:#fff; background:#354edb; }
-  @media (max-width:700px) {
-    .pursuits-nav { padding:0 10px 13px; }
-    .pursuits-nav__inner { width:100%; justify-content:flex-start; }
-    .pursuits-nav__item { min-width:86px; padding:8px 10px; font-size:.75rem; }
+  /*
+    The site-wide stylesheet intentionally constrains ordinary article pages to
+    720px. Every Pursuits page is a dashboard-style page, so opt the parent
+    <main> out of that reading-column rule wherever this navigation is present.
+  */
+  :global(main:has(> .pursuits-nav)) {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 58px;
+    overflow-x: clip;
+  }
+
+  :global(main:has(> .pursuits-nav) #calendar),
+  :global(main:has(> .pursuits-nav) #roadmap) {
+    scroll-margin-top: 7rem;
+  }
+
+  :global(.pursuit-card:has(.card-link:focus-visible)) {
+    outline: 3px solid #405cf5;
+    outline-offset: 4px;
+  }
+
+  :global(.pursuit-card .card-link:focus-visible) {
+    outline: none;
+  }
+
+  :global(.pursuit-card .sound-toggle:focus-visible) {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .pursuits-nav {
+    width: 100%;
+    padding: 10px clamp(12px, 3vw, 48px) 20px;
+  }
+
+  .pursuits-nav__inner {
+    display: flex;
+    width: min(100%, 720px);
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 4px;
+    gap: 4px;
+    overflow-x: auto;
+    border: 1px solid rgba(230, 233, 239, .96);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .07);
+    scrollbar-width: none;
+  }
+
+  .pursuits-nav__inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pursuits-nav__item {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 15px;
+    border-radius: 999px;
+    color: #5e6573;
+    font-size: .84rem;
+    font-weight: 750;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .15s ease, background .15s ease, box-shadow .15s ease, transform .12s ease;
+  }
+
+  a.pursuits-nav__item:hover {
+    color: #1f35b7;
+    background: #f0f2ff;
+    transform: translateY(-1px);
+  }
+
+  a.pursuits-nav__item:focus-visible {
+    outline: 2px solid #405cf5;
+    outline-offset: 2px;
+  }
+
+  .pursuits-nav__item--active {
+    color: #fff;
+    background: #405cf5;
+    box-shadow: 0 6px 14px rgba(64, 92, 245, .24);
+  }
+
+  a.pursuits-nav__item--active:hover {
+    color: #fff;
+    background: #354edb;
+  }
+
+  @media (max-width: 700px) {
+    .pursuits-nav {
+      padding: 6px 10px 14px;
+    }
+
+    .pursuits-nav__inner {
+      width: max-content;
+      min-width: 100%;
+      justify-content: flex-start;
+    }
+
+    .pursuits-nav__item {
+      flex: 0 0 auto;
+      min-width: 86px;
+      padding: 9px 11px;
+      font-size: .75rem;
+    }
   }
 </style>
