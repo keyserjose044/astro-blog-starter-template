@@ -27,5 +27,6 @@ jobs:
         with:
           node-version: "20"
           cache: npm
+      - run: node --check public/scripts/books-atlas.js
       - run: npm ci
       - run: npm run build
