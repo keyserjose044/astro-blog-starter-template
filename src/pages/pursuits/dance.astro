@@ -1,0 +1,33 @@
+---
+import PursuitStarter from '../../components/PursuitStarter.astro';
+
+const roadmap = [
+  { title: 'Basic steps and weight transfer', status: 'developing', note: 'Make the foundational patterns feel natural instead of mentally counted.' },
+  { title: 'Timing and musical pulse', status: 'developing', note: 'Stay connected to the beat through turns, transitions, and unfamiliar songs.' },
+  { title: 'Cumbia vocabulary', status: 'developing', note: 'Build a usable social vocabulary from weekly classes and repetition.' },
+  { title: 'Bachata frame and connection', status: 'next', note: 'Improve leading, following, spacing, and communication with a partner.' },
+  { title: 'Salsa turns and combinations', status: 'next', note: 'Link individual figures into combinations without losing timing.' },
+  { title: 'Musicality and styling', status: 'future', note: 'Respond to changes in the music rather than executing memorized steps mechanically.' },
+] as const;
+
+const chapters = [
+  { title: 'The first season', note: 'Dance entered the LifeLoggerz archive in June 2026 through cumbia, bachata, and salsa classes.' },
+  { title: 'Learning with people', note: 'Unlike many tracked hobbies, dance depends on instructors, partners, social confidence, and adapting in real time.' },
+  { title: 'What the calendar can reveal', note: 'Class frequency, total time, styles practiced, breaks, returns, and the relationship between dance and guitar time.' },
+];
+---
+
+<PursuitStarter
+  active="dance"
+  title="Dance"
+  icon="💃"
+  kicker="Cumbia · Bachata · Salsa"
+  description="A record of learning to move with rhythm, connect with partners, and become comfortable on a social dance floor."
+  started="June 2026"
+  currentState="Early social-dance foundation"
+  currentFocus="Timing, turns, and connection"
+  nextMilestone="Complete songs with growing confidence"
+  roadmap={roadmap}
+  chapters={chapters}
+  archiveNote="The future feed can combine class dates, minutes, style, venue, instructor, free-practice time, and milestone notes. The goal is to preserve real development without turning every class into paperwork."
+/>

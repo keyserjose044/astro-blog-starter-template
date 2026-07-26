@@ -1,0 +1,235 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import VideoBg from '../../components/VideoBg.astro';
+import PursuitsNav from '../../components/PursuitsNav.astro';
+import PursuitCalendar from '../../components/PursuitCalendar.astro';
+import { SITE_TITLE } from '../../consts';
+
+const pursuits = [
+  {
+    id: 'guitar',
+    title: 'Guitar',
+    eyebrow: 'Music made, not only heard',
+    description: 'Practice hours, repertoire, technique, ear training, singing, resources, and the long road out of casual noodling.',
+    href: '/pursuits/guitar/',
+    icon: '🎸',
+    meta: ['Nylon string', 'Repertoire', 'Daily minimum'],
+    video: '/videos/guitar.mp4',
+  },
+  {
+    id: 'dance',
+    title: 'Dance',
+    eyebrow: 'Movement learned socially',
+    description: 'Cumbia, bachata, and salsa through classes, partnerwork, rhythm, milestones, reflections, and future practice data.',
+    href: '/pursuits/dance/',
+    icon: '💃',
+    meta: ['Cumbia', 'Bachata', 'Salsa'],
+    video: null,
+  },
+  {
+    id: 'running',
+    title: 'Running',
+    eyebrow: 'Consistency made physical',
+    description: 'Mileage, phases of consistency, personal records, conditioning, interruptions, returns, and what the habit has taught me.',
+    href: '/pursuits/running/',
+    icon: '🏃',
+    meta: ['Distance', 'Consistency', 'Records'],
+    video: null,
+  },
+  {
+    id: 'languages',
+    title: 'Languages',
+    eyebrow: 'A mind stretched across tongues',
+    description: 'English, Spanish, Portuguese, French, German, and the uneven development of reading, listening, speaking, and memory.',
+    href: '/pursuits/languages/',
+    icon: '🌍',
+    meta: ['Study history', 'Skill balance', 'Resources'],
+    video: null,
+  },
+];
+---
+
+<BaseHead
+  title={`${SITE_TITLE} — Pursuits`}
+  description="Guitar, dance, running, languages, and future disciplines: the active skills and practices developed through the LifeLoggerz archive."
+/>
+
+<VideoBg>
+  <Header />
+  <main class="pursuits-page">
+    <PursuitsNav active="overview" />
+
+    <section class="hero" aria-labelledby="pursuits-title">
+      <div class="hero-copy">
+        <p class="eyebrow">The practiced side of LifeLoggerz</p>
+        <h1 id="pursuits-title">Pursuits</h1>
+        <p class="hero-lede">Not everything meaningful is something I consumed. These are the skills, disciplines, and physical practices I have tried to build through repetition.</p>
+        <p class="hero-note">The pages preserve progress, resources, dead ends, turning points, and the allocation of limited time—not merely lifetime totals.</p>
+      </div>
+      <div class="hero-map" aria-label="Current Pursuits">
+        <span>Guitar</span><i>→</i><span>Dance</span><i>→</i><span>Running</span><i>→</i><span>Languages</span>
+      </div>
+    </section>
+
+    <section class="pursuit-gallery" aria-labelledby="gallery-title">
+      <div class="section-heading">
+        <p class="eyebrow">Choose a path</p>
+        <h2 id="gallery-title">Four living development pages</h2>
+        <p>Each card is built to hold a short personal clip. Guitar uses the existing footage now; the remaining cards are ready for the dance, running, and conversation clips when they are recorded.</p>
+      </div>
+
+      <div class="pursuit-grid">
+        {pursuits.map((pursuit) => (
+          <article class:list={['pursuit-card', `pursuit-card--${pursuit.id}`]} data-video-card>
+            <a class="card-link" href={pursuit.href} aria-label={`Explore ${pursuit.title}`}>
+              <div class="card-media">
+                {pursuit.video ? (
+                  <video autoplay muted loop playsinline preload="metadata">
+                    <source src={pursuit.video} type="video/mp4" />
+                  </video>
+                ) : (
+                  <div class="media-placeholder" aria-hidden="true">
+                    <span>{pursuit.icon}</span>
+                    <small>Clip ready</small>
+                  </div>
+                )}
+                <div class="media-shade"></div>
+                <div class="card-heading">
+                  <p>{pursuit.eyebrow}</p>
+                  <h3>{pursuit.title}</h3>
+                </div>
+              </div>
+              <div class="card-body">
+                <p>{pursuit.description}</p>
+                <div class="meta-row">
+                  {pursuit.meta.map((item) => <span>{item}</span>)}
+                </div>
+                <strong>Explore the journey →</strong>
+              </div>
+            </a>
+            {pursuit.video && (
+              <button class="sound-toggle" type="button" aria-label={`Unmute ${pursuit.title} clip`} aria-pressed="false">🔇</button>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <div id="calendar"><PursuitCalendar /></div>
+
+    <section class="growth-section" aria-labelledby="growth-title">
+      <div>
+        <p class="eyebrow">Expandable by design</p>
+        <h2 id="growth-title">The section can grow as life grows</h2>
+        <p>Calligraphy, photography, cooking, strength training, or another serious practice can eventually join the same structure without crowding the main header. A new pursuit earns a page when there is enough history, learning, or material worth preserving.</p>
+      </div>
+      <div class="growth-path" aria-hidden="true">
+        <span class="active">Now</span><i></i><span>Calligraphy?</span><i></i><span>Whatever comes next</span>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</VideoBg>
+
+<script>
+  const videoCards = document.querySelectorAll<HTMLElement>('[data-video-card]');
+
+  videoCards.forEach((card) => {
+    const video = card.querySelector<HTMLVideoElement>('video');
+    const button = card.querySelector<HTMLButtonElement>('.sound-toggle');
+    if (!video || !button) return;
+
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const shouldUnmute = video.muted;
+
+      videoCards.forEach((otherCard) => {
+        const otherVideo = otherCard.querySelector<HTMLVideoElement>('video');
+        const otherButton = otherCard.querySelector<HTMLButtonElement>('.sound-toggle');
+        if (!otherVideo || !otherButton) return;
+        otherVideo.muted = true;
+        otherButton.textContent = '🔇';
+        otherButton.setAttribute('aria-pressed', 'false');
+        otherButton.setAttribute('aria-label', 'Unmute pursuit clip');
+      });
+
+      if (shouldUnmute) {
+        video.muted = false;
+        video.play().catch(() => undefined);
+        button.textContent = '🔊';
+        button.setAttribute('aria-pressed', 'true');
+        button.setAttribute('aria-label', 'Mute pursuit clip');
+      }
+    });
+  });
+</script>
+
+<style>
+  .pursuits-page { min-height:100vh; padding-bottom:58px; }
+  * { box-sizing:border-box; }
+  .hero { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr); align-items:center; gap:40px; max-width:1380px; min-height:480px; margin:0 auto 48px; padding:70px clamp(18px,5vw,70px); border-radius:0 0 38px 38px; background:radial-gradient(circle at 80% 20%,rgba(92,112,255,.3),transparent 34%),radial-gradient(circle at 10% 80%,rgba(195,66,143,.2),transparent 30%),linear-gradient(135deg,#101827,#17213b 65%,#212b48); color:#fff; box-shadow:0 24px 70px rgba(15,23,42,.18); }
+  .eyebrow { margin:0 0 6px; color:#8ea0ff; font-size:.72rem; font-weight:900; letter-spacing:.17em; text-transform:uppercase; }
+  .hero h1 { margin:0; font-size:clamp(4.3rem,11vw,9.5rem); line-height:.82; letter-spacing:-.075em; }
+  .hero-lede { max-width:760px; margin:24px 0 0; font-size:clamp(1.08rem,2.4vw,1.55rem); line-height:1.52; }
+  .hero-note { max-width:720px; margin:12px 0 0; color:#bfc7d8; line-height:1.62; }
+  .hero-map { display:grid; grid-template-columns:1fr auto; align-items:center; gap:9px 12px; padding:24px; border:1px solid rgba(255,255,255,.14); border-radius:24px; background:rgba(255,255,255,.06); box-shadow:inset 0 1px rgba(255,255,255,.08); backdrop-filter:blur(10px); }
+  .hero-map span { padding:13px 15px; border:1px solid rgba(255,255,255,.14); border-radius:13px; background:rgba(0,0,0,.18); font-weight:800; }
+  .hero-map i { color:#8ea0ff; font-style:normal; }
+  .pursuit-gallery { max-width:1380px; margin:0 auto 58px; padding:0 clamp(14px,3vw,48px); }
+  .section-heading { max-width:790px; margin-bottom:20px; }
+  .section-heading h2, .growth-section h2 { margin:0; color:#141923; font-size:clamp(1.9rem,4vw,3.3rem); letter-spacing:-.05em; }
+  .section-heading > p:last-child, .growth-section p:last-child { margin:9px 0 0; color:#626978; line-height:1.65; }
+  .section-heading .eyebrow, .growth-section .eyebrow { color:#405cf5; }
+  .pursuit-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .pursuit-card { position:relative; overflow:hidden; border:1px solid #e1e6ed; border-radius:27px; background:rgba(255,255,255,.94); box-shadow:0 16px 44px rgba(15,23,42,.09); transition:transform .2s ease,box-shadow .2s ease; }
+  .pursuit-card:hover { transform:translateY(-4px); box-shadow:0 22px 55px rgba(15,23,42,.14); }
+  .card-link { display:block; color:inherit; text-decoration:none; }
+  .card-media { position:relative; height:clamp(260px,36vw,470px); overflow:hidden; background:#171c27; }
+  .card-media video { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.85) contrast(1.03); transition:transform .5s ease; }
+  .pursuit-card:hover video { transform:scale(1.025); }
+  .media-placeholder { display:grid; place-items:center; align-content:center; gap:8px; width:100%; height:100%; color:#fff; }
+  .media-placeholder span { font-size:clamp(4.5rem,10vw,8.5rem); filter:drop-shadow(0 18px 22px rgba(0,0,0,.25)); }
+  .media-placeholder small { padding:6px 9px; border:1px solid rgba(255,255,255,.3); border-radius:999px; background:rgba(0,0,0,.22); font-size:.65rem; font-weight:850; letter-spacing:.12em; text-transform:uppercase; }
+  .pursuit-card--dance .media-placeholder { background:radial-gradient(circle at 70% 25%,#f29acb,transparent 30%),linear-gradient(135deg,#6d184d,#c3428f); }
+  .pursuit-card--running .media-placeholder { background:radial-gradient(circle at 75% 15%,#79d8ad,transparent 32%),linear-gradient(135deg,#14543b,#278a63); }
+  .pursuit-card--languages .media-placeholder { background:radial-gradient(circle at 75% 20%,#91a0ff,transparent 31%),linear-gradient(135deg,#2438a5,#405cf5); }
+  .media-shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(6,9,15,.78)); pointer-events:none; }
+  .card-heading { position:absolute; left:0; right:0; bottom:0; z-index:1; padding:25px; color:#fff; text-shadow:0 3px 20px rgba(0,0,0,.65); }
+  .card-heading p { margin:0 0 4px; font-size:.69rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; opacity:.85; }
+  .card-heading h3 { margin:0; font-size:clamp(2.4rem,6vw,5rem); line-height:.9; letter-spacing:-.06em; }
+  .card-body { min-height:205px; padding:21px 24px 23px; }
+  .card-body > p { margin:0; color:#626978; line-height:1.62; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 19px; }
+  .meta-row span { padding:6px 9px; border:1px solid #e1e6ed; border-radius:999px; background:#f8fafc; color:#58606e; font-size:.68rem; font-weight:750; }
+  .card-body strong { color:#2f46cc; font-size:.8rem; }
+  .sound-toggle { position:absolute; z-index:3; right:16px; top:16px; display:grid; place-items:center; width:43px; height:43px; border:1px solid rgba(255,255,255,.5); border-radius:50%; background:rgba(0,0,0,.52); color:#fff; font-size:1rem; cursor:pointer; backdrop-filter:blur(8px); }
+  .sound-toggle:hover { background:rgba(0,0,0,.7); }
+  .growth-section { display:flex; align-items:center; justify-content:space-between; gap:40px; max-width:1284px; margin:0 auto; padding:30px clamp(22px,4vw,44px); border:1px solid #e0e5ed; border-radius:26px; background:linear-gradient(135deg,rgba(240,242,255,.95),rgba(255,255,255,.94)); box-shadow:0 16px 42px rgba(15,23,42,.07); }
+  .growth-section > div:first-child { max-width:780px; }
+  .growth-path { display:flex; align-items:center; gap:9px; min-width:360px; color:#6c7381; font-size:.72rem; font-weight:800; }
+  .growth-path span { padding:8px 10px; border:1px solid #dfe4ec; border-radius:999px; background:#fff; white-space:nowrap; }
+  .growth-path span.active { background:#405cf5; color:#fff; border-color:#405cf5; }
+  .growth-path i { flex:1; height:2px; background:#d8deea; }
+  @media (max-width:950px) {
+    .hero { grid-template-columns:1fr; min-height:auto; }
+    .hero-map { grid-template-columns:repeat(4,1fr); }
+    .hero-map i { display:none; }
+    .growth-section { display:block; }
+    .growth-path { margin-top:20px; }
+  }
+  @media (max-width:720px) {
+    .hero { margin:0 10px 36px; padding:55px 22px; border-radius:24px; }
+    .hero-map { grid-template-columns:repeat(2,1fr); }
+    .pursuit-grid { grid-template-columns:1fr; }
+    .card-media { height:330px; }
+    .growth-section { margin-inline:10px; }
+    .growth-path { min-width:0; overflow-x:auto; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .pursuit-card, .card-media video { transition:none; }
+    .pursuit-card:hover, .pursuit-card:hover video { transform:none; }
+  }
+</style>

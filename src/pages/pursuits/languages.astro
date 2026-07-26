@@ -1,0 +1,33 @@
+---
+import PursuitStarter from '../../components/PursuitStarter.astro';
+
+const roadmap = [
+  { title: 'English and Spanish foundation', status: 'established', note: 'The two strongest languages form the practical and cultural base for everything that follows.' },
+  { title: 'Portuguese reading and course completion', status: 'established', note: 'Substantial exposure and completed structured study created a durable base.' },
+  { title: 'French reading strength', status: 'developing', note: 'Reading remains stronger than listening and speaking after a long pause in active study.' },
+  { title: 'German active study', status: 'developing', note: 'German is the current structured language, but it competes with the desire to recover French.' },
+  { title: 'Listening and spontaneous speech', status: 'next', note: 'Convert passive recognition into real-time comprehension and usable conversation.' },
+  { title: 'Maintain several languages without dilution', status: 'future', note: 'Develop a sustainable rotation rather than repeatedly replacing one language with another.' },
+] as const;
+
+const chapters = [
+  { title: 'Courses completed', note: 'Portuguese, French, and Italian structured courses can be preserved as phases rather than flattened into a single streak.' },
+  { title: 'The imbalance between skills', note: 'Reading, listening, speaking, writing, vocabulary, and pronunciation do not advance together and should be shown separately.' },
+  { title: 'Languages across ordinary life', note: 'Commutes, dictionary work, deliberate study, conversation, and media exposure can eventually appear as different activity types.' },
+];
+---
+
+<PursuitStarter
+  active="languages"
+  title="Languages"
+  icon="🌍"
+  kicker="Study · Memory · Conversation"
+  description="A record of languages learned unevenly across years: what became readable, what remained difficult to hear, and what could actually be spoken."
+  started="Across multiple years"
+  currentState="German active; French waiting to return"
+  currentFocus="Balance progress with maintenance"
+  nextMilestone="More consistent listening and speaking"
+  roadmap={roadmap}
+  chapters={chapters}
+  archiveNote="A future language feed can combine study dates, minutes, language, activity type, course progress, vocabulary work, and self-assessed skill milestones. It should distinguish genuine practice from a streak number so the page remains honest."
+/>
