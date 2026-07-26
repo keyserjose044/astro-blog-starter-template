@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feature/books-atlas-insights
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
