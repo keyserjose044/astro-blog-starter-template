@@ -36,6 +36,7 @@ const stableHash = (value) => {
 };
 
 const isKnownPlaceholder = (card) => {
+  if (!card) return false;
   const cover = String(card.dataset.cover || card.querySelector('.art-cover')?.getAttribute('src') || '').toLowerCase();
   return cover.includes('art-placeholder.webp');
 };
@@ -82,6 +83,7 @@ function bootArtGalleryMasonry() {
   const visibleCards = () => cards.filter((card) => card.style.display !== 'none');
 
   function markImageMissing(image) {
+    if (!image) return;
     const card = image.closest('.art-card');
     const figure = image.closest('.art-card-figure');
     if (!card || !figure) return;
@@ -90,6 +92,7 @@ function bootArtGalleryMasonry() {
   }
 
   function settleImage(image) {
+    if (!image) return;
     if (isKnownPlaceholder(image.closest('.art-card'))) {
       markImageMissing(image);
       return;
@@ -197,7 +200,7 @@ function bootArtGalleryMasonry() {
     // Each card is then assigned once to the shortest estimated column and never
     // moves to another column merely because its image finished loading.
     shown.forEach((card, index) => {
-      let targetColumn = index < columnCount
+      const targetColumn = index < columnCount
         ? index
         : columnHeights.indexOf(Math.min(...columnHeights));
       columns[targetColumn].append(card);
