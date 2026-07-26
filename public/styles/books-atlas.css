@@ -1,0 +1,748 @@
+/* Books cultural atlas and timeline — July 2026 */
+
+:root {
+  --atlas-accent: #405cf5;
+  --atlas-accent-dark: #263ebd;
+  --atlas-accent-soft: #eef1ff;
+  --atlas-ink: #0e121b;
+  --atlas-muted: #626a78;
+  --atlas-border: #e2e6ee;
+  --atlas-panel: rgba(255, 255, 255, 0.94);
+  --atlas-panel-solid: #ffffff;
+  --atlas-land: #d9dde5;
+  --atlas-ocean: #eef5ff;
+  --atlas-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+}
+
+.books-atlas-button-icon {
+  font-size: 0.98rem;
+  line-height: 1;
+}
+
+.books-explorer[hidden] {
+  display: none !important;
+}
+
+.books-explorer {
+  width: 100%;
+  padding-inline: clamp(12px, 3vw, 48px);
+  animation: booksAtlasReveal 220ms ease-out;
+}
+
+@keyframes booksAtlasReveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.books-explorer-shell {
+  width: min(1600px, 100%);
+  margin-inline: auto;
+  padding: clamp(14px, 2vw, 24px);
+  border: 1px solid rgba(226, 230, 238, 0.98);
+  border-radius: 24px;
+  background: var(--atlas-panel);
+  box-shadow: var(--atlas-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.books-explorer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.books-explorer-heading-copy {
+  min-width: 0;
+}
+
+.books-explorer-eyebrow {
+  margin: 0 0 4px;
+  color: var(--atlas-accent-dark);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.books-explorer-title {
+  margin: 0;
+  color: var(--atlas-ink);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.books-explorer-description {
+  max-width: 72ch;
+  margin: 6px 0 0;
+  color: var(--atlas-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.books-explorer-close {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 999px;
+  background: var(--atlas-panel-solid);
+  color: var(--atlas-muted);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.books-explorer-close:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 92, 245, 0.42);
+  color: var(--atlas-accent-dark);
+}
+
+.books-explorer-close:focus-visible,
+.books-explorer button:focus-visible,
+.books-explorer select:focus-visible {
+  outline: 2px solid var(--atlas-accent);
+  outline-offset: 2px;
+}
+
+.books-atlas-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.books-atlas-metric {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.books-atlas-metric-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--atlas-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.books-atlas-metric-value {
+  display: block;
+  overflow: hidden;
+  color: var(--atlas-ink);
+  font-size: clamp(1.05rem, 2vw, 1.42rem);
+  font-weight: 800;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-atlas-metric-note {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--atlas-muted);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(270px, 0.65fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.books-map-stage {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--atlas-border);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.84), transparent 26%),
+    var(--atlas-ocean);
+}
+
+.books-map-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 20%, transparent 78%, rgba(64, 92, 245, 0.035));
+}
+
+.books-map-status {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  padding: 28px;
+  color: var(--atlas-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.books-map-status strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--atlas-ink);
+}
+
+.books-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.books-map-ocean {
+  fill: transparent;
+}
+
+.books-map-country {
+  fill: var(--atlas-land);
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 0.75;
+  vector-effect: non-scaling-stroke;
+  transition: fill 160ms ease, opacity 160ms ease, stroke 160ms ease, stroke-width 160ms ease;
+}
+
+.books-map-country[data-level="1"] { fill: #ccd5ff; }
+.books-map-country[data-level="2"] { fill: #aebcff; }
+.books-map-country[data-level="3"] { fill: #879bff; }
+.books-map-country[data-level="4"] { fill: #647cf8; }
+.books-map-country[data-level="5"] { fill: var(--atlas-accent); }
+
+.books-map-country[data-has-books="true"] {
+  cursor: pointer;
+}
+
+.books-map-country[data-has-books="true"]:hover,
+.books-map-country[data-has-books="true"]:focus-visible {
+  stroke: #17235f;
+  stroke-width: 1.5;
+  outline: none;
+}
+
+.books-map-country[data-selected="true"] {
+  fill: #15298f;
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.books-map-tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 138px;
+  max-width: 230px;
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  background: rgba(13, 18, 31, 0.94);
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.24);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  pointer-events: none;
+  transform: translate(12px, 12px);
+}
+
+.books-map-tooltip[hidden] {
+  display: none;
+}
+
+.books-map-tooltip strong,
+.books-map-tooltip span {
+  display: block;
+}
+
+.books-map-tooltip span {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.72rem;
+}
+
+.books-map-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 12px;
+  color: var(--atlas-muted);
+  font-size: 0.74rem;
+}
+
+.books-map-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.books-map-legend-swatch {
+  width: 20px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.books-map-legend-swatch:nth-of-type(1) { background: #ccd5ff; }
+.books-map-legend-swatch:nth-of-type(2) { background: #aebcff; }
+.books-map-legend-swatch:nth-of-type(3) { background: #879bff; }
+.books-map-legend-swatch:nth-of-type(4) { background: #647cf8; }
+.books-map-legend-swatch:nth-of-type(5) { background: var(--atlas-accent); }
+
+.books-country-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 15px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.books-country-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.books-country-panel-title {
+  margin: 0;
+  color: var(--atlas-ink);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.books-country-panel-subtitle {
+  margin: 4px 0 0;
+  color: var(--atlas-muted);
+  font-size: 0.76rem;
+}
+
+.books-country-clear {
+  border: 1px solid var(--atlas-border);
+  border-radius: 999px;
+  background: var(--atlas-panel-solid);
+  color: var(--atlas-accent-dark);
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.books-country-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.books-country-rank-button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  width: 100%;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--atlas-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.books-country-rank-button:hover,
+.books-country-rank-button[aria-pressed="true"] {
+  background: var(--atlas-accent-soft);
+}
+
+.books-country-rank-name {
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-country-rank-count {
+  color: var(--atlas-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.books-country-rank-track {
+  grid-column: 1 / -1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7eaf1;
+}
+
+.books-country-rank-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--atlas-accent);
+}
+
+.books-country-books {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--atlas-border);
+}
+
+.books-country-book {
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.books-country-book img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border: 1px solid var(--atlas-border);
+  border-radius: 7px;
+  background: #eef0f5;
+}
+
+.books-country-book span {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--atlas-muted);
+  font-size: 0.67rem;
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.books-country-empty {
+  margin: auto 0;
+  padding: 28px 12px;
+  color: var(--atlas-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.books-atlas-note {
+  margin: 12px 2px 0;
+  color: var(--atlas-muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.books-timeline-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.books-timeline-mode {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.books-timeline-mode button {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--atlas-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.books-timeline-mode button[aria-pressed="true"] {
+  background: var(--atlas-accent);
+  color: #ffffff;
+  box-shadow: 0 5px 12px rgba(64, 92, 245, 0.2);
+}
+
+.books-timeline-help {
+  margin: 0;
+  color: var(--atlas-muted);
+  font-size: 0.76rem;
+  text-align: right;
+}
+
+.books-timeline-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 2px 14px;
+  scrollbar-color: rgba(64, 92, 245, 0.35) transparent;
+  scrollbar-width: thin;
+}
+
+.books-timeline-track {
+  position: relative;
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  align-items: stretch;
+  gap: 0;
+  padding: 22px 6px 8px;
+}
+
+.books-timeline-track::before {
+  content: "";
+  position: absolute;
+  top: 42px;
+  right: 6px;
+  left: 6px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(64, 92, 245, 0.22), rgba(64, 92, 245, 0.8));
+}
+
+.books-timeline-stop {
+  position: relative;
+  width: 176px;
+  flex: 0 0 176px;
+  padding: 38px 8px 0;
+}
+
+.books-timeline-stop::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--atlas-panel-solid);
+  border-radius: 999px;
+  background: var(--atlas-accent);
+  box-shadow: 0 0 0 2px rgba(64, 92, 245, 0.2);
+  transform: translateX(-50%);
+}
+
+.books-timeline-stop-button {
+  display: flex;
+  width: 100%;
+  min-height: 224px;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.books-timeline-stop-button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(64, 92, 245, 0.36);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.09);
+}
+
+.books-timeline-period {
+  color: var(--atlas-ink);
+  font-size: 0.89rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.books-timeline-count {
+  margin-top: 3px;
+  color: var(--atlas-accent-dark);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.books-timeline-covers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.books-timeline-covers img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 5px;
+  background: #eef0f5;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.11);
+}
+
+.books-timeline-bar {
+  display: flex;
+  height: 38px;
+  align-items: flex-end;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.books-timeline-bar span {
+  flex: 1;
+  min-height: 3px;
+  border-radius: 3px 3px 1px 1px;
+  background: rgba(64, 92, 245, 0.38);
+}
+
+.books-timeline-bar span[data-peak="true"] {
+  background: var(--atlas-accent);
+}
+
+.books-timeline-caption {
+  margin-top: 8px;
+  color: var(--atlas-muted);
+  font-size: 0.69rem;
+  line-height: 1.3;
+}
+
+.books-timeline-empty {
+  padding: 48px 18px;
+  border: 1px dashed var(--atlas-border);
+  border-radius: 18px;
+  color: var(--atlas-muted);
+  text-align: center;
+}
+
+.atlas-country-hidden {
+  display: none !important;
+}
+
+body.books-explorer-open #filter-empty {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .books-atlas-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .books-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .books-country-panel {
+    min-height: 0;
+  }
+
+  .books-country-ranking {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .books-country-books {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .books-explorer {
+    padding-inline: 8px;
+  }
+
+  .books-explorer-shell {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .books-explorer-heading {
+    gap: 10px;
+  }
+
+  .books-explorer-description {
+    font-size: 0.8rem;
+  }
+
+  .books-atlas-metrics {
+    gap: 7px;
+  }
+
+  .books-atlas-metric {
+    padding: 10px;
+    border-radius: 13px;
+  }
+
+  .books-atlas-metric-value {
+    font-size: 1rem;
+  }
+
+  .books-map-stage {
+    border-radius: 15px;
+  }
+
+  .books-map-svg {
+    aspect-ratio: 1.45 / 1;
+  }
+
+  .books-map-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .books-country-ranking {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .books-country-books {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .books-timeline-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .books-timeline-mode {
+    align-self: flex-start;
+  }
+
+  .books-timeline-help {
+    text-align: left;
+  }
+
+  .books-timeline-stop {
+    width: 152px;
+    flex-basis: 152px;
+    padding-inline: 5px;
+  }
+
+  .books-timeline-stop-button {
+    min-height: 208px;
+    padding: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .books-explorer,
+  .books-map-country,
+  .books-explorer button,
+  .books-timeline-stop-button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
