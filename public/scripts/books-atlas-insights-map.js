@@ -1,4 +1,4 @@
-import { formatNumber, parseFinishedDate, visibleCards, cardGenre, distinctCount } from './books-atlas-insights-utils.js';
+import { escapeHtml, formatNumber, parseFinishedDate, visibleCards, cardGenre, distinctCount } from './books-atlas-insights-utils.js';
 
 export function installMapInsights({ cards, mapView, mapMetrics, countryPanel, mapNote }) {
   const state = { signature: '', busy: false };
@@ -35,7 +35,7 @@ export function installMapInsights({ cards, mapView, mapMetrics, countryPanel, m
     const formatYear = (year) => year < 0 ? `${Math.abs(year)} BCE` : year;
     const box = document.createElement('div');
     box.className = 'books-country-insights'; box.dataset.countryInsights = '';
-    box.innerHTML = `<div><span>Authors</span><strong>${formatNumber(distinctCount(selected, (card) => String(card.dataset.author || '').trim()))}</strong></div><div><span>Top genre</span><strong>${topGenre}</strong></div>
+    box.innerHTML = `<div><span>Authors</span><strong>${formatNumber(distinctCount(selected, (card) => String(card.dataset.author || '').trim()))}</strong></div><div><span>Top genre</span><strong>${escapeHtml(topGenre)}</strong></div>
       <div><span>Works span</span><strong>${years.length ? `${formatYear(years[0])}–${formatYear(years.at(-1))}` : '—'}</strong></div><div><span>First logged</span><strong>${dates.length ? dates[0].toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—'}</strong></div>`;
     countryPanel.querySelector('.books-country-panel-header')?.after(box);
   }
