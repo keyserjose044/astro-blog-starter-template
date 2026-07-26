@@ -10,6 +10,9 @@
   gap: 16px;
 }
 
+/* The original CSS-column layout must never flash before the stability
+   controller has assigned the cards to fixed columns. */
+.art-grid[data-art-view='gallery']:not(.art-gallery-ready),
 .art-grid[data-art-view='gallery'].art-gallery-pending {
   min-height: 58vh;
   opacity: 0;
