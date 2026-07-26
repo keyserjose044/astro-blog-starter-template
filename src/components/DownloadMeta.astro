@@ -5,25 +5,23 @@ interface Props {
   updated: string;
   text?: string;
 
-  /** Optional secondary action shown beside the download button */
-  secondaryHref?: string;
-  secondaryText?: string;
-
   /** Preferred: explicit counter key, e.g. "template/2026-raw-data-template" */
   downloadKey?: string;
 
+  /** Historical downloads to add to the live counter */
+  countOffset?: number;
+
   /** Optional fallbacks if you don't provide downloadKey */
-  type?: string;   // e.g. "template" or "pdf"
-  slug?: string;   // e.g. "2026-raw-data-template"
+  type?: string;
+  slug?: string;
 }
 
 const {
   href,
   updated,
   text = "Download",
-  secondaryHref,
-  secondaryText = "Read guide",
   downloadKey,
+  countOffset = 0,
   type,
   slug,
 } = Astro.props as Props;
@@ -32,15 +30,13 @@ if (!href || !updated) {
   throw new Error("DownloadMeta.astro requires href and updated");
 }
 
-/** ---------- Helpers ---------- */
-const SITE_ORIGIN = "https://lifeloggerz.com"; // same origin as your Worker routes
+const SITE_ORIGIN = "https://lifeloggerz.com";
 
 function toAbsolute(url: string): string {
   try { return new URL(url, SITE_ORIGIN).toString(); }
   catch { return SITE_ORIGIN; }
 }
 
-/** Try to parse a /d/<type>/<slug> style href and return "type/slug" */
 function parseCounterKeyFromDHref(url: string): string | null {
   try {
     const u = new URL(url, SITE_ORIGIN);
@@ -50,37 +46,27 @@ function parseCounterKeyFromDHref(url: string): string | null {
   } catch { return null; }
 }
 
-/** Fallback inference from props or filename */
 function deriveKeyFromPropsOrFilename(url: string): string {
   if (type && slug) return `${type}/${slug}`;
 
-  // last segment (no query/hash)
   const u = new URL(url, SITE_ORIGIN);
   const last = (u.pathname.split("/").pop() || "").toLowerCase();
-
-  // slug = filename without extension
   const inferredSlug = last.replace(/\.[^.]+$/, "") || "file";
-  // type = extension or "file"
   const inferredType = (last.split(".").pop() || "file").toLowerCase();
 
   return `${inferredType}/${inferredSlug}`;
 }
 
-/** ---------- Build counter key ---------- */
 const counterKey =
   downloadKey ||
   parseCounterKeyFromDHref(href) ||
   deriveKeyFromPropsOrFilename(href);
 
-/** ---------- Build redirect URL through Worker ---------- */
-const finalUrl = toAbsolute(href); // where user ultimately lands
+const finalUrl = toAbsolute(href);
 const [keyType, keySlug] = counterKey.split("/", 2);
 const dlHref = `/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
-
-/** ---------- Count endpoint for the UI ---------- */
 const countUrl = `/count/downloads?key=${encodeURIComponent(counterKey)}`;
 
-/** Only add the download attribute for same-origin direct files */
 const isSameOrigin = finalUrl.startsWith(SITE_ORIGIN);
 const looksLikeFile =
   /\.(pdf|docx?|xlsx?|pptx?|zip|png|jpe?g|gif|csv|txt|mp3|mp4|webm|wav)$/i.test(finalUrl);
@@ -93,22 +79,17 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
   <span class="meta-sep"> | </span>
   <span id={countId}>— Downloads</span>
 
-  <!-- Fetch count -->
   <script
     src="/downloadcount.js"
     defer
     data-el={countId}
     data-key={counterKey}
     data-url={countUrl}
+    data-offset={String(countOffset)}
   ></script>
 </div>
 
 <div class="actions">
-  {secondaryHref && (
-    <a class="btn btn--secondary" href={secondaryHref}>
-      {secondaryText}
-    </a>
-  )}
   <a class="btn" href={dlHref} {...(addDownloadAttr ? { download: "" } : {})}>
     {text}
   </a>
@@ -116,63 +97,57 @@ const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
 
 <style>
   .download-meta {
-    font-size: 0.9rem;
-    color: #6b7280;
     display: inline-flex;
     align-items: baseline;
     justify-content: center;
     gap: 0.4rem;
     flex-wrap: wrap;
+    color: #6b7280;
+    font-size: 0.86rem;
     text-align: center;
   }
+
   .download-meta .meta-sep { opacity: 0.6; }
 
   .actions {
-    margin-top: 0.7rem;
     display: flex;
+    width: 100%;
+    margin-top: 0.65rem;
     justify-content: center;
-    gap: 0.55rem;
-    flex-wrap: wrap;
+    align-items: center;
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 0.6rem 1.2rem;
-    border-radius: 9999px;
-    font-weight: 700;
+    min-height: 40px;
+    padding: 0.48rem 1rem;
     border: 1px solid var(--accent, #405cf5);
-    text-decoration: none;
+    border-radius: 9999px;
     background: var(--accent, #405cf5);
     color: white;
-    box-shadow: 0 6px 20px var(--ring, rgba(64,92,245,0.25));
-    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
-    max-inline-size: 100%;
+    box-shadow: 0 5px 16px var(--ring, rgba(64,92,245,0.22));
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
+
   .btn:hover {
     transform: translateY(-1px);
     color: white;
-    box-shadow: 0 9px 24px var(--ring, rgba(64,92,245,0.25));
+    box-shadow: 0 8px 20px var(--ring, rgba(64,92,245,0.24));
   }
+
   .btn:focus-visible {
     outline: 3px solid var(--ring, rgba(64,92,245,0.25));
     outline-offset: 3px;
   }
-  .btn--secondary {
-    background: white;
-    color: var(--accent, #405cf5);
-    box-shadow: none;
-  }
-  .btn--secondary:hover {
-    background: #eef1ff;
-    color: var(--accent, #405cf5);
-    box-shadow: none;
-  }
 
   @media (max-width: 420px) {
-    .actions { display: grid; grid-template-columns: 1fr; width: 100%; }
-    .btn { width: 100%; }
+    .actions { justify-content: center; }
+    .btn { width: auto; max-width: calc(100% - 1rem); }
   }
 </style>
