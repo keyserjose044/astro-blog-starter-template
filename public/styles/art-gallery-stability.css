@@ -1,0 +1,59 @@
+/* Stable, natural-proportion Art gallery.
+   Fixed column containers stop CSS multi-column balancing from moving works
+   between columns as lazy-loaded images reveal their intrinsic heights. */
+
+.art-grid[data-art-view='gallery'] {
+  display: flex;
+  columns: initial !important;
+  column-gap: 0 !important;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+/* The original CSS-column layout must never flash before the stability
+   controller has assigned the cards to fixed columns. */
+.art-grid[data-art-view='gallery']:not(.art-gallery-ready),
+.art-grid[data-art-view='gallery'].art-gallery-pending {
+  min-height: 58vh;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.art-grid[data-art-view='gallery'].art-gallery-ready {
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.art-masonry-column {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.art-grid[data-art-view='gallery'] .art-card {
+  display: block !important;
+  width: 100%;
+  margin: 0 !important;
+  break-inside: auto;
+}
+
+/* The existing List grid keeps working even before the stability controller
+   has a chance to flatten or rebuild the Gallery columns. */
+.art-grid[data-art-view='list'] > .art-masonry-column {
+  display: contents;
+}
+
+@media (max-width: 900px) {
+  .art-grid[data-art-view='gallery'],
+  .art-masonry-column {
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art-grid[data-art-view='gallery'].art-gallery-ready {
+    transition: none;
+  }
+}
