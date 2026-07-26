@@ -1,4 +1,4 @@
-const BOOKS_INSIGHTS_VERSION = '20260726-1220';
+const BOOKS_INSIGHTS_VERSION = '20260726-1235';
 
 let modulesPromise;
 
