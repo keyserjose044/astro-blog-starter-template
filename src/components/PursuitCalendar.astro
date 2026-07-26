@@ -94,7 +94,7 @@ const dataUrl = `${base}data/pursuits.json`;
       const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
       const previousMonthDays = new Date(viewYear, viewMonth, 0).getDate();
       const startOffset = monthStart.getDay();
-      const cells = 42;
+      const cells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
       const monthEvents = events.filter((event) => {
         const date = safeDate(event.date);
         return date && date.getFullYear() === viewYear && date.getMonth() === viewMonth;
