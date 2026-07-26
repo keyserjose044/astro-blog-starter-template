@@ -1,7 +1,18 @@
-import { installTimelineInsights } from './books-atlas-insights-timeline.js';
-import { installMapInsights } from './books-atlas-insights-map.js';
+const BOOKS_INSIGHTS_VERSION = '20260726-1220';
 
-function boot() {
+let modulesPromise;
+
+function loadInsightModules() {
+  if (!modulesPromise) {
+    modulesPromise = Promise.all([
+      import(`./books-atlas-insights-timeline.js?v=${BOOKS_INSIGHTS_VERSION}`),
+      import(`./books-atlas-insights-map.js?v=${BOOKS_INSIGHTS_VERSION}`),
+    ]);
+  }
+  return modulesPromise;
+}
+
+async function boot() {
   const grid = document.querySelector('#grid');
   const timelineContent = document.querySelector('#books-timeline-content');
   const timelineView = document.querySelector('#books-timeline-view');
@@ -9,13 +20,20 @@ function boot() {
   const mapMetrics = document.querySelector('#books-map-metrics');
   const countryPanel = document.querySelector('#books-country-panel');
   const mapNote = document.querySelector('#books-map-note');
+
   if (!grid || !timelineContent || !timelineView || !mapView || !mapMetrics || !countryPanel || !mapNote) {
     setTimeout(boot, 80);
     return;
   }
-  const cards = Array.from(grid.querySelectorAll('.card'));
-  installTimelineInsights({ cards, timelineContent, timelineView });
-  installMapInsights({ cards, mapView, mapMetrics, countryPanel, mapNote });
+
+  try {
+    const [{ installTimelineInsights }, { installMapInsights }] = await loadInsightModules();
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    installTimelineInsights({ cards, timelineContent, timelineView });
+    installMapInsights({ cards, mapView, mapMetrics, countryPanel, mapNote });
+  } catch (error) {
+    console.error('Books atlas insight modules could not load.', error);
+  }
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
