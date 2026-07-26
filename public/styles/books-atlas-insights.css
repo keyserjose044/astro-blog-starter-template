@@ -1,0 +1,457 @@
+/* Books atlas analytical enhancements — July 2026 */
+
+:root {
+  --insight-1: #405cf5;
+  --insight-2: #7c5ce7;
+  --insight-3: #0f9f9a;
+  --insight-4: #e58a3a;
+  --insight-5: #d5578a;
+  --insight-6: #98a1b3;
+}
+
+.books-insight-series-0 { background: var(--insight-1); }
+.books-insight-series-1 { background: var(--insight-2); }
+.books-insight-series-2 { background: var(--insight-3); }
+.books-insight-series-3 { background: var(--insight-4); }
+.books-insight-series-4 { background: var(--insight-5); }
+.books-insight-series-5 { background: var(--insight-6); }
+
+.books-timeline-insights,
+.books-atlas-growth {
+  margin-bottom: 22px;
+  padding: clamp(14px, 2vw, 20px);
+  border: 1px solid var(--atlas-border);
+  border-radius: 20px;
+  background: rgba(248, 250, 255, 0.76);
+}
+
+.books-insight-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.books-insight-section-heading--compact { margin-bottom: 10px; }
+
+.books-insight-section-heading h3,
+.books-atlas-growth-copy h3,
+.books-snapshot-heading h3 {
+  margin: 0;
+  color: var(--atlas-ink);
+  font-size: 1.04rem;
+  line-height: 1.25;
+}
+
+.books-insight-section-heading p:not(.books-insight-kicker),
+.books-atlas-growth-copy p:not(.books-insight-kicker) {
+  max-width: 68ch;
+  margin: 5px 0 0;
+  color: var(--atlas-muted);
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+
+.books-insight-kicker {
+  margin: 0 0 3px;
+  color: var(--atlas-accent-dark);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.books-insight-select-label {
+  display: flex;
+  min-width: 155px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--atlas-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.books-insight-select-label select {
+  width: 100%;
+  padding: 8px 28px 8px 10px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--atlas-ink);
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.books-insight-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 13px 0 6px;
+  overflow-x: auto;
+  color: var(--atlas-muted);
+  font-size: 0.69rem;
+  scrollbar-width: thin;
+}
+
+.books-insight-legend span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+}
+
+.books-insight-legend i,
+.books-age-profile-legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+}
+
+.books-insight-chart {
+  display: grid;
+  width: 100%;
+  min-height: 226px;
+  align-items: end;
+  gap: clamp(7px, 1.3vw, 16px);
+  padding: 16px 4px 2px;
+  border-bottom: 1px solid rgba(64, 92, 245, 0.18);
+}
+
+.books-insight-chart--years { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); }
+.books-insight-chart--eras { grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); }
+.books-insight-chart--months {
+  min-height: 190px;
+  grid-template-columns: repeat(12, minmax(38px, 1fr));
+  gap: clamp(4px, 0.8vw, 10px);
+}
+
+.books-insight-chart-column {
+  display: grid;
+  min-width: 0;
+  height: 210px;
+  grid-template-rows: 22px minmax(20px, 1fr) 28px;
+  align-items: end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.books-insight-chart--months .books-insight-chart-column { height: 174px; }
+.books-insight-chart-column:disabled { cursor: default; }
+
+.books-insight-chart-value {
+  display: block;
+  align-self: center;
+  color: var(--atlas-muted);
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.books-insight-chart-bar {
+  display: flex;
+  width: min(54px, 72%);
+  min-height: 6px;
+  max-height: 154px;
+  flex-direction: column-reverse;
+  align-self: end;
+  justify-self: center;
+  overflow: hidden;
+  border-radius: 8px 8px 3px 3px;
+  background: rgba(64, 92, 245, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(64, 92, 245, 0.08);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.books-insight-chart--months .books-insight-chart-bar {
+  width: min(36px, 74%);
+  max-height: 122px;
+  border-radius: 6px 6px 2px 2px;
+}
+
+.books-insight-chart-column:not(:disabled):hover .books-insight-chart-bar,
+.books-insight-chart-column:not(:disabled):focus-visible .books-insight-chart-bar {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(39, 57, 151, 0.16);
+}
+
+.books-insight-stack-segment {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.books-insight-chart-label {
+  display: block;
+  align-self: start;
+  overflow: hidden;
+  padding-top: 7px;
+  color: var(--atlas-ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-reading-pulse,
+.books-publication-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.books-reading-pulse > div,
+.books-publication-summary > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(226, 230, 238, 0.9);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.books-reading-pulse span,
+.books-publication-summary span,
+.books-country-insights span {
+  display: block;
+  color: var(--atlas-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.books-reading-pulse strong,
+.books-publication-summary strong,
+.books-country-insights strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--atlas-ink);
+  font-size: 0.9rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-reading-pulse small {
+  display: block;
+  margin-top: 2px;
+  color: var(--atlas-muted);
+  font-size: 0.63rem;
+}
+
+.books-month-panel,
+.books-age-profile-panel {
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid var(--atlas-border);
+}
+
+.books-age-profile-track {
+  display: flex;
+  width: 100%;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8ebf2;
+}
+
+.books-age-profile-track span {
+  min-width: 2px;
+  height: 100%;
+  border-right: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.books-age-profile-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 10px;
+  color: var(--atlas-muted);
+  font-size: 0.68rem;
+}
+
+.books-age-profile-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.books-age-profile-legend strong { color: var(--atlas-ink); }
+
+.books-snapshot-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 2px 10px;
+}
+
+.books-snapshot-heading span {
+  color: var(--atlas-muted);
+  font-size: 0.7rem;
+}
+
+.books-timeline-viewport--snapshots {
+  overflow: visible;
+  padding: 0;
+}
+
+.books-timeline-viewport--snapshots .books-timeline-track {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(154px, 1fr));
+  gap: 10px;
+  padding: 0;
+}
+
+.books-timeline-viewport--snapshots .books-timeline-track::before,
+.books-timeline-viewport--snapshots .books-timeline-stop::before { display: none; }
+
+.books-timeline-viewport--snapshots .books-timeline-stop {
+  width: auto;
+  min-width: 0;
+  padding: 0;
+}
+
+.books-timeline-viewport--snapshots .books-timeline-stop-button { min-height: 210px; }
+
+.books-atlas-growth {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.55fr) minmax(0, 1.45fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.books-atlas-growth-chart {
+  display: grid;
+  min-height: 128px;
+  grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
+  align-items: end;
+  gap: 10px;
+  padding: 3px 4px 0;
+  border-bottom: 1px solid rgba(64, 92, 245, 0.18);
+}
+
+.books-atlas-growth-year {
+  display: grid;
+  height: 118px;
+  grid-template-rows: 20px minmax(20px, 1fr) 18px 17px;
+  align-items: end;
+  justify-items: center;
+}
+
+.books-atlas-growth-year > strong {
+  color: var(--atlas-ink);
+  font-size: 0.76rem;
+}
+
+.books-atlas-growth-bar {
+  display: block;
+  width: min(38px, 62%);
+  max-height: 68px;
+  border-radius: 7px 7px 2px 2px;
+  background: linear-gradient(180deg, #6f83fb, var(--atlas-accent));
+}
+
+.books-atlas-growth-year b {
+  color: var(--atlas-ink);
+  font-size: 0.69rem;
+}
+
+.books-atlas-growth-year small {
+  color: var(--atlas-muted);
+  font-size: 0.61rem;
+}
+
+.books-country-insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 12px;
+}
+
+.books-country-insights > div {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 11px;
+  background: rgba(248, 250, 255, 0.88);
+}
+
+.books-country-insights strong { font-size: 0.76rem; }
+
+@media (max-width: 900px) {
+  .books-atlas-growth {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .books-insight-chart--years,
+  .books-insight-chart--eras {
+    overflow-x: auto;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(82px, 1fr);
+    grid-template-columns: none;
+    scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 700px) {
+  .books-timeline-insights,
+  .books-atlas-growth {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .books-insight-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .books-insight-select-label { width: 100%; }
+  .books-insight-chart { min-height: 202px; }
+
+  .books-insight-chart--months {
+    overflow-x: auto;
+    grid-auto-flow: column;
+    grid-auto-columns: 48px;
+    grid-template-columns: none;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+  }
+
+  .books-insight-chart-column { height: 188px; }
+  .books-reading-pulse,
+  .books-publication-summary { grid-template-columns: minmax(0, 1fr); }
+
+  .books-snapshot-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .books-timeline-viewport--snapshots .books-timeline-track { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .books-timeline-viewport--snapshots .books-timeline-stop-button { min-height: 194px; }
+}
+
+@media (max-width: 430px) {
+  .books-timeline-viewport--snapshots .books-timeline-track { grid-template-columns: minmax(0, 1fr); }
+  .books-country-insights { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .books-insight-chart-bar { transition: none; }
+}
