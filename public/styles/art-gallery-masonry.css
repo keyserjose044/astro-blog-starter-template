@@ -74,6 +74,53 @@
   transform: scale(1.012);
 }
 
+/* A failed or known-placeholder cover becomes a deliberate catalog card rather
+   than a giant broken-image icon or raw alt text. These cards are ranked after
+   image-ready works on the next Gallery build but remain accessible in List. */
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-missing {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(64, 92, 245, .12), transparent 34%),
+    linear-gradient(145deg, rgba(248, 249, 253, .98), rgba(235, 238, 246, .98));
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-missing::before {
+  content: 'Artwork image pending';
+  margin: auto;
+  color: #7b8495;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-missing .art-cover {
+  display: none;
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-missing .art-gallery-caption {
+  position: static;
+  inset: auto;
+  padding: 10px 0 0;
+  transform: none;
+  background: transparent;
+  color: #273044;
+  opacity: 1;
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-missing .art-gallery-caption strong {
+  font-size: .82rem;
+}
+
+.art-grid[data-art-view='gallery'] .art-card-figure.art-image-missing .art-gallery-caption span {
+  color: #70798a;
+}
+
 /* Column wrappers do not interfere with the existing sortable List layout. */
 .art-grid[data-art-view='list'] > .art-masonry-column {
   display: contents;
