@@ -22,7 +22,12 @@ const topValue = (cards, field) => {
 };
 
 const yearRange = (cards) => {
-  const years = cards.map((card) => Number(card.dataset.artworkSort)).filter(Number.isFinite).sort((a, b) => a - b);
+  const years = cards
+    .map((card) => card.dataset.artworkSort)
+    .filter((value) => value !== '' && value != null)
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
   if (!years.length) return '';
   const format = (year) => year < 0 ? `${Math.abs(year)} BCE` : String(year);
   return years[0] === years.at(-1) ? format(years[0]) : `${format(years[0])}–${format(years.at(-1))}`;
