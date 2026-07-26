@@ -1,0 +1,16 @@
+/* Final Books World and Timeline cleanup — July 2026 */
+
+/* The timeline cards remain chronological stops, but their miniature bar charts duplicate the new composition and calendar views. */
+.books-timeline-bar {
+  display: none !important;
+}
+
+.books-timeline-stop-button {
+  min-height: 186px;
+}
+
+@media (max-width: 700px) {
+  .books-timeline-stop-button {
+    min-height: 174px;
+  }
+}
