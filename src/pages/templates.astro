@@ -27,19 +27,18 @@ const templates: Item[] = [
   {
     title: '2026 Raw Data Template (Google Sheets)',
     description: 'My 2026 life-tracking template: cleaner visuals, smarter formulas, and script-ready.',
-    href: 'https://docs.google.com/spreadsheets/d/1bSoK1QHIGkvxMBjmG478fghTF-sZX2KH99Wd-KS7WVI/edit?gid=1660968934#gid=1660968934',
+    href: 'https://docs.google.com/spreadsheets/d/1bSoK1QHIGkvxMBjmG478fghTF-sZX2KH99Wd-KS7WVI/copy',
     filetype: 'Google Sheet',
     updated: 'Oct 2025',
     imageSrc: `${base}images/2026cleanrawdatatemplate.png`,
     imageAlt: '2026 Raw Data Template preview',
     imageOrientation: 'landscape',
     postUrl: `${base}blog/2026interactivegstemplate/`,
-    // 👇 ensures UI reads the same key the Worker writes
     downloadKey: 'template/2026-raw-data-template',
   },
 
 /*
-  // 👉 New StudyTimer card
+  // New StudyTimer card
   {
     title: 'StudyTimer (Windows)',
     description:
@@ -47,10 +46,10 @@ const templates: Item[] = [
     href: 'https://drive.google.com/uc?export=download&id=1NQiGppbn5UM5vrc66gBMaUwQPAlk5Nk9',
     filetype: 'App',
     updated: 'Nov 2025',
-    imageSrc: `${base}images/studytimer.png`,  // ✅ add your hero image here
+    imageSrc: `${base}images/studytimer.png`,
     imageAlt: 'StudyTimer app preview',
-    imageOrientation: 'landscape',             // or 'portrait' depending on your image shape
-    postUrl: `${base}blog/studytimer/`,        // optional — if you plan a dedicated post later
+    imageOrientation: 'landscape',
+    postUrl: `${base}blog/studytimer/`,
   },
 */
 
@@ -84,7 +83,7 @@ const templates: Item[] = [
   <head>
     <BaseHead
       title="Templates • Downloads"
-      description="Download LifeLoggerz templates and tools."
+      description="Download LifeLoggerz templates and read the guides explaining how each one is used."
     />
     <style>
       :root {
@@ -97,19 +96,18 @@ const templates: Item[] = [
         --border: #e5e7eb;
       }
 
-      /* ===== Scoped hardening just for this page ===== */
       .templates-page,
       .templates-page * { box-sizing: border-box; }
 
       .templates-page {
         display: block;
         inline-size: 100%;
-        max-inline-size: 1080px;
+        max-inline-size: 1120px;
         margin-inline: auto;
         padding: 2rem 1rem 4rem;
         text-align: center;
-        overflow-x: hidden;   /* kill horizontal drift */
-        contain: layout;      /* isolate from global main{} rules */
+        overflow-x: hidden;
+        contain: layout;
       }
 
       .templates-page section,
@@ -130,23 +128,24 @@ const templates: Item[] = [
 
       .page-title {
         margin: 1.5rem 0 0.5rem;
-        font-size: clamp(1.6rem, 2.5vw, 2rem);
+        font-size: clamp(1.75rem, 3vw, 2.35rem);
         font-weight: 800;
         overflow-wrap: anywhere;
       }
 
       .subtitle {
+        max-width: 760px;
         color: var(--muted);
-        margin-bottom: 2rem;
+        margin: 0 auto 2rem;
         font-size: 1.05rem;
+        line-height: 1.6;
         overflow-wrap: anywhere;
       }
 
-      /* ✅ Responsive grid: no spans, no phantom columns */
       .grid {
         display: grid;
         gap: 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
         justify-items: stretch;
         align-items: stretch;
         margin-inline: auto;
@@ -156,50 +155,108 @@ const templates: Item[] = [
       .card {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 16px;
+        border-radius: 18px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        inline-size: 100%;   /* fill grid track */
-        min-width: 0;        /* allow shrink */
+        inline-size: 100%;
+        min-width: 0;
         text-align: left;
-        contain: content;    /* child overflow can’t expand grid */
+        contain: content;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       }
 
-      /* Image previews */
+      .card:hover {
+        transform: translateY(-3px);
+        border-color: #d5dcff;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+      }
+
       .thumb {
+        position: relative;
         display: block;
-        background: #f8fafc;
+        block-size: 300px;
+        background: white;
         border-bottom: 1px solid var(--border);
         overflow: hidden;
-        border-radius: 16px 16px 0 0;
+        border-radius: 18px 18px 0 0;
         inline-size: 100%;
+        text-decoration: none;
       }
-      .thumb.portrait { aspect-ratio: 3 / 4; }
-      .thumb.landscape { aspect-ratio: 16 / 9; }
+
       .thumb img {
         inline-size: 100%;
         block-size: 100%;
         object-fit: contain;
         background: white;
-        padding: 0.25rem;
-        transition: transform 0.3s ease;
+        padding: 0.35rem;
+        transition: transform 0.3s ease, filter 0.3s ease;
         display: block;
       }
-      .thumb:hover img { transform: scale(1.03); }
+
+      .thumb:hover img {
+        transform: scale(1.025);
+        filter: brightness(0.94);
+      }
+
+      .thumb:focus-visible {
+        outline: 4px solid var(--ring);
+        outline-offset: -4px;
+      }
+
+      .guide-badge,
+      .thumb-cta {
+        position: absolute;
+        z-index: 2;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      .guide-badge {
+        top: 0.8rem;
+        left: 0.8rem;
+        padding: 0.48rem 0.66rem;
+        background: rgba(255, 255, 255, 0.94);
+        color: #3049c9;
+        border: 1px solid rgba(64, 92, 245, 0.25);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .thumb-cta {
+        right: 0.8rem;
+        bottom: 0.8rem;
+        padding: 0.58rem 0.78rem;
+        background: rgba(14, 18, 27, 0.9);
+        color: white;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.22);
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .thumb:hover .thumb-cta {
+        transform: translateX(2px);
+        background: #405cf5;
+      }
 
       .content {
-        padding: 1rem;
+        flex: 1;
+        padding: 1.15rem;
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 0.5rem;
         min-width: 0;
+        text-align: center;
       }
 
       .eyebrow,
       .card h3,
-      .desc,
-      .meta {
+      .desc {
         overflow-wrap: anywhere;
         word-break: break-word;
         min-width: 0;
@@ -207,78 +264,69 @@ const templates: Item[] = [
       }
 
       .eyebrow {
-        font-size: 0.8rem;
+        font-size: 0.76rem;
         color: var(--muted);
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
       }
 
       .card h3 {
-        margin: 0.15rem 0 0.15rem;
-        font-size: 1.05rem;
+        margin: 0.15rem 0;
+        font-size: 1.08rem;
+        line-height: 1.25;
       }
 
-      .desc { color: var(--muted); font-size: 0.95rem; }
-
-      .meta {
-        font-size: 0.85rem;
-        color: var(--muted);
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-
-      .actions {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin-top: 0.6rem;
-        min-width: 0;
-        flex-wrap: wrap;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.6rem 1.2rem;
-        border-radius: 9999px;
-        font-weight: 700;
-        border: 1px solid var(--accent);
+      .card h3 a {
+        color: var(--text);
         text-decoration: none;
-        background: var(--accent);
-        color: white;
-        box-shadow: 0 6px 20px var(--ring);
-        transition: transform 0.04s ease, box-shadow 0.2s ease, background 0.2s ease;
-        max-inline-size: 100%;
       }
-      .btn:hover { transform: translateY(-1px); }
 
-      /* === Center text inside cards === */
-      .card .content {
-        text-align: center;
-        align-items: center;
+      .card h3 a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
       }
-      
-      .card .meta {
-        justify-content: center;
-        text-align: center;
+
+      .card h3 a:focus-visible {
+        outline: 3px solid var(--ring);
+        outline-offset: 3px;
+        border-radius: 4px;
+      }
+
+      .desc {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.55;
+      }
+
+      .download-block {
         width: 100%;
-      }
-      
-      .card .desc,
-      .card .eyebrow,
-      .card h3 {
-        text-align: center;
-        margin-inline: auto;
+        margin-top: auto;
+        padding-top: 0.55rem;
       }
 
-      /* ===== Mobile polish (desktop unaffected) ===== */
       @media (max-width: 768px) {
         .templates-page { padding-inline: clamp(1rem, 4vw, 2rem); }
         .grid { grid-template-columns: 1fr !important; justify-items: center; text-align: center; }
-        .card { text-align: center; }
+        .card { max-width: 520px; text-align: center; }
         .card h3 { font-size: clamp(1rem, 4.5vw, 1.15rem); }
+        .thumb { block-size: 280px; }
+      }
+
+      @media (max-width: 420px) {
+        .thumb { block-size: 240px; }
+        .guide-badge { top: 0.6rem; left: 0.6rem; }
+        .thumb-cta { right: 0.6rem; bottom: 0.6rem; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .card,
+        .thumb img,
+        .thumb-cta { transition: none; }
+        .card:hover,
+        .thumb:hover img,
+        .thumb:hover .thumb-cta { transform: none; }
       }
     </style>
   </head>
@@ -289,10 +337,10 @@ const templates: Item[] = [
       <main class="templates-page">
         <h1 class="page-title">Templates & Downloads</h1>
         <p class="subtitle">
-          Ready-to-use files for time-tracking, research, and productivity.
+          Ready-to-use files for time-tracking, research, and productivity. Each template includes a short guide explaining how I use it.
         </p>
 
-        <section class="grid">
+        <section class="grid" aria-label="Available templates">
           {templates.map((t) => (
             <article class="card">
               {t.imageSrc && (
@@ -304,15 +352,29 @@ const templates: Item[] = [
                       : 'portrait',
                   ]}
                   href={t.postUrl ?? t.href}
+                  aria-label={t.postUrl ? `Read the guide for ${t.title}` : `Open ${t.title}`}
                 >
                   <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
+                  {t.postUrl && <span class="guide-badge">Guide included</span>}
+                  {t.postUrl && <span class="thumb-cta">View guide →</span>}
                 </a>
               )}
               <div class="content">
                 <div class="eyebrow">{t.filetype}</div>
-                <h3>{t.title}</h3>
+                <h3>
+                  {t.postUrl ? <a href={t.postUrl}>{t.title}</a> : t.title}
+                </h3>
                 {t.description && <p class="desc">{t.description}</p>}
-                <DownloadMeta href={t.href} updated={t.updated!} text="Download" />
+                <div class="download-block">
+                  <DownloadMeta
+                    href={t.href}
+                    updated={t.updated!}
+                    text={t.filetype === 'Google Sheet' ? 'Make a copy' : 'Download'}
+                    secondaryHref={t.postUrl}
+                    secondaryText="Read guide"
+                    downloadKey={t.downloadKey}
+                  />
+                </div>
               </div>
             </article>
           ))}
