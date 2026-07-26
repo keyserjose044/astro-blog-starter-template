@@ -105,7 +105,8 @@ export const getArtworkDateInfo = (value?: string | null): ArtworkDateInfo => {
     }
   }
 
-  const numericTokens = [...raw.matchAll(/-?\d{1,4}/g)]
+  const hasLeadingNegativeYear = /^-\d/.test(raw);
+  const numericTokens = [...raw.matchAll(/\d{1,4}/g)]
     .map((match) => Number(match[0]))
     .filter(Number.isFinite);
 
@@ -114,7 +115,9 @@ export const getArtworkDateInfo = (value?: string | null): ArtworkDateInfo => {
     return { label, year: null, sortYear: null, precision: 'unknown', periodKey: period.key, periodLabel: period.label, periodOrder: period.order };
   }
 
-  const signed = numericTokens.slice(0, 2).map((year) => isBce ? -Math.abs(year) : year);
+  const signed = numericTokens.slice(0, 2).map((year, index) =>
+    isBce || (hasLeadingNegativeYear && index === 0) ? -Math.abs(year) : year,
+  );
   const sortYear = signed.length > 1 ? Math.round((signed[0] + signed[1]) / 2) : signed[0];
   const precision: ArtworkDatePrecision = signed.length > 1 || /\b(?:c|ca|circa|about|before|after)\.?\b/.test(raw) ? 'range' : 'year';
   const period = periodForYear(sortYear);
