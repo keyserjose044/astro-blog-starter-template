@@ -33,67 +33,84 @@ const sections: Array<{ id: PursuitSection; label: string; href: string }> = [
   </div>
 </nav>
 
-<style>
+<style is:global>
   /*
-    The site-wide stylesheet intentionally constrains ordinary article pages to
-    720px. Every Pursuits page is a dashboard-style page, so opt the parent
-    <main> out of that reading-column rule wherever this navigation is present.
+    Ordinary article pages use a 720px <main>. Pursuits pages are dashboards.
+    Target their real page classes directly instead of relying on :has() to
+    discover the navigation component from the parent.
   */
-  :global(main:has(> .pursuits-nav)) {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0 0 58px;
+  main.pursuits-page {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 0 58px !important;
     overflow-x: clip;
+    box-sizing: border-box;
   }
 
-  :global(main:has(> .pursuits-nav) #calendar),
-  :global(main:has(> .pursuits-nav) #roadmap) {
+  main.pursuit-page {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 0 54px !important;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  /* Guitar still uses its older .wrap page shell. */
+  main.wrap:has(> .pursuits-nav) {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 0 56px !important;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  main.pursuits-page #calendar,
+  main.pursuit-page #roadmap,
+  main.wrap #roadmap-section {
     scroll-margin-top: 7rem;
   }
 
-  :global(.pursuit-card:has(.card-link:focus-visible)) {
+  .pursuit-card:has(.card-link:focus-visible) {
     outline: 3px solid #405cf5;
     outline-offset: 4px;
   }
 
-  :global(.pursuit-card .card-link:focus-visible) {
+  .pursuit-card .card-link:focus-visible {
     outline: none;
   }
 
-  :global(.pursuit-card .sound-toggle:focus-visible) {
+  .pursuit-card .sound-toggle:focus-visible {
     outline: 3px solid #fff;
     outline-offset: 3px;
   }
 
   .pursuits-nav {
+    display: flex;
+    justify-content: center;
     width: 100%;
     padding: 10px clamp(12px, 3vw, 48px) 20px;
+    box-sizing: border-box;
   }
 
   .pursuits-nav__inner {
-    display: flex;
-    width: min(100%, 720px);
-    max-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: min(100%, 780px);
     margin: 0 auto;
     padding: 4px;
     gap: 4px;
-    overflow-x: auto;
     border: 1px solid rgba(230, 233, 239, .96);
     border-radius: 999px;
     background: rgba(255, 255, 255, .92);
     box-shadow: 0 8px 22px rgba(15, 23, 42, .07);
-    scrollbar-width: none;
-  }
-
-  .pursuits-nav__inner::-webkit-scrollbar {
-    display: none;
   }
 
   .pursuits-nav__item {
-    flex: 1 1 0;
     min-width: 0;
-    padding: 10px 15px;
+    padding: 10px 12px;
     border-radius: 999px;
     color: #5e6573;
     font-size: .84rem;
@@ -127,22 +144,42 @@ const sections: Array<{ id: PursuitSection; label: string; href: string }> = [
     background: #354edb;
   }
 
-  @media (max-width: 700px) {
+  /*
+    Five tabs do not fit elegantly in one phone-width row. Use a centered
+    three-over-two arrangement rather than a left-anchored scrolling strip.
+  */
+  @media (max-width: 640px) {
     .pursuits-nav {
       padding: 6px 10px 14px;
     }
 
     .pursuits-nav__inner {
-      width: max-content;
-      min-width: 100%;
-      justify-content: flex-start;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      width: min(100%, 520px);
+      gap: 5px;
+      border-radius: 22px;
     }
 
     .pursuits-nav__item {
-      flex: 0 0 auto;
-      min-width: 86px;
-      padding: 9px 11px;
+      grid-column: span 2;
+      min-width: 0;
+      padding: 9px 6px;
       font-size: .75rem;
+    }
+
+    .pursuits-nav__item:nth-child(4) {
+      grid-column: 2 / span 2;
+    }
+
+    .pursuits-nav__item:nth-child(5) {
+      grid-column: 4 / span 2;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .pursuits-nav__item {
+      padding-inline: 3px;
+      font-size: .7rem;
     }
   }
 </style>
