@@ -1,7 +1,7 @@
 ---
 // src/pages/music/composers.astro
-// Raindrop supplies composer portraits/metadata. A build-time Google Apps Script
-// JSON feed supplies the listening log, performance links, ratings, and statistics.
+// Raindrop supplies composer portraits and metadata. A build-time Google Apps Script
+// feed supplies the listening log, performance links, ratings, and statistics.
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
@@ -16,6 +16,7 @@ import {
   parseClassicalListeningFeed,
   slugify,
   type ListeningEntry,
+  type RatingBucket,
 } from '../../utils/classicalListening';
 
 const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
@@ -24,13 +25,7 @@ const CLASSICAL_LISTENING_DATA_URL =
   import.meta.env.CLASSICAL_LISTENING_DATA_URL ||
   import.meta.env.CLASSICAL_LISTENING_CSV_URL;
 
-const composersRaw = await fetchAllRaindrops({
-  token: RAINDROP_TOKEN,
-  collectionId: COLLECTION_ID,
-  label: 'composers',
-  placeholder: '/images_webp/album-placeholder.webp',
-});
-
+const FALLBACK_PORTRAIT = '/images_webp/album-placeholder.webp';
 const PERIODS = [
   'Medieval',
   'Renaissance',
@@ -44,21 +39,41 @@ const PERIODS = [
   'Contemporary',
 ];
 
+const NAME_FIXES: Record<string, string> = {
+  'alesssandro scarlatti': 'Alessandro Scarlatti',
+};
+
+const RATING_PRIORITY: Record<RatingBucket, number> = {
+  amazing: 3,
+  gorgeous: 2,
+  other: 1,
+};
+
+const ratingLabel = (bucket: RatingBucket, original = '') => {
+  if (bucket === 'amazing') return 'Amazing';
+  if (bucket === 'gorgeous') return 'Gorgeous';
+  return original || 'Other';
+};
+
+const isFavoriteEntry = (entry: Pick<ListeningEntry, 'ratingBucket'>) =>
+  entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous';
+
 const parseComposerMeta = (title: string, note?: string | null) => {
   const rawTitle = String(title || '').trim();
   const rawNote = String(note || '').trim();
   const combined = `${rawTitle} · ${rawNote}`;
-  const lifespanMatch = combined.match(/\b(\d{3,4})\s*[–—-]\s*(\d{3,4}|present)\b/i);
-  const cleanName = rawTitle
-    .replace(/\s*[([]?\d{3,4}\s*[–—-]\s*(?:\d{3,4}|present)[)\]]?\s*/i, ' ')
+  const lifespanMatch = combined.match(/\b(c\.?\s*)?(\d{3,4})\s*[–—-]\s*(c\.?\s*)?(\d{3,4}|present)\b/i);
+  const cleaned = rawTitle
+    .replace(/\s*[([]?c\.?\s*\d{3,4}\s*[–—-]\s*(?:c\.?\s*)?(?:\d{3,4}|present)[)\]]?\s*/i, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+  const fixedName = NAME_FIXES[normalizeText(cleaned)] || cleaned || rawTitle;
 
   const parts = rawNote
     .split(/\s*(?:·|•|\||\n)\s*/)
     .map((part) => part.trim())
     .filter(Boolean)
-    .filter((part) => !/^\d{3,4}\s*[–—-]\s*(?:\d{3,4}|present)$/i.test(part));
+    .filter((part) => !/^c\.?\s*\d{3,4}\s*[–—-]\s*(?:c\.?\s*)?(?:\d{3,4}|present)$/i.test(part));
 
   const period =
     PERIODS.find((candidate) => normalizeText(rawNote).includes(normalizeText(candidate))) || '';
@@ -72,10 +87,12 @@ const parseComposerMeta = (title: string, note?: string | null) => {
     ) || '';
 
   return {
-    name: cleanName || rawTitle,
-    id: slugify(cleanName || rawTitle),
-    birthYear: lifespanMatch?.[1] || '',
-    deathYear: lifespanMatch?.[2] || '',
+    name: fixedName,
+    id: slugify(fixedName),
+    birthYear: lifespanMatch?.[2] || '',
+    deathYear: lifespanMatch?.[4] || '',
+    birthCirca: Boolean(lifespanMatch?.[1]),
+    deathCirca: Boolean(lifespanMatch?.[3]),
     nationality,
     period,
     note: rawNote,
@@ -101,7 +118,7 @@ const formatGeneratedAt = (value: string) => {
 };
 
 const formatCardDate = (date: Date | null) => {
-  if (!date) return '—';
+  if (!date) return 'Not yet';
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -110,9 +127,30 @@ const formatCardDate = (date: Date | null) => {
   }).format(date);
 };
 
+const formatLife = (composer: {
+  birthYear: string;
+  deathYear: string;
+  birthCirca?: boolean;
+  deathCirca?: boolean;
+}) => {
+  if (!composer.birthYear) return '';
+  const birth = `${composer.birthCirca ? 'c.' : ''}${composer.birthYear}`;
+  const death = composer.deathYear
+    ? `${composer.deathCirca ? 'c.' : ''}${composer.deathYear}`
+    : '';
+  return `${birth}–${death}`;
+};
+
+const getInitials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('');
+
 let listeningEntries: ListeningEntry[] = [];
 let feedGeneratedAt = '';
-let feedSourceSheet = '';
 let feedRejectedRows = 0;
 let sheetError = '';
 
@@ -129,7 +167,6 @@ if (CLASSICAL_LISTENING_DATA_URL) {
     );
     listeningEntries = parsed.entries;
     feedGeneratedAt = parsed.generatedAt;
-    feedSourceSheet = parsed.sourceSheet;
     feedRejectedRows = parsed.rejectedRows;
   } catch (error) {
     sheetError = error instanceof Error ? error.message : String(error);
@@ -137,29 +174,35 @@ if (CLASSICAL_LISTENING_DATA_URL) {
   }
 }
 
-const composersBase = composersRaw.map((composer, originalIndex) => {
+const composersRaw = await fetchAllRaindrops({
+  token: RAINDROP_TOKEN,
+  collectionId: COLLECTION_ID,
+  label: 'composers',
+  placeholder: FALLBACK_PORTRAIT,
+});
+
+const composerProfiles = composersRaw.map((composer, originalIndex) => {
   const meta = parseComposerMeta(composer.title, composer.note);
   return {
     ...meta,
     cover: composer.cover,
     href: composer.href,
     originalIndex,
+    profiled: true,
   };
 });
 
-const byExactName = new Map(composersBase.map((composer) => [normalizeText(composer.name), composer.id]));
-const bySlug = new Map(composersBase.map((composer) => [composer.id, composer.id]));
-const composerNameById = new Map(composersBase.map((composer) => [composer.id, composer.name]));
+const byExactName = new Map(composerProfiles.map((composer) => [normalizeText(composer.name), composer.id]));
+const bySlug = new Map(composerProfiles.map((composer) => [composer.id, composer.id]));
+const composerNameById = new Map(composerProfiles.map((composer) => [composer.id, composer.name]));
 const surnameCandidates = new Map<string, string[]>();
 
-composersBase.forEach((composer) => {
+composerProfiles.forEach((composer) => {
   const surname = normalizeText(composer.name).split(' ').filter(Boolean).at(-1) || '';
   if (!surname) return;
   surnameCandidates.set(surname, [...(surnameCandidates.get(surname) || []), composer.id]);
 });
 
-// Ambiguous abbreviations and recurring variants already present in the source sheet.
-// The feed may later supply composer_id directly, which takes precedence over this map.
 const COMPOSER_ALIASES: Record<string, string> = {
   bach: 'johann sebastian bach',
   'j s bach': 'johann sebastian bach',
@@ -206,6 +249,11 @@ type ResolvedEntry = ListeningEntry & {
   displayComposer: string;
 };
 
+type WorkRecord = ResolvedEntry & {
+  listenCount: number;
+  totalListeningMinutes: number;
+};
+
 const resolvedEntries: ResolvedEntry[] = listeningEntries.map((entry) => {
   const resolvedComposerId = resolveComposerId(entry);
   return {
@@ -222,12 +270,6 @@ resolvedEntries.forEach((entry) => {
     entry,
   ]);
 });
-
-const isGorgeousEntry = (entry: ResolvedEntry) =>
-  entry.ratingBucket === 'amazing' || entry.ratingBucket === 'gorgeous';
-
-const getUniqueTitleCount = (entries: ResolvedEntry[]) =>
-  new Set(entries.map((entry) => normalizeText(entry.piece)).filter(Boolean)).size;
 
 const getDateBounds = (entries: ResolvedEntry[]) => {
   const dates = entries.map((entry) => entry.date).filter((date): date is Date => Boolean(date));
@@ -246,104 +288,119 @@ const getTopForm = (entries: ResolvedEntry[]) => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
 };
 
-const getGorgeousWorks = (entries: ResolvedEntry[]) => {
-  const unique = new Map<string, ResolvedEntry>();
+const getUniqueWorks = (entries: ResolvedEntry[]): WorkRecord[] => {
+  const groups = new Map<string, ResolvedEntry[]>();
 
-  entries.filter(isGorgeousEntry).forEach((entry) => {
+  entries.forEach((entry) => {
     const key = normalizeText(entry.piece);
     if (!key) return;
-    const current = unique.get(key);
-    const entryDate = entry.date?.getTime() || 0;
-    const currentDate = current?.date?.getTime() || 0;
-    const hasBetterLink = Boolean(entry.youtubeUrl && !current?.youtubeUrl);
-    const sameLinkQuality = Boolean(entry.youtubeUrl) === Boolean(current?.youtubeUrl);
-
-    if (!current || hasBetterLink || (sameLinkQuality && entryDate > currentDate)) unique.set(key, entry);
+    groups.set(key, [...(groups.get(key) || []), entry]);
   });
 
-  return [...unique.values()].sort(
-    (a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber,
-  );
+  return [...groups.values()]
+    .map((workEntries) => {
+      const sorted = [...workEntries].sort(
+        (a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber,
+      );
+      const latest = sorted[0];
+      const bestRating = [...workEntries].sort(
+        (a, b) => RATING_PRIORITY[b.ratingBucket] - RATING_PRIORITY[a.ratingBucket],
+      )[0];
+      const linked = sorted.find((entry) => entry.youtubeUrl);
+      const metadata = sorted.find((entry) => entry.form || entry.period || entry.compositionYear) || latest;
+
+      return {
+        ...latest,
+        youtubeUrl: linked?.youtubeUrl || latest.youtubeUrl,
+        form: metadata.form || latest.form,
+        period: metadata.period || latest.period,
+        compositionYear: metadata.compositionYear || latest.compositionYear,
+        rating: bestRating.rating,
+        ratingBucket: bestRating.ratingBucket,
+        listenCount: workEntries.length,
+        totalListeningMinutes: workEntries.reduce((total, entry) => total + entry.minutes, 0),
+      };
+    })
+    .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber);
 };
 
-const composers = composersBase.map((composer) => {
-  const entries = [...(entriesByComposer.get(composer.id) || [])].sort(
+const profileById = new Map(composerProfiles.map((composer) => [composer.id, composer]));
+const allComposerIds = [...new Set([...composerProfiles.map((composer) => composer.id), ...entriesByComposer.keys()])];
+
+const composers = allComposerIds.map((id, index) => {
+  const entries = [...(entriesByComposer.get(id) || [])].sort(
     (a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber,
   );
+  const works = getUniqueWorks(entries);
+  const favorites = works.filter(isFavoriteEntry);
+  const profile = profileById.get(id);
+  const fallbackName = entries[0]?.displayComposer || id.replace(/-/g, ' ');
+  const name = profile?.name || fallbackName;
   const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
   const bounds = getDateBounds(entries);
-  const uniqueTitleCount = getUniqueTitleCount(entries);
-  const gorgeousWorks = getGorgeousWorks(entries);
-  const gorgeousEntryCount = entries.filter(isGorgeousEntry).length;
 
   return {
-    ...composer,
+    id,
+    name,
+    birthYear: profile?.birthYear || '',
+    deathYear: profile?.deathYear || '',
+    birthCirca: profile?.birthCirca || false,
+    deathCirca: profile?.deathCirca || false,
+    nationality: profile?.nationality || '',
+    period: profile?.period || '',
+    note: profile?.note || '',
+    cover: profile?.cover || FALLBACK_PORTRAIT,
+    href: profile?.href || '',
+    originalIndex: profile?.originalIndex ?? composerProfiles.length + index,
+    profiled: Boolean(profile),
+    initials: getInitials(name),
     entries,
+    works,
+    favorites,
     totalMinutes,
     firstListened: bounds.first,
     lastListened: bounds.last,
-    uniqueTitleCount,
-    repeatCount: Math.max(0, entries.length - uniqueTitleCount),
+    repeatCount: Math.max(0, entries.length - works.length),
     topForm: getTopForm(entries),
-    gorgeousWorks,
-    gorgeousWorkCount: gorgeousWorks.length,
-    gorgeousEntryCount,
-    gorgeousRate: uniqueTitleCount ? (gorgeousWorks.length / uniqueTitleCount) * 100 : 0,
+    favoriteRate: works.length ? (favorites.length / works.length) * 100 : 0,
     linkedCount: entries.filter((entry) => entry.youtubeUrl).length,
   };
 });
 
-const globalComposerGroups = [...entriesByComposer.entries()].map(([id, entries]) => {
-  const totalMinutes = entries.reduce((total, entry) => total + entry.minutes, 0);
-  const gorgeousWorks = getGorgeousWorks(entries);
-  return {
-    id,
-    name: composerNameById.get(id) || entries[0]?.displayComposer || id,
-    entries: entries.length,
-    uniqueTitles: getUniqueTitleCount(entries),
-    totalMinutes,
-    gorgeousWorks: gorgeousWorks.length,
-    gorgeousEntries: entries.filter(isGorgeousEntry).length,
-  };
-});
-
+const allWorks = composers
+  .flatMap((composer) => composer.works)
+  .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber);
+const favoriteWorks = allWorks.filter(isFavoriteEntry);
 const totalEntries = resolvedEntries.length;
 const totalMinutes = resolvedEntries.reduce((total, entry) => total + entry.minutes, 0);
-const totalUniqueTitles = new Set(
-  resolvedEntries.map((entry) => `${entry.resolvedComposerId}|${normalizeText(entry.piece)}`),
-).size;
-const totalComposersLogged = globalComposerGroups.length;
-const totalGorgeous = resolvedEntries.filter(isGorgeousEntry).length;
-const totalOther = totalEntries - totalGorgeous;
+const totalComposersLogged = composers.filter((composer) => composer.entries.length > 0).length;
 const globalBounds = getDateBounds(resolvedEntries);
-const profiledComposerIds = new Set(composersBase.map((composer) => composer.id));
-const unprofiledComposerCount = globalComposerGroups.filter((group) => !profiledComposerIds.has(group.id)).length;
-const unresolvedRows = resolvedEntries.filter((entry) => !profiledComposerIds.has(entry.resolvedComposerId));
+const generatedLabel = formatGeneratedAt(feedGeneratedAt);
+const hasListeningFeed = Boolean(CLASSICAL_LISTENING_DATA_URL && !sheetError);
+const exploredPeriods = [...new Set(allWorks.map((work) => work.period).filter(Boolean))];
+const unprofiledComposerCount = composers.filter((composer) => composer.entries.length && !composer.profiled).length;
 
-if (unresolvedRows.length) {
-  console.warn(
-    `[Composers] ${unresolvedRows.length} dated listening rows across ${unprofiledComposerCount} composer labels do not currently match a Raindrop profile.`,
-    [...new Set(unresolvedRows.map((entry) => entry.composer))].slice(0, 30),
-  );
-}
-
-if (feedRejectedRows) {
-  console.warn(
-    `[Composers] ${feedRejectedRows} feed rows were excluded because the date, composer, or piece was blank.`,
-  );
-}
-
-const topHours = [...globalComposerGroups]
-  .filter((group) => group.totalMinutes > 0)
+const topHours = [...composers]
+  .filter((composer) => composer.totalMinutes > 0)
   .sort((a, b) => b.totalMinutes - a.totalMinutes)
-  .slice(0, 12);
-const maxChartMinutes = Math.max(...topHours.map((group) => group.totalMinutes), 1);
+  .slice(0, 8);
+const maxChartMinutes = Math.max(...topHours.map((composer) => composer.totalMinutes), 1);
 
-const topFavorites = [...globalComposerGroups]
-  .filter((group) => group.gorgeousWorks > 0)
-  .sort((a, b) => b.gorgeousWorks - a.gorgeousWorks || b.uniqueTitles - a.uniqueTitles)
-  .slice(0, 12);
-const maxFavoriteWorks = Math.max(...topFavorites.map((group) => group.uniqueTitles), 1);
+const topFavorites = [...composers]
+  .filter((composer) => composer.favorites.length > 0)
+  .sort((a, b) => b.favorites.length - a.favorites.length || b.works.length - a.works.length)
+  .slice(0, 8);
+const maxFavoriteWorks = Math.max(...topFavorites.map((composer) => composer.works.length), 1);
+
+const topFavoriteRates = [...composers]
+  .filter((composer) => composer.works.length >= 5 && composer.favorites.length > 0)
+  .sort((a, b) => b.favoriteRate - a.favoriteRate || b.works.length - a.works.length)
+  .slice(0, 8);
+
+const recentEntries = [...resolvedEntries]
+  .filter((entry) => entry.date)
+  .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0) || b.rowNumber - a.rowNumber)
+  .slice(0, 6);
 
 const periodsInUse = [...new Set(composers.map((composer) => composer.period).filter(Boolean))].sort(
   (a, b) => {
@@ -352,178 +409,204 @@ const periodsInUse = [...new Set(composers.map((composer) => composer.period).fi
     return (aIndex < 0 ? 999 : aIndex) - (bIndex < 0 ? 999 : bIndex);
   },
 );
+const workPeriods = [...new Set(allWorks.map((work) => work.period).filter(Boolean))].sort();
+const workForms = [...new Set(allWorks.map((work) => work.form).filter(Boolean))].sort();
+const workComposers = composers
+  .filter((composer) => composer.works.length)
+  .sort((a, b) => a.name.localeCompare(b.name));
 
-const hasListeningFeed = Boolean(CLASSICAL_LISTENING_DATA_URL && !sheetError);
-const generatedLabel = formatGeneratedAt(feedGeneratedAt);
-
-const luckyPool = resolvedEntries
-  .filter((entry) => entry.youtubeUrl && isGorgeousEntry(entry))
-  .map((entry) => ({
-    key: `${entry.rowNumber}|${entry.youtubeUrl}`,
-    composer: entry.displayComposer,
-    piece: entry.piece,
-    url: entry.youtubeUrl,
+const luckyPool = favoriteWorks
+  .filter((work) => work.youtubeUrl)
+  .map((work) => ({
+    key: `${work.resolvedComposerId}|${normalizeText(work.piece)}`,
+    composer: work.displayComposer,
+    piece: work.piece,
+    url: work.youtubeUrl,
   }));
 
 const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
+
+if (unprofiledComposerCount) {
+  console.warn(`[Composers] ${unprofiledComposerCount} explored composers are using generated fallback profiles.`);
+}
+if (feedRejectedRows) {
+  console.warn(`[Composers] ${feedRejectedRows} feed rows were excluded because the date, composer, or piece was blank.`);
+}
 ---
 
 <BaseHead
-  title={`${SITE_TITLE} — Music — Composers`}
-  description="A data-driven archive of classical composers explored, listening hours, Gorgeous works, and performances worth revisiting."
+  title={`${SITE_TITLE} — Music — Classical Music`}
+  description="A searchable archive of classical composers, works, performances, listening time, and favorites."
 />
 
 <style>
   :root {
-    --ink: #0e121b;
-    --muted: #5e6573;
-    --border: #e6e9ef;
-    --surface: rgba(255, 255, 255, .92);
-    --accent: #405cf5;
-    --gorgeous: #a85ed6;
-    --heard: #dce2ff;
+    --classical-ink: #10131b;
+    --classical-muted: #626a78;
+    --classical-border: #e5e8ef;
+    --classical-surface: rgba(255, 255, 255, .93);
+    --classical-accent: #405cf5;
+    --classical-accent-soft: #eef1ff;
+    --classical-amazing: #d44f86;
+    --classical-gorgeous: #9c55cd;
+    --classical-heard: #dce2ff;
   }
 
   * { box-sizing: border-box; }
-  .wrap { width: 100%; margin: 0 auto; padding: 28px clamp(16px, 3vw, 48px) 50px; }
-  .intro { max-width: 1120px; margin: 0 auto 22px; text-align: center; }
-  h1 { margin: 0 0 9px; font-weight: 800; letter-spacing: -.025em; }
-  .hint { margin: 0 auto 10px; max-width: 78ch; color: var(--muted); line-height: 1.55; }
-  .tracking-note { margin: 0 auto 13px; max-width: 83ch; color: #454d5c; font-size: .88rem; line-height: 1.55; }
-  .updated-note { margin: 0 auto 17px; color: var(--muted); font-size: .74rem; }
-  .feed-notice { max-width: 880px; margin: 0 auto 18px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255, 255, 255, .84); color: var(--muted); font-size: .84rem; line-height: 1.45; }
-  .feed-notice strong { color: var(--ink); }
+  [hidden] { display: none !important; }
+  .wrap { width: 100%; margin: 0 auto; padding: 28px clamp(16px, 3vw, 48px) 52px; }
+  .intro { max-width: 1160px; margin: 0 auto 18px; text-align: center; }
+  h1 { margin: 0 0 9px; color: var(--classical-ink); font-weight: 800; letter-spacing: -.025em; }
+  .hint { max-width: 78ch; margin: 0 auto 8px; color: var(--classical-muted); line-height: 1.55; }
+  .updated-note { margin: 0 auto 15px; color: var(--classical-muted); font-size: .75rem; }
+  .feed-notice { max-width: 880px; margin: 0 auto 18px; padding: 11px 14px; border: 1px solid var(--classical-border); border-radius: 12px; background: rgba(255, 255, 255, .86); color: var(--classical-muted); font-size: .84rem; line-height: 1.45; }
+  .feed-notice strong { color: var(--classical-ink); }
 
-  .overall-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; max-width: 1120px; margin: 0 auto 20px; }
-  .overall-stat { min-width: 0; padding: 13px 10px; border: 1px solid rgba(230, 233, 239, .94); border-radius: 13px; background: rgba(255, 255, 255, .88); box-shadow: 0 7px 20px rgba(15, 23, 42, .06); }
+  .overall-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; max-width: 1160px; margin: 0 auto 17px; }
+  .overall-stat { min-width: 0; padding: 13px 10px; border: 1px solid rgba(229, 232, 239, .96); border-radius: 13px; background: rgba(255, 255, 255, .9); box-shadow: 0 7px 20px rgba(15, 23, 42, .06); }
   .overall-stat strong, .overall-stat span { display: block; }
-  .overall-stat strong { overflow: hidden; color: var(--ink); font-size: 1.08rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
-  .overall-stat span { margin-top: 4px; color: var(--muted); font-size: .7rem; line-height: 1.25; }
+  .overall-stat strong { overflow: hidden; color: var(--classical-ink); font-size: 1.08rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+  .overall-stat span { margin-top: 4px; color: var(--classical-muted); font-size: .7rem; line-height: 1.25; }
 
-  .insights-toggle { max-width: 1120px; margin: 0 auto 21px; }
-  .insights-toggle > summary { display: none; }
-  .insights-toggle:not([open]) > .charts { display: grid; }
-  .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; text-align: left; }
-  .chart-card { min-width: 0; padding: 16px; border: 1px solid rgba(230, 233, 239, .94); border-radius: 15px; background: rgba(255, 255, 255, .9); box-shadow: 0 9px 24px rgba(15, 23, 42, .07); }
-  .chart-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-  .chart-header h2 { margin: 0; font-size: 1rem; }
-  .chart-header p { margin: 3px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.35; }
-  .chart-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-  .chart-row { display: grid; grid-template-columns: minmax(145px, 180px) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .page-tabs { display: inline-flex; gap: 4px; max-width: 100%; margin: 0 auto 18px; padding: 4px; overflow-x: auto; border: 1px solid var(--classical-border); border-radius: 13px; background: rgba(255, 255, 255, .9); box-shadow: 0 5px 16px rgba(15, 23, 42, .05); }
+  .page-tab { flex: 0 0 auto; min-height: 38px; padding: 8px 15px; border: 0; border-radius: 9px; background: transparent; color: var(--classical-muted); font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+  .page-tab[aria-selected='true'] { background: var(--classical-accent); color: #fff; }
+  .page-tab:focus-visible, .insight-tab:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid rgba(64, 92, 245, .42); outline-offset: 2px; }
+
+  .page-panel { max-width: 1780px; margin: 0 auto; }
+  .panel-heading { max-width: 1160px; margin: 0 auto 14px; text-align: center; }
+  .panel-heading h2 { margin: 0 0 5px; color: var(--classical-ink); font-size: 1.35rem; }
+  .panel-heading p { margin: 0; color: var(--classical-muted); font-size: .84rem; line-height: 1.5; }
+
+  .overview-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .8fr); gap: 14px; max-width: 1160px; margin: 0 auto; align-items: start; }
+  .overview-card { min-width: 0; padding: 17px; border: 1px solid rgba(229, 232, 239, .96); border-radius: 15px; background: rgba(255, 255, 255, .92); box-shadow: 0 9px 24px rgba(15, 23, 42, .07); }
+  .overview-card-header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 13px; }
+  .overview-card-header h3 { margin: 0; color: var(--classical-ink); font-size: 1rem; }
+  .overview-card-header p { margin: 3px 0 0; color: var(--classical-muted); font-size: .72rem; line-height: 1.4; }
+  .insight-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .insight-tab { min-height: 32px; padding: 6px 9px; border: 0; border-radius: 8px; background: #f1f3f7; color: var(--classical-muted); font: inherit; font-size: .69rem; font-weight: 800; cursor: pointer; }
+  .insight-tab[aria-selected='true'] { background: var(--classical-accent-soft); color: #314bd8; }
+  .chart-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+  .chart-row { display: grid; grid-template-columns: minmax(145px, 180px) minmax(0, 1fr) auto; gap: 9px; align-items: center; }
   .chart-name { color: #323946; font-size: .72rem; font-weight: 700; line-height: 1.25; }
   .bar-track { display: block; height: 9px; overflow: hidden; border-radius: 999px; background: #edf0f5; }
   .bar-fill { display: block; width: var(--bar-width); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #405cf5, #7284ff); }
-  .works-width { display: block; width: var(--bar-width); height: 100%; overflow: hidden; border-radius: inherit; background: var(--heard); }
-  .gorgeous-fill { display: block; width: var(--gorgeous-width); height: 100%; border-radius: inherit; background: var(--gorgeous); }
-  .chart-value { color: var(--muted); font-size: .68rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .chart-legend { display: flex; gap: 12px; align-items: center; color: var(--muted); font-size: .67rem; }
-  .legend-item::before { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 999px; content: ''; }
-  .legend-item.heard::before { background: var(--heard); }
-  .legend-item.gorgeous::before { background: var(--gorgeous); }
+  .works-width { display: block; width: var(--bar-width); height: 100%; overflow: hidden; border-radius: inherit; background: var(--classical-heard); }
+  .favorite-fill { display: block; width: var(--favorite-width); height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--classical-gorgeous), var(--classical-amazing)); }
+  .rate-fill { display: block; width: var(--bar-width); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #9c55cd, #d44f86); }
+  .chart-value { color: var(--classical-muted); font-size: .68rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-  .toolbar { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 1120px; margin: 0 auto 10px; }
-  .toolbar input, .toolbar select, .lucky-button { min-height: 42px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: .86rem; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
+  .recent-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .recent-item { padding: 10px 11px; border: 1px solid #eceef4; border-radius: 10px; background: #fff; }
+  .recent-item strong { display: block; color: var(--classical-ink); font-size: .78rem; line-height: 1.35; }
+  .recent-item span { display: block; margin-top: 3px; color: var(--classical-muted); font-size: .68rem; line-height: 1.35; }
+  .recent-item a { color: inherit; text-decoration: none; }
+  .recent-item a:hover strong { color: #314bd8; }
+
+  .toolbar { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 1160px; margin: 0 auto 10px; }
+  .toolbar input, .toolbar select, .control-button { min-height: 42px; padding: 10px 12px; border: 1px solid var(--classical-border); border-radius: 12px; background: #fff; color: var(--classical-ink); font: inherit; font-size: .83rem; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
   .toolbar input { width: min(320px, 100%); }
-  .toolbar select { min-width: 150px; }
-  .lucky-button { background: #405cf5; color: #fff; font-weight: 800; cursor: pointer; }
-  .lucky-button:hover { background: #354edb; }
-  .lucky-button:disabled { cursor: not-allowed; opacity: .55; }
-  .lucky-status { min-height: 18px; margin: 0 auto 4px; color: var(--muted); font-size: .72rem; }
-  .results-row { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 28px; margin-bottom: 15px; color: var(--muted); font-size: .82rem; }
+  .toolbar select { min-width: 145px; }
+  .control-button { font-weight: 800; cursor: pointer; }
+  .control-button.primary { border-color: var(--classical-accent); background: var(--classical-accent); color: #fff; }
+  .control-button.primary:hover { background: #354edb; }
+  .control-button:disabled { cursor: not-allowed; opacity: .55; }
+  .lucky-status { min-height: 18px; margin: 0 auto 3px; color: var(--classical-muted); font-size: .72rem; }
+  .results-row { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 28px; margin-bottom: 15px; color: var(--classical-muted); font-size: .8rem; }
   .results-row p { margin: 0; }
   .clear-filters { border: 0; background: transparent; color: #314bd8; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
-  .composer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 18px; max-width: 1780px; margin: 0 auto; align-items: start; }
+  .composer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; max-width: 1720px; margin: 0 auto; align-items: start; }
   .composer-card { min-width: 0; }
-  .composer-button { width: 100%; padding: 0; overflow: hidden; border: 0; border-radius: 15px; background: var(--surface); color: inherit; text-align: left; cursor: pointer; box-shadow: 0 9px 24px rgba(15, 23, 42, .09); transition: transform .16s ease, box-shadow .16s ease; }
+  .composer-button { width: 100%; padding: 0; overflow: hidden; border: 0; border-radius: 15px; background: var(--classical-surface); color: inherit; text-align: left; cursor: pointer; box-shadow: 0 9px 24px rgba(15, 23, 42, .09); transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease; }
   .composer-button:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(15, 23, 42, .14); }
-  .composer-button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-  .composer-button[aria-expanded='true'] { box-shadow: 0 0 0 2px var(--accent), 0 14px 30px rgba(15, 23, 42, .13); }
-  .portrait-wrap { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #eef0f5; }
+  .composer-button[aria-expanded='true'] { box-shadow: 0 0 0 2px var(--classical-accent), 0 14px 30px rgba(15, 23, 42, .13); }
+  .composer-card[data-status='unheard'] .composer-button { opacity: .8; }
+  .portrait-wrap { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #e9ecf4; }
   .portrait { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 18%; transition: transform .25s ease; }
   .composer-button:hover .portrait { transform: scale(1.025); }
-  .expand-cue { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 999px; background: rgba(14, 18, 27, .8); color: #fff; font-size: 1rem; line-height: 1; backdrop-filter: blur(5px); }
-  .composer-button[aria-expanded='true'] .expand-cue { transform: rotate(45deg); }
-  .card-body { display: block; min-height: 154px; padding: 13px 14px 14px; }
-  .composer-name { display: block; margin-bottom: 4px; font-size: 1rem; font-weight: 800; line-height: 1.25; }
-  .composer-meta { display: block; min-height: 2.55em; color: var(--muted); font-size: .78rem; line-height: 1.35; }
-  .composer-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 11px; }
-  .stat { min-width: 0; padding: 7px 8px; border-radius: 9px; background: #f4f5f9; }
+  .portrait-fallback { display: grid; width: 100%; height: 100%; place-items: center; background: linear-gradient(145deg, #d9def7, #f2e5f5); color: #505a86; font-family: Georgia, serif; font-size: 3rem; font-weight: 700; letter-spacing: .04em; }
+  .profile-badge { position: absolute; left: 10px; top: 10px; padding: 5px 8px; border-radius: 999px; background: rgba(255, 255, 255, .88); color: #4f5868; font-size: .62rem; font-weight: 800; backdrop-filter: blur(5px); }
+  .expand-cue { position: absolute; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 6px 9px; border-radius: 999px; background: rgba(14, 18, 27, .82); color: #fff; font-size: .66rem; font-weight: 800; line-height: 1; backdrop-filter: blur(5px); }
+  .card-body { display: block; min-height: 150px; padding: 13px 14px 14px; }
+  .composer-name { display: block; margin-bottom: 4px; color: var(--classical-ink); font-size: 1rem; font-weight: 800; line-height: 1.25; }
+  .composer-meta { display: block; min-height: 2.55em; color: var(--classical-muted); font-size: .76rem; line-height: 1.35; }
+  .composer-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 11px; }
+  .stat { min-width: 0; padding: 7px 7px; border-radius: 9px; background: #f4f5f9; }
   .stat strong, .stat span { display: block; }
-  .stat strong { color: var(--ink); font-size: .85rem; line-height: 1.15; }
-  .stat span { margin-top: 2px; color: var(--muted); font-size: .68rem; line-height: 1.2; }
-  .not-connected { display: block; margin-top: 12px; color: var(--muted); font-size: .74rem; font-style: italic; }
-  .empty { grid-column: 1 / -1; padding: 40px 16px; color: var(--muted); text-align: center; }
+  .stat strong { overflow: hidden; color: var(--classical-ink); font-size: .8rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+  .stat span { margin-top: 2px; color: var(--classical-muted); font-size: .61rem; line-height: 1.2; }
+  .unheard-note { display: block; margin-top: 12px; padding: 9px 10px; border-radius: 9px; background: #f3f4f7; color: var(--classical-muted); font-size: .72rem; font-weight: 700; text-align: center; }
+  .empty { grid-column: 1 / -1; padding: 40px 16px; color: var(--classical-muted); text-align: center; }
 
-  .composer-dialog { width: min(1180px, calc(100vw - 40px)); max-width: none; height: min(88dvh, 900px); max-height: 88dvh; margin: auto; padding: 0; overflow: hidden; border: 0; border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 28px 90px rgba(10, 17, 35, .28); }
-  .composer-dialog::backdrop { background: rgba(9, 14, 25, .58); backdrop-filter: blur(4px); }
-  .composer-dialog-content, .composer-detail { height: 100%; }
-  .composer-detail { display: flex; min-height: 0; flex-direction: column; background: #fff; }
-  .detail-header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: #fff; }
-  .detail-header h2 { margin: 0 0 5px; font-size: 1.5rem; }
-  .detail-subtitle { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.45; }
-  .detail-actions { display: flex; gap: 8px; flex: 0 0 auto; }
-  .reference-link, .close-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border-radius: 10px; font: inherit; font-size: .8rem; font-weight: 800; text-decoration: none; cursor: pointer; }
-  .reference-link { border: 1px solid rgba(64, 92, 245, .25); background: #f0f2ff; color: #314bd8; }
-  .close-detail { min-width: 78px; border: 1px solid var(--border); background: #fff; color: var(--ink); }
-  .detail-tabs { display: flex; gap: 4px; padding: 10px 24px; overflow-x: auto; border-bottom: 1px solid var(--border); background: #fff; }
-  .detail-tab { flex: 0 0 auto; min-height: 38px; padding: 8px 13px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
-  .detail-tab[aria-selected='true'] { background: #eef1ff; color: #314bd8; }
-  .detail-panel-wrap { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding: 20px 24px 28px; }
-  .detail-panel[hidden] { display: none; }
-  .detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
-  .detail-summary div { min-width: 0; padding: 11px; border-radius: 11px; background: #f4f5f9; }
-  .detail-summary strong, .detail-summary span { display: block; }
-  .detail-summary strong { font-size: .95rem; line-height: 1.2; }
-  .detail-summary span { margin-top: 3px; color: var(--muted); font-size: .68rem; line-height: 1.25; }
-  .overview-note { margin: 0; padding: 15px 16px; border: 1px solid #e8eafd; border-radius: 12px; background: #f8f8ff; color: #41495a; font-size: .85rem; line-height: 1.55; }
-  .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 10px; }
-  .section-heading h3 { margin: 0; font-size: 1.05rem; }
-  .section-heading p { margin: 0; color: var(--muted); font-size: .72rem; }
-
-  .browser-toolbar { position: sticky; top: -20px; z-index: 4; display: grid; grid-template-columns: minmax(220px, 1fr) 180px 180px; gap: 8px; margin: -20px -24px 11px; padding: 14px 24px 10px; border-bottom: 1px solid rgba(230, 233, 239, .9); background: rgba(255, 255, 255, .96); backdrop-filter: blur(10px); }
-  .browser-toolbar.two-controls { grid-template-columns: minmax(220px, 1fr) 180px; }
-  .browser-toolbar input, .browser-toolbar select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: .78rem; }
-  .entry-results { margin: 0 0 9px; color: var(--muted); font-size: .72rem; }
-  .entry-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-  .entry-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 11px 12px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
+  .works-browser { max-width: 1280px; margin: 0 auto; padding: 16px; border: 1px solid rgba(229, 232, 239, .96); border-radius: 15px; background: rgba(255, 255, 255, .92); box-shadow: 0 9px 24px rgba(15, 23, 42, .07); }
+  .works-toolbar { display: grid; grid-template-columns: minmax(240px, 1.5fr) repeat(4, minmax(130px, .7fr)); gap: 8px; margin-bottom: 10px; }
+  .works-toolbar input, .works-toolbar select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--classical-border); border-radius: 10px; background: #fff; color: var(--classical-ink); font: inherit; font-size: .76rem; }
+  .work-list, .entry-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .work-item, .entry-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; min-width: 0; padding: 11px 12px; border: 1px solid #eceef4; border-radius: 11px; background: #fff; }
   .entry-main { min-width: 0; }
-  .entry-title { display: block; color: var(--ink); font-size: .84rem; font-weight: 800; line-height: 1.35; }
-  .entry-meta { display: block; margin-top: 4px; color: var(--muted); font-size: .7rem; line-height: 1.4; }
-  .entry-side { min-width: 100px; text-align: right; }
-  .entry-side time, .entry-side span { display: block; color: var(--muted); font-size: .69rem; line-height: 1.4; }
-  .play-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 38px; height: 34px; padding: 0 10px; border-radius: 9px; background: #eef1ff; color: #314bd8; font-size: .72rem; font-weight: 800; text-decoration: none; }
+  .entry-title { display: block; color: var(--classical-ink); font-size: .84rem; font-weight: 800; line-height: 1.35; }
+  .entry-composer { display: block; margin-bottom: 2px; color: #314bd8; font-size: .67rem; font-weight: 800; }
+  .entry-meta { display: block; margin-top: 4px; color: var(--classical-muted); font-size: .7rem; line-height: 1.4; }
+  .entry-side { min-width: 110px; text-align: right; }
+  .entry-side time, .entry-side span { display: block; color: var(--classical-muted); font-size: .69rem; line-height: 1.4; }
+  .play-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 38px; height: 34px; padding: 0 10px; border-radius: 9px; background: var(--classical-accent-soft); color: #314bd8; font-size: .72rem; font-weight: 800; text-decoration: none; }
   .play-link:hover { background: #dde3ff; }
   .play-missing { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 38px; height: 34px; border-radius: 9px; background: #f1f2f5; color: #8a909b; font-size: .72rem; }
   .rating { display: inline-block; margin-right: 5px; padding: 2px 6px; border-radius: 999px; font-weight: 800; }
-  .rating.gorgeous { background: #f5eafa; color: #8d43ba; }
+  .rating.amazing { background: #fde8f0; color: #b53669; }
+  .rating.gorgeous { background: #f5eafa; color: #8640b4; }
   .rating.other { background: #f0f1f4; color: #656c78; }
-  .show-more { display: block; min-height: 40px; margin: 12px auto 0; padding: 8px 15px; border: 1px solid rgba(64, 92, 245, .25); border-radius: 10px; background: #f0f2ff; color: #314bd8; font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
-  .empty-detail { margin: 0; padding: 15px; border-radius: 11px; background: #f5f6f9; color: var(--muted); font-size: .86rem; line-height: 1.5; }
+  .entry-results { margin: 0 0 9px; color: var(--classical-muted); font-size: .72rem; }
+  .show-more { display: block; min-height: 40px; margin: 12px auto 0; padding: 8px 15px; border: 1px solid rgba(64, 92, 245, .25); border-radius: 10px; background: var(--classical-accent-soft); color: #314bd8; font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
+  .empty-detail { margin: 0; padding: 15px; border-radius: 11px; background: #f5f6f9; color: var(--classical-muted); font-size: .84rem; line-height: 1.5; }
 
-  @media (max-width: 1050px) {
+  .composer-dialog { width: min(1180px, calc(100vw - 40px)); max-width: none; height: min(88dvh, 900px); max-height: 88dvh; margin: auto; padding: 0; overflow: hidden; border: 0; border-radius: 18px; background: #fff; color: var(--classical-ink); box-shadow: 0 28px 90px rgba(10, 17, 35, .28); }
+  .composer-dialog::backdrop { background: rgba(9, 14, 25, .58); backdrop-filter: blur(4px); }
+  .composer-dialog-content, .composer-detail { height: 100%; }
+  .composer-detail { display: flex; min-height: 0; flex-direction: column; background: #fff; }
+  .detail-header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding: 20px 24px 16px; border-bottom: 1px solid var(--classical-border); background: #fff; }
+  .detail-header h2 { margin: 0 0 5px; font-size: 1.5rem; }
+  .detail-subtitle { margin: 0; color: var(--classical-muted); font-size: .84rem; line-height: 1.45; }
+  .detail-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+  .reference-link, .close-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border-radius: 10px; font: inherit; font-size: .78rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+  .reference-link { border: 1px solid rgba(64, 92, 245, .25); background: var(--classical-accent-soft); color: #314bd8; }
+  .close-detail { min-width: 72px; border: 1px solid var(--classical-border); background: #fff; color: var(--classical-ink); }
+  .detail-tabs { display: flex; gap: 4px; padding: 10px 24px; overflow-x: auto; border-bottom: 1px solid var(--classical-border); background: #fff; }
+  .detail-tab { flex: 0 0 auto; min-height: 38px; padding: 8px 13px; border: 0; border-radius: 10px; background: transparent; color: var(--classical-muted); font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
+  .detail-tab[aria-selected='true'] { background: var(--classical-accent-soft); color: #314bd8; }
+  .detail-panel-wrap { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding: 20px 24px 28px; }
+  .detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
+  .detail-summary div { min-width: 0; padding: 11px; border-radius: 11px; background: #f4f5f9; }
+  .detail-summary strong, .detail-summary span { display: block; }
+  .detail-summary strong { font-size: .92rem; line-height: 1.2; }
+  .detail-summary span { margin-top: 3px; color: var(--classical-muted); font-size: .66rem; line-height: 1.25; }
+  .overview-note { margin: 0; padding: 15px 16px; border: 1px solid #e8eafd; border-radius: 12px; background: #f8f8ff; color: #41495a; font-size: .84rem; line-height: 1.55; }
+  .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 10px; }
+  .section-heading h3 { margin: 0; font-size: 1.05rem; }
+  .section-heading p { margin: 0; color: var(--classical-muted); font-size: .72rem; }
+  .browser-toolbar { position: sticky; top: -20px; z-index: 4; display: grid; grid-template-columns: minmax(220px, 1fr) 180px 180px; gap: 8px; margin: -20px -24px 11px; padding: 14px 24px 10px; border-bottom: 1px solid rgba(229, 232, 239, .9); background: rgba(255, 255, 255, .96); backdrop-filter: blur(10px); }
+  .browser-toolbar.two-controls { grid-template-columns: minmax(220px, 1fr) 180px; }
+  .browser-toolbar input, .browser-toolbar select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--classical-border); border-radius: 10px; background: #fff; color: var(--classical-ink); font: inherit; font-size: .76rem; }
+
+  @media (max-width: 1080px) {
     .overall-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .overview-layout { grid-template-columns: 1fr; }
+    .works-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .works-toolbar input { grid-column: 1 / -1; }
     .detail-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 
   @media (max-width: 900px) {
     .wrap { padding: 18px 10px 38px; }
-    .intro { margin-bottom: 14px; padding-inline: 4px; }
     h1 { font-size: 2rem; }
-    .hint, .tracking-note { font-size: .84rem; }
-    .charts { grid-template-columns: 1fr; }
-    .toolbar { display: grid; grid-template-columns: 1fr 1fr; }
-    .toolbar > input { grid-column: 1 / -1; width: 100%; }
-    .toolbar > select, .lucky-button { min-width: 0; width: 100%; }
-    .lucky-button { grid-column: 1 / -1; }
     .composer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
-    .card-body { min-height: 145px; padding: 10px; }
+    .card-body { min-height: 142px; padding: 10px; }
     .composer-name { font-size: .88rem; }
-    .composer-meta { font-size: .7rem; }
-    .composer-stats { gap: 5px; }
+    .composer-meta { font-size: .69rem; }
     .stat { padding: 6px; }
-    .stat strong { font-size: .74rem; }
-    .stat span { font-size: .62rem; }
+    .stat strong { font-size: .72rem; }
+    .stat span { font-size: .57rem; }
     .browser-toolbar { grid-template-columns: 1fr 1fr; }
     .browser-toolbar input { grid-column: 1 / -1; }
     .browser-toolbar.two-controls { grid-template-columns: 1fr 1fr; }
@@ -531,46 +614,47 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
   }
 
   @media (max-width: 700px) {
-    .insights-toggle { margin-bottom: 12px; }
-    .insights-toggle > summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255, 255, 255, .9); color: #314bd8; font-size: .82rem; font-weight: 800; cursor: pointer; list-style: none; }
-    .insights-toggle > summary::-webkit-details-marker { display: none; }
-    .insights-toggle > summary::after { content: '+'; font-size: 1.1rem; }
-    .insights-toggle[open] > summary::after { content: '–'; }
-    .insights-toggle:not([open]) > .charts { display: none; }
-    .insights-toggle[open] > .charts { display: grid; margin-top: 10px; }
-    .toolbar { position: sticky; top: 66px; z-index: 20; padding: 8px; border: 1px solid rgba(230, 233, 239, .9); border-radius: 13px; background: rgba(255, 255, 255, .94); box-shadow: 0 8px 24px rgba(15, 23, 42, .1); backdrop-filter: blur(12px); }
-    .chart-row { grid-template-columns: 112px minmax(0, 1fr) auto; }
-    .chart-name { font-size: .69rem; }
+    .toolbar { display: grid; grid-template-columns: 1fr 1fr; position: sticky; top: 66px; z-index: 20; padding: 8px; border: 1px solid rgba(229, 232, 239, .9); border-radius: 13px; background: rgba(255, 255, 255, .95); box-shadow: 0 8px 24px rgba(15, 23, 42, .1); backdrop-filter: blur(12px); }
+    .toolbar > input { grid-column: 1 / -1; width: 100%; }
+    .toolbar > select, .toolbar > button { min-width: 0; width: 100%; }
+    .chart-row { grid-template-columns: 108px minmax(0, 1fr) auto; }
+    .overview-card-header { display: block; }
+    .insight-tabs { margin-top: 10px; }
   }
 
   @media (max-width: 620px) {
     .overall-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .page-tabs { width: 100%; }
+    .page-tab { flex: 1 0 auto; }
+    .works-toolbar { grid-template-columns: 1fr; }
+    .works-toolbar input { grid-column: auto; }
+    .work-item, .entry-item { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+    .entry-side { grid-column: 2; min-width: 0; text-align: left; }
+    .entry-side time, .entry-side span { display: inline; }
+    .entry-side span::before { content: ' · '; }
     .composer-dialog { inset: 0; width: 100vw; height: 100dvh; max-height: none; margin: 0; border-radius: 0; }
     .detail-header { padding: 15px 14px 12px; }
-    .detail-header h2 { font-size: 1.25rem; }
-    .detail-subtitle { font-size: .76rem; }
-    .detail-actions { gap: 5px; }
-    .reference-link { min-height: 36px; padding: 7px 9px; font-size: .72rem; }
-    .close-detail { min-width: 64px; min-height: 36px; padding: 7px 9px; font-size: .72rem; }
+    .detail-header h2 { font-size: 1.22rem; }
+    .detail-subtitle { font-size: .74rem; }
+    .reference-link, .close-detail { min-height: 36px; padding: 7px 9px; font-size: .7rem; }
     .detail-tabs { padding: 8px 12px; }
-    .detail-tab { min-height: 36px; padding: 7px 11px; font-size: .76rem; }
+    .detail-tab { min-height: 36px; padding: 7px 10px; font-size: .73rem; }
     .detail-panel-wrap { padding: 14px 12px 22px; }
     .detail-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .browser-toolbar, .browser-toolbar.two-controls { top: -14px; grid-template-columns: 1fr; margin: -14px -12px 10px; padding: 10px 12px; }
     .browser-toolbar input, .browser-toolbar.two-controls input { grid-column: auto; }
-    .entry-item { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
-    .entry-side { grid-column: 2; min-width: 0; text-align: left; }
-    .entry-side time, .entry-side span { display: inline; }
-    .entry-side span::before { content: ' · '; }
   }
 
   @media (max-width: 520px) {
     .composer-grid { grid-template-columns: 1fr; max-width: 430px; }
     .composer-button { display: grid; grid-template-columns: 124px minmax(0, 1fr); }
     .portrait-wrap { height: 155px; aspect-ratio: 4 / 5; }
+    .portrait-fallback { font-size: 2rem; }
+    .profile-badge { left: 6px; top: 6px; padding: 4px 6px; font-size: .54rem; }
+    .expand-cue { right: 6px; bottom: 6px; padding: 5px 7px; }
     .card-body { min-height: 155px; }
-    .chart-card { padding: 13px 11px; }
-    .chart-row { grid-template-columns: 92px minmax(0, 1fr) auto; gap: 6px; }
+    .chart-row { grid-template-columns: 88px minmax(0, 1fr) auto; gap: 6px; }
+    .chart-name { font-size: .66rem; }
   }
 </style>
 
@@ -580,27 +664,17 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     <MusicNav active="composers" />
 
     <div class="intro">
-      <h1>🎼 Classical Composers</h1>
+      <h1>🎼 Classical Music</h1>
       <p class="hint">
-        A listening archive of the Western classical canon: composer profiles, performances heard,
-        time invested, and the works I marked Gorgeous.
+        A personal archive of the composers, works, and performances I have explored since
+        {globalBounds.first ? ` ${formatListeningDate(globalBounds.first)}` : ' November 2024'}.
       </p>
-      <p class="tracking-note">
-        I began tracking this project on {globalBounds.first ? formatListeningDate(globalBounds.first) : 'November 23, 2024'},
-        starting with Haydn’s symphonies and then moving through the wider repertoire of other composers.
-        Select a composer to open the full listening record.
-      </p>
-
-      {hasListeningFeed && generatedLabel ? (
-        <p class="updated-note">
-          Listening data refreshed {generatedLabel}{feedSourceSheet ? ` from ${feedSourceSheet}` : ''}.
-        </p>
-      ) : null}
+      {hasListeningFeed && generatedLabel ? <p class="updated-note">Last updated {generatedLabel}.</p> : null}
 
       {!CLASSICAL_LISTENING_DATA_URL ? (
         <p class="feed-notice">
           <strong>Composer portraits are connected.</strong> Add <code>CLASSICAL_LISTENING_DATA_URL</code>
-          to connect the normalized Google Sheets feed and activate totals, links, charts, and Feeling Lucky.
+          to connect the listening archive.
         </p>
       ) : sheetError ? (
         <p class="feed-notice">
@@ -609,400 +683,466 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
       ) : null}
 
       {hasListeningFeed ? (
-        <>
-          <section class="overall-stats" aria-label="Classical listening totals">
-            <div class="overall-stat"><strong>{totalEntries.toLocaleString('en-US')}</strong><span>listening entries</span></div>
-            <div class="overall-stat"><strong>{totalUniqueTitles.toLocaleString('en-US')}</strong><span>unique works logged</span></div>
-            <div class="overall-stat"><strong>{formatListeningHours(totalMinutes)}</strong><span>total listening time</span></div>
-            <div class="overall-stat"><strong>{totalComposersLogged.toLocaleString('en-US')}</strong><span>composers logged</span></div>
-            <div class="overall-stat"><strong>{composers.length.toLocaleString('en-US')}</strong><span>portrait profiles</span></div>
-            <div class="overall-stat"><strong>{totalGorgeous.toLocaleString('en-US')}</strong><span>rated Gorgeous</span></div>
-          </section>
-
-          {(topHours.length || topFavorites.length) ? (
-            <details class="insights-toggle" open>
-              <summary>View listening insights</summary>
-              <section class="charts" aria-label="Classical listening charts">
-                <article class="chart-card">
-                  <div class="chart-header">
-                    <div>
-                      <h2>Most Explored by Time</h2>
-                      <p>Top composers by recorded listening hours.</p>
-                    </div>
-                  </div>
-                  <ol class="chart-list">
-                    {topHours.map((group) => (
-                      <li class="chart-row">
-                        <span class="chart-name">{group.name}</span>
-                        <span class="bar-track" aria-hidden="true">
-                          <span class="bar-fill" style={`--bar-width:${Math.max(2, (group.totalMinutes / maxChartMinutes) * 100)}%`}></span>
-                        </span>
-                        <span class="chart-value">{formatListeningHours(group.totalMinutes)}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </article>
-
-                <article class="chart-card">
-                  <div class="chart-header">
-                    <div>
-                      <h2>Favorites by Composer</h2>
-                      <p>Unique works heard compared with those marked Gorgeous.</p>
-                    </div>
-                    <div class="chart-legend" aria-label="Chart legend">
-                      <span class="legend-item heard">Works heard</span>
-                      <span class="legend-item gorgeous">Gorgeous</span>
-                    </div>
-                  </div>
-                  <ol class="chart-list">
-                    {topFavorites.map((group) => (
-                      <li class="chart-row">
-                        <span class="chart-name">{group.name}</span>
-                        <span class="bar-track" aria-hidden="true">
-                          <span
-                            class="works-width"
-                            style={`--bar-width:${Math.max(2, (group.uniqueTitles / maxFavoriteWorks) * 100)}%`}
-                          >
-                            <span
-                              class="gorgeous-fill"
-                              style={`--gorgeous-width:${group.uniqueTitles ? (group.gorgeousWorks / group.uniqueTitles) * 100 : 0}%`}
-                            ></span>
-                          </span>
-                        </span>
-                        <span class="chart-value">{group.gorgeousWorks.toLocaleString('en-US')} / {group.uniqueTitles.toLocaleString('en-US')}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </article>
-              </section>
-            </details>
-          ) : null}
-        </>
+        <section class="overall-stats" aria-label="Classical listening totals">
+          <div class="overall-stat"><strong>{totalEntries.toLocaleString('en-US')}</strong><span>listening entries</span></div>
+          <div class="overall-stat"><strong>{allWorks.length.toLocaleString('en-US')}</strong><span>unique works</span></div>
+          <div class="overall-stat"><strong>{formatListeningHours(totalMinutes)}</strong><span>listening time</span></div>
+          <div class="overall-stat"><strong>{totalComposersLogged.toLocaleString('en-US')}</strong><span>composers explored</span></div>
+          <div class="overall-stat"><strong>{favoriteWorks.length.toLocaleString('en-US')}</strong><span>favorite works</span></div>
+          <div class="overall-stat"><strong>{exploredPeriods.length.toLocaleString('en-US')}</strong><span>periods represented</span></div>
+        </section>
       ) : null}
+
+      <div class="page-tabs" role="tablist" aria-label="Classical music views">
+        <button type="button" class="page-tab" role="tab" data-page-tab="overview" aria-selected="false">Overview</button>
+        <button type="button" class="page-tab" role="tab" data-page-tab="composers" aria-selected="true">Composers</button>
+        <button type="button" class="page-tab" role="tab" data-page-tab="works" aria-selected="false">Works</button>
+      </div>
+    </div>
+
+    <section class="page-panel" data-page-panel="overview" role="tabpanel" hidden>
+      <div class="panel-heading">
+        <h2>Listening Overview</h2>
+        <p>See where the archive has concentrated and what entered the log most recently.</p>
+      </div>
+
+      <div class="overview-layout">
+        <article class="overview-card">
+          <div class="overview-card-header">
+            <div>
+              <h3>Composer Insights</h3>
+              <p>Compare time, favorite counts, and favorite rates.</p>
+            </div>
+            <div class="insight-tabs" role="tablist" aria-label="Composer insight chart">
+              <button type="button" class="insight-tab" data-insight-tab="time" aria-selected="true">Time</button>
+              <button type="button" class="insight-tab" data-insight-tab="favorites" aria-selected="false">Favorites</button>
+              <button type="button" class="insight-tab" data-insight-tab="rate" aria-selected="false">Favorite rate</button>
+            </div>
+          </div>
+
+          <div data-insight-panel="time">
+            <ol class="chart-list">
+              {topHours.map((composer) => (
+                <li class="chart-row">
+                  <span class="chart-name">{composer.name}</span>
+                  <span class="bar-track" aria-hidden="true">
+                    <span class="bar-fill" style={`--bar-width:${Math.max(2, (composer.totalMinutes / maxChartMinutes) * 100)}%`}></span>
+                  </span>
+                  <span class="chart-value">{formatListeningHours(composer.totalMinutes)}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div data-insight-panel="favorites" hidden>
+            <ol class="chart-list">
+              {topFavorites.map((composer) => (
+                <li class="chart-row">
+                  <span class="chart-name">{composer.name}</span>
+                  <span class="bar-track" aria-hidden="true">
+                    <span class="works-width" style={`--bar-width:${Math.max(2, (composer.works.length / maxFavoriteWorks) * 100)}%`}>
+                      <span class="favorite-fill" style={`--favorite-width:${composer.favoriteRate}%`}></span>
+                    </span>
+                  </span>
+                  <span class="chart-value">{composer.favorites.length.toLocaleString('en-US')} / {composer.works.length.toLocaleString('en-US')}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div data-insight-panel="rate" hidden>
+            <ol class="chart-list">
+              {topFavoriteRates.map((composer) => (
+                <li class="chart-row">
+                  <span class="chart-name">{composer.name}</span>
+                  <span class="bar-track" aria-hidden="true">
+                    <span class="rate-fill" style={`--bar-width:${composer.favoriteRate}%`}></span>
+                  </span>
+                  <span class="chart-value">{composer.favoriteRate.toFixed(0)}% · {composer.works.length.toLocaleString('en-US')} works</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </article>
+
+        <article class="overview-card">
+          <div class="overview-card-header">
+            <div>
+              <h3>Recently Heard</h3>
+              <p>The latest dated entries in the listening log.</p>
+            </div>
+          </div>
+          {recentEntries.length ? (
+            <ol class="recent-list">
+              {recentEntries.map((entry) => (
+                <li class="recent-item">
+                  {entry.youtubeUrl ? (
+                    <a href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer">
+                      <strong>{entry.displayComposer} · {entry.piece}</strong>
+                      <span>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw} · {ratingLabel(entry.ratingBucket, entry.rating)}</span>
+                    </a>
+                  ) : (
+                    <>
+                      <strong>{entry.displayComposer} · {entry.piece}</strong>
+                      <span>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw} · {ratingLabel(entry.ratingBucket, entry.rating)}</span>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ol>
+          ) : <p class="empty-detail">No dated listening entries are available.</p>}
+        </article>
+      </div>
+    </section>
+
+    <section class="page-panel" data-page-panel="composers" role="tabpanel">
+      <div class="panel-heading">
+        <h2>Composer Library</h2>
+        <p>Every explored composer is included, even when a portrait profile has not been added yet.</p>
+      </div>
 
       <div class="toolbar">
         <input id="composer-search" type="search" placeholder="Search composer, country, period, or form…" aria-label="Search composers" />
-
         <select id="period-filter" aria-label="Filter composers by period">
           <option value="">All periods</option>
           {periodsInUse.map((period) => <option value={period}>{period}</option>)}
         </select>
-
+        <select id="status-filter" aria-label="Filter composers by listening status">
+          <option value="">All composers</option>
+          <option value="heard">Explored</option>
+          <option value="unheard">To explore</option>
+          <option value="favorites">Has favorites</option>
+        </select>
         <select id="composer-sort" aria-label="Sort composers">
           <option value="name-asc">Composer A–Z</option>
-          <option value="entries-desc">Most entries</option>
-          <option value="unique-desc">Most unique works</option>
+          <option value="status-desc">Explored first</option>
+          <option value="unique-desc">Most works heard</option>
           <option value="hours-desc">Most listening time</option>
-          <option value="favorites-desc">Most Gorgeous works</option>
+          <option value="favorites-desc">Most favorites</option>
+          <option value="rate-desc">Highest favorite rate</option>
           <option value="recent-desc">Most recently heard</option>
         </select>
-
-        <button type="button" id="feeling-lucky" class="lucky-button" disabled={!luckyPool.length}>
-          🎲 Feeling Lucky
-        </button>
+        <button type="button" id="random-favorite" class="control-button primary" disabled={!luckyPool.length}>🎲 Random Favorite</button>
       </div>
 
       <p id="lucky-status" class="lucky-status" aria-live="polite"></p>
-
       <div class="results-row">
         <p id="composer-results" aria-live="polite">
-          Showing {composers.length.toLocaleString('en-US')} of {composers.length.toLocaleString('en-US')} portrait profiles · {totalComposersLogged.toLocaleString('en-US')} composers logged
+          Showing {composers.length.toLocaleString('en-US')} composers · {totalComposersLogged.toLocaleString('en-US')} explored
         </p>
         <button type="button" id="clear-composer-filters" class="clear-filters" hidden>Clear filters</button>
       </div>
-    </div>
 
-    {composers.length === 0 ? (
-      <p class="empty">Composer profiles are temporarily unavailable because Raindrop returned no items during the build.</p>
-    ) : (
-      <div
-        id="composer-grid"
-        class="composer-grid"
-        role="list"
-        data-listening-feed={hasListeningFeed ? 'connected' : 'not-connected'}
-        data-unprofiled-composers={unprofiledComposerCount}
-        data-other-ratings={totalOther}
-      >
-        {composers.map((composer) => {
-          const life = composer.birthYear ? `${composer.birthYear}–${composer.deathYear || ''}` : '';
-          const identity = [life, composer.nationality, composer.period].filter(Boolean).join(' · ');
-          const searchText = normalizeText(
-            `${composer.name} ${composer.nationality} ${composer.period} ${composer.note} ${composer.topForm} ${composer.entries.map((entry) => entry.form).join(' ')}`,
-          );
+      {composers.length === 0 ? (
+        <p class="empty">Composer data is temporarily unavailable.</p>
+      ) : (
+        <div id="composer-grid" class="composer-grid" role="list">
+          {composers.map((composer) => {
+            const life = formatLife(composer);
+            const identity = [life, composer.nationality, composer.period].filter(Boolean).join(' · ');
+            const status = composer.entries.length ? 'heard' : 'unheard';
+            const searchText = normalizeText(
+              `${composer.name} ${composer.nationality} ${composer.period} ${composer.note} ${composer.topForm} ${composer.entries.map((entry) => entry.form).join(' ')}`,
+            );
 
-          return (
-            <article
-              class="composer-card"
-              role="listitem"
-              data-composer-id={composer.id}
-              data-name={composer.name}
-              data-search={searchText}
-              data-period={composer.period}
-              data-entries={composer.entries.length}
-              data-unique={composer.uniqueTitleCount}
-              data-minutes={composer.totalMinutes}
-              data-favorites={composer.gorgeousWorkCount}
-              data-last-listened={composer.lastListened?.getTime() || 0}
-              data-original-index={composer.originalIndex}
-            >
-              <button
-                type="button"
-                class="composer-button"
-                aria-expanded="false"
-                aria-haspopup="dialog"
-                aria-controls="composer-dialog"
-                data-composer-trigger={composer.id}
+            return (
+              <article
+                class="composer-card"
+                role="listitem"
+                data-composer-id={composer.id}
+                data-name={composer.name}
+                data-search={searchText}
+                data-period={composer.period}
+                data-status={status}
+                data-entries={composer.entries.length}
+                data-unique={composer.works.length}
+                data-minutes={composer.totalMinutes}
+                data-favorites={composer.favorites.length}
+                data-rate={composer.favoriteRate}
+                data-last-listened={composer.lastListened?.getTime() || 0}
+                data-original-index={composer.originalIndex}
               >
-                <span class="portrait-wrap">
-                  <img
-                    class="portrait"
-                    src={composer.cover}
-                    alt={`Portrait of ${composer.name}`}
-                    loading="lazy"
-                    decoding="async"
-                    sizes="(max-width: 520px) 124px, (max-width: 900px) 50vw, 240px"
-                  />
-                  <span class="expand-cue" aria-hidden="true">+</span>
-                </span>
+                <button
+                  type="button"
+                  class="composer-button"
+                  aria-expanded="false"
+                  aria-haspopup="dialog"
+                  aria-controls="composer-dialog"
+                  data-composer-trigger={composer.id}
+                >
+                  <span class="portrait-wrap">
+                    {composer.profiled ? (
+                      <img
+                        class="portrait"
+                        src={composer.cover}
+                        alt={`Portrait of ${composer.name}`}
+                        loading="lazy"
+                        decoding="async"
+                        sizes="(max-width: 520px) 124px, (max-width: 900px) 50vw, 250px"
+                      />
+                    ) : (
+                      <span class="portrait-fallback" aria-hidden="true">{composer.initials}</span>
+                    )}
+                    {!composer.profiled ? <span class="profile-badge">Profile pending</span> : null}
+                    <span class="expand-cue" aria-hidden="true">View <span>›</span></span>
+                  </span>
 
-                <span class="card-body">
-                  <span class="composer-name">{composer.name}</span>
-                  <span class="composer-meta">{identity || composer.note || 'Composer profile'}</span>
+                  <span class="card-body">
+                    <span class="composer-name">{composer.name}</span>
+                    <span class="composer-meta">{identity || composer.note || 'Composer profile'}</span>
+                    {hasListeningFeed && composer.entries.length ? (
+                      <span class="composer-stats">
+                        <span class="stat"><strong>{composer.works.length.toLocaleString('en-US')}</strong><span>works</span></span>
+                        <span class="stat"><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>time</span></span>
+                        <span class="stat"><strong>{composer.favorites.length.toLocaleString('en-US')}</strong><span>favorites</span></span>
+                      </span>
+                    ) : (
+                      <span class="unheard-note">Not yet explored</span>
+                    )}
+                  </span>
+                </button>
 
-                  {hasListeningFeed ? (
-                    <span class="composer-stats">
-                      <span class="stat"><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></span>
-                      <span class="stat"><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></span>
-                      <span class="stat"><strong>{composer.gorgeousWorkCount.toLocaleString('en-US')}</strong><span>Gorgeous works</span></span>
-                      <span class="stat"><strong>{formatCardDate(composer.lastListened)}</strong><span>last heard</span></span>
-                    </span>
-                  ) : (
-                    <span class="not-connected">Listening details ready to connect</span>
-                  )}
-                </span>
-              </button>
-
-              <template id={`composer-template-${composer.id}`}>
-                <article class="composer-detail" data-composer-detail>
-                  <header class="detail-header">
-                    <div>
-                      <h2 id={`composer-dialog-title-${composer.id}`}>{composer.name}</h2>
-                      <p class="detail-subtitle">
-                        {[identity, composer.topForm ? `Most explored form: ${composer.topForm}` : '']
-                          .filter(Boolean)
-                          .join(' · ') || 'Composer listening profile'}
-                      </p>
-                    </div>
-                    <div class="detail-actions">
-                      <a class="reference-link" href={composer.href} target="_blank" rel="noopener noreferrer">Reference ↗</a>
-                      <button type="button" class="close-detail" data-close-composer>Close</button>
-                    </div>
-                  </header>
-
-                  <div class="detail-tabs" role="tablist" aria-label={`${composer.name} listening sections`}>
-                    <button
-                      type="button"
-                      class="detail-tab"
-                      role="tab"
-                      id={`tab-overview-${composer.id}`}
-                      aria-controls={`panel-overview-${composer.id}`}
-                      aria-selected="true"
-                      data-detail-tab="overview"
-                    >Overview</button>
-                    <button
-                      type="button"
-                      class="detail-tab"
-                      role="tab"
-                      id={`tab-gorgeous-${composer.id}`}
-                      aria-controls={`panel-gorgeous-${composer.id}`}
-                      aria-selected="false"
-                      tabindex="-1"
-                      data-detail-tab="gorgeous"
-                    >Gorgeous ({composer.gorgeousWorkCount.toLocaleString('en-US')})</button>
-                    <button
-                      type="button"
-                      class="detail-tab"
-                      role="tab"
-                      id={`tab-all-${composer.id}`}
-                      aria-controls={`panel-all-${composer.id}`}
-                      aria-selected="false"
-                      tabindex="-1"
-                      data-detail-tab="all"
-                    >All Listening ({composer.entries.length.toLocaleString('en-US')})</button>
-                  </div>
-
-                  <div class="detail-panel-wrap">
-                    <section
-                      class="detail-panel"
-                      id={`panel-overview-${composer.id}`}
-                      role="tabpanel"
-                      aria-labelledby={`tab-overview-${composer.id}`}
-                      data-detail-panel="overview"
-                    >
-                      {hasListeningFeed ? (
-                        <>
-                          <div class="detail-summary">
-                            <div><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>entries logged</span></div>
-                            <div><strong>{composer.uniqueTitleCount.toLocaleString('en-US')}</strong><span>unique works</span></div>
-                            <div><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></div>
-                            <div><strong>{composer.gorgeousWorkCount.toLocaleString('en-US')}</strong><span>Gorgeous works ({composer.gorgeousRate.toFixed(0)}%)</span></div>
-                            <div><strong>{composer.firstListened ? formatListeningDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
-                            <div><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
-                          </div>
-                          <p class="overview-note">
-                            {composer.gorgeousWorkCount.toLocaleString('en-US')} of {composer.uniqueTitleCount.toLocaleString('en-US')} unique works are marked Gorgeous.
-                            {composer.repeatCount ? ` The log also contains ${composer.repeatCount.toLocaleString('en-US')} repeat listening entr${composer.repeatCount === 1 ? 'y' : 'ies'}.` : ''}
-                            {composer.topForm ? ` The most explored form is ${composer.topForm}.` : ''}
-                          </p>
-                        </>
-                      ) : (
-                        <p class="empty-detail">Listening details are not connected for this build.</p>
-                      )}
-                    </section>
-
-                    <section
-                      class="detail-panel"
-                      id={`panel-gorgeous-${composer.id}`}
-                      role="tabpanel"
-                      aria-labelledby={`tab-gorgeous-${composer.id}`}
-                      data-detail-panel="gorgeous"
-                      hidden
-                    >
-                      <div class="section-heading">
-                        <h3>Gorgeous Works</h3>
-                        <p>{composer.gorgeousWorkCount.toLocaleString('en-US')} of {composer.uniqueTitleCount.toLocaleString('en-US')} unique works</p>
+                <template id={`composer-template-${composer.id}`}>
+                  <article class="composer-detail" data-composer-detail>
+                    <header class="detail-header">
+                      <div>
+                        <h2 id={`composer-dialog-title-${composer.id}`}>{composer.name}</h2>
+                        <p class="detail-subtitle">
+                          {[identity, composer.topForm ? `Most explored form: ${composer.topForm}` : '']
+                            .filter(Boolean)
+                            .join(' · ') || 'Composer listening profile'}
+                        </p>
                       </div>
+                      <div class="detail-actions">
+                        {composer.href ? <a class="reference-link" href={composer.href} target="_blank" rel="noopener noreferrer">Reference ↗</a> : null}
+                        <button type="button" class="close-detail" data-close-composer>Close</button>
+                      </div>
+                    </header>
 
-                      {composer.gorgeousWorks.length ? (
-                        <div data-list-browser data-page-desktop="18" data-page-mobile="8" data-item-label="works">
-                          <div class="browser-toolbar two-controls">
-                            <input type="search" placeholder="Search Gorgeous works…" aria-label={`Search ${composer.name} Gorgeous works`} data-list-search />
-                            <select aria-label="Sort Gorgeous works" data-list-sort>
-                              <option value="latest">Latest heard</option>
-                              <option value="earliest">Earliest heard</option>
-                              <option value="title">Title A–Z</option>
-                              <option value="longest">Longest first</option>
-                            </select>
-                          </div>
-                          <p class="entry-results" data-list-results></p>
-                          <ul class="entry-list" data-list>
-                            {composer.gorgeousWorks.map((entry) => (
-                              <li
-                                class="entry-item"
-                                data-list-item
-                                data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${entry.period}`)}
-                                data-rating="gorgeous"
-                                data-date={entry.date?.getTime() || 0}
-                                data-minutes={entry.minutes}
-                                data-title={normalizeText(entry.piece)}
-                                data-row={entry.rowNumber}
-                              >
-                                {entry.youtubeUrl ? (
-                                  <a class="play-link" href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${entry.piece} on YouTube`}>▶</a>
-                                ) : (
-                                  <span class="play-missing" title="No performance link was exported">—</span>
-                                )}
-                                <span class="entry-main">
-                                  <span class="entry-title">{entry.piece}</span>
-                                  <span class="entry-meta">
-                                    <span class="rating gorgeous">Gorgeous</span>
-                                    {[entry.form, entry.period, entry.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
-                                  </span>
-                                </span>
-                                <span class="entry-side">
-                                  <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw}</time>
-                                  <span>{formatCompactDuration(entry.minutes)}</span>
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                          <p class="empty-detail" data-list-empty hidden>No Gorgeous works match this search.</p>
-                          <button type="button" class="show-more" data-list-more hidden>Show more</button>
+                    {composer.entries.length ? (
+                      <>
+                        <div class="detail-tabs" role="tablist" aria-label={`${composer.name} listening sections`}>
+                          <button type="button" class="detail-tab" role="tab" aria-selected="true" data-detail-tab="overview">Overview</button>
+                          <button type="button" class="detail-tab" role="tab" aria-selected="false" tabindex="-1" data-detail-tab="favorites">Favorites ({composer.favorites.length.toLocaleString('en-US')})</button>
+                          <button type="button" class="detail-tab" role="tab" aria-selected="false" tabindex="-1" data-detail-tab="history">Listening History ({composer.entries.length.toLocaleString('en-US')})</button>
                         </div>
-                      ) : (
-                        <p class="empty-detail">No works by this composer are currently marked Gorgeous.</p>
-                      )}
-                    </section>
 
-                    <section
-                      class="detail-panel"
-                      id={`panel-all-${composer.id}`}
-                      role="tabpanel"
-                      aria-labelledby={`tab-all-${composer.id}`}
-                      data-detail-panel="all"
-                      hidden
-                    >
-                      <div class="section-heading">
-                        <h3>All Listening Entries</h3>
-                        <p>{composer.linkedCount.toLocaleString('en-US')} of {composer.entries.length.toLocaleString('en-US')} include a performance link</p>
-                      </div>
+                        <div class="detail-panel-wrap">
+                          <section class="detail-panel" role="tabpanel" data-detail-panel="overview">
+                            <div class="detail-summary">
+                              <div><strong>{composer.entries.length.toLocaleString('en-US')}</strong><span>listening entries</span></div>
+                              <div><strong>{composer.works.length.toLocaleString('en-US')}</strong><span>unique works</span></div>
+                              <div><strong>{formatListeningHours(composer.totalMinutes)}</strong><span>listening time</span></div>
+                              <div><strong>{composer.favorites.length.toLocaleString('en-US')}</strong><span>favorites ({composer.favoriteRate.toFixed(0)}%)</span></div>
+                              <div><strong>{composer.firstListened ? formatListeningDate(composer.firstListened) : '—'}</strong><span>first heard</span></div>
+                              <div><strong>{composer.lastListened ? formatListeningDate(composer.lastListened) : '—'}</strong><span>last heard</span></div>
+                            </div>
+                            <p class="overview-note">
+                              {composer.favorites.length.toLocaleString('en-US')} of {composer.works.length.toLocaleString('en-US')} unique works are marked Amazing or Gorgeous.
+                              {composer.repeatCount ? ` The archive also contains ${composer.repeatCount.toLocaleString('en-US')} repeat listening entr${composer.repeatCount === 1 ? 'y' : 'ies'}.` : ''}
+                              {composer.topForm ? ` The most explored form is ${composer.topForm}.` : ''}
+                            </p>
+                          </section>
 
-                      {composer.entries.length ? (
-                        <div data-list-browser data-page-desktop="24" data-page-mobile="12" data-item-label="entries">
-                          <div class="browser-toolbar">
-                            <input type="search" placeholder="Search title, form, year, or rating…" aria-label={`Search ${composer.name} listening entries`} data-list-search />
-                            <select aria-label="Filter listening entries" data-list-rating>
-                              <option value="all">All ratings</option>
-                              <option value="gorgeous">Gorgeous</option>
-                              <option value="other">Other</option>
-                            </select>
-                            <select aria-label="Sort listening entries" data-list-sort>
-                              <option value="latest">Latest heard</option>
-                              <option value="earliest">Earliest heard</option>
-                              <option value="title">Title A–Z</option>
-                              <option value="longest">Longest first</option>
-                            </select>
-                          </div>
-                          <p class="entry-results" data-list-results></p>
-                          <ul class="entry-list" data-list>
-                            {composer.entries.map((entry) => {
-                              const gorgeous = isGorgeousEntry(entry);
-                              return (
-                                <li
-                                  class="entry-item"
-                                  data-list-item
-                                  data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${gorgeous ? 'Gorgeous' : entry.rating} ${entry.period}`)}
-                                  data-rating={gorgeous ? 'gorgeous' : 'other'}
-                                  data-date={entry.date?.getTime() || 0}
-                                  data-minutes={entry.minutes}
-                                  data-title={normalizeText(entry.piece)}
-                                  data-row={entry.rowNumber}
-                                >
-                                  {entry.youtubeUrl ? (
-                                    <a class="play-link" href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${entry.piece} on YouTube`}>▶</a>
-                                  ) : (
-                                    <span class="play-missing" title="No performance link was exported">—</span>
-                                  )}
-                                  <span class="entry-main">
-                                    <span class="entry-title">{entry.piece}</span>
-                                    <span class="entry-meta">
-                                      <span class={`rating ${gorgeous ? 'gorgeous' : 'other'}`}>{gorgeous ? 'Gorgeous' : entry.rating || 'Other'}</span>
-                                      {[entry.form, entry.period, entry.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
+                          <section class="detail-panel" role="tabpanel" data-detail-panel="favorites" hidden>
+                            <div class="section-heading">
+                              <h3>Favorite Works</h3>
+                              <p>{composer.favorites.length.toLocaleString('en-US')} of {composer.works.length.toLocaleString('en-US')} unique works</p>
+                            </div>
+                            {composer.favorites.length ? (
+                              <div data-list-browser data-page-desktop="18" data-page-mobile="8" data-item-label="works">
+                                <div class="browser-toolbar two-controls">
+                                  <input type="search" placeholder="Search favorite works…" aria-label={`Search ${composer.name} favorite works`} data-list-search />
+                                  <select aria-label="Sort favorite works" data-list-sort>
+                                    <option value="latest">Latest heard</option>
+                                    <option value="earliest">Earliest heard</option>
+                                    <option value="title">Title A–Z</option>
+                                    <option value="longest">Longest first</option>
+                                  </select>
+                                </div>
+                                <p class="entry-results" data-list-results></p>
+                                <ul class="entry-list" data-list>
+                                  {composer.favorites.map((work) => (
+                                    <li
+                                      class="entry-item"
+                                      data-list-item
+                                      data-search={normalizeText(`${work.piece} ${work.form} ${work.compositionYear} ${work.period} ${ratingLabel(work.ratingBucket, work.rating)}`)}
+                                      data-rating={work.ratingBucket}
+                                      data-date={work.date?.getTime() || 0}
+                                      data-minutes={work.minutes}
+                                      data-title={normalizeText(work.piece)}
+                                      data-row={work.rowNumber}
+                                    >
+                                      {work.youtubeUrl ? <a class="play-link" href={work.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${work.piece} on YouTube`}>▶</a> : <span class="play-missing">—</span>}
+                                      <span class="entry-main">
+                                        <span class="entry-title">{work.piece}</span>
+                                        <span class="entry-meta">
+                                          <span class={`rating ${work.ratingBucket}`}>{ratingLabel(work.ratingBucket, work.rating)}</span>
+                                          {[work.form, work.period, work.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
+                                          {work.listenCount > 1 ? ` · ${work.listenCount} listens` : ''}
+                                        </span>
+                                      </span>
+                                      <span class="entry-side">
+                                        <time datetime={work.date?.toISOString().slice(0, 10) || undefined}>{work.date ? formatListeningDate(work.date) : work.dateRaw}</time>
+                                        <span>{formatCompactDuration(work.minutes)}</span>
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                                <p class="empty-detail" data-list-empty hidden>No favorite works match this search.</p>
+                                <button type="button" class="show-more" data-list-more hidden>Show more</button>
+                              </div>
+                            ) : <p class="empty-detail">No works by this composer are currently marked Amazing or Gorgeous.</p>}
+                          </section>
+
+                          <section class="detail-panel" role="tabpanel" data-detail-panel="history" hidden>
+                            <div class="section-heading">
+                              <h3>Listening History</h3>
+                              <p>{composer.linkedCount.toLocaleString('en-US')} of {composer.entries.length.toLocaleString('en-US')} entries include a performance link</p>
+                            </div>
+                            <div data-list-browser data-page-desktop="24" data-page-mobile="12" data-item-label="entries">
+                              <div class="browser-toolbar">
+                                <input type="search" placeholder="Search title, form, year, or rating…" aria-label={`Search ${composer.name} listening entries`} data-list-search />
+                                <select aria-label="Filter listening entries" data-list-rating>
+                                  <option value="all">All ratings</option>
+                                  <option value="amazing">Amazing</option>
+                                  <option value="gorgeous">Gorgeous</option>
+                                  <option value="other">Other</option>
+                                </select>
+                                <select aria-label="Sort listening entries" data-list-sort>
+                                  <option value="latest">Latest heard</option>
+                                  <option value="earliest">Earliest heard</option>
+                                  <option value="title">Title A–Z</option>
+                                  <option value="longest">Longest first</option>
+                                </select>
+                              </div>
+                              <p class="entry-results" data-list-results></p>
+                              <ul class="entry-list" data-list>
+                                {composer.entries.map((entry) => (
+                                  <li
+                                    class="entry-item"
+                                    data-list-item
+                                    data-search={normalizeText(`${entry.piece} ${entry.form} ${entry.compositionYear} ${ratingLabel(entry.ratingBucket, entry.rating)} ${entry.period}`)}
+                                    data-rating={entry.ratingBucket}
+                                    data-date={entry.date?.getTime() || 0}
+                                    data-minutes={entry.minutes}
+                                    data-title={normalizeText(entry.piece)}
+                                    data-row={entry.rowNumber}
+                                  >
+                                    {entry.youtubeUrl ? <a class="play-link" href={entry.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${entry.piece} on YouTube`}>▶</a> : <span class="play-missing">—</span>}
+                                    <span class="entry-main">
+                                      <span class="entry-title">{entry.piece}</span>
+                                      <span class="entry-meta">
+                                        <span class={`rating ${entry.ratingBucket}`}>{ratingLabel(entry.ratingBucket, entry.rating)}</span>
+                                        {[entry.form, entry.period, entry.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
+                                      </span>
                                     </span>
-                                  </span>
-                                  <span class="entry-side">
-                                    <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw}</time>
-                                    <span>{formatCompactDuration(entry.minutes)}</span>
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                          <p class="empty-detail" data-list-empty hidden>No entries match these filters.</p>
-                          <button type="button" class="show-more" data-list-more hidden>Show more</button>
+                                    <span class="entry-side">
+                                      <time datetime={entry.date?.toISOString().slice(0, 10) || undefined}>{entry.date ? formatListeningDate(entry.date) : entry.dateRaw}</time>
+                                      <span>{formatCompactDuration(entry.minutes)}</span>
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                              <p class="empty-detail" data-list-empty hidden>No entries match these filters.</p>
+                              <button type="button" class="show-more" data-list-more hidden>Show more</button>
+                            </div>
+                          </section>
                         </div>
-                      ) : (
-                        <p class="empty-detail">No dated listening entries matched this composer profile.</p>
-                      )}
-                    </section>
-                  </div>
-                </article>
-              </template>
-            </article>
-          );
-        })}
+                      </>
+                    ) : (
+                      <div class="detail-panel-wrap">
+                        <p class="empty-detail">This composer has a profile in the library but no dated listening entries yet.</p>
+                      </div>
+                    )}
+                  </article>
+                </template>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+
+    <section class="page-panel" data-page-panel="works" role="tabpanel" hidden>
+      <div class="panel-heading">
+        <h2>Works Explorer</h2>
+        <p>Search the complete archive across composers, forms, periods, ratings, and composition years.</p>
       </div>
-    )}
+
+      <div id="works-browser" class="works-browser" data-page-size="40">
+        <div class="works-toolbar">
+          <input id="works-search" type="search" placeholder="Search work, composer, form, period, or year…" aria-label="Search classical works" />
+          <select id="works-composer-filter" aria-label="Filter works by composer">
+            <option value="">All composers</option>
+            {workComposers.map((composer) => <option value={composer.id}>{composer.name}</option>)}
+          </select>
+          <select id="works-period-filter" aria-label="Filter works by period">
+            <option value="">All periods</option>
+            {workPeriods.map((period) => <option value={period}>{period}</option>)}
+          </select>
+          <select id="works-form-filter" aria-label="Filter works by form">
+            <option value="">All forms</option>
+            {workForms.map((form) => <option value={form}>{form}</option>)}
+          </select>
+          <select id="works-rating-filter" aria-label="Filter works by rating">
+            <option value="">All ratings</option>
+            <option value="amazing">Amazing</option>
+            <option value="gorgeous">Gorgeous</option>
+            <option value="other">Other</option>
+          </select>
+          <select id="works-sort" aria-label="Sort works">
+            <option value="latest">Recently heard</option>
+            <option value="composer">Composer A–Z</option>
+            <option value="title">Work A–Z</option>
+            <option value="longest">Longest first</option>
+            <option value="most-listened">Most listened</option>
+          </select>
+        </div>
+
+        <div class="results-row">
+          <p id="works-results">Showing {Math.min(40, allWorks.length).toLocaleString('en-US')} of {allWorks.length.toLocaleString('en-US')} works</p>
+          <button type="button" id="clear-work-filters" class="clear-filters" hidden>Clear filters</button>
+        </div>
+
+        <ul id="work-list" class="work-list">
+          {allWorks.map((work) => (
+            <li
+              class="work-item"
+              data-work-item
+              data-search={normalizeText(`${work.piece} ${work.displayComposer} ${work.form} ${work.period} ${work.compositionYear} ${ratingLabel(work.ratingBucket, work.rating)}`)}
+              data-composer={work.resolvedComposerId}
+              data-composer-name={normalizeText(work.displayComposer)}
+              data-period={work.period}
+              data-form={work.form}
+              data-rating={work.ratingBucket}
+              data-date={work.date?.getTime() || 0}
+              data-minutes={work.minutes}
+              data-listens={work.listenCount}
+              data-title={normalizeText(work.piece)}
+              data-row={work.rowNumber}
+            >
+              {work.youtubeUrl ? <a class="play-link" href={work.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Play ${work.piece} on YouTube`}>▶</a> : <span class="play-missing">—</span>}
+              <span class="entry-main">
+                <span class="entry-composer">{work.displayComposer}</span>
+                <span class="entry-title">{work.piece}</span>
+                <span class="entry-meta">
+                  <span class={`rating ${work.ratingBucket}`}>{ratingLabel(work.ratingBucket, work.rating)}</span>
+                  {[work.form, work.period, work.compositionYear].filter(Boolean).join(' · ') || 'Metadata not logged'}
+                  {work.listenCount > 1 ? ` · ${work.listenCount} listens` : ''}
+                </span>
+              </span>
+              <span class="entry-side">
+                <time datetime={work.date?.toISOString().slice(0, 10) || undefined}>{work.date ? formatListeningDate(work.date) : work.dateRaw}</time>
+                <span>{formatCompactDuration(work.minutes)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p id="works-empty" class="empty-detail" hidden>No works match these filters.</p>
+        <button type="button" id="works-more" class="show-more" hidden>Show more</button>
+      </div>
+    </section>
 
     <dialog id="composer-dialog" class="composer-dialog" aria-modal="true">
       <div id="composer-dialog-content" class="composer-dialog-content"></div>
@@ -1015,24 +1155,6 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
 
 <script>
   (function () {
-    const grid = document.querySelector('#composer-grid');
-    if (!grid) return;
-
-    const search = document.querySelector('#composer-search');
-    const period = document.querySelector('#period-filter');
-    const sort = document.querySelector('#composer-sort');
-    const results = document.querySelector('#composer-results');
-    const clear = document.querySelector('#clear-composer-filters');
-    const luckyButton = document.querySelector('#feeling-lucky');
-    const luckyStatus = document.querySelector('#lucky-status');
-    const dialog = document.querySelector('#composer-dialog');
-    const dialogContent = document.querySelector('#composer-dialog-content');
-    const cards = Array.from(grid.querySelectorAll('.composer-card'));
-    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
-    let activeId = '';
-    let activeButton = null;
-    let suppressFocusRestore = false;
-
     const norm = (value) =>
       String(value || '')
         .normalize('NFD')
@@ -1040,38 +1162,70 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, ' ')
         .trim();
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
-    const parsePageData = () => {
-      try {
-        return JSON.parse(document.querySelector('#composer-page-data')?.textContent || '{}');
-      } catch {
-        return { luckyPool: [] };
+    const pageTabs = Array.from(document.querySelectorAll('[data-page-tab]'));
+    const pagePanels = Array.from(document.querySelectorAll('[data-page-panel]'));
+
+    function activatePage(name, updateUrl = true) {
+      const valid = pagePanels.some((panel) => panel.dataset.pagePanel === name) ? name : 'composers';
+      pageTabs.forEach((tab) => tab.setAttribute('aria-selected', tab.dataset.pageTab === valid ? 'true' : 'false'));
+      pagePanels.forEach((panel) => { panel.hidden = panel.dataset.pagePanel !== valid; });
+
+      if (updateUrl) {
+        const url = new URL(window.location.href);
+        if (valid === 'composers') url.searchParams.delete('view');
+        else url.searchParams.set('view', valid);
+        history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
       }
-    };
-
-    const pageData = parsePageData();
-    const insights = document.querySelector('.insights-toggle');
-    if (window.matchMedia('(max-width: 700px)').matches) insights?.removeAttribute('open');
-
-    function visibleCards() {
-      return cards.filter((card) => card.style.display !== 'none');
     }
 
-    function updateHash(id) {
+    pageTabs.forEach((tab) => tab.addEventListener('click', () => activatePage(tab.dataset.pageTab || 'composers')));
+    activatePage(new URL(window.location.href).searchParams.get('view') || 'composers', false);
+
+    const insightTabs = Array.from(document.querySelectorAll('[data-insight-tab]'));
+    const insightPanels = Array.from(document.querySelectorAll('[data-insight-panel]'));
+    insightTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const name = tab.dataset.insightTab;
+        insightTabs.forEach((candidate) => candidate.setAttribute('aria-selected', candidate === tab ? 'true' : 'false'));
+        insightPanels.forEach((panel) => { panel.hidden = panel.dataset.insightPanel !== name; });
+      });
+    });
+
+    const grid = document.querySelector('#composer-grid');
+    const search = document.querySelector('#composer-search');
+    const period = document.querySelector('#period-filter');
+    const status = document.querySelector('#status-filter');
+    const sort = document.querySelector('#composer-sort');
+    const results = document.querySelector('#composer-results');
+    const clear = document.querySelector('#clear-composer-filters');
+    const luckyButton = document.querySelector('#random-favorite');
+    const luckyStatus = document.querySelector('#lucky-status');
+    const dialog = document.querySelector('#composer-dialog');
+    const dialogContent = document.querySelector('#composer-dialog-content');
+    const cards = grid ? Array.from(grid.querySelectorAll('.composer-card')) : [];
+    let activeButton = null;
+    let suppressFocusRestore = false;
+
+    function parsePageData() {
+      try { return JSON.parse(document.querySelector('#composer-page-data')?.textContent || '{}'); }
+      catch { return { luckyPool: [] }; }
+    }
+    const pageData = parsePageData();
+
+    function updateComposerHash(id) {
       const url = new URL(window.location.href);
       url.hash = id ? `composer-${id}` : '';
       history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     }
 
     function resetDialogState({ preserveHash = false } = {}) {
-      cards.forEach((card) => {
-        card.querySelector('[data-composer-trigger]')?.setAttribute('aria-expanded', 'false');
-      });
+      cards.forEach((card) => card.querySelector('[data-composer-trigger]')?.setAttribute('aria-expanded', 'false'));
       if (dialogContent) dialogContent.replaceChildren();
       const buttonToRestore = activeButton;
-      activeId = '';
       activeButton = null;
-      if (!preserveHash) updateHash('');
+      if (!preserveHash) updateComposerHash('');
       if (!suppressFocusRestore) buttonToRestore?.focus();
       suppressFocusRestore = false;
     }
@@ -1082,9 +1236,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
       if (dialog?.open) {
         dialog.dataset.preserveHash = preserveHash ? 'true' : 'false';
         dialog.close();
-      } else {
-        resetDialogState({ preserveHash });
-      }
+      } else resetDialogState({ preserveHash });
     }
 
     function setupTabs(detail) {
@@ -1099,9 +1251,7 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
           tab.tabIndex = selected ? 0 : -1;
           if (selected && focus) tab.focus();
         });
-        panels.forEach((panel) => {
-          panel.hidden = panel.dataset.detailPanel !== name;
-        });
+        panels.forEach((panel) => { panel.hidden = panel.dataset.detailPanel !== name; });
         detail.querySelector('.detail-panel-wrap')?.scrollTo({ top: 0, behavior: 'auto' });
       }
 
@@ -1133,14 +1283,12 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
       const pageSize = Number(mobile ? browser.dataset.pageMobile : browser.dataset.pageDesktop) || (mobile ? 10 : 24);
       const itemLabel = browser.dataset.itemLabel || 'works';
       let visibleLimit = pageSize;
-
       if (!list || !items.length) return;
 
       function applyItems() {
         const words = norm(listSearch?.value).split(/\s+/).filter(Boolean);
         const selectedRating = ratingFilter?.value || 'all';
         const mode = listSort?.value || 'latest';
-
         const filtered = items.filter((item) => {
           const searchMatches = !words.length || words.every((word) => (item.dataset.search || '').includes(word));
           const ratingMatches = selectedRating === 'all' || item.dataset.rating === selectedRating;
@@ -1161,7 +1309,6 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
           list.appendChild(item);
           item.hidden = index >= visibleLimit;
         });
-
         if (resultText) {
           const shown = Math.min(filtered.length, visibleLimit);
           resultText.textContent = filtered.length
@@ -1184,53 +1331,45 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
       const button = card.querySelector('[data-composer-trigger]');
       const id = button?.dataset.composerTrigger;
       if (!button || !id || !dialog || !dialogContent) return;
-
       const template = document.querySelector(`#composer-template-${CSS.escape(id)}`);
       if (!template) return;
 
       if (dialog.open) closeDialog({ preserveHash: true, restoreFocus: false });
       dialogContent.replaceChildren(template.content.cloneNode(true));
-      activeId = id;
       activeButton = button;
       button.setAttribute('aria-expanded', 'true');
-
       const detail = dialogContent.querySelector('[data-composer-detail]');
       if (!detail) return;
       dialog.setAttribute('aria-labelledby', `composer-dialog-title-${id}`);
       setupTabs(detail);
       detail.querySelectorAll('[data-list-browser]').forEach(setupListBrowser);
       detail.querySelector('[data-close-composer]')?.addEventListener('click', () => closeDialog());
-
-      if (updateUrl) updateHash(id);
+      if (updateUrl) updateComposerHash(id);
       dialog.showModal();
       if (focusClose) requestAnimationFrame(() => detail.querySelector('[data-close-composer]')?.focus());
     }
 
-    cards.forEach((card) => {
-      card.querySelector('[data-composer-trigger]')?.addEventListener('click', () => openDetail(card));
-    });
-
+    cards.forEach((card) => card.querySelector('[data-composer-trigger]')?.addEventListener('click', () => openDetail(card)));
     dialog?.addEventListener('close', () => {
       const preserveHash = dialog.dataset.preserveHash === 'true';
       delete dialog.dataset.preserveHash;
       resetDialogState({ preserveHash });
     });
-
-    dialog?.addEventListener('click', (event) => {
-      if (event.target === dialog) closeDialog();
-    });
+    dialog?.addEventListener('click', (event) => { if (event.target === dialog) closeDialog(); });
 
     function sortCards() {
+      if (!grid) return;
       const mode = sort?.value || 'name-asc';
       const ordered = [...cards].sort((a, b) => {
         let comparison = 0;
-        if (mode === 'entries-desc') comparison = Number(b.dataset.entries || 0) - Number(a.dataset.entries || 0);
+        if (mode === 'status-desc') comparison = Number(b.dataset.entries || 0) - Number(a.dataset.entries || 0);
         else if (mode === 'unique-desc') comparison = Number(b.dataset.unique || 0) - Number(a.dataset.unique || 0);
         else if (mode === 'hours-desc') comparison = Number(b.dataset.minutes || 0) - Number(a.dataset.minutes || 0);
         else if (mode === 'favorites-desc') comparison = Number(b.dataset.favorites || 0) - Number(a.dataset.favorites || 0);
+        else if (mode === 'rate-desc') comparison = Number(b.dataset.rate || 0) - Number(a.dataset.rate || 0);
         else if (mode === 'recent-desc') comparison = Number(b.dataset.lastListened || 0) - Number(a.dataset.lastListened || 0);
         else comparison = collator.compare(a.dataset.name || '', b.dataset.name || '');
-        return comparison || Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
+        return comparison || collator.compare(a.dataset.name || '', b.dataset.name || '') || Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
       });
       ordered.forEach((card) => grid.appendChild(card));
     }
@@ -1238,29 +1377,31 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     function filterCards() {
       const words = norm(search?.value).split(/\s+/).filter(Boolean);
       const selectedPeriod = period?.value || '';
+      const selectedStatus = status?.value || '';
       let visible = 0;
 
       cards.forEach((card) => {
         const textMatches = !words.length || words.every((word) => (card.dataset.search || '').includes(word));
         const periodMatches = !selectedPeriod || card.dataset.period === selectedPeriod;
-        const show = textMatches && periodMatches;
+        const statusMatches = !selectedStatus ||
+          (selectedStatus === 'favorites' ? Number(card.dataset.favorites || 0) > 0 : card.dataset.status === selectedStatus);
+        const show = textMatches && periodMatches && statusMatches;
         card.style.display = show ? '' : 'none';
         if (show) visible += 1;
       });
 
-      if (results) {
-        const logged = Number(grid.dataset.unprofiledComposers || 0) + cards.length;
-        results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} portrait profiles · ${logged.toLocaleString()} composers logged`;
-      }
-      if (clear) clear.hidden = !(words.length || selectedPeriod || (sort?.value || 'name-asc') !== 'name-asc');
+      if (results) results.textContent = `Showing ${visible.toLocaleString()} of ${cards.length.toLocaleString()} composers`;
+      if (clear) clear.hidden = !(words.length || selectedPeriod || selectedStatus || (sort?.value || 'name-asc') !== 'name-asc');
     }
 
     search?.addEventListener('input', filterCards);
     period?.addEventListener('change', filterCards);
+    status?.addEventListener('change', filterCards);
     sort?.addEventListener('change', () => { sortCards(); filterCards(); });
     clear?.addEventListener('click', () => {
       if (search) search.value = '';
       if (period) period.value = '';
+      if (status) status.value = '';
       if (sort) sort.value = 'name-asc';
       sortCards();
       filterCards();
@@ -1270,17 +1411,15 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     luckyButton?.addEventListener('click', () => {
       const pool = Array.isArray(pageData.luckyPool) ? pageData.luckyPool : [];
       if (!pool.length) return;
-
       let recent = [];
       try { recent = JSON.parse(localStorage.getItem('lifeloggerz-classical-lucky-recent') || '[]'); } catch {}
       const available = pool.filter((entry) => !recent.includes(entry.key));
       const candidates = available.length ? available : pool;
       const selected = candidates[Math.floor(Math.random() * candidates.length)];
       if (!selected) return;
-
       recent = [selected.key, ...recent.filter((key) => key !== selected.key)].slice(0, Math.min(25, pool.length));
       try { localStorage.setItem('lifeloggerz-classical-lucky-recent', JSON.stringify(recent)); } catch {}
-      if (luckyStatus) luckyStatus.textContent = `${selected.composer} — ${selected.piece}`;
+      if (luckyStatus) luckyStatus.textContent = `${selected.composer} · ${selected.piece}`;
       window.open(selected.url, '_blank', 'noopener,noreferrer');
     });
 
@@ -1290,7 +1429,85 @@ const clientPageData = JSON.stringify({ luckyPool }).replace(/</g, '\\u003c');
     const hashId = decodeURIComponent(window.location.hash.replace(/^#composer-/, ''));
     if (hashId) {
       const card = cards.find((candidate) => candidate.dataset.composerId === hashId);
-      if (card) openDetail(card, { updateUrl: false, focusClose: false });
+      if (card) {
+        activatePage('composers', false);
+        openDetail(card, { updateUrl: false, focusClose: false });
+      }
+    }
+
+    const worksBrowser = document.querySelector('#works-browser');
+    if (worksBrowser) {
+      const workSearch = document.querySelector('#works-search');
+      const composerFilter = document.querySelector('#works-composer-filter');
+      const periodFilter = document.querySelector('#works-period-filter');
+      const formFilter = document.querySelector('#works-form-filter');
+      const ratingFilter = document.querySelector('#works-rating-filter');
+      const workSort = document.querySelector('#works-sort');
+      const workResults = document.querySelector('#works-results');
+      const workClear = document.querySelector('#clear-work-filters');
+      const workList = document.querySelector('#work-list');
+      const workEmpty = document.querySelector('#works-empty');
+      const workMore = document.querySelector('#works-more');
+      const workItems = Array.from(document.querySelectorAll('[data-work-item]'));
+      const pageSize = Number(worksBrowser.dataset.pageSize || 40);
+      let visibleLimit = pageSize;
+
+      function applyWorks() {
+        const words = norm(workSearch?.value).split(/\s+/).filter(Boolean);
+        const selectedComposer = composerFilter?.value || '';
+        const selectedPeriod = periodFilter?.value || '';
+        const selectedForm = formFilter?.value || '';
+        const selectedRating = ratingFilter?.value || '';
+        const mode = workSort?.value || 'latest';
+
+        const filtered = workItems.filter((item) =>
+          (!words.length || words.every((word) => (item.dataset.search || '').includes(word))) &&
+          (!selectedComposer || item.dataset.composer === selectedComposer) &&
+          (!selectedPeriod || item.dataset.period === selectedPeriod) &&
+          (!selectedForm || item.dataset.form === selectedForm) &&
+          (!selectedRating || item.dataset.rating === selectedRating)
+        );
+
+        filtered.sort((a, b) => {
+          let comparison = 0;
+          if (mode === 'composer') comparison = collator.compare(a.dataset.composerName || '', b.dataset.composerName || '') || collator.compare(a.dataset.title || '', b.dataset.title || '');
+          else if (mode === 'title') comparison = collator.compare(a.dataset.title || '', b.dataset.title || '');
+          else if (mode === 'longest') comparison = Number(b.dataset.minutes || 0) - Number(a.dataset.minutes || 0);
+          else if (mode === 'most-listened') comparison = Number(b.dataset.listens || 0) - Number(a.dataset.listens || 0);
+          else comparison = Number(b.dataset.date || 0) - Number(a.dataset.date || 0);
+          return comparison || Number(b.dataset.row || 0) - Number(a.dataset.row || 0);
+        });
+
+        workItems.forEach((item) => { item.hidden = true; });
+        filtered.forEach((item, index) => {
+          workList?.appendChild(item);
+          item.hidden = index >= visibleLimit;
+        });
+        const shown = Math.min(filtered.length, visibleLimit);
+        if (workResults) workResults.textContent = filtered.length
+          ? `Showing ${shown.toLocaleString()} of ${filtered.length.toLocaleString()} works`
+          : 'No matching works';
+        if (workEmpty) workEmpty.hidden = filtered.length > 0;
+        if (workMore) workMore.hidden = filtered.length <= visibleLimit;
+        if (workClear) workClear.hidden = !(words.length || selectedComposer || selectedPeriod || selectedForm || selectedRating || mode !== 'latest');
+      }
+
+      [composerFilter, periodFilter, formFilter, ratingFilter].forEach((control) => control?.addEventListener('change', () => { visibleLimit = pageSize; applyWorks(); }));
+      workSearch?.addEventListener('input', () => { visibleLimit = pageSize; applyWorks(); });
+      workSort?.addEventListener('change', applyWorks);
+      workMore?.addEventListener('click', () => { visibleLimit += pageSize; applyWorks(); });
+      workClear?.addEventListener('click', () => {
+        if (workSearch) workSearch.value = '';
+        if (composerFilter) composerFilter.value = '';
+        if (periodFilter) periodFilter.value = '';
+        if (formFilter) formFilter.value = '';
+        if (ratingFilter) ratingFilter.value = '';
+        if (workSort) workSort.value = 'latest';
+        visibleLimit = pageSize;
+        applyWorks();
+        workSearch?.focus();
+      });
+      applyWorks();
     }
   })();
 </script>
