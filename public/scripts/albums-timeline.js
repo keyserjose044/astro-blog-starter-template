@@ -1,12 +1,225 @@
-let mode='release',installed=false,lastApi=null;
-const fmt=v=>Number(v||0).toLocaleString('en-US');
-const esc=v=>String(v||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-const num=v=>v===''||v==null?null:(Number.isFinite(Number(v))?Number(v):null);
-const metric=(label,value,note='')=>`<div class="albums-metric"><span class="albums-metric-label">${label}</span><strong class="albums-metric-value">${value}</strong>${note?`<small class="albums-metric-note">${note}</small>`:''}</div>`;
-const parseDate=value=>{const s=String(value||'').replace(/(\d)(st|nd|rd|th)\b/gi,'$1').trim(),m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);if(m){const y=m[3].length===2?2000+Number(m[3]):Number(m[3]),d=new Date(Date.UTC(y,Number(m[1])-1,Number(m[2])));return Number.isNaN(d.getTime())?null:d}const d=new Date(s);return Number.isNaN(d.getTime())?null:d};
-function releaseGroups(cards){const groups=new Map();cards.forEach(c=>{const key=c.dataset.releasePeriod||'unknown',label=c.dataset.releasePeriodLabel||'Unknown release period',order=Number(c.dataset.releasePeriodOrder||1e5);if(!groups.has(key))groups.set(key,{key,label,order,cards:[],sub:new Map()});const g=groups.get(key);g.cards.push(c);const year=num(c.dataset.releaseYear);if(year!==null)g.sub.set(year,(g.sub.get(year)||0)+1)});return [...groups.values()].sort((a,b)=>a.order-b.order||a.label.localeCompare(b.label))}
-function listeningGroups(cards){const groups=new Map();cards.forEach(c=>{const d=parseDate(c.dataset.dateListened);if(!d)return;const year=d.getUTCFullYear();if(!groups.has(year))groups.set(year,{key:String(year),label:String(year),order:year,cards:[],sub:new Map()});const g=groups.get(year);g.cards.push(c);g.sub.set(d.getUTCMonth(),(g.sub.get(d.getUTCMonth())||0)+1)});return [...groups.values()].sort((a,b)=>a.order-b.order)}
-function bars(group){let values;if(mode==='listening')values=Array.from({length:12},(_,i)=>group.sub.get(i)||0);else{values=[...group.sub.values()];while(values.length<6)values.push(0)}const max=Math.max(1,...values);return values.map(v=>`<i data-peak="${v===max&&v>0}" style="height:${Math.max(8,v/max*100)}%"></i>`).join('')}
-function caption(group){if(mode==='listening'){const months=[...group.sub].sort((a,b)=>b[1]-a[1]);if(!months.length)return'No dated entries';const name=new Intl.DateTimeFormat('en-US',{month:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2020,months[0][0],1)));return`Busiest month: ${name} (${fmt(months[0][1])})`}const years=group.cards.map(c=>num(c.dataset.releaseYear)).filter(v=>v!==null).sort((a,b)=>a-b);if(!years.length)return group.label;return years[0]===years.at(-1)?`Released ${years[0]}`:`${years[0]}–${years.at(-1)}`}
-function install(api){if(installed)return;installed=true;lastApi=api;document.querySelectorAll('[data-timeline-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.timelineMode;document.querySelectorAll('[data-timeline-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderAlbumTimeline(lastApi)}))}
-export function renderAlbumTimeline(api){lastApi=api;install(api);const cards=api.getVisibleCards(),groups=mode==='listening'?listeningGroups(cards):releaseGroups(cards),busiest=[...groups].sort((a,b)=>b.cards.length-a.cards.length)[0];const releases=cards.map(c=>num(c.dataset.releaseSort)).filter(v=>v!==null).sort((a,b)=>a-b),dates=cards.map(c=>parseDate(c.dataset.dateListened)).filter(Boolean).sort((a,b)=>a-b),first=mode==='listening'?(dates[0]?.getUTCFullYear()||'—'):(releases[0]||'—'),last=mode==='listening'?(dates.at(-1)?.getUTCFullYear()||'—'):(releases.at(-1)||'—');api.controls.timelineMetrics.innerHTML=[metric('Albums in timeline',fmt(cards.length),'After active filters'),metric(mode==='listening'?'First tracked year':'Earliest release',first,mode==='listening'?'When it entered the log':'Approximate when needed'),metric(mode==='listening'?'Latest tracked year':'Newest release',last,mode==='listening'?'Current end of the journey':'Approximate when needed'),metric('Busiest period',busiest?.label||'—',busiest?`${fmt(busiest.cards.length)} albums`:'No dated albums')].join('');api.controls.timelineHelp.textContent=mode==='listening'?'Each stop is a listening year. Select one to apply the Year listened filter.':'Each stop is a release period. Select one to apply the Release period filter.';if(!groups.length){api.controls.timelineContent.innerHTML='<div class="albums-timeline-empty">No dated albums match the current filters.</div>';return}api.controls.timelineContent.innerHTML=`<div class="albums-timeline-viewport"><div class="albums-timeline-track">${groups.map(g=>`<article class="albums-timeline-stop"><button type="button" data-timeline-key="${esc(g.key)}"><span class="albums-timeline-period">${esc(g.label)}</span><span class="albums-timeline-count">${fmt(g.cards.length)} ${g.cards.length===1?'album':'albums'}</span><span class="albums-timeline-covers">${g.cards.slice(0,3).map(c=>`<img src="${esc(c.querySelector('.album-cover')?.src)}" alt="" loading="lazy">`).join('')}</span><span class="albums-timeline-bars">${bars(g)}</span><span class="albums-timeline-caption">${esc(caption(g))}</span></button></article>`).join('')}</div></div>`;api.controls.timelineContent.querySelectorAll('[data-timeline-key]').forEach(b=>b.addEventListener('click',()=>api.setFilter(mode==='listening'?'year':'release',b.dataset.timelineKey)))}
+const RELEASE_CUTOFF_YEAR = 1920;
+let mode = 'listening';
+let installed = false;
+let lastApi = null;
+
+const fmt = (value) => Number(value || 0).toLocaleString('en-US');
+const esc = (value) => String(value || '').replace(/[&<>'"]/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  "'": '&#39;',
+  '"': '&quot;',
+}[character]));
+const num = (value) => value === '' || value == null
+  ? null
+  : (Number.isFinite(Number(value)) ? Number(value) : null);
+
+const metric = (label, value, note = '') => `
+  <div class="albums-metric">
+    <span class="albums-metric-label">${label}</span>
+    <strong class="albums-metric-value">${value}</strong>
+    ${note ? `<small class="albums-metric-note">${note}</small>` : ''}
+  </div>
+`;
+
+const parseDate = (value) => {
+  const cleaned = String(value || '').replace(/(\d)(st|nd|rd|th)\b/gi, '$1').trim();
+  const numeric = cleaned.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
+
+  if (numeric) {
+    const year = numeric[3].length === 2 ? 2000 + Number(numeric[3]) : Number(numeric[3]);
+    const date = new Date(Date.UTC(year, Number(numeric[1]) - 1, Number(numeric[2])));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const date = new Date(cleaned);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const hasUsableReleaseDate = (card) => {
+  const precision = card.dataset.releasePrecision;
+  const sortYear = num(card.dataset.releaseSort);
+  return (precision === 'year' || precision === 'decade')
+    && sortYear !== null
+    && sortYear >= RELEASE_CUTOFF_YEAR;
+};
+
+function releaseGroups(cards) {
+  const groups = new Map();
+
+  cards.forEach((card) => {
+    const key = card.dataset.releasePeriod;
+    const label = card.dataset.releasePeriodLabel;
+    const order = Number(card.dataset.releasePeriodOrder || 100000);
+    if (!key || !label) return;
+
+    if (!groups.has(key)) groups.set(key, { key, label, order, cards: [], sub: new Map() });
+    const group = groups.get(key);
+    group.cards.push(card);
+
+    const year = num(card.dataset.releaseYear);
+    if (year !== null) group.sub.set(year, (group.sub.get(year) || 0) + 1);
+  });
+
+  return [...groups.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label));
+}
+
+function listeningGroups(cards) {
+  const groups = new Map();
+
+  cards.forEach((card) => {
+    const date = parseDate(card.dataset.dateListened);
+    if (!date) return;
+
+    const year = date.getUTCFullYear();
+    if (!groups.has(year)) groups.set(year, { key: String(year), label: String(year), order: year, cards: [], sub: new Map() });
+    const group = groups.get(year);
+    group.cards.push(card);
+    group.sub.set(date.getUTCMonth(), (group.sub.get(date.getUTCMonth()) || 0) + 1);
+  });
+
+  return [...groups.values()].sort((a, b) => a.order - b.order);
+}
+
+function bars(group) {
+  let values;
+
+  if (mode === 'listening') {
+    values = Array.from({ length: 12 }, (_, index) => group.sub.get(index) || 0);
+  } else {
+    values = [...group.sub.values()];
+    while (values.length < 6) values.push(0);
+  }
+
+  const maximum = Math.max(1, ...values);
+  return values.map((value) => `
+    <i data-peak="${value === maximum && value > 0}" style="height:${Math.max(8, value / maximum * 100)}%"></i>
+  `).join('');
+}
+
+function caption(group) {
+  if (mode === 'listening') {
+    const months = [...group.sub].sort((a, b) => b[1] - a[1]);
+    if (!months.length) return 'No dated entries';
+
+    const name = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(2020, months[0][0], 1)));
+    return `Busiest month: ${name} (${fmt(months[0][1])})`;
+  }
+
+  const years = group.cards
+    .map((card) => num(card.dataset.releaseYear))
+    .filter((value) => value !== null)
+    .sort((a, b) => a - b);
+
+  if (!years.length) return group.label;
+  return years[0] === years.at(-1) ? `Released ${years[0]}` : `${years[0]}–${years.at(-1)}`;
+}
+
+function syncModeButtons() {
+  document.querySelectorAll('[data-timeline-mode]').forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.timelineMode === mode));
+  });
+}
+
+function install(api) {
+  if (installed) return;
+  installed = true;
+  lastApi = api;
+  syncModeButtons();
+
+  document.querySelectorAll('[data-timeline-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      mode = button.dataset.timelineMode === 'release' ? 'release' : 'listening';
+      syncModeButtons();
+      renderAlbumTimeline(lastApi);
+    });
+  });
+}
+
+export function renderAlbumTimeline(api) {
+  lastApi = api;
+  install(api);
+
+  const visibleCards = api.getVisibleCards();
+  const cards = mode === 'listening'
+    ? visibleCards.filter((card) => parseDate(card.dataset.dateListened))
+    : visibleCards.filter(hasUsableReleaseDate);
+  const groups = mode === 'listening' ? listeningGroups(cards) : releaseGroups(cards);
+  const busiest = [...groups].sort((a, b) => b.cards.length - a.cards.length)[0];
+
+  const releases = cards
+    .map((card) => num(card.dataset.releaseSort))
+    .filter((value) => value !== null)
+    .sort((a, b) => a - b);
+  const dates = cards
+    .map((card) => parseDate(card.dataset.dateListened))
+    .filter(Boolean)
+    .sort((a, b) => a - b);
+
+  const first = mode === 'listening'
+    ? (dates[0]?.getUTCFullYear() || '—')
+    : (releases[0] || '—');
+  const last = mode === 'listening'
+    ? (dates.at(-1)?.getUTCFullYear() || '—')
+    : (releases.at(-1) || '—');
+
+  api.controls.timelineMetrics.innerHTML = [
+    metric(
+      mode === 'listening' ? 'Albums with dated listens' : 'Albums with usable release dates',
+      fmt(cards.length),
+      mode === 'listening' ? 'After active filters' : `Exact years or decades from ${RELEASE_CUTOFF_YEAR} onward`,
+    ),
+    metric(
+      mode === 'listening' ? 'First tracked year' : 'Earliest included release',
+      first,
+      mode === 'listening' ? 'When it entered the log' : `Nothing before ${RELEASE_CUTOFF_YEAR}`,
+    ),
+    metric(
+      mode === 'listening' ? 'Latest tracked year' : 'Newest included release',
+      last,
+      mode === 'listening' ? 'Current end of the journey' : 'Based on current metadata',
+    ),
+    metric('Busiest period', busiest?.label || '—', busiest ? `${fmt(busiest.cards.length)} albums` : 'No dated albums'),
+  ].join('');
+
+  api.controls.timelineHelp.textContent = mode === 'listening'
+    ? 'Each stop is a listening year. Select one to apply the Year listened filter.'
+    : `Only exact years and decades from ${RELEASE_CUTOFF_YEAR} onward are shown. Release metadata is user-entered and may still need correction.`;
+
+  if (!groups.length) {
+    api.controls.timelineContent.innerHTML = `<div class="albums-timeline-empty">${
+      mode === 'listening'
+        ? 'No dated listening entries match the current filters.'
+        : `No usable release dates from ${RELEASE_CUTOFF_YEAR} onward match the current filters.`
+    }</div>`;
+    return;
+  }
+
+  api.controls.timelineContent.innerHTML = `
+    <div class="albums-timeline-viewport">
+      <div class="albums-timeline-track">
+        ${groups.map((group) => `
+          <article class="albums-timeline-stop">
+            <button type="button" data-timeline-key="${esc(group.key)}">
+              <span class="albums-timeline-period">${esc(group.label)}</span>
+              <span class="albums-timeline-count">${fmt(group.cards.length)} ${group.cards.length === 1 ? 'album' : 'albums'}</span>
+              <span class="albums-timeline-covers">
+                ${group.cards.slice(0, 3).map((card) => `<img src="${esc(card.querySelector('.album-cover')?.src)}" alt="" loading="lazy">`).join('')}
+              </span>
+              <span class="albums-timeline-bars">${bars(group)}</span>
+              <span class="albums-timeline-caption">${esc(caption(group))}</span>
+            </button>
+          </article>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  api.controls.timelineContent.querySelectorAll('[data-timeline-key]').forEach((button) => {
+    button.addEventListener('click', () => {
+      api.setFilter(mode === 'listening' ? 'year' : 'release', button.dataset.timelineKey);
+    });
+  });
+}
