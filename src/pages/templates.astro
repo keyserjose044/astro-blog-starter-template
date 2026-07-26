@@ -182,42 +182,23 @@ const templates: Item[] = [
         outline-offset: -4px;
       }
 
-      .guide-badge,
-      .thumb-cta {
+      .guide-badge {
         position: absolute;
         z-index: 2;
-        border-radius: 999px;
-        font-size: 0.72rem;
-        font-weight: 800;
-        line-height: 1;
-        pointer-events: none;
-      }
-
-      .guide-badge {
         top: 0.8rem;
         left: 0.8rem;
         padding: 0.48rem 0.66rem;
         border: 1px solid rgba(64, 92, 245, 0.25);
+        border-radius: 999px;
         background: rgba(255, 255, 255, 0.94);
         color: #3049c9;
         box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+        font-size: 0.72rem;
+        font-weight: 800;
         letter-spacing: 0.04em;
+        line-height: 1;
         text-transform: uppercase;
-      }
-
-      .thumb-cta {
-        right: 0.8rem;
-        bottom: 0.8rem;
-        padding: 0.58rem 0.78rem;
-        background: rgba(14, 18, 27, 0.9);
-        color: white;
-        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.22);
-        transition: transform 0.2s ease, background 0.2s ease;
-      }
-
-      .thumb:hover .thumb-cta {
-        transform: translateX(2px);
-        background: var(--accent);
+        pointer-events: none;
       }
 
       .content {
@@ -319,23 +300,16 @@ const templates: Item[] = [
           top: 0.6rem;
           left: 0.6rem;
         }
-
-        .thumb-cta {
-          right: 0.6rem;
-          bottom: 0.6rem;
-        }
       }
 
       @media (prefers-reduced-motion: reduce) {
         .card,
-        .thumb img,
-        .thumb-cta {
+        .thumb img {
           transition: none;
         }
 
         .card:hover,
-        .thumb:hover img,
-        .thumb:hover .thumb-cta {
+        .thumb:hover img {
           transform: none;
         }
       }
@@ -367,7 +341,6 @@ const templates: Item[] = [
                 >
                   <img src={t.imageSrc} alt={t.imageAlt ?? t.title} loading="lazy" />
                   {t.postUrl && <span class="guide-badge">Guide included</span>}
-                  {t.postUrl && <span class="thumb-cta">View guide →</span>}
                 </a>
               )}
 
@@ -383,6 +356,8 @@ const templates: Item[] = [
                     href={t.href}
                     updated={t.updated!}
                     text={t.filetype === 'Google Sheet' ? 'Make a copy' : 'Download'}
+                    guideHref={t.postUrl}
+                    guideText="View guide"
                     downloadKey={t.downloadKey}
                     countOffset={t.countOffset}
                   />
