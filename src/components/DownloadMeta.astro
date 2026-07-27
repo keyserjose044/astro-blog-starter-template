@@ -37,6 +37,7 @@ if (!href || !updated) {
 }
 
 const SITE_ORIGIN = "https://lifeloggerz.com";
+const COUNT_ORIGIN = "https://v.lifeloggerz.com";
 
 function toAbsolute(url: string): string {
   try { return new URL(url, SITE_ORIGIN).toString(); }
@@ -71,7 +72,7 @@ const counterKey =
 const finalUrl = toAbsolute(href);
 const [keyType, keySlug] = counterKey.split("/", 2);
 const dlHref = `/d/${encodeURIComponent(keyType)}/${encodeURIComponent(keySlug)}?to=${encodeURIComponent(finalUrl)}`;
-const countUrl = `/count/downloads?key=${encodeURIComponent(counterKey)}`;
+const countUrl = `${COUNT_ORIGIN}/count/downloads?key=${encodeURIComponent(counterKey)}`;
 
 const isSameOrigin = finalUrl.startsWith(SITE_ORIGIN);
 const looksLikeFile =
@@ -80,33 +81,45 @@ const addDownloadAttr = isSameOrigin && looksLikeFile;
 const countId = "dl-count-" + Math.random().toString(36).slice(2, 8);
 ---
 
-<div class="download-meta">
-  <span>Updated {updated}</span>
-  <span class="meta-sep" aria-hidden="true">·</span>
-  <span id={countId}>— Downloads</span>
+<div class="download-meta-shell">
+  <div class="download-meta">
+    <span>Updated {updated}</span>
+    <span class="meta-sep" aria-hidden="true">·</span>
+    <span id={countId}>— Downloads</span>
 
-  <script
-    src="/downloadcount.js"
-    defer
-    data-el={countId}
-    data-key={counterKey}
-    data-url={countUrl}
-    data-offset={String(countOffset)}
-  ></script>
-</div>
+    <script
+      src="/downloadcount.js?v=20260726-2"
+      defer
+      data-download-count
+      data-el={countId}
+      data-key={counterKey}
+      data-url={countUrl}
+      data-offset={String(countOffset)}
+    ></script>
+  </div>
 
-<div class="actions">
-  {guideHref && (
-    <a class="btn btn--secondary" href={guideHref}>
-      {guideText}
+  <div class="actions">
+    {guideHref && (
+      <a class="btn btn--secondary" href={guideHref}>
+        {guideText}
+      </a>
+    )}
+    <a class="btn btn--primary" href={dlHref} {...(addDownloadAttr ? { download: "" } : {})}>
+      {text}
     </a>
-  )}
-  <a class="btn btn--primary" href={dlHref} {...(addDownloadAttr ? { download: "" } : {})}>
-    {text}
-  </a>
+  </div>
 </div>
 
 <style>
+  .download-meta-shell {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
   .download-meta {
     display: inline-flex;
     max-width: 100%;
