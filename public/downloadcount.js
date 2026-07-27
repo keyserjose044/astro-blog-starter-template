@@ -1,28 +1,40 @@
 (function () {
-  function renderCount(elId, key, offsetValue) {
-    if (!elId || !key) return;
+  function renderCount(script) {
+    if (!script || script.dataset.downloadCountBound === "true") return;
 
-    var offset = Number.parseInt(offsetValue || "0", 10);
+    var elId = script.dataset.el;
+    var key = script.dataset.key;
+    var countUrl = script.dataset.url;
+    if (!elId || !key || !countUrl) return;
+
+    script.dataset.downloadCountBound = "true";
+
+    var offset = Number.parseInt(script.dataset.offset || "0", 10);
     if (!Number.isFinite(offset)) offset = 0;
 
-    fetch("https://v.lifeloggerz.com/count/downloads?key=" + encodeURIComponent(key), {
-      cache: "no-store"
-    })
-      .then(function (r) { return r.json(); })
+    fetch(countUrl, { cache: "no-store" })
+      .then(function (response) {
+        if (!response.ok) throw new Error("Download count request failed");
+        return response.json();
+      })
       .then(function (data) {
         var el = document.getElementById(elId);
-        var liveCount = (data && typeof data.count === "number") ? data.count : 0;
+        var liveCount = Number(data && data.count);
+        if (!Number.isFinite(liveCount)) liveCount = 0;
+
         var total = Math.max(0, liveCount + offset);
-        if (el) el.textContent = total + " Download" + (total === 1 ? "" : "s");
+        if (el) {
+          el.textContent = total.toLocaleString("en-US") + " Download" + (total === 1 ? "" : "s");
+        }
       })
-      .catch(function () { /* silently ignore */ });
+      .catch(function () { /* Keep the placeholder when the counter is unavailable. */ });
   }
 
-  window.addEventListener("DOMContentLoaded", function () {
-    document
-      .querySelectorAll('script[src$="/downloadcount.js"]')
-      .forEach(function (s) {
-        renderCount(s.dataset.el, s.dataset.key, s.dataset.offset);
-      });
-  });
+  var current = document.currentScript;
+  if (current && current.matches("script[data-download-count]")) {
+    renderCount(current);
+    return;
+  }
+
+  document.querySelectorAll("script[data-download-count]").forEach(renderCount);
 })();
