@@ -1,0 +1,515 @@
+---
+const dayExplorerHref = '/day/';
+---
+
+<template id="stats-daily-preview-template">
+  <section class="daily-preview" aria-labelledby="daily-preview-heading">
+    <div class="daily-preview__heading">
+      <div>
+        <p class="daily-preview__eyebrow">Latest daily snapshot</p>
+        <h2 id="daily-preview-heading">One day at a glance</h2>
+      </div>
+      <span class="daily-preview__status">
+        <span aria-hidden="true"></span>
+        Archive feed pending
+      </span>
+    </div>
+
+    <div class="daily-preview__body">
+      <div class="daily-preview__date">
+        <span data-daily-preview-weekday>Today</span>
+        <strong data-daily-preview-date>Loading date…</strong>
+        <p>
+          The interface is ready. Once the public-safe Archive feed is connected, this card will show the latest completed day automatically.
+        </p>
+      </div>
+
+      <div class="daily-preview__metrics" aria-label="Daily values awaiting connection">
+        <article>
+          <span>Sleep</span>
+          <strong>—</strong>
+          <small>hours</small>
+        </article>
+        <article>
+          <span>Guitar</span>
+          <strong>—</strong>
+          <small>minutes</small>
+        </article>
+        <article>
+          <span>Movement</span>
+          <strong>—</strong>
+          <small>minutes</small>
+        </article>
+        <article>
+          <span>Diary</span>
+          <strong>—</strong>
+          <small>words</small>
+        </article>
+      </div>
+    </div>
+
+    <div class="daily-preview__footer">
+      <p>No placeholder values are being presented as real data.</p>
+      <a href={dayExplorerHref}>Open the Day Explorer <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</template>
+
+<template id="stats-daily-mode-template">
+  <section class="daily-mode" hidden aria-labelledby="daily-mode-heading">
+    <div class="daily-mode__topline">
+      <div>
+        <p class="daily-mode__eyebrow">Daily archive view</p>
+        <h3 id="daily-mode-heading">The chart shell is ready for the Archive feed</h3>
+      </div>
+      <span class="daily-mode__badge">Data connection next</span>
+    </div>
+
+    <div class="daily-mode__controls" aria-label="Prepared daily chart controls">
+      <div>
+        <span>Range</span>
+        <div class="daily-mode__button-row" aria-label="Daily range options">
+          <button type="button" disabled>30 days</button>
+          <button type="button" disabled>90 days</button>
+          <button type="button" disabled>Year to date</button>
+          <button type="button" disabled>1 year</button>
+        </div>
+      </div>
+      <div>
+        <span>Chart</span>
+        <div class="daily-mode__button-row" aria-label="Daily chart styles">
+          <button type="button" disabled>Timeline</button>
+          <button type="button" disabled>Calendar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="daily-mode__placeholder" aria-label="Daily chart awaiting data">
+      <div class="daily-mode__calendar" aria-hidden="true">
+        {Array.from({ length: 42 }).map((_, index) => (
+          <span class={index % 9 === 0 || index % 13 === 0 ? 'daily-mode__cell daily-mode__cell--accent' : 'daily-mode__cell'}></span>
+        ))}
+      </div>
+      <div>
+        <strong>Daily values have not been connected yet.</strong>
+        <p>
+          This mode will use individual Archive rows rather than expanding monthly totals into artificial daily values. Missing, zero, and private values will remain distinct.
+        </p>
+        <a href={dayExplorerHref}>Preview the full Day Explorer <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</template>
+
+<style is:global>
+  .daily-preview {
+    margin: 1.25rem 0 2.5rem;
+    padding: clamp(1.1rem, 2vw, 1.65rem);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 1.4rem;
+    background:
+      radial-gradient(circle at 90% 0%, rgba(59, 130, 246, 0.12), transparent 34%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.82));
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  }
+
+  .daily-preview__heading,
+  .daily-preview__footer,
+  .daily-mode__topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .daily-preview__eyebrow,
+  .daily-mode__eyebrow {
+    margin: 0 0 0.25rem;
+    color: #2563eb;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .daily-preview h2,
+  .daily-mode h3 {
+    margin: 0;
+    color: #0f172a;
+  }
+
+  .daily-preview__status,
+  .daily-mode__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+    padding: 0.42rem 0.7rem;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    border-radius: 999px;
+    background: rgba(219, 234, 254, 0.74);
+    color: #1d4ed8;
+    font-size: 0.78rem;
+    font-weight: 750;
+  }
+
+  .daily-preview__status > span {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: #f59e0b;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  }
+
+  .daily-preview__body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    margin-top: 1.25rem;
+  }
+
+  .daily-preview__date {
+    padding: 1rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.76);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+  }
+
+  .daily-preview__date span {
+    display: block;
+    color: #64748b;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .daily-preview__date strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: #0f172a;
+    font-size: clamp(1.15rem, 2vw, 1.55rem);
+  }
+
+  .daily-preview__date p,
+  .daily-preview__footer p,
+  .daily-mode__placeholder p {
+    margin: 0.55rem 0 0;
+    color: #64748b;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .daily-preview__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .daily-preview__metrics article {
+    min-width: 0;
+    padding: 0.9rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .daily-preview__metrics span,
+  .daily-mode__controls > div > span {
+    display: block;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .daily-preview__metrics strong {
+    display: block;
+    margin: 0.45rem 0 0.1rem;
+    color: #0f172a;
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .daily-preview__metrics small {
+    color: #94a3b8;
+    font-size: 0.78rem;
+  }
+
+  .daily-preview__footer {
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .daily-preview__footer p {
+    margin: 0;
+  }
+
+  .daily-preview__footer a,
+  .daily-mode__placeholder a {
+    color: #1d4ed8;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .daily-preview__footer a:hover,
+  .daily-mode__placeholder a:hover {
+    text-decoration: underline;
+  }
+
+  .daily-mode {
+    margin: 1rem 0 0;
+    padding: clamp(1rem, 2vw, 1.4rem);
+    border: 1px dashed rgba(37, 99, 235, 0.34);
+    border-radius: 1.2rem;
+    background: rgba(239, 246, 255, 0.58);
+  }
+
+  .daily-mode[hidden] {
+    display: none !important;
+  }
+
+  .daily-mode__controls {
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 1rem;
+    margin: 1.15rem 0;
+  }
+
+  .daily-mode__button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.45rem;
+  }
+
+  .daily-mode__button-row button {
+    padding: 0.46rem 0.72rem;
+    border: 1px solid rgba(148, 163, 184, 0.34);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #64748b;
+    font: inherit;
+    font-size: 0.82rem;
+  }
+
+  .daily-mode__placeholder {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.3fr);
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .daily-mode__placeholder strong {
+    color: #0f172a;
+  }
+
+  .daily-mode__calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.3rem;
+    width: 100%;
+  }
+
+  .daily-mode__cell {
+    aspect-ratio: 1;
+    min-width: 0;
+    border-radius: 0.25rem;
+    background: #e2e8f0;
+  }
+
+  .daily-mode__cell--accent {
+    background: #bfdbfe;
+  }
+
+  @media (max-width: 820px) {
+    .daily-preview__body,
+    .daily-mode__placeholder {
+      grid-template-columns: 1fr;
+    }
+
+    .daily-preview__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 600px) {
+    .daily-preview__heading,
+    .daily-preview__footer,
+    .daily-mode__topline {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .daily-preview__status,
+    .daily-mode__badge {
+      align-self: flex-start;
+    }
+
+    .daily-mode__controls {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  :global(html.dark) .daily-preview,
+  :global(body.dark) .daily-preview,
+  :global(html[data-theme='dark']) .daily-preview,
+  :global(body[data-theme='dark']) .daily-preview {
+    background:
+      radial-gradient(circle at 90% 0%, rgba(59, 130, 246, 0.16), transparent 34%),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.94));
+    border-color: rgba(96, 165, 250, 0.28);
+  }
+
+  :global(html.dark) .daily-preview h2,
+  :global(html.dark) .daily-preview__date strong,
+  :global(html.dark) .daily-preview__metrics strong,
+  :global(html.dark) .daily-mode h3,
+  :global(html.dark) .daily-mode__placeholder strong,
+  :global(body.dark) .daily-preview h2,
+  :global(body.dark) .daily-preview__date strong,
+  :global(body.dark) .daily-preview__metrics strong,
+  :global(body.dark) .daily-mode h3,
+  :global(body.dark) .daily-mode__placeholder strong,
+  :global(html[data-theme='dark']) .daily-preview h2,
+  :global(html[data-theme='dark']) .daily-preview__date strong,
+  :global(html[data-theme='dark']) .daily-preview__metrics strong,
+  :global(html[data-theme='dark']) .daily-mode h3,
+  :global(html[data-theme='dark']) .daily-mode__placeholder strong {
+    color: #f8fafc;
+  }
+
+  :global(html.dark) .daily-preview__date,
+  :global(html.dark) .daily-preview__metrics article,
+  :global(html.dark) .daily-mode__placeholder,
+  :global(body.dark) .daily-preview__date,
+  :global(body.dark) .daily-preview__metrics article,
+  :global(body.dark) .daily-mode__placeholder,
+  :global(html[data-theme='dark']) .daily-preview__date,
+  :global(html[data-theme='dark']) .daily-preview__metrics article,
+  :global(html[data-theme='dark']) .daily-mode__placeholder {
+    background: rgba(15, 23, 42, 0.68);
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+
+  :global(html.dark) .daily-mode,
+  :global(body.dark) .daily-mode,
+  :global(html[data-theme='dark']) .daily-mode {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(96, 165, 250, 0.32);
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const initialize = () => {
+      const dashboard = document.querySelector('.stats-dashboard');
+      if (!dashboard || dashboard.dataset.dailyHuskReady === 'true') return;
+      dashboard.dataset.dailyHuskReady = 'true';
+
+      const previewTemplate = document.getElementById('stats-daily-preview-template');
+      const dailyModeTemplate = document.getElementById('stats-daily-mode-template');
+      const hero = dashboard.querySelector('.stats-hero');
+      const explorerToolbar = dashboard.querySelector('.explorer-toolbar');
+      const viewToggle = dashboard.querySelector('#view-toggle');
+
+      if (previewTemplate instanceof HTMLTemplateElement && hero) {
+        const preview = previewTemplate.content.firstElementChild?.cloneNode(true);
+        if (preview instanceof HTMLElement) {
+          hero.insertAdjacentElement('afterend', preview);
+
+          const now = new Date();
+          const weekday = new Intl.DateTimeFormat('en-US', {
+            weekday: 'long',
+            timeZone: 'America/Chicago',
+          }).format(now);
+          const date = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            timeZone: 'America/Chicago',
+          }).format(now);
+
+          const weekdayNode = preview.querySelector('[data-daily-preview-weekday]');
+          const dateNode = preview.querySelector('[data-daily-preview-date]');
+          if (weekdayNode) weekdayNode.textContent = weekday;
+          if (dateNode) dateNode.textContent = date;
+        }
+      }
+
+      const snapshotEyebrow = dashboard.querySelector('.snapshot-section .section-heading .eyebrow');
+      const snapshotHeading = dashboard.querySelector('.snapshot-section .section-heading h2');
+      if (snapshotEyebrow) snapshotEyebrow.textContent = 'Lifetime overview';
+      if (snapshotHeading) snapshotHeading.textContent = 'Four long-term windows into the archive';
+
+      const graphsDescription = dashboard.querySelector('#graphs .section-heading > p:last-child');
+      if (graphsDescription) {
+        graphsDescription.textContent =
+          'Choose a metric and move between monthly, daily, and cumulative views. Monthly and cumulative data are live now; the daily shell is prepared for the Archive feed.';
+      }
+
+      let dailyMode = null;
+      if (dailyModeTemplate instanceof HTMLTemplateElement && explorerToolbar) {
+        dailyMode = dailyModeTemplate.content.firstElementChild?.cloneNode(true);
+        if (dailyMode instanceof HTMLElement) explorerToolbar.insertAdjacentElement('afterend', dailyMode);
+      }
+
+      if (!(viewToggle instanceof HTMLElement) || !(dailyMode instanceof HTMLElement)) return;
+
+      const monthlyButton = viewToggle.querySelector('[data-view="monthly"]');
+      const cumulativeButton = viewToggle.querySelector('[data-view="cumulative"]');
+      if (!(monthlyButton instanceof HTMLButtonElement) || !(cumulativeButton instanceof HTMLButtonElement)) return;
+
+      const dailyButton = document.createElement('button');
+      dailyButton.type = 'button';
+      dailyButton.className = 'view-button';
+      dailyButton.textContent = 'Daily';
+      dailyButton.setAttribute('aria-pressed', 'false');
+      dailyButton.dataset.dailyView = 'true';
+      monthlyButton.insertAdjacentElement('afterend', dailyButton);
+
+      const dailyTargets = [
+        ...dashboard.querySelectorAll('#graphs .graph-summary'),
+        dashboard.querySelector('#graphs .chart-panel'),
+        dashboard.querySelector('#graphs .period-insights'),
+        dashboard.querySelector('#graphs .pattern-note'),
+      ].filter((element) => element instanceof HTMLElement);
+
+      const showDaily = () => {
+        viewToggle.querySelectorAll('.view-button').forEach((button) => {
+          button.classList.remove('view-button--active');
+          button.setAttribute('aria-pressed', 'false');
+        });
+        dailyButton.classList.add('view-button--active');
+        dailyButton.setAttribute('aria-pressed', 'true');
+        dailyTargets.forEach((element) => element.setAttribute('hidden', ''));
+        dailyMode.hidden = false;
+        dailyMode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      const restoreCharts = () => {
+        dailyMode.hidden = true;
+        dailyTargets.forEach((element) => element.removeAttribute('hidden'));
+        dailyButton.classList.remove('view-button--active');
+        dailyButton.setAttribute('aria-pressed', 'false');
+      };
+
+      dailyButton.addEventListener('click', showDaily);
+      monthlyButton.addEventListener('click', restoreCharts);
+      cumulativeButton.addEventListener('click', restoreCharts);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize, { once: true });
+    } else {
+      initialize();
+    }
+  })();
+</script>
