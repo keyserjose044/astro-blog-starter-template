@@ -2,6 +2,7 @@
 import HeaderLink from './HeaderLink.astro';
 import NavTooltipLink from './NavTooltipLink.astro';
 import StatsDailyHusk from './StatsDailyHusk.astro';
+import DailyDataRuntime from './DailyDataRuntime.astro';
 import { SITE_TITLE } from '../consts';
 
 const rawBase = import.meta.env.BASE_URL || '/';
@@ -10,6 +11,7 @@ const link = (path: string = '') => `${base}${path}`;
 const iconSrc = `${base}favicon.svg`;
 const normalizedPath = Astro.url.pathname.replace(/\/+$/, '');
 const isStatsPage = normalizedPath.endsWith('/stats');
+const isDayPage = normalizedPath.endsWith('/day');
 
 const navItems = [
   { href: '', label: 'Home', tip: 'Start here: overview and latest from the blog', exact: true },
@@ -85,6 +87,7 @@ const navItems = [
 </header>
 
 {isStatsPage && <StatsDailyHusk />}
+{(isStatsPage || isDayPage) && <DailyDataRuntime />}
 
 <style>
   .site-header { margin:0; padding:0 1rem; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.05); position:sticky; top:0; z-index:50; }
