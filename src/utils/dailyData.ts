@@ -20,16 +20,8 @@ export interface DailyRecord {
   date: string;
   day: string | null;
   status: DailyStatus;
-  sleep: {
-    hours: number | null;
-    napHours: number | null;
-    category: string | null;
-  };
-  weather: {
-    highF: number | null;
-    lowF: number | null;
-    flags: string[];
-  };
+  sleep: { hours: number | null; napHours: number | null; category: string | null };
+  weather: { highF: number | null; lowF: number | null; flags: string[] };
   dayEvent: string | null;
   food: {
     breakfastType: string | null;
@@ -37,10 +29,7 @@ export interface DailyRecord {
     dinnerType: string | null;
   };
   diary: { words: number | null };
-  work: {
-    hours: number | null;
-    category: string | null;
-  };
+  work: { hours: number | null; category: string | null };
   hobbies: {
     bibleChapter: string | null;
     dictionaryPage: number | null;
@@ -76,14 +65,21 @@ export interface DailySeriesPoint {
   value: number | null;
 }
 
-type ApiErrorPayload = {
-  error?: string;
-  message?: string;
+type ApiErrorPayload = { error?: string; message?: string };
+type CacheEntry<T> = { savedAt: number; expiresAt: number; value: T };
+type RequestOptions = {
+  ttlMs?: number;
+  timeoutMs?: number;
+  force?: boolean;
+  staleMs?: number;
 };
 
-const memoryCache = new Map<string, { expiresAt: number; value: unknown }>();
-const DEFAULT_TTL_MS = 5 * 60 * 1000;
+const memoryCache = new Map<string, CacheEntry<unknown>>();
+const inFlight = new Map<string, Promise<unknown>>();
+const STORAGE_PREFIX = 'lifeloggerz-daily-api-v3:';
+const DEFAULT_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_TIMEOUT_MS = 15000;
+const DEFAULT_STALE_MS = 24 * 60 * 60 * 1000;
 
 export class DailyDataApiError extends Error {
   status: number | null;
@@ -99,92 +95,125 @@ export class DailyDataApiError extends Error {
 
 function buildUrl(params: Record<string, string | number>) {
   const url = new URL(DAILY_DATA_API_URL);
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.set(key, String(value));
-  });
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, String(value)));
   return url.toString();
 }
 
-function readCached<T>(key: string): T | null {
-  const cached = memoryCache.get(key);
-  if (!cached) return null;
-  if (cached.expiresAt <= Date.now()) {
-    memoryCache.delete(key);
+function storageKey(key: string) {
+  return `${STORAGE_PREFIX}${key}`;
+}
+
+function readEntry<T>(key: string, allowStale = false, staleMs = DEFAULT_STALE_MS): T | null {
+  const now = Date.now();
+  const memory = memoryCache.get(key) as CacheEntry<T> | undefined;
+  if (memory && (memory.expiresAt > now || (allowStale && now - memory.savedAt <= staleMs))) {
+    return memory.value;
+  }
+
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(storageKey(key));
+    if (!raw) return null;
+    const stored = JSON.parse(raw) as CacheEntry<T>;
+    if (!stored || typeof stored.savedAt !== 'number' || !('value' in stored)) return null;
+    if (stored.expiresAt <= now && (!allowStale || now - stored.savedAt > staleMs)) return null;
+    memoryCache.set(key, stored as CacheEntry<unknown>);
+    return stored.value;
+  } catch {
     return null;
   }
-  return cached.value as T;
+}
+
+function writeEntry<T>(key: string, value: T, ttlMs: number) {
+  const entry: CacheEntry<T> = {
+    savedAt: Date.now(),
+    expiresAt: Date.now() + ttlMs,
+    value,
+  };
+  memoryCache.set(key, entry as CacheEntry<unknown>);
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(storageKey(key), JSON.stringify(entry));
+  } catch {
+    // Memory caching still works when local storage is full or unavailable.
+  }
 }
 
 async function requestJson<T>(
   params: Record<string, string | number>,
-  options: { ttlMs?: number; timeoutMs?: number; force?: boolean } = {},
+  options: RequestOptions = {},
 ): Promise<T> {
   const url = buildUrl(params);
-  const cacheKey = url;
   const ttlMs = options.ttlMs ?? DEFAULT_TTL_MS;
 
   if (!options.force) {
-    const cached = readCached<T>(cacheKey);
+    const cached = readEntry<T>(url);
     if (cached !== null) return cached;
+    const pending = inFlight.get(url);
+    if (pending) return pending as Promise<T>;
   }
 
-  const controller = new AbortController();
-  const timeout = globalThis.setTimeout(
-    () => controller.abort(),
-    options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-  );
-
-  try {
-    const response = await fetch(url, {
-      cache: 'no-store',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    });
-
-    let payload: unknown;
-    try {
-      payload = await response.json();
-    } catch {
-      throw new DailyDataApiError(
-        'The daily archive returned an unreadable response.',
-        response.status,
-      );
-    }
-
-    if (!response.ok) {
-      throw new DailyDataApiError(
-        `The daily archive request failed (${response.status}).`,
-        response.status,
-        payload,
-      );
-    }
-
-    const errorPayload = payload as ApiErrorPayload;
-    if (errorPayload?.error) {
-      throw new DailyDataApiError(
-        errorPayload.message || errorPayload.error,
-        response.status,
-        payload,
-      );
-    }
-
-    memoryCache.set(cacheKey, {
-      expiresAt: Date.now() + ttlMs,
-      value: payload,
-    });
-
-    return payload as T;
-  } catch (error) {
-    if (error instanceof DailyDataApiError) throw error;
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new DailyDataApiError('The daily archive took too long to respond.');
-    }
-    throw new DailyDataApiError(
-      error instanceof Error ? error.message : 'The daily archive request failed.',
+  const request = (async () => {
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(
+      () => controller.abort(),
+      options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     );
-  } finally {
-    globalThis.clearTimeout(timeout);
-  }
+
+    try {
+      const response = await fetch(url, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+        signal: controller.signal,
+      });
+
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch {
+        throw new DailyDataApiError(
+          'The daily archive returned an unreadable response.',
+          response.status,
+        );
+      }
+
+      if (!response.ok) {
+        throw new DailyDataApiError(
+          `The daily archive request failed (${response.status}).`,
+          response.status,
+          payload,
+        );
+      }
+
+      const errorPayload = payload as ApiErrorPayload;
+      if (errorPayload?.error) {
+        throw new DailyDataApiError(
+          errorPayload.message || errorPayload.error,
+          response.status,
+          payload,
+        );
+      }
+
+      writeEntry(url, payload, ttlMs);
+      return payload as T;
+    } catch (error) {
+      const stale = readEntry<T>(url, true, options.staleMs ?? DEFAULT_STALE_MS);
+      if (stale !== null) return stale;
+      if (error instanceof DailyDataApiError) throw error;
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new DailyDataApiError('The daily archive took too long to respond.');
+      }
+      throw new DailyDataApiError(
+        error instanceof Error ? error.message : 'The daily archive request failed.',
+      );
+    } finally {
+      globalThis.clearTimeout(timeout);
+      inFlight.delete(url);
+    }
+  })();
+
+  inFlight.set(url, request as Promise<unknown>);
+  return request;
 }
 
 function assertIsoDate(value: string) {
@@ -193,17 +222,33 @@ function assertIsoDate(value: string) {
   }
 }
 
+function cachedYear(year: number) {
+  return readEntry<DailyRecord[]>(buildUrl({ view: 'year', year }));
+}
+
+export function dailyMetricValue(record: DailyRecord, metric: string): number | null {
+  const values: Record<string, number | null> = {
+    sleepHours: record.sleep.hours,
+    napHours: record.sleep.napHours,
+    weatherHighF: record.weather.highF,
+    weatherLowF: record.weather.lowF,
+    diaryWords: record.diary.words,
+    workHours: record.work.hours,
+    languageMinutes: record.hobbies.languageMinutes,
+    runningMiles: record.hobbies.runningMiles,
+    treadmillMinutes: record.hobbies.treadmillMinutes,
+    treadmillMiles: record.hobbies.treadmillMiles,
+    totalDistanceMiles: record.hobbies.totalDistanceMiles,
+    guitarMinutes: record.hobbies.guitarMinutes,
+    danceMinutes: record.hobbies.danceMinutes,
+    audiobookMinutes: record.audiobook.minutes,
+  };
+  return Object.prototype.hasOwnProperty.call(values, metric) ? values[metric] : null;
+}
+
 export function getDailyMeta(options?: { force?: boolean }) {
   return requestJson<DailyMeta>(
     { view: 'meta' },
-    { ttlMs: 2 * 60 * 1000, force: options?.force },
-  );
-}
-
-export function getDay(date: string, options?: { force?: boolean }) {
-  assertIsoDate(date);
-  return requestJson<DailyRecord>(
-    { view: 'day', date },
     { ttlMs: 5 * 60 * 1000, force: options?.force },
   );
 }
@@ -211,19 +256,45 @@ export function getDay(date: string, options?: { force?: boolean }) {
 export function getYear(year: number, options?: { force?: boolean }) {
   return requestJson<DailyRecord[]>(
     { view: 'year', year },
+    { ttlMs: 30 * 60 * 1000, force: options?.force },
+  );
+}
+
+export async function getYears(years: number[], options?: { force?: boolean }) {
+  const unique = Array.from(new Set(years)).sort((a, b) => a - b);
+  const groups = await Promise.all(unique.map((year) => getYear(year, options)));
+  return groups.flat().sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function prefetchYear(year: number) {
+  void getYear(year).catch(() => undefined);
+}
+
+export async function getDay(date: string, options?: { force?: boolean }) {
+  assertIsoDate(date);
+  if (!options?.force) {
+    const yearRecords = cachedYear(Number(date.slice(0, 4)));
+    const record = yearRecords?.find((item) => item.date === date);
+    if (record) return record;
+  }
+  return requestJson<DailyRecord>(
+    { view: 'day', date },
     { ttlMs: 10 * 60 * 1000, force: options?.force },
   );
 }
 
-export function getSeries(
+export async function getSeries(
   metric: string,
   year: number,
   options?: { force?: boolean },
 ) {
-  return requestJson<DailySeriesPoint[]>(
-    { view: 'series', metric, year },
-    { ttlMs: 10 * 60 * 1000, force: options?.force },
-  );
+  const records = await getYear(year, options);
+  return records.map<DailySeriesPoint>((record) => ({
+    date: record.date,
+    day: record.day,
+    status: record.status,
+    value: dailyMetricValue(record, metric),
+  }));
 }
 
 export function getSameDate(
@@ -233,6 +304,6 @@ export function getSameDate(
 ) {
   return requestJson<DailyRecord[]>(
     { view: 'same-date', month, day },
-    { ttlMs: 10 * 60 * 1000, force: options?.force },
+    { ttlMs: 30 * 60 * 1000, force: options?.force },
   );
 }
