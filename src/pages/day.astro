@@ -1,63 +1,62 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
-
-const placeholderMetrics = [
-  { icon: '😴', label: 'Sleep', unit: 'hours' },
-  { icon: '🧠', label: 'Work & study', unit: 'hours' },
-  { icon: '🎸', label: 'Guitar', unit: 'minutes' },
-  { icon: '🏃', label: 'Movement', unit: 'minutes' },
-  { icon: '📚', label: 'Audiobooks', unit: 'minutes' },
-  { icon: '📓', label: 'Diary', unit: 'words' },
-];
-
-const placeholderHabits = [
-  'Bible reading',
-  'Dictionary',
-  'Language study',
-  'Guitar practice',
-  'Daily diary',
-  'DailyArt',
-];
 ---
 
 <Layout
   title="Day Explorer"
-  description="Explore one public-safe day from the LifeLoggerz archive, move through dates, compare the same day across years, and see daily habits in context."
+  description="Explore one public-safe day from the LifeLoggerz archive, compare it with nearby days and yearly baselines, and revisit the same date across years."
   wide={true}
   hideTitle={true}
   showViews={false}
 >
-  <main class="day-explorer" data-day-explorer>
+  <main class="day-explorer" data-day-explorer aria-busy="true">
     <section class="day-hero" aria-labelledby="day-title">
       <div class="day-hero__glow" aria-hidden="true"></div>
-      <div>
-        <p class="day-eyebrow">LifeLoggerz Archive</p>
+      <div class="day-hero__copy">
+        <p class="day-eyebrow">LifeLoggerz public archive</p>
         <h1 id="day-title">Day Explorer</h1>
         <p class="day-hero__lede">
-          Open one day, move through the archive, and see how the ordinary details fit together. The interface is complete; public-safe daily data will populate it once the Archive feed is attached.
+          Move through the archive one day at a time. See the numbers, activity states, nearby days,
+          yearly context, and same-date history without exposing private notes, people, places, or raw meals.
         </p>
       </div>
-      <div class="day-hero__status">
+      <div class="day-hero__status" data-day-status data-state="loading" role="status">
         <span aria-hidden="true"></span>
-        Interface ready · data connection pending
+        <strong>Connecting to the daily archive…</strong>
       </div>
     </section>
 
-    <section class="day-toolbar" aria-label="Choose a day">
+    <nav class="day-toolbar" aria-label="Choose an archive day">
       <button class="day-nav-button" type="button" data-day-previous aria-label="Previous day">←</button>
 
-      <label class="day-date-control">
+      <label class="day-field day-field--date">
         <span>Date</span>
-        <span class="day-date-control__input">
-          <input id="day-date" type="date" min="2023-01-01" />
-        </span>
+        <input id="day-date" type="date" />
       </label>
 
       <button class="day-nav-button" type="button" data-day-next aria-label="Next day">→</button>
-      <button class="day-action-button" type="button" data-day-today>Today</button>
+
+      <label class="day-field day-field--year">
+        <span>Year</span>
+        <select data-day-year aria-label="Choose archive year"></select>
+      </label>
+
+      <button class="day-action-button" type="button" data-day-latest>Latest complete</button>
+      <button class="day-action-button" type="button" data-day-current>Current record</button>
       <button class="day-action-button" type="button" data-day-random>Random day</button>
       <a class="day-action-button day-action-button--link" href="/stats/">Back to Stats</a>
+    </nav>
+
+    <section class="day-scrubber" aria-labelledby="day-scrubber-heading">
+      <div>
+        <p class="day-eyebrow">Year timeline</p>
+        <h2 id="day-scrubber-heading" data-scrub-label>Archive year</h2>
+      </div>
+      <output data-scrub-output>—</output>
+      <input data-day-scrubber type="range" min="1" max="365" value="1" aria-label="Day of selected year" />
     </section>
+
+    <div class="day-error" data-day-error role="alert" hidden></div>
 
     <section class="selected-day" aria-labelledby="selected-day-heading">
       <div>
@@ -66,10 +65,14 @@ const placeholderHabits = [
         <p class="selected-day__meta">
           <span data-day-number>Day — of the year</span>
           <span aria-hidden="true">·</span>
-          <span>Archive entry awaiting connection</span>
+          <span data-record-state>Loading record state</span>
         </p>
       </div>
-      <span class="selected-day__badge">No fabricated values</span>
+      <div class="selected-day__facts" aria-label="Selected day summary">
+        <span data-completeness>— fields recorded</span>
+        <span data-active-count>— active pursuits</span>
+        <span data-day-marker>No day marker</span>
+      </div>
     </section>
 
     <section class="day-section" aria-labelledby="overview-heading">
@@ -78,101 +81,90 @@ const placeholderHabits = [
           <p class="day-eyebrow">Daily overview</p>
           <h2 id="overview-heading">The day in numbers</h2>
         </div>
-        <p>Zero, missing, and private values will remain separate once the feed is connected.</p>
+        <p>Recorded zeroes, unavailable values, and partial records remain visually distinct.</p>
       </div>
-
-      <div class="day-metric-grid">
-        {placeholderMetrics.map((metric) => (
-          <article class="day-metric-card">
-            <div class="day-metric-card__top">
-              <span aria-hidden="true">{metric.icon}</span>
-              <h3>{metric.label}</h3>
-            </div>
-            <p class="day-metric-card__value"><strong>—</strong> <span>{metric.unit}</span></p>
-            <small>Awaiting Archive data</small>
-          </article>
-        ))}
+      <div class="day-metric-grid" data-day-metrics aria-live="polite"></div>
+      <div class="day-state-legend" aria-label="Data state legend">
+        <span><i data-state="recorded"></i>Recorded</span>
+        <span><i data-state="zero"></i>Recorded zero</span>
+        <span><i data-state="missing"></i>Unavailable</span>
+        <span><i data-state="partial"></i>Partial record</span>
       </div>
     </section>
 
-    <section class="day-section day-grid-two" aria-label="Daily detail panels">
-      <article class="day-panel" aria-labelledby="time-heading">
-        <div class="day-panel__heading">
-          <div>
-            <p class="day-eyebrow">Time allocation</p>
-            <h2 id="time-heading">How the day was spent</h2>
-          </div>
-          <span>Timeline</span>
-        </div>
-
-        <div class="timeline-placeholder" aria-label="Timeline awaiting data">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div>
-              <span>{String(index * 3).padStart(2, '0')}:00</span>
-              <i style={`--placeholder-width: ${35 + ((index * 17) % 55)}%`}></i>
-            </div>
-          ))}
-        </div>
-        <p class="day-empty-note">Activity blocks will appear here without exposing private notes, locations, or people.</p>
-      </article>
-
-      <article class="day-panel" aria-labelledby="habits-heading">
-        <div class="day-panel__heading">
-          <div>
-            <p class="day-eyebrow">Habits and activities</p>
-            <h2 id="habits-heading">What was completed</h2>
-          </div>
-          <span>Checklist</span>
-        </div>
-
-        <div class="habit-placeholder">
-          {placeholderHabits.map((habit) => (
-            <div>
-              <span aria-hidden="true">○</span>
-              <strong>{habit}</strong>
-              <small>Not connected</small>
-            </div>
-          ))}
-        </div>
-      </article>
-    </section>
-
-    <section class="day-section day-grid-two" aria-label="Daily context panels">
-      <article class="day-panel" aria-labelledby="typical-heading">
-        <div class="day-panel__heading">
-          <div>
-            <p class="day-eyebrow">Personal baseline</p>
-            <h2 id="typical-heading">Compared with a typical day</h2>
-          </div>
-          <span>Context</span>
-        </div>
-
-        <div class="comparison-placeholder">
-          {['Sleep', 'Focused work', 'Guitar', 'Movement'].map((label) => (
-            <div>
-              <span>{label}</span>
-              <strong>—</strong>
-              <small>Needs daily history</small>
-            </div>
-          ))}
-        </div>
-      </article>
-
-      <article class="day-panel" aria-labelledby="notes-heading">
+    <section class="day-section day-grid-two" aria-label="Narrative and context">
+      <article class="day-panel day-panel--summary" aria-labelledby="summary-heading">
         <div class="day-panel__heading">
           <div>
             <p class="day-eyebrow">Public-safe summary</p>
-            <h2 id="notes-heading">Daily notes</h2>
+            <h2 id="summary-heading">What this day says</h2>
           </div>
-          <span>Sanitized</span>
+          <span>Curated only</span>
         </div>
+        <div class="day-summary" data-day-summary>
+          <strong>Loading public summary…</strong>
+          <p>Only manually approved summary fields can appear here.</p>
+        </div>
+      </article>
 
-        <div class="notes-placeholder">
-          <strong>No public summary is available for this date yet.</strong>
-          <p>
-            This space can hold a short manually written or automatically sanitized account of the day. Raw diary text should never be sent directly to the public page.
-          </p>
+      <article class="day-panel" aria-labelledby="context-heading">
+        <div class="day-panel__heading">
+          <div>
+            <p class="day-eyebrow">Daily context</p>
+            <h2 id="context-heading">Weather, meals, and media</h2>
+          </div>
+          <span>Public-safe</span>
         </div>
+        <div class="day-context-grid" data-day-context></div>
+      </article>
+    </section>
+
+    <section class="day-section day-grid-two" aria-label="Tracked durations and activity states">
+      <article class="day-panel" aria-labelledby="durations-heading">
+        <div class="day-panel__heading">
+          <div>
+            <p class="day-eyebrow">Tracked durations</p>
+            <h2 id="durations-heading">Time-bearing activities</h2>
+          </div>
+          <span>May overlap</span>
+        </div>
+        <p class="day-panel__note">These durations are not a 24-hour budget. Audiobooks, treadmill walking, and work can overlap.</p>
+        <div class="day-duration-list" data-day-durations></div>
+      </article>
+
+      <article class="day-panel" aria-labelledby="activities-heading">
+        <div class="day-panel__heading">
+          <div>
+            <p class="day-eyebrow">Habits and activities</p>
+            <h2 id="activities-heading">What was logged</h2>
+          </div>
+          <span>Zero ≠ missing</span>
+        </div>
+        <div class="day-activity-list" data-day-activities></div>
+      </article>
+    </section>
+
+    <section class="day-section day-grid-two" aria-label="Daily comparisons">
+      <article class="day-panel" aria-labelledby="baseline-heading">
+        <div class="day-panel__heading">
+          <div>
+            <p class="day-eyebrow">Selected-year baseline</p>
+            <h2 id="baseline-heading">Compared with a typical day</h2>
+          </div>
+          <span data-baseline-year>Year</span>
+        </div>
+        <div class="day-comparison" data-day-comparison aria-live="polite"></div>
+      </article>
+
+      <article class="day-panel" aria-labelledby="week-heading">
+        <div class="day-panel__heading">
+          <div>
+            <p class="day-eyebrow">Seven-day neighborhood</p>
+            <h2 id="week-heading">The days around it</h2>
+          </div>
+          <span>± 3 days</span>
+        </div>
+        <div class="day-week-strip" data-day-week aria-live="polite"></div>
       </article>
     </section>
 
@@ -182,661 +174,21 @@ const placeholderHabits = [
           <p class="day-eyebrow">Across the archive</p>
           <h2 id="same-date-heading">The same date in other years</h2>
         </div>
-        <p>Select a year to keep the month and day while moving through the archive.</p>
+        <p>Keep the month and day fixed to see how the surrounding life changed from year to year.</p>
       </div>
-
       <div class="same-date-grid" data-same-date-grid aria-live="polite"></div>
     </section>
 
     <section class="day-callout">
       <div>
-        <p class="day-eyebrow">What comes next</p>
-        <h2>Connect the public-safe Archive endpoint</h2>
-        <p>
-          The page expects one normalized record per date, explicit availability states, and only fields approved for public display. The same feed can then power the Daily mode on the Stats page.
-        </p>
+        <p class="day-eyebrow">Zoom out</p>
+        <h2>One day is a record. Repetition becomes a pattern.</h2>
+        <p>Use the Stats Explorer to move from this individual record to daily, weekly, monthly, cumulative, and lifetime views.</p>
       </div>
-      <a href="/stats/#graphs">See the prepared Daily chart mode <span aria-hidden="true">→</span></a>
+      <a href="/stats/#graphs">Open the Stats Explorer <span aria-hidden="true">→</span></a>
     </section>
+
+    <p class="day-keyboard-hint">Keyboard: ←/→ move one day · L latest complete · R random day</p>
+    <span class="day-sr-status" data-day-live-region aria-live="polite"></span>
   </main>
 </Layout>
-
-<style>
-  .day-explorer {
-    --day-ink: #0f172a;
-    --day-muted: #64748b;
-    --day-line: rgba(148, 163, 184, 0.24);
-    --day-blue: #2563eb;
-    --day-panel: rgba(255, 255, 255, 0.86);
-    color: var(--day-ink);
-  }
-
-  .day-hero {
-    position: relative;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 2rem;
-    overflow: hidden;
-    margin: 1rem 0 1.15rem;
-    padding: clamp(1.4rem, 3vw, 2.4rem);
-    border: 1px solid rgba(37, 99, 235, 0.2);
-    border-radius: 1.6rem;
-    background:
-      radial-gradient(circle at 86% 10%, rgba(59, 130, 246, 0.2), transparent 28%),
-      linear-gradient(135deg, #eff6ff 0%, #ffffff 52%, #f8fafc 100%);
-    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
-  }
-
-  .day-hero__glow {
-    position: absolute;
-    inset: auto -5rem -8rem auto;
-    width: 18rem;
-    height: 18rem;
-    border-radius: 999px;
-    background: rgba(37, 99, 235, 0.08);
-    filter: blur(10px);
-    pointer-events: none;
-  }
-
-  .day-hero > *:not(.day-hero__glow) {
-    position: relative;
-    z-index: 1;
-  }
-
-  .day-eyebrow {
-    margin: 0 0 0.3rem;
-    color: var(--day-blue);
-    font-size: 0.76rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .day-hero h1 {
-    margin: 0;
-    font-size: clamp(2.5rem, 6vw, 5.5rem);
-    line-height: 0.95;
-    letter-spacing: -0.045em;
-  }
-
-  .day-hero__lede {
-    max-width: 760px;
-    margin: 1rem 0 0;
-    color: var(--day-muted);
-    font-size: clamp(1rem, 1.8vw, 1.15rem);
-    line-height: 1.65;
-  }
-
-  .day-hero__status,
-  .selected-day__badge,
-  .day-panel__heading > span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex: 0 0 auto;
-    padding: 0.44rem 0.72rem;
-    border: 1px solid rgba(37, 99, 235, 0.18);
-    border-radius: 999px;
-    background: rgba(219, 234, 254, 0.72);
-    color: #1d4ed8;
-    font-size: 0.78rem;
-    font-weight: 750;
-  }
-
-  .day-hero__status > span {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: #f59e0b;
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
-  }
-
-  .day-toolbar {
-    display: flex;
-    align-items: end;
-    gap: 0.55rem;
-    margin-bottom: 1.15rem;
-    padding: 0.85rem;
-    border: 1px solid var(--day-line);
-    border-radius: 1.15rem;
-    background: var(--day-panel);
-  }
-
-  .day-nav-button,
-  .day-action-button {
-    min-height: 2.75rem;
-    padding: 0.65rem 0.85rem;
-    border: 1px solid var(--day-line);
-    border-radius: 0.8rem;
-    background: #fff;
-    color: var(--day-ink);
-    font: inherit;
-    font-weight: 700;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .day-nav-button {
-    width: 2.75rem;
-    padding-inline: 0;
-    font-size: 1.15rem;
-  }
-
-  .day-action-button:hover,
-  .day-nav-button:hover {
-    border-color: rgba(37, 99, 235, 0.45);
-    color: var(--day-blue);
-  }
-
-  .day-action-button--link {
-    display: inline-flex;
-    align-items: center;
-    margin-left: auto;
-  }
-
-  .day-date-control {
-    display: grid;
-    gap: 0.28rem;
-    min-width: min(16rem, 42vw);
-  }
-
-  .day-date-control > span:first-child {
-    color: var(--day-muted);
-    font-size: 0.76rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .day-date-control__input {
-    display: flex;
-    width: 100%;
-    min-width: 0;
-    min-height: 2.75rem;
-    align-items: center;
-    padding: 0.65rem 0.8rem;
-    border: 1px solid var(--day-line);
-    border-radius: 0.8rem;
-    background: #fff;
-  }
-
-  .day-date-control input {
-    display: block;
-    width: 100%;
-    min-width: 0;
-    border: 0;
-    padding: 0;
-    background: transparent;
-    color: var(--day-ink);
-    font: inherit;
-  }
-
-  .selected-day,
-  .day-section,
-  .day-callout {
-    margin-bottom: 1.15rem;
-    padding: clamp(1rem, 2vw, 1.45rem);
-    border: 1px solid var(--day-line);
-    border-radius: 1.25rem;
-    background: var(--day-panel);
-  }
-
-  .selected-day,
-  .day-section__heading,
-  .day-panel__heading,
-  .day-callout {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .selected-day h2,
-  .day-section h2,
-  .day-panel h2,
-  .day-callout h2 {
-    margin: 0;
-    color: var(--day-ink);
-  }
-
-  .selected-day__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0.45rem 0 0;
-    color: var(--day-muted);
-    font-size: 0.9rem;
-  }
-
-  .day-section__heading > p {
-    max-width: 560px;
-    margin: 0;
-    color: var(--day-muted);
-    font-size: 0.9rem;
-    line-height: 1.55;
-  }
-
-  .day-metric-grid {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 0.7rem;
-    margin-top: 1rem;
-  }
-
-  .day-metric-card {
-    min-width: 0;
-    padding: 0.9rem;
-    border: 1px solid var(--day-line);
-    border-radius: 1rem;
-    background: rgba(248, 250, 252, 0.8);
-  }
-
-  .day-metric-card__top {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .day-metric-card h3 {
-    margin: 0;
-    font-size: 0.9rem;
-  }
-
-  .day-metric-card__value {
-    margin: 0.8rem 0 0.15rem;
-  }
-
-  .day-metric-card__value strong {
-    font-size: 1.75rem;
-    line-height: 1;
-  }
-
-  .day-metric-card__value span,
-  .day-metric-card small {
-    color: var(--day-muted);
-    font-size: 0.76rem;
-  }
-
-  .day-grid-two {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-
-  .day-panel {
-    min-width: 0;
-    padding: clamp(1rem, 2vw, 1.35rem);
-    border: 1px solid var(--day-line);
-    border-radius: 1.2rem;
-    background: var(--day-panel);
-  }
-
-  .timeline-placeholder,
-  .habit-placeholder,
-  .comparison-placeholder,
-  .notes-placeholder {
-    margin-top: 1rem;
-  }
-
-  .timeline-placeholder {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .timeline-placeholder > div {
-    display: grid;
-    grid-template-columns: 3.25rem 1fr;
-    align-items: center;
-    gap: 0.7rem;
-  }
-
-  .timeline-placeholder span,
-  .habit-placeholder small,
-  .comparison-placeholder small,
-  .day-empty-note {
-    color: var(--day-muted);
-    font-size: 0.78rem;
-  }
-
-  .timeline-placeholder i {
-    display: block;
-    width: var(--placeholder-width);
-    height: 0.62rem;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #dbeafe, #e2e8f0);
-  }
-
-  .day-empty-note {
-    margin: 0.9rem 0 0;
-    line-height: 1.5;
-  }
-
-  .habit-placeholder,
-  .comparison-placeholder {
-    display: grid;
-    gap: 0.55rem;
-  }
-
-  .habit-placeholder > div,
-  .comparison-placeholder > div {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.7rem 0;
-    border-bottom: 1px solid var(--day-line);
-  }
-
-  .habit-placeholder > div:last-child,
-  .comparison-placeholder > div:last-child {
-    border-bottom: 0;
-  }
-
-  .comparison-placeholder > div {
-    grid-template-columns: 1fr auto auto;
-  }
-
-  .notes-placeholder {
-    min-height: 10rem;
-    padding: 1rem;
-    border: 1px dashed rgba(37, 99, 235, 0.3);
-    border-radius: 1rem;
-    background: rgba(239, 246, 255, 0.56);
-  }
-
-  .notes-placeholder p {
-    margin: 0.6rem 0 0;
-    color: var(--day-muted);
-    line-height: 1.65;
-  }
-
-  .same-date-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.65rem;
-    margin-top: 1rem;
-  }
-
-  .same-date-card {
-    padding: 0.85rem;
-    border: 1px solid var(--day-line);
-    border-radius: 0.95rem;
-    background: #fff;
-    color: var(--day-ink);
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .same-date-card:hover,
-  .same-date-card[aria-current='date'] {
-    border-color: rgba(37, 99, 235, 0.48);
-    background: #eff6ff;
-  }
-
-  .same-date-card strong,
-  .same-date-card span {
-    display: block;
-  }
-
-  .same-date-card span {
-    margin-top: 0.25rem;
-    color: var(--day-muted);
-    font-size: 0.78rem;
-  }
-
-  .day-callout {
-    align-items: center;
-    border-color: rgba(37, 99, 235, 0.24);
-    background: linear-gradient(135deg, rgba(239, 246, 255, 0.9), rgba(255, 255, 255, 0.9));
-  }
-
-  .day-callout > div {
-    max-width: 780px;
-  }
-
-  .day-callout p:last-child {
-    margin: 0.6rem 0 0;
-    color: var(--day-muted);
-    line-height: 1.6;
-  }
-
-  .day-callout a {
-    flex: 0 0 auto;
-    padding: 0.72rem 0.95rem;
-    border-radius: 999px;
-    background: var(--day-blue);
-    color: white;
-    font-weight: 750;
-    text-decoration: none;
-  }
-
-  @media (max-width: 1050px) {
-    .day-metric-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 760px) {
-    .day-hero,
-    .selected-day,
-    .day-section__heading,
-    .day-panel__heading,
-    .day-callout {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
-    .day-toolbar {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      align-items: end;
-    }
-
-    .day-date-control {
-      min-width: 0;
-    }
-
-    .day-action-button {
-      grid-column: span 1;
-    }
-
-    .day-action-button--link {
-      grid-column: 1 / -1;
-      justify-content: center;
-      margin-left: 0;
-    }
-
-    .day-grid-two {
-      grid-template-columns: 1fr;
-    }
-
-    .same-date-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 520px) {
-    .day-metric-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .day-action-button {
-      grid-column: 1 / -1;
-      text-align: center;
-    }
-  }
-
-  :global(html.dark) .day-explorer,
-  :global(body.dark) .day-explorer,
-  :global(html[data-theme='dark']) .day-explorer {
-    --day-ink: #f8fafc;
-    --day-muted: #94a3b8;
-    --day-line: rgba(148, 163, 184, 0.18);
-    --day-panel: rgba(15, 23, 42, 0.88);
-  }
-
-  :global(html.dark) .day-hero,
-  :global(body.dark) .day-hero,
-  :global(html[data-theme='dark']) .day-hero {
-    background:
-      radial-gradient(circle at 86% 10%, rgba(59, 130, 246, 0.18), transparent 28%),
-      linear-gradient(135deg, #0f172a 0%, #111827 52%, #0f172a 100%);
-    border-color: rgba(96, 165, 250, 0.24);
-  }
-
-  :global(html.dark) .day-nav-button,
-  :global(html.dark) .day-action-button,
-  :global(html.dark) .day-date-control__input,
-  :global(html.dark) .same-date-card,
-  :global(body.dark) .day-nav-button,
-  :global(body.dark) .day-action-button,
-  :global(body.dark) .day-date-control__input,
-  :global(body.dark) .same-date-card,
-  :global(html[data-theme='dark']) .day-nav-button,
-  :global(html[data-theme='dark']) .day-action-button,
-  :global(html[data-theme='dark']) .day-date-control__input,
-  :global(html[data-theme='dark']) .same-date-card {
-    background: #111827;
-    color: var(--day-ink);
-  }
-
-  :global(html.dark) .day-metric-card,
-  :global(body.dark) .day-metric-card,
-  :global(html[data-theme='dark']) .day-metric-card {
-    background: rgba(17, 24, 39, 0.82);
-  }
-
-  :global(html.dark) .notes-placeholder,
-  :global(body.dark) .notes-placeholder,
-  :global(html[data-theme='dark']) .notes-placeholder {
-    background: rgba(30, 41, 59, 0.72);
-  }
-</style>
-
-<script is:inline>
-  (() => {
-    const root = document.querySelector('[data-day-explorer]');
-    if (!(root instanceof HTMLElement)) return;
-
-    const input = root.querySelector('#day-date');
-    const previousButton = root.querySelector('[data-day-previous]');
-    const nextButton = root.querySelector('[data-day-next]');
-    const todayButton = root.querySelector('[data-day-today]');
-    const randomButton = root.querySelector('[data-day-random]');
-    const selectedWeekday = root.querySelector('[data-selected-weekday]');
-    const selectedDate = root.querySelector('[data-selected-date]');
-    const dayNumber = root.querySelector('[data-day-number]');
-    const sameDateGrid = root.querySelector('[data-same-date-grid]');
-
-    if (!(input instanceof HTMLInputElement)) return;
-
-    const chicagoDateValue = () => {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Chicago',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).formatToParts(new Date());
-      const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-      return `${values.year}-${values.month}-${values.day}`;
-    };
-
-    const parseDate = (value) => new Date(`${value}T12:00:00`);
-    const dateValue = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const validDateValue = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(parseDate(value).getTime());
-
-    const getInitialDate = () => {
-      const queryDate = new URL(window.location.href).searchParams.get('date');
-      if (queryDate && validDateValue(queryDate)) return queryDate;
-      return chicagoDateValue();
-    };
-
-    const ordinalDay = (date) => {
-      const start = new Date(date.getFullYear(), 0, 0, 12);
-      return Math.floor((date.getTime() - start.getTime()) / 86400000);
-    };
-
-    const updateUrl = (value) => {
-      const url = new URL(window.location.href);
-      url.searchParams.set('date', value);
-      window.history.replaceState({}, '', url);
-    };
-
-    const renderSameDate = (date) => {
-      if (!(sameDateGrid instanceof HTMLElement)) return;
-      sameDateGrid.replaceChildren();
-
-      const currentYear = parseDate(chicagoDateValue()).getFullYear();
-      for (let year = 2023; year <= currentYear; year += 1) {
-        const candidate = new Date(year, date.getMonth(), date.getDate(), 12);
-        if (candidate.getMonth() !== date.getMonth()) continue;
-
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'same-date-card';
-        button.dataset.date = dateValue(candidate);
-        if (year === date.getFullYear()) button.setAttribute('aria-current', 'date');
-
-        const yearLabel = document.createElement('strong');
-        yearLabel.textContent = String(year);
-        const status = document.createElement('span');
-        status.textContent = 'Archive data pending';
-        button.append(yearLabel, status);
-        button.addEventListener('click', () => setDate(button.dataset.date));
-        sameDateGrid.append(button);
-      }
-    };
-
-    const setDate = (value) => {
-      if (!value || !validDateValue(value)) return;
-      const date = parseDate(value);
-      input.value = value;
-      input.max = chicagoDateValue();
-
-      if (selectedWeekday) {
-        selectedWeekday.textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
-      }
-      if (selectedDate) {
-        selectedDate.textContent = new Intl.DateTimeFormat('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }).format(date);
-      }
-      if (dayNumber) dayNumber.textContent = `Day ${ordinalDay(date)} of ${date.getFullYear()}`;
-
-      renderSameDate(date);
-      updateUrl(value);
-    };
-
-    const moveDay = (amount) => {
-      const date = parseDate(input.value || chicagoDateValue());
-      date.setDate(date.getDate() + amount);
-      const nextValue = dateValue(date);
-      if (nextValue > chicagoDateValue() || nextValue < '2023-01-01') return;
-      setDate(nextValue);
-    };
-
-    input.addEventListener('change', () => setDate(input.value));
-    previousButton?.addEventListener('click', () => moveDay(-1));
-    nextButton?.addEventListener('click', () => moveDay(1));
-    todayButton?.addEventListener('click', () => setDate(chicagoDateValue()));
-    randomButton?.addEventListener('click', () => {
-      const start = parseDate('2023-01-01').getTime();
-      const end = parseDate(chicagoDateValue()).getTime();
-      const randomTime = start + Math.floor(Math.random() * Math.max(1, end - start));
-      setDate(dateValue(new Date(randomTime)));
-    });
-
-    setDate(getInitialDate());
-  })();
-</script>
