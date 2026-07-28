@@ -1,3 +1,4 @@
+#graphs > .explorer-shell,
 #graphs > .canonical-explorer { display: none !important; }
 .stats-explorer-v2{overflow:hidden;border:1px solid rgba(15,23,42,.12);border-radius:28px;background:rgba(255,255,255,.92);box-shadow:0 22px 60px rgba(15,23,42,.09)}
 .sev2-toolbar{display:grid;gap:1rem;padding:1.25rem;border-bottom:1px solid rgba(15,23,42,.1);background:linear-gradient(120deg,rgba(235,242,255,.9),rgba(235,250,243,.82))}
