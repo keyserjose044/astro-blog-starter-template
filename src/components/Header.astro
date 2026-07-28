@@ -3,6 +3,7 @@ import HeaderLink from './HeaderLink.astro';
 import NavTooltipLink from './NavTooltipLink.astro';
 import StatsDailyHusk from './StatsDailyHusk.astro';
 import DailyDataRuntime from './DailyDataRuntime.astro';
+import StatsArchiveRuntime from './StatsArchiveRuntime.astro';
 import { SITE_TITLE } from '../consts';
 
 const rawBase = import.meta.env.BASE_URL || '/';
@@ -87,7 +88,8 @@ const navItems = [
 </header>
 
 {isStatsPage && <StatsDailyHusk />}
-{(isStatsPage || isDayPage) && <DailyDataRuntime />}
+{isStatsPage && <StatsArchiveRuntime />}
+{isDayPage && <DailyDataRuntime />}
 
 <style>
   .site-header { margin:0; padding:0 1rem; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.05); position:sticky; top:0; z-index:50; }
