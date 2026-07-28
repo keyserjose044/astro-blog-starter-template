@@ -156,8 +156,8 @@ const artistCount = new Set(metadata.map((meta) => meta.artist.trim().toLowerCas
                 data-date-viewed={meta.dateViewed} data-viewed-year={viewedYear} data-artwork-label={dateInfo.label} data-artwork-year={dateInfo.year ?? ''}
                 data-artwork-sort={dateInfo.sortYear ?? ''} data-artwork-precision={dateInfo.precision} data-artwork-period={dateInfo.periodKey}
                 data-artwork-period-label={dateInfo.periodLabel} data-artwork-period-order={dateInfo.periodOrder} data-source={meta.source}
-                data-cover={item.cover} data-href={item.href} data-note-raw={item.note || ''} data-original-index={index}>
-                <figure class="art-card-figure"><img class="art-cover" src={item.cover} alt={item.title} loading={index < 12 ? 'eager' : 'lazy'} decoding="async" /><figcaption class="art-gallery-caption"><strong>{item.title}</strong>{meta.artist ? <span>{meta.artist}</span> : null}</figcaption></figure>
+                data-cover={item.cover} data-cover-fallbacks={JSON.stringify(item.coverFallbacks)} data-href={item.href} data-note-raw={item.note || ''} data-original-index={index}>
+                <figure class="art-card-figure"><img class="art-cover" src={item.cover} data-cover-fallbacks={JSON.stringify(item.coverFallbacks)} alt={item.title} loading={index < 12 ? 'eager' : 'lazy'} decoding="async" /><figcaption class="art-gallery-caption"><strong>{item.title}</strong>{meta.artist ? <span>{meta.artist}</span> : null}</figcaption></figure>
                 <div class="art-card-copy">
                   <div class="art-title">{item.title}<span aria-hidden="true">↗</span><span class="sr-only"> (opens artwork viewer)</span></div>
                   <div class="art-card-meta">
@@ -188,3 +188,52 @@ const artistCount = new Set(metadata.map((meta) => meta.artist.trim().toLowerCas
   </main>
   <Footer />
 </VideoBg>
+
+<script is:inline>
+  function installArtworkImageFallbacks() {
+    document
+      .querySelectorAll('img.art-cover[data-cover-fallbacks]')
+      .forEach((image) => {
+        if (!(image instanceof HTMLImageElement)) return;
+        if (image.dataset.fallbackInstalled === 'true') return;
+
+        image.dataset.fallbackInstalled = 'true';
+
+        let fallbacks = [];
+
+        try {
+          const parsed = JSON.parse(image.dataset.coverFallbacks || '[]');
+          fallbacks = Array.isArray(parsed)
+            ? parsed.filter((value) => typeof value === 'string' && value.trim())
+            : [];
+        } catch {
+          fallbacks = [];
+        }
+
+        const tryNextImage = () => {
+          const nextUrl = fallbacks.shift();
+          image.dataset.coverFallbacks = JSON.stringify(fallbacks);
+
+          if (!nextUrl) return;
+
+          const card = image.closest('.art-card');
+          if (card instanceof HTMLElement) {
+            card.dataset.cover = nextUrl;
+            card.dataset.coverFallbacks = JSON.stringify(fallbacks);
+          }
+
+          image.src = nextUrl;
+        };
+
+        image.addEventListener('error', tryNextImage);
+
+        // Recover images that failed before this listener was installed.
+        if (image.complete && image.naturalWidth === 0) {
+          tryNextImage();
+        }
+      });
+  }
+
+  installArtworkImageFallbacks();
+  document.addEventListener('astro:page-load', installArtworkImageFallbacks);
+</script>
