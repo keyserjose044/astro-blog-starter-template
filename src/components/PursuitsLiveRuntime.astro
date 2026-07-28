@@ -1,0 +1,139 @@
+---
+import '../styles/pursuits-live-runtime.css';
+
+type PursuitSection = 'overview' | 'guitar' | 'dance' | 'running' | 'languages';
+
+interface Props {
+  active: PursuitSection;
+}
+
+const { active } = Astro.props;
+
+const pursuits = [
+  { key: 'guitar', label: 'Guitar', icon: '🎸', unit: 'hours', href: '/pursuits/guitar/', accent: '#c77a30' },
+  { key: 'dance', label: 'Dance', icon: '💃', unit: 'hours', href: '/pursuits/dance/', accent: '#c3428f' },
+  { key: 'running', label: 'Running', icon: '🏃', unit: 'miles', href: '/pursuits/running/', accent: '#278a63' },
+  { key: 'languages', label: 'Languages', icon: '🌍', unit: 'hours', href: '/pursuits/languages/', accent: '#405cf5' },
+] as const;
+
+const selected = pursuits.find((item) => item.key === active);
+
+const context: Partial<Record<Exclude<PursuitSection, 'overview' | 'guitar'>, Array<{ title: string; eyebrow: string; note: string }>>> = {
+  dance: [
+    { eyebrow: 'Tuesday', title: 'Cumbia class', note: 'Foundational timing, turns, vocabulary, and social repetition.' },
+    { eyebrow: 'Thursday', title: 'Bachata class', note: 'Connection, frame, weight transfer, and partner communication.' },
+    { eyebrow: 'Saturday', title: 'Salsa and bachata', note: 'A longer mixed session for combinations, adaptation, and confidence.' },
+  ],
+  running: [
+    { eyebrow: 'Principle 01', title: 'Return without overcorrection', note: 'Rebuild frequency gradually instead of trying to repay every missed mile at once.' },
+    { eyebrow: 'Principle 02', title: 'Mileage before drama', note: 'Ordinary repeatable running matters more than occasional hard efforts.' },
+    { eyebrow: 'Principle 03', title: 'Preserve the interruptions', note: 'Gaps, illness, weather, workload, and competing pursuits are part of the real record.' },
+  ],
+  languages: [
+    { eyebrow: 'Strongest base', title: 'English and Spanish', note: 'The practical and cultural foundation for the wider language project.' },
+    { eyebrow: 'Completed study', title: 'Portuguese and Italian', note: 'Structured courses completed, with maintenance and real-world use still separate questions.' },
+    { eyebrow: 'Uneven middle', title: 'French', note: 'Reading remains stronger than listening and spontaneous speech after a long pause.' },
+    { eyebrow: 'Active language', title: 'German', note: 'The current structured course, competing with the desire to recover French.' },
+  ],
+};
+---
+
+<div class:list={['pursuits-live-teleport', `pursuits-live-teleport--${active}`]} data-pursuits-teleport data-active={active} hidden>
+  {active === 'overview' ? (
+    <section class="pursuits-live-overview" aria-labelledby="pursuits-live-overview-title">
+      <div class="pursuits-live-heading pursuits-live-heading--split">
+        <div>
+          <p class="pursuits-live-eyebrow">Live archive pulse</p>
+          <h2 id="pursuits-live-overview-title">What the practice history says now</h2>
+        </div>
+        <p>All four pursuits use the same public-safe daily Archive that powers the Stats and Day Explorers. Totals, active days, and best months update from one source.</p>
+      </div>
+
+      <div class="pursuits-live-card-grid">
+        {pursuits.map((pursuit) => (
+          <article class="pursuits-live-card" data-pursuit-summary={pursuit.key} style={`--pursuit-accent:${pursuit.accent}`}>
+            <div class="pursuits-live-card__top">
+              <span aria-hidden="true">{pursuit.icon}</span>
+              <div><p>Lifetime logged</p><h3>{pursuit.label}</h3></div>
+            </div>
+            <p class="pursuits-live-card__value"><strong data-live-lifetime>—</strong><span>{pursuit.unit}</span></p>
+            <div class="pursuits-live-spark" data-live-spark aria-label={`${pursuit.label} recent monthly trend`}></div>
+            <dl>
+              <div><dt>This year</dt><dd data-live-year>—</dd></div>
+              <div><dt>Active days</dt><dd data-live-active>—</dd></div>
+              <div><dt>Best month</dt><dd data-live-best-month>—</dd></div>
+              <div><dt>Last active</dt><dd data-live-last>—</dd></div>
+            </dl>
+            <a href={pursuit.href}>Open {pursuit.label} <span aria-hidden="true">→</span></a>
+          </article>
+        ))}
+      </div>
+      <p class="pursuits-live-status" data-pursuits-status role="status">Connecting to the daily Archive…</p>
+    </section>
+  ) : selected ? (
+    <>
+      <section class="pursuits-live-detail" data-pursuit-detail={active} style={`--pursuit-accent:${selected.accent}`} aria-labelledby="pursuit-live-detail-title">
+        <div class="pursuits-live-heading pursuits-live-heading--split">
+          <div>
+            <p class="pursuits-live-eyebrow">Live practice record</p>
+            <h2 id="pursuit-live-detail-title">{selected.label} in the Archive</h2>
+          </div>
+          <div class="pursuits-live-heading__status"><span aria-hidden="true"></span><strong data-pursuit-detail-status>Loading daily history…</strong></div>
+        </div>
+
+        <div class="pursuits-live-facts">
+          <article><span>Lifetime logged</span><strong data-detail-lifetime>—</strong><small>{selected.unit}</small></article>
+          <article><span>This year</span><strong data-detail-year>—</strong><small>{selected.unit}</small></article>
+          <article><span>Active days</span><strong data-detail-active>—</strong><small>recorded days above zero</small></article>
+          <article><span>Strongest day</span><strong data-detail-best-day>—</strong><small data-detail-best-day-date>—</small></article>
+          <article><span>Best month</span><strong data-detail-best-month>—</strong><small data-detail-best-month-date>—</small></article>
+          <article><span>Longest streak</span><strong data-detail-streak>—</strong><small data-detail-streak-note>consecutive active days</small></article>
+        </div>
+
+        <div class="pursuits-live-chart-shell">
+          <div class="pursuits-live-chart-toolbar">
+            <div>
+              <p class="pursuits-live-eyebrow">Monthly rhythm</p>
+              <h3 data-detail-chart-title>{selected.label} by month</h3>
+              <p data-detail-chart-note>Loading the complete tracking period…</p>
+            </div>
+            <div class="pursuits-live-chart-controls">
+              <label>Period<select data-pursuit-period><option value="all">All years</option></select></label>
+              <div><span>Chart</span><div class="pursuits-live-button-row"><button type="button" class="is-active" data-pursuit-chart="bars">Bars</button><button type="button" data-pursuit-chart="curve">Curve</button></div></div>
+            </div>
+          </div>
+          <div class="pursuits-live-chart-summary">
+            <span data-detail-recent>Last 90 days: —</span>
+            <span data-detail-current-streak>Current streak: —</span>
+            <span data-detail-best-year>Best year: —</span>
+          </div>
+          <div class="pursuits-live-chart" data-pursuit-chart-host aria-live="polite"><p>Loading monthly totals…</p></div>
+          <div class="pursuits-live-legend"><span><i data-state="recorded"></i>Recorded</span><span><i data-state="zero"></i>Recorded zero</span><span><i data-state="missing"></i>Missing</span><span><i data-state="before"></i>Before tracking</span><span><i data-state="future"></i>Future</span></div>
+        </div>
+
+        <div class="pursuits-live-actions">
+          <p data-detail-source>Daily Archive data is loading.</p>
+          <div><a href={`/stats/?metric=${active === 'languages' ? 'language' : active}#graphs`}>Explore the full graph</a><a href="/day/">Open individual days</a></div>
+        </div>
+      </section>
+
+      {context[active as keyof typeof context]?.length ? (
+        <section class="pursuits-context" aria-labelledby="pursuits-context-title">
+          <div class="pursuits-live-heading">
+            <p class="pursuits-live-eyebrow">How the pursuit is being built</p>
+            <h2 id="pursuits-context-title">The system behind the numbers</h2>
+          </div>
+          <div class:list={['pursuits-context-grid', { 'pursuits-context-grid--four': context[active as keyof typeof context]?.length === 4 }]}>
+            {context[active as keyof typeof context]?.map((item) => (
+              <article><span>{item.eyebrow}</span><h3>{item.title}</h3><p>{item.note}</p></article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </>
+  ) : null}
+</div>
+
+<script>
+  import '../scripts/pursuitsLiveRuntime';
+</script>
