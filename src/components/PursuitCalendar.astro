@@ -1,20 +1,20 @@
 ---
 const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
-const dataUrl = `${base}data/pursuits.json`;
+const dayBase = `${base}day/`;
 ---
 
-<section class="calendar-section" data-pursuit-calendar data-source={dataUrl} aria-labelledby="pursuit-calendar-title">
+<section class="calendar-section" data-pursuit-calendar data-day-base={dayBase} aria-labelledby="pursuit-calendar-title">
   <div class="calendar-heading">
     <div>
-      <p class="eyebrow">Practice across time</p>
+      <p class="calendar-eyebrow">Practice across time</p>
       <h2 id="pursuit-calendar-title">The pursuits calendar</h2>
-      <p class="calendar-intro">A day-level view of guitar, dance, running, and language work. The interface is ready now; the archive feed can be filled from Google Sheets later.</p>
+      <p class="calendar-intro">A day-level view of guitar, dance, running, and language study calculated directly from the public-safe daily Archive.</p>
     </div>
     <div class="calendar-summary" aria-live="polite">
-      <div><strong data-summary-days>0</strong><span>active days</span></div>
-      <div><strong data-summary-minutes>0</strong><span>logged minutes</span></div>
-      <div><strong data-summary-types>0</strong><span>pursuits</span></div>
+      <div><strong data-summary-days>—</strong><span>active days</span></div>
+      <div><strong data-summary-hours>—</strong><span>tracked hours</span></div>
+      <div><strong data-summary-types>—</strong><span>pursuits active</span></div>
     </div>
   </div>
 
@@ -22,10 +22,15 @@ const dataUrl = `${base}data/pursuits.json`;
     <div class="calendar-toolbar">
       <div class="month-controls">
         <button type="button" data-calendar-prev aria-label="Previous month">←</button>
-        <button type="button" data-calendar-today>Today</button>
+        <button type="button" data-calendar-latest>Latest</button>
         <button type="button" data-calendar-next aria-label="Next month">→</button>
       </div>
-      <h3 data-calendar-label>Loading calendar…</h3>
+
+      <div class="calendar-period">
+        <h3 data-calendar-label>Loading calendar…</h3>
+        <label>Year<select data-calendar-year aria-label="Choose calendar year"></select></label>
+      </div>
+
       <div class="calendar-legend" aria-label="Pursuit color legend">
         <span><i class="guitar"></i>Guitar</span>
         <span><i class="dance"></i>Dance</span>
@@ -38,223 +43,188 @@ const dataUrl = `${base}data/pursuits.json`;
       <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
     </div>
     <div class="calendar-grid" data-calendar-grid role="grid" aria-label="Pursuit activity by day"></div>
-    <p class="calendar-status" data-calendar-status aria-live="polite">Loading the local pursuit archive…</p>
+    <div class="calendar-footer">
+      <p class="calendar-status" data-calendar-status aria-live="polite">Connecting to the daily Archive…</p>
+      <p>Running time is estimated at 10 minutes per mile only for the combined-hour summary.</p>
+    </div>
   </div>
 </section>
 
 <script>
+  import { getDailyMeta, getYear } from '../utils/dailyData';
+  import type { DailyMeta, DailyRecord } from '../utils/dailyData';
+
   type PursuitName = 'guitar' | 'dance' | 'running' | 'languages';
-  type PursuitEvent = {
-    date: string;
-    pursuit: PursuitName;
-    minutes?: number;
-    label?: string;
-    detail?: string;
-  };
-  type PursuitFeed = { version?: number; updatedAt?: string | null; events?: PursuitEvent[] } | PursuitEvent[];
+  type PursuitEvent = { pursuit: PursuitName; label: string; detail: string; minutes: number };
 
   const root = document.querySelector<HTMLElement>('[data-pursuit-calendar]');
-
-  if (root) {
-    const source = root.dataset.source || '/data/pursuits.json';
+  if (root && root.dataset.ready !== 'true') {
+    root.dataset.ready = 'true';
     const grid = root.querySelector<HTMLElement>('[data-calendar-grid]');
     const label = root.querySelector<HTMLElement>('[data-calendar-label]');
     const status = root.querySelector<HTMLElement>('[data-calendar-status]');
     const summaryDays = root.querySelector<HTMLElement>('[data-summary-days]');
-    const summaryMinutes = root.querySelector<HTMLElement>('[data-summary-minutes]');
+    const summaryHours = root.querySelector<HTMLElement>('[data-summary-hours]');
     const summaryTypes = root.querySelector<HTMLElement>('[data-summary-types]');
     const previous = root.querySelector<HTMLButtonElement>('[data-calendar-prev]');
     const next = root.querySelector<HTMLButtonElement>('[data-calendar-next]');
-    const todayButton = root.querySelector<HTMLButtonElement>('[data-calendar-today]');
+    const latest = root.querySelector<HTMLButtonElement>('[data-calendar-latest]');
+    const yearSelect = root.querySelector<HTMLSelectElement>('[data-calendar-year]');
+    const dayBase = root.dataset.dayBase || '/day/';
 
-    let events: PursuitEvent[] = [];
-    const now = new Date();
-    let viewYear = now.getFullYear();
-    let viewMonth = now.getMonth();
+    let meta: DailyMeta | null = null;
+    let viewYear = new Date().getFullYear();
+    let viewMonth = new Date().getMonth();
+    let requestToken = 0;
+    const yearCache = new Map<number, Promise<DailyRecord[]>>();
 
-    const safeDate = (value: string) => {
-      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-      if (!match) return null;
-      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-      return Number.isNaN(date.valueOf()) ? null : date;
+    const parseIso = (value: string) => new Date(`${value}T12:00:00`);
+    const keyFor = (year: number, month: number, day: number) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const format = (value: number, digits = 0) => new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
+    const loadYear = (year: number) => {
+      if (!yearCache.has(year)) yearCache.set(year, getYear(year));
+      return yearCache.get(year)!;
+    };
+    const eventsFor = (record: DailyRecord): PursuitEvent[] => {
+      const events: PursuitEvent[] = [];
+      if ((record.hobbies.guitarMinutes ?? 0) > 0) events.push({ pursuit: 'guitar', label: `Guitar · ${format(record.hobbies.guitarMinutes!)} min`, detail: `${format(record.hobbies.guitarMinutes!)} minutes of guitar`, minutes: record.hobbies.guitarMinutes! });
+      if ((record.hobbies.danceMinutes ?? 0) > 0) events.push({ pursuit: 'dance', label: `Dance · ${format(record.hobbies.danceMinutes!)} min`, detail: `${format(record.hobbies.danceMinutes!)} minutes of dance`, minutes: record.hobbies.danceMinutes! });
+      if ((record.hobbies.runningMiles ?? 0) > 0) events.push({ pursuit: 'running', label: `Running · ${format(record.hobbies.runningMiles!, 1)} mi`, detail: `${format(record.hobbies.runningMiles!, 1)} running miles`, minutes: record.hobbies.runningMiles! * 10 });
+      if ((record.hobbies.languageMinutes ?? 0) > 0) events.push({ pursuit: 'languages', label: `Languages · ${format(record.hobbies.languageMinutes!)} min`, detail: `${format(record.hobbies.languageMinutes!)} minutes of language study`, minutes: record.hobbies.languageMinutes! });
+      return events;
+    };
+    const canMoveNext = () => {
+      if (!meta?.dataThrough) return false;
+      const through = parseIso(meta.dataThrough);
+      return viewYear < through.getFullYear() || (viewYear === through.getFullYear() && viewMonth < through.getMonth());
+    };
+    const canMovePrevious = () => {
+      if (!meta?.availableYears.length) return false;
+      const firstYear = Math.min(...meta.availableYears);
+      return viewYear > firstYear || viewMonth > 0;
+    };
+    const syncControls = () => {
+      if (previous) previous.disabled = !canMovePrevious();
+      if (next) next.disabled = !canMoveNext();
+      if (yearSelect) yearSelect.value = String(viewYear);
     };
 
-    const keyFor = (year: number, month: number, day: number) =>
-      `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const render = async () => {
+      if (!grid || !label || !status || !meta) return;
+      const token = ++requestToken;
+      status.textContent = 'Loading pursuit activity…';
+      grid.setAttribute('aria-busy', 'true');
+      syncControls();
+      try {
+        const records = await loadYear(viewYear);
+        if (token !== requestToken) return;
+        const map = new Map(records.map((record) => [record.date, record]));
+        const monthStart = new Date(viewYear, viewMonth, 1, 12);
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0, 12).getDate();
+        const previousMonthDays = new Date(viewYear, viewMonth, 0, 12).getDate();
+        const startOffset = monthStart.getDay();
+        const cellCount = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+        const monthRecords = records.filter((record) => Number(record.date.slice(5, 7)) - 1 === viewMonth);
+        const monthEvents = monthRecords.flatMap(eventsFor);
+        const activeDates = monthRecords.filter((record) => eventsFor(record).length > 0).length;
+        const activeTypes = new Set(monthEvents.map((event) => event.pursuit));
+        const totalMinutes = monthEvents.reduce((total, event) => total + event.minutes, 0);
 
-    const escapeHtml = (value: string) =>
-      value.replace(/[&<>'"]/g, (character) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
-      })[character] || character);
+        label.textContent = monthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        if (summaryDays) summaryDays.textContent = format(activeDates);
+        if (summaryHours) summaryHours.textContent = format(totalMinutes / 60, 1);
+        if (summaryTypes) summaryTypes.textContent = format(activeTypes.size);
 
-    const render = () => {
-      if (!grid || !label || !status) return;
-
-      const monthStart = new Date(viewYear, viewMonth, 1);
-      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-      const previousMonthDays = new Date(viewYear, viewMonth, 0).getDate();
-      const startOffset = monthStart.getDay();
-      const cells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
-      const monthEvents = events.filter((event) => {
-        const date = safeDate(event.date);
-        return date && date.getFullYear() === viewYear && date.getMonth() === viewMonth;
-      });
-
-      label.textContent = monthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const activeDates = new Set(monthEvents.map((event) => event.date));
-      const totalMinutes = monthEvents.reduce((sum, event) => sum + (Number(event.minutes) || 0), 0);
-      const activeTypes = new Set(monthEvents.map((event) => event.pursuit));
-      if (summaryDays) summaryDays.textContent = activeDates.size.toLocaleString('en-US');
-      if (summaryMinutes) summaryMinutes.textContent = totalMinutes.toLocaleString('en-US');
-      if (summaryTypes) summaryTypes.textContent = activeTypes.size.toLocaleString('en-US');
-
-      const html: string[] = [];
-      for (let index = 0; index < cells; index += 1) {
-        const relativeDay = index - startOffset + 1;
-        let cellYear = viewYear;
-        let cellMonth = viewMonth;
-        let day = relativeDay;
-        let outside = false;
-
-        if (relativeDay < 1) {
-          outside = true;
-          day = previousMonthDays + relativeDay;
-          cellMonth -= 1;
-          if (cellMonth < 0) { cellMonth = 11; cellYear -= 1; }
-        } else if (relativeDay > daysInMonth) {
-          outside = true;
-          day = relativeDay - daysInMonth;
-          cellMonth += 1;
-          if (cellMonth > 11) { cellMonth = 0; cellYear += 1; }
+        const html: string[] = [];
+        for (let index = 0; index < cellCount; index += 1) {
+          const relativeDay = index - startOffset + 1;
+          let cellYear = viewYear;
+          let cellMonth = viewMonth;
+          let day = relativeDay;
+          let outside = false;
+          if (relativeDay < 1) {
+            outside = true;
+            day = previousMonthDays + relativeDay;
+            cellMonth -= 1;
+            if (cellMonth < 0) { cellMonth = 11; cellYear -= 1; }
+          } else if (relativeDay > daysInMonth) {
+            outside = true;
+            day = relativeDay - daysInMonth;
+            cellMonth += 1;
+            if (cellMonth > 11) { cellMonth = 0; cellYear += 1; }
+          }
+          const dateKey = keyFor(cellYear, cellMonth, day);
+          const record = map.get(dateKey);
+          const events = record ? eventsFor(record) : [];
+          const future = Boolean(meta.dataThrough && dateKey > meta.dataThrough);
+          const dayLabel = new Date(cellYear, cellMonth, day, 12).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+          const chips = events.map((event) => `<span class="event event--${event.pursuit}" title="${event.detail}">${event.label}</span>`).join('');
+          const content = `<span class="day-number">${day}</span><div class="day-events">${chips}</div>`;
+          if (!outside && !future && record) {
+            html.push(`<a class="day${events.length ? ' day--active' : ''}" role="gridcell" href="${dayBase}?date=${dateKey}" aria-label="${dayLabel}${events.length ? `, ${events.length} active pursuits` : ', no active pursuits'}">${content}</a>`);
+          } else {
+            html.push(`<article class="day${outside ? ' day--outside' : ''}${future ? ' day--future' : ''}" role="gridcell" aria-label="${dayLabel}${future ? ', future date' : ', outside current month'}">${content}</article>`);
+          }
         }
-
-        const dateKey = keyFor(cellYear, cellMonth, day);
-        const dayEvents = events.filter((event) => event.date === dateKey);
-        const isToday = dateKey === keyFor(now.getFullYear(), now.getMonth(), now.getDate());
-        const eventMarkup = dayEvents.slice(0, 3).map((event) => {
-          const text = event.label || `${event.pursuit}${event.minutes ? ` · ${event.minutes} min` : ''}`;
-          return `<span class="event event--${event.pursuit}" title="${escapeHtml(event.detail || text)}">${escapeHtml(text)}</span>`;
-        }).join('');
-        const more = dayEvents.length > 3 ? `<span class="event-more">+${dayEvents.length - 3} more</span>` : '';
-        const dayLabel = new Date(cellYear, cellMonth, day).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
-        html.push(`
-          <article class="day${outside ? ' day--outside' : ''}${isToday ? ' day--today' : ''}${dayEvents.length ? ' day--active' : ''}" role="gridcell"${isToday ? ' aria-current="date"' : ''} aria-label="${dayLabel}${dayEvents.length ? `, ${dayEvents.length} activities` : ', no activities'}">
-            <span class="day-number">${day}</span>
-            <div class="day-events">${eventMarkup}${more}</div>
-          </article>
-        `);
+        grid.innerHTML = html.join('');
+        status.textContent = monthEvents.length
+          ? `${format(monthEvents.length)} pursuit ${monthEvents.length === 1 ? 'entry' : 'entries'} across ${format(activeDates)} active ${activeDates === 1 ? 'day' : 'days'}.`
+          : 'No Guitar, Dance, Running, or Language activity was recorded in this month.';
+      } catch (error) {
+        if (token !== requestToken) return;
+        grid.innerHTML = '<p class="calendar-error">The pursuit calendar is temporarily unavailable.</p>';
+        status.textContent = error instanceof Error ? error.message : 'The daily Archive could not be loaded.';
+      } finally {
+        if (token === requestToken) grid.removeAttribute('aria-busy');
       }
-
-      grid.innerHTML = html.join('');
-      status.textContent = monthEvents.length
-        ? `${monthEvents.length.toLocaleString('en-US')} logged pursuit ${monthEvents.length === 1 ? 'entry' : 'entries'} in this month.`
-        : 'No archive entries are connected for this month yet. The calendar will populate when the Google Sheets export is added.';
     };
 
-    previous?.addEventListener('click', () => {
-      viewMonth -= 1;
+    const moveMonth = (amount: number) => {
+      viewMonth += amount;
       if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
-      render();
-    });
-
-    next?.addEventListener('click', () => {
-      viewMonth += 1;
       if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
-      render();
+      void render();
+    };
+
+    previous?.addEventListener('click', () => { if (canMovePrevious()) moveMonth(-1); });
+    next?.addEventListener('click', () => { if (canMoveNext()) moveMonth(1); });
+    latest?.addEventListener('click', () => {
+      if (!meta?.dataThrough) return;
+      const through = parseIso(meta.dataThrough);
+      viewYear = through.getFullYear();
+      viewMonth = through.getMonth();
+      void render();
+    });
+    yearSelect?.addEventListener('change', () => {
+      viewYear = Number(yearSelect.value);
+      if (meta?.dataThrough) {
+        const through = parseIso(meta.dataThrough);
+        if (viewYear === through.getFullYear() && viewMonth > through.getMonth()) viewMonth = through.getMonth();
+      }
+      void render();
     });
 
-    todayButton?.addEventListener('click', () => {
-      viewYear = now.getFullYear();
-      viewMonth = now.getMonth();
-      render();
-    });
-
-    fetch(source)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Calendar feed returned ${response.status}`);
-        return response.json() as Promise<PursuitFeed>;
-      })
-      .then((feed) => {
-        const incoming = Array.isArray(feed) ? feed : feed.events || [];
-        events = incoming.filter((event) => safeDate(event.date) && ['guitar', 'dance', 'running', 'languages'].includes(event.pursuit));
-        render();
-      })
-      .catch((error) => {
-        console.warn('[Pursuits calendar]', error);
-        events = [];
-        render();
-        if (status) status.textContent = 'The calendar interface loaded, but the pursuit data file could not be read.';
+    getDailyMeta().then((incoming) => {
+      meta = incoming;
+      const through = incoming.dataThrough ? parseIso(incoming.dataThrough) : new Date();
+      viewYear = through.getFullYear();
+      viewMonth = through.getMonth();
+      incoming.availableYears.slice().sort((a, b) => b - a).forEach((year) => {
+        const option = document.createElement('option');
+        option.value = String(year);
+        option.textContent = String(year);
+        yearSelect?.append(option);
       });
-
-    render();
+      void render();
+    }).catch((error) => {
+      if (status) status.textContent = error instanceof Error ? error.message : 'The daily Archive could not be initialized.';
+      if (grid) grid.innerHTML = '<p class="calendar-error">The pursuit calendar is temporarily unavailable.</p>';
+    });
   }
 </script>
 
 <style>
-  .calendar-section { max-width:1380px; margin:0 auto; padding:8px clamp(14px,3vw,48px) 54px; }
-  .calendar-heading { display:flex; align-items:end; justify-content:space-between; gap:28px; margin-bottom:18px; }
-  .eyebrow { margin:0 0 5px; color:#405cf5; font-size:.72rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
-  .calendar-heading h2 { margin:0; color:#111827; font-size:clamp(1.8rem,4vw,3.2rem); letter-spacing:-.045em; }
-  .calendar-intro { max-width:760px; margin:8px 0 0; color:#626978; line-height:1.65; }
-  .calendar-summary { display:grid; grid-template-columns:repeat(3,minmax(90px,1fr)); gap:9px; min-width:min(100%,360px); }
-  .calendar-summary div { padding:13px; border:1px solid #e4e8ef; border-radius:15px; background:rgba(255,255,255,.9); text-align:center; box-shadow:0 8px 22px rgba(15,23,42,.05); }
-  .calendar-summary strong { display:block; color:#111827; font-size:1.35rem; }
-  .calendar-summary span { display:block; margin-top:2px; color:#707786; font-size:.69rem; }
-  .calendar-shell { overflow:hidden; border:1px solid #dfe4ec; border-radius:24px; background:rgba(255,255,255,.92); box-shadow:0 18px 48px rgba(15,23,42,.09); }
-  .calendar-toolbar { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:16px 18px; border-bottom:1px solid #e5e9f0; }
-  .calendar-toolbar h3 { margin:0; color:#161b27; font-size:1.15rem; text-align:center; }
-  .month-controls { display:flex; gap:7px; }
-  .month-controls button { min-height:36px; padding:7px 11px; border:1px solid #dfe4ec; border-radius:10px; background:#fff; color:#303746; font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; }
-  .month-controls button:hover { background:#f0f2ff; border-color:#cbd2ff; }
-  .month-controls button:focus-visible { outline:3px solid rgba(64,92,245,.35); outline-offset:2px; border-color:#405cf5; }
-  .calendar-legend { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:7px 11px; color:#656d7b; font-size:.69rem; }
-  .calendar-legend span { display:inline-flex; align-items:center; gap:5px; }
-  .calendar-legend i { width:8px; height:8px; border-radius:50%; }
-  .calendar-legend .guitar { background:#c77a30; }
-  .calendar-legend .dance { background:#c3428f; }
-  .calendar-legend .running { background:#278a63; }
-  .calendar-legend .languages { background:#405cf5; }
-  .weekdays { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border-bottom:1px solid #e7ebf1; background:#f8fafc; }
-  .weekdays span { padding:9px; color:#737b8a; font-size:.67rem; font-weight:850; letter-spacing:.08em; text-align:center; text-transform:uppercase; }
-  .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); grid-auto-rows:minmax(118px,1fr); }
-  .calendar-grid :global(.day) { min-width:0; min-height:118px; padding:8px; overflow:hidden; border-right:1px solid #e8ebf1; border-bottom:1px solid #e8ebf1; background:rgba(255,255,255,.82); }
-  .calendar-grid :global(.day):nth-child(7n) { border-right:0; }
-  .calendar-grid :global(.day):nth-last-child(-n+7) { border-bottom:0; }
-  .calendar-grid :global(.day--outside) { background:#f8f9fb; color:#a1a7b2; }
-  .calendar-grid :global(.day--today) { box-shadow:inset 0 0 0 2px #405cf5; }
-  .calendar-grid :global(.day--active) { background:linear-gradient(145deg,#fff,#fafbff); }
-  .calendar-grid :global(.day-number) { display:inline-grid; place-items:center; width:25px; height:25px; border-radius:50%; font-size:.75rem; font-weight:850; }
-  .calendar-grid :global(.day--today) :global(.day-number) { background:#405cf5; color:#fff; }
-  .calendar-grid :global(.day-events) { display:grid; gap:4px; min-width:0; margin-top:5px; }
-  .calendar-grid :global(.event) { display:block; overflow:hidden; padding:4px 6px; border-left:3px solid currentColor; border-radius:5px; background:#f5f6f8; color:#394150; font-size:.64rem; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
-  .calendar-grid :global(.event--guitar) { color:#9a591f; background:#fff5e9; }
-  .calendar-grid :global(.event--dance) { color:#9f286e; background:#fff0f8; }
-  .calendar-grid :global(.event--running) { color:#1e7654; background:#edf9f3; }
-  .calendar-grid :global(.event--languages) { color:#3049c9; background:#f0f2ff; }
-  .calendar-grid :global(.event-more) { color:#737b8a; font-size:.61rem; font-weight:750; }
-  .calendar-status { margin:0; padding:12px 16px; border-top:1px solid #e7ebf1; color:#6b7280; font-size:.76rem; text-align:center; }
-  @media (max-width:900px) {
-    .calendar-heading { display:block; }
-    .calendar-summary { margin-top:16px; }
-    .calendar-toolbar { grid-template-columns:1fr auto; }
-    .calendar-toolbar h3 { grid-column:1 / -1; grid-row:1; }
-    .month-controls { grid-column:1; grid-row:2; }
-    .calendar-legend { grid-column:2; grid-row:2; }
-    .calendar-grid { grid-auto-rows:minmax(96px,1fr); }
-    .calendar-grid :global(.day) { min-height:96px; }
-  }
-  @media (max-width:650px) {
-    .calendar-section { padding-inline:10px; }
-    .calendar-summary { grid-template-columns:repeat(3,1fr); min-width:0; }
-    .calendar-summary div { padding:10px 5px; }
-    .calendar-toolbar { display:flex; flex-direction:column; align-items:stretch; }
-    .month-controls, .calendar-legend { justify-content:center; }
-    .weekdays span { padding:7px 2px; font-size:.58rem; }
-    .calendar-grid { grid-auto-rows:minmax(72px,1fr); }
-    .calendar-grid :global(.day) { min-height:72px; padding:4px; }
-    .calendar-grid :global(.day-number) { width:21px; height:21px; font-size:.67rem; }
-    .calendar-grid :global(.event) { height:6px; padding:0; border:0; border-radius:999px; color:transparent; font-size:0; }
-    .calendar-grid :global(.event-more) { display:none; }
-  }
+  .calendar-section{max-width:1380px;margin:0 auto;padding:8px clamp(14px,3vw,48px) 54px}.calendar-heading{display:flex;align-items:end;justify-content:space-between;gap:28px;margin-bottom:18px}.calendar-eyebrow{margin:0 0 5px;color:#405cf5;font-size:.72rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.calendar-heading h2{margin:0;color:#111827;font-size:clamp(1.8rem,4vw,3.2rem);letter-spacing:-.045em}.calendar-intro{max-width:760px;margin:8px 0 0;color:#626978;line-height:1.65}.calendar-summary{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:9px;min-width:min(100%,360px)}.calendar-summary div{padding:13px;border:1px solid #e4e8ef;border-radius:15px;background:rgba(255,255,255,.9);text-align:center;box-shadow:0 8px 22px rgba(15,23,42,.05)}.calendar-summary strong{display:block;color:#111827;font-size:1.35rem}.calendar-summary span{display:block;margin-top:2px;color:#707786;font-size:.69rem}.calendar-shell{overflow:hidden;border:1px solid #dfe4ec;border-radius:24px;background:rgba(255,255,255,.92);box-shadow:0 18px 48px rgba(15,23,42,.09)}.calendar-toolbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #e5e9f0}.month-controls{display:flex;gap:7px}.month-controls button{min-height:36px;padding:7px 11px;border:1px solid #dfe4ec;border-radius:10px;background:#fff;color:#303746;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}.month-controls button:hover:not(:disabled){background:#f0f2ff;border-color:#cbd2ff}.month-controls button:disabled{cursor:not-allowed;opacity:.38}.calendar-period{display:flex;align-items:center;justify-content:center;gap:10px}.calendar-period h3{margin:0;color:#161b27;font-size:1.15rem;text-align:center}.calendar-period label{display:grid;gap:2px;color:#737b8a;font-size:.58rem;font-weight:850;letter-spacing:.05em;text-transform:uppercase}.calendar-period select{min-height:32px;padding:4px 8px;border:1px solid #dfe4ec;border-radius:9px;background:#fff;color:#303746;font:inherit;font-size:.74rem;font-weight:750}.calendar-legend{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px 11px;color:#656d7b;font-size:.69rem}.calendar-legend span{display:inline-flex;align-items:center;gap:5px}.calendar-legend i{width:8px;height:8px;border-radius:50%}.calendar-legend .guitar{background:#c77a30}.calendar-legend .dance{background:#c3428f}.calendar-legend .running{background:#278a63}.calendar-legend .languages{background:#405cf5}.weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid #e7ebf1;background:#f8fafc}.weekdays span{padding:9px;color:#737b8a;font-size:.67rem;font-weight:850;letter-spacing:.08em;text-align:center;text-transform:uppercase}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:minmax(118px,1fr)}.calendar-grid :global(.day){display:block;min-width:0;min-height:118px;padding:8px;overflow:hidden;border-right:1px solid #e8ebf1;border-bottom:1px solid #e8ebf1;background:rgba(255,255,255,.82);color:#252b38;text-decoration:none}.calendar-grid :global(.day):nth-child(7n){border-right:0}.calendar-grid :global(.day):nth-last-child(-n+7){border-bottom:0}.calendar-grid :global(a.day:hover){position:relative;z-index:1;background:#f5f7ff;box-shadow:inset 0 0 0 2px rgba(64,92,245,.3)}.calendar-grid :global(.day--outside){background:#f8f9fb;color:#a1a7b2}.calendar-grid :global(.day--future){background:#fbfcfd;color:#b4bac4}.calendar-grid :global(.day--active){background:linear-gradient(145deg,#fff,#fafbff)}.calendar-grid :global(.day-number){display:block;margin-bottom:7px;font-size:.74rem;font-weight:850}.calendar-grid :global(.day-events){display:grid;gap:4px}.calendar-grid :global(.event){display:block;overflow:hidden;padding:4px 5px;border-radius:6px;color:#fff;font-size:.61rem;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.calendar-grid :global(.event--guitar){background:#b86b24}.calendar-grid :global(.event--dance){background:#bd377f}.calendar-grid :global(.event--running){background:#237957}.calendar-grid :global(.event--languages){background:#405cf5}.calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:11px 16px;border-top:1px solid #e7ebf1;background:#f8fafc}.calendar-footer p{margin:0;color:#697180;font-size:.7rem}.calendar-status{font-weight:750}.calendar-error{grid-column:1/-1;display:grid;min-height:280px;place-items:center;margin:0;color:#991b1b;background:#fff1f2}
+  @media(max-width:900px){.calendar-heading{align-items:stretch;flex-direction:column}.calendar-summary{width:100%}.calendar-toolbar{grid-template-columns:1fr;justify-items:center}.month-controls{order:2}.calendar-period{order:1}.calendar-legend{order:3;justify-content:center}.calendar-grid{grid-auto-rows:minmax(96px,1fr)}.calendar-grid :global(.day){min-height:96px}.calendar-footer{align-items:flex-start;flex-direction:column}}@media(max-width:620px){.calendar-section{padding-inline:10px}.calendar-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.calendar-summary div{padding:10px 6px}.weekdays span{padding:7px 2px;font-size:.59rem}.calendar-grid{grid-auto-rows:minmax(72px,1fr)}.calendar-grid :global(.day){min-height:72px;padding:5px}.calendar-grid :global(.event){height:6px;padding:0;border-radius:999px;color:transparent;font-size:0}.calendar-grid :global(.day-number){margin-bottom:5px}.calendar-period{align-items:stretch;flex-direction:column}.calendar-period label{grid-template-columns:auto auto;align-items:center}}
+  :global(html.dark) .calendar-heading h2,:global(body.dark) .calendar-heading h2{color:#f8fafc}:global(html.dark) .calendar-shell,:global(body.dark) .calendar-shell,:global(html.dark) .calendar-summary div,:global(body.dark) .calendar-summary div{background:rgba(15,23,42,.92);border-color:rgba(148,163,184,.18)}:global(html.dark) .calendar-summary strong,:global(body.dark) .calendar-summary strong,:global(html.dark) .calendar-period h3,:global(body.dark) .calendar-period h3{color:#f8fafc}:global(html.dark) .calendar-toolbar,:global(body.dark) .calendar-toolbar,:global(html.dark) .calendar-footer,:global(body.dark) .calendar-footer,:global(html.dark) .weekdays,:global(body.dark) .weekdays{background:#0f172a;border-color:rgba(148,163,184,.16)}:global(html.dark) .month-controls button,:global(body.dark) .month-controls button,:global(html.dark) .calendar-period select,:global(body.dark) .calendar-period select{background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.2)}:global(html.dark) .calendar-grid :global(.day),:global(body.dark) .calendar-grid :global(.day){background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.day--outside),:global(body.dark) .calendar-grid :global(.day--outside),:global(html.dark) .calendar-grid :global(.day--future),:global(body.dark) .calendar-grid :global(.day--future){background:#0f172a;color:#64748b}
 </style>
