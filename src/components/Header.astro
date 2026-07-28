@@ -7,6 +7,7 @@ import StatsArchiveRuntime from './StatsArchiveRuntime.astro';
 import StatsCanonicalExplorer from './StatsCanonicalExplorer.astro';
 import StatsExplorerComparisonPatch from './StatsExplorerComparisonPatch.astro';
 import StatsPageRefinements from './StatsPageRefinements.astro';
+import StatsFinalPolish from './StatsFinalPolish.astro';
 import { SITE_TITLE } from '../consts';
 
 const rawBase = import.meta.env.BASE_URL || '/';
@@ -95,6 +96,7 @@ const navItems = [
 {isStatsPage && <StatsCanonicalExplorer />}
 {isStatsPage && <StatsExplorerComparisonPatch />}
 {isStatsPage && <StatsPageRefinements />}
+{isStatsPage && <StatsFinalPolish />}
 {isDayPage && <DailyDataRuntime />}
 
 <style>
