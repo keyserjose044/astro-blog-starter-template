@@ -3,6 +3,7 @@ export interface RaindropGalleryItem {
   title: string;
   href: string;
   cover: string;
+  coverFallbacks: string[];
   note: string;
   tags: string[];
 }
@@ -126,12 +127,24 @@ function getYouTubeThumbnail(rawLink?: string | null): string | null {
   return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
 }
 
-function getFirstMediaCover(media?: Array<{ link?: string }>): string | null {
-  const mediaLink = media?.find(
-    (entry) => typeof entry?.link === 'string' && entry.link.trim().length > 0
-  )?.link;
+function getMediaCovers(media?: Array<{ link?: string }>): string[] {
+  if (!Array.isArray(media)) return [];
 
-  return mediaLink?.trim() || null;
+  return media
+    .map((entry) =>
+      typeof entry?.link === 'string' ? entry.link.trim() : ''
+    )
+    .filter(Boolean);
+}
+
+function uniqueUrls(values: Array<string | null | undefined>): string[] {
+  return [
+    ...new Set(
+      values
+        .map((value) => (typeof value === 'string' ? value.trim() : ''))
+        .filter(Boolean)
+    ),
+  ];
 }
 
 function parseCalendarDate(rawValue?: string | null): number | null {
@@ -187,31 +200,41 @@ function getLoggedDate(note?: string | null): number | null {
   return parseCalendarDate(firstMetadataField);
 }
 
-function chooseCover(
+function chooseCoverCandidates(
   item: any,
   placeholder: string,
   cleanVideoCovers: boolean,
   cleanVideoCoversAfter: number | null,
   note: string
-): string {
-  const mediaCover = getFirstMediaCover(item.media);
+): string[] {
+  const mediaCovers = getMediaCovers(item.media);
   const loggedDate = getLoggedDate(note);
   const isAfterCutoff =
     cleanVideoCoversAfter === null ||
     (loggedDate !== null && loggedDate > cleanVideoCoversAfter);
+  const candidates: Array<string | null | undefined> = [];
 
   if (cleanVideoCovers && isAfterCutoff) {
     // Raindrop may place a play badge on its generated video cover.
     // YouTube's source thumbnail does not include Raindrop's overlay.
-    const youtubeThumbnail = getYouTubeThumbnail(item.link);
-    if (youtubeThumbnail) return youtubeThumbnail;
+    candidates.push(getYouTubeThumbnail(item.link));
 
     // For other video providers, prefer the underlying media image when present.
-    if (item.type === 'video' && mediaCover) return mediaCover;
+    if (item.type === 'video') {
+      candidates.push(...mediaCovers);
+    }
   }
 
-  // Items on/before the cutoff, or without a parseable logged date, keep Raindrop's cover.
-  return item.cover || mediaCover || placeholder;
+  // Preserve the existing preferred Raindrop cover.
+  candidates.push(item.cover);
+
+  // Retain every Raindrop media URL so the browser can recover from a dead cover.
+  candidates.push(...mediaCovers);
+
+  // Guaranteed local fallback.
+  candidates.push(placeholder);
+
+  return uniqueUrls(candidates);
 }
 
 export async function fetchAllRaindrops({
@@ -276,18 +299,20 @@ export async function fetchAllRaindrops({
     const note =
       (typeof item.note === 'string' ? item.note : '') ||
       (typeof item.excerpt === 'string' ? item.excerpt : '');
+    const coverCandidates = chooseCoverCandidates(
+      item,
+      placeholder,
+      cleanVideoCovers && (!cleanVideoCoversAfter || cleanVideoCoversAfterTimestamp !== null),
+      cleanVideoCoversAfterTimestamp,
+      note
+    );
 
     return {
       id: item._id,
       title: item.title ?? 'Untitled',
       href: item.link ?? '#',
-      cover: chooseCover(
-        item,
-        placeholder,
-        cleanVideoCovers && (!cleanVideoCoversAfter || cleanVideoCoversAfterTimestamp !== null),
-        cleanVideoCoversAfterTimestamp,
-        note
-      ),
+      cover: coverCandidates[0] || placeholder,
+      coverFallbacks: coverCandidates.slice(1),
       note,
       tags: item.tags ?? [],
     };
