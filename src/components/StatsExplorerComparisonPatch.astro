@@ -1,0 +1,320 @@
+<script>
+  import { getDailyMeta, getYears } from '../utils/dailyData';
+  import type { DailyMeta, DailyRecord } from '../utils/dailyData';
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const YEAR_COLORS = ['#2563eb', '#e11d48', '#059669', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f'];
+
+  type MetricKey = 'guitar' | 'audiobook' | 'running' | 'diary' | 'dance' | 'work' | 'language' | 'treadmill';
+  type ViewKey = 'monthly' | 'daily' | 'cumulative';
+  type Point = { label: string; value: number | null; future: boolean };
+  type Metric = {
+    label: string;
+    icon: string;
+    unit: string;
+    digits: number;
+    value: (record: DailyRecord) => number | null;
+  };
+
+  const METRICS: Record<MetricKey, Metric> = {
+    guitar: { label: 'Guitar', icon: '🎸', unit: 'hours', digits: 1, value: (record) => record.hobbies.guitarMinutes === null ? null : record.hobbies.guitarMinutes / 60 },
+    audiobook: { label: 'Audiobooks', icon: '📚', unit: 'hours', digits: 1, value: (record) => record.audiobook.minutes === null ? null : record.audiobook.minutes / 60 },
+    running: { label: 'Running', icon: '🏃', unit: 'miles', digits: 1, value: (record) => record.hobbies.runningMiles },
+    diary: { label: 'Diary', icon: '📓', unit: 'words', digits: 0, value: (record) => record.diary.words },
+    dance: { label: 'Dance', icon: '💃', unit: 'hours', digits: 1, value: (record) => record.hobbies.danceMinutes === null ? null : record.hobbies.danceMinutes / 60 },
+    work: { label: 'Work & study', icon: '🧠', unit: 'hours', digits: 1, value: (record) => record.work.hours },
+    language: { label: 'Language study', icon: '🌍', unit: 'hours', digits: 1, value: (record) => record.hobbies.languageMinutes === null ? null : record.hobbies.languageMinutes / 60 },
+    treadmill: { label: 'Treadmill', icon: '🚶', unit: 'hours', digits: 1, value: (record) => record.hobbies.treadmillMinutes === null ? null : record.hobbies.treadmillMinutes / 60 },
+  };
+
+  const parseIso = (value: string) => new Date(`${value}T12:00:00`);
+  const format = (value: number | null, digits = 0) => value === null || !Number.isFinite(value)
+    ? '—'
+    : new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
+  const sum = (values: Array<number | null>) => values.reduce((total, value) => total + (value ?? 0), 0);
+  const svg = (tag: string, attrs: Record<string, string | number> = {}) => {
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    return node;
+  };
+  const waitFor = async (selector: string, attempts = 160) => {
+    for (let index = 0; index < attempts; index += 1) {
+      const node = document.querySelector(selector);
+      if (node instanceof HTMLElement) return node;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    return null;
+  };
+
+  function monotonePath(points: Array<{ x: number; y: number }>) {
+    if (!points.length) return '';
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+    if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+
+    const count = points.length;
+    const widths = new Array<number>(count - 1);
+    const slopes = new Array<number>(count - 1);
+    const tangents = new Array<number>(count);
+
+    for (let index = 0; index < count - 1; index += 1) {
+      widths[index] = points[index + 1].x - points[index].x;
+      slopes[index] = widths[index] ? (points[index + 1].y - points[index].y) / widths[index] : 0;
+    }
+
+    tangents[0] = slopes[0];
+    tangents[count - 1] = slopes[count - 2];
+    for (let index = 1; index < count - 1; index += 1) {
+      if (slopes[index - 1] === 0 || slopes[index] === 0 || Math.sign(slopes[index - 1]) !== Math.sign(slopes[index])) {
+        tangents[index] = 0;
+      } else {
+        const firstWeight = 2 * widths[index] + widths[index - 1];
+        const secondWeight = widths[index] + 2 * widths[index - 1];
+        tangents[index] = (firstWeight + secondWeight) /
+          (firstWeight / slopes[index - 1] + secondWeight / slopes[index]);
+      }
+    }
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+    for (let index = 0; index < count - 1; index += 1) {
+      const width = widths[index];
+      path += ` C ${points[index].x + width / 3} ${points[index].y + tangents[index] * width / 3}, ${points[index + 1].x - width / 3} ${points[index + 1].y - tangents[index + 1] * width / 3}, ${points[index + 1].x} ${points[index + 1].y}`;
+    }
+    return path;
+  }
+
+  function splitByGap(points: Array<{ x: number; y: number }>) {
+    if (points.length < 2) return points.length ? [points] : [];
+    const gaps = points.slice(1).map((point, index) => point.x - points[index].x).filter((gap) => gap > 0);
+    const normalGap = Math.min(...gaps);
+    const segments: Array<Array<{ x: number; y: number }>> = [];
+    let current: Array<{ x: number; y: number }> = [];
+    points.forEach((point, index) => {
+      if (index > 0 && point.x - points[index - 1].x > normalGap * 1.55) {
+        if (current.length) segments.push(current);
+        current = [];
+      }
+      current.push(point);
+    });
+    if (current.length) segments.push(current);
+    return segments;
+  }
+
+  function smoothRenderedCurves(root: ParentNode = document) {
+    root.querySelectorAll<SVGSVGElement>('.canonical-chart svg:not([data-all-years="true"]), .canonical-hobby-chart svg').forEach((chart) => {
+      const paths = Array.from(chart.querySelectorAll<SVGPathElement>('path[stroke]'));
+      const circles = Array.from(chart.querySelectorAll<SVGCircleElement>('circle[fill]'));
+      const colors = Array.from(new Set(paths.map((path) => path.getAttribute('stroke')).filter((value): value is string => Boolean(value))));
+
+      colors.forEach((color) => {
+        const colorPaths = paths.filter((path) => path.getAttribute('stroke') === color);
+        const colorPoints = circles
+          .filter((circle) => circle.getAttribute('fill') === color)
+          .map((circle) => ({ x: Number(circle.getAttribute('cx')), y: Number(circle.getAttribute('cy')) }))
+          .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+          .sort((first, second) => first.x - second.x);
+        const segments = splitByGap(colorPoints);
+        colorPaths.forEach((path, index) => {
+          const segment = segments[index];
+          if (segment?.length) path.setAttribute('d', monotonePath(segment));
+        });
+      });
+    });
+  }
+
+  function monthlySeries(records: DailyRecord[], year: number, metric: Metric, meta: DailyMeta): Point[] {
+    const yearRecords = records.filter((record) => Number(record.date.slice(0, 4)) === year);
+    const throughYear = Number((meta.dataThrough || '').slice(0, 4));
+    const throughMonth = meta.dataThrough && throughYear === year ? Number(meta.dataThrough.slice(5, 7)) - 1 : 11;
+
+    return MONTHS.map((label, month) => {
+      const values = yearRecords
+        .filter((record) => parseIso(record.date).getMonth() === month)
+        .map(metric.value)
+        .filter((value): value is number => value !== null && Number.isFinite(value));
+      const future = year === throughYear && month > throughMonth;
+      return { label, value: future || !values.length ? null : sum(values), future };
+    });
+  }
+
+  function cumulativeSeries(points: Point[]) {
+    let running = 0;
+    return points.map((point) => {
+      if (point.future) return { ...point, value: null };
+      if (point.value !== null) running += point.value;
+      return { ...point, value: point.value === null && running === 0 ? null : running };
+    });
+  }
+
+  function drawAllYears(
+    host: HTMLElement,
+    records: DailyRecord[],
+    meta: DailyMeta,
+    metric: Metric,
+    view: Exclude<ViewKey, 'daily'>,
+    selectedYear: number,
+  ) {
+    const years = meta.availableYears.slice().sort((first, second) => first - second);
+    const series = years.map((year, index) => {
+      const monthly = monthlySeries(records, year, metric, meta);
+      return {
+        year,
+        color: year === selectedYear ? '#2563eb' : YEAR_COLORS[(index + 1) % YEAR_COLORS.length],
+        selected: year === selectedYear,
+        points: view === 'cumulative' ? cumulativeSeries(monthly) : monthly,
+      };
+    });
+
+    const width = 1000;
+    const height = 400;
+    const margin = { left: 72, right: 24, top: 30, bottom: 60 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const values = series.flatMap((item) => item.points.map((point) => point.value)).filter((value): value is number => value !== null);
+    const maximum = Math.max(1, ...values);
+    const chart = svg('svg', {
+      viewBox: `0 0 ${width} ${height}`,
+      role: 'img',
+      'aria-label': `${metric.label} ${view} comparison across all years`,
+      'data-all-years': 'true',
+    });
+
+    for (let index = 0; index <= 5; index += 1) {
+      const value = maximum * (5 - index) / 5;
+      const y = margin.top + innerHeight * index / 5;
+      chart.append(svg('line', { x1: margin.left, x2: width - margin.right, y1: y, y2: y, class: 'canonical-grid' }));
+      const label = svg('text', { x: margin.left - 10, y: y + 4, 'text-anchor': 'end', class: 'canonical-axis' });
+      label.textContent = format(value, metric.digits);
+      chart.append(label);
+    }
+
+    const slot = innerWidth / 11;
+    const x = (month: number) => margin.left + slot * month;
+    const y = (value: number) => margin.top + innerHeight - (value / maximum) * innerHeight;
+
+    series.forEach((item) => {
+      const segments: Array<Array<{ x: number; y: number }>> = [];
+      let current: Array<{ x: number; y: number }> = [];
+      item.points.forEach((point, month) => {
+        if (point.value === null) {
+          if (current.length) segments.push(current);
+          current = [];
+        } else {
+          current.push({ x: x(month), y: y(point.value) });
+        }
+      });
+      if (current.length) segments.push(current);
+
+      segments.forEach((segment) => {
+        chart.append(svg('path', {
+          d: monotonePath(segment),
+          fill: 'none',
+          stroke: item.color,
+          'stroke-width': item.selected ? 4 : 2.4,
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          opacity: item.selected ? 1 : 0.82,
+        }));
+      });
+
+      item.points.forEach((point, month) => {
+        if (point.value === null) return;
+        const circle = svg('circle', {
+          cx: x(month),
+          cy: y(point.value),
+          r: item.selected ? 4.3 : 3.1,
+          fill: item.color,
+          tabindex: 0,
+          opacity: item.selected ? 1 : 0.88,
+        });
+        const title = svg('title');
+        title.textContent = `${point.label} ${item.year}: ${format(point.value, metric.digits)} ${metric.unit}`;
+        circle.append(title);
+        chart.append(circle);
+      });
+    });
+
+    MONTHS.forEach((month, index) => {
+      const label = svg('text', { x: x(index), y: height - 28, 'text-anchor': 'middle', class: 'canonical-axis' });
+      label.textContent = month;
+      chart.append(label);
+    });
+    const yTitle = svg('text', { x: -(margin.top + innerHeight / 2), y: 18, transform: 'rotate(-90)', 'text-anchor': 'middle', class: 'canonical-axis-title' });
+    yTitle.textContent = metric.unit;
+    chart.append(yTitle);
+    const xTitle = svg('text', { x: margin.left + innerWidth / 2, y: height - 7, 'text-anchor': 'middle', class: 'canonical-axis-title' });
+    xTitle.textContent = 'Month';
+    chart.append(xTitle);
+    host.replaceChildren(chart);
+    return series;
+  }
+
+  async function init() {
+    const shell = await waitFor('.canonical-explorer');
+    if (!shell || shell.dataset.comparisonPatch === 'true') return;
+    shell.dataset.comparisonPatch = 'true';
+
+    const compareSelect = shell.querySelector('[data-canonical-compare]') as HTMLSelectElement | null;
+    const yearSelect = shell.querySelector('[data-canonical-year]') as HTMLSelectElement | null;
+    if (!compareSelect || !yearSelect) return;
+
+    const allYearsOption = document.createElement('option');
+    allYearsOption.value = 'all';
+    allYearsOption.textContent = 'All years';
+    compareSelect.insertBefore(allYearsOption, compareSelect.options[1] || null);
+
+    const requestedCompare = new URL(location.href).searchParams.get('compare');
+    if (requestedCompare === 'all') compareSelect.value = 'all';
+
+    const archivePromise = Promise.all([getDailyMeta(), getDailyMeta().then((meta) => getYears(meta.availableYears))]);
+    let scheduled = 0;
+
+    const enhance = async () => {
+      window.cancelAnimationFrame(scheduled);
+      scheduled = window.requestAnimationFrame(async () => {
+        const activeMetric = shell.querySelector<HTMLElement>('.canonical-metric.is-active')?.dataset.metric as MetricKey | undefined;
+        const activeView = shell.querySelector<HTMLElement>('.canonical-view.is-active')?.dataset.view as ViewKey | undefined;
+        if (!activeMetric || !activeView) return;
+
+        if (compareSelect.value === 'all' && activeView !== 'daily') {
+          const [meta, records] = await archivePromise;
+          const metric = METRICS[activeMetric];
+          const selectedYear = Number(yearSelect.value);
+          const host = shell.querySelector('[data-canonical-chart]');
+          if (!(host instanceof HTMLElement)) return;
+          const series = drawAllYears(host, records, meta, metric, activeView, selectedYear);
+
+          const subtitle = shell.querySelector('[data-chart-subtitle]');
+          if (subtitle) subtitle.textContent = activeView === 'cumulative'
+            ? 'All available years superimposed as cumulative monthly totals'
+            : 'All available years superimposed as monthly totals';
+          const legend = shell.querySelector('[data-canonical-legend]');
+          if (legend) {
+            legend.innerHTML = series
+              .map((item) => `<span><i style="--legend-color:${item.color}"></i>${item.year}${item.selected ? ' selected' : ''}</span>`)
+              .join('');
+          }
+          const url = new URL(location.href);
+          url.searchParams.set('compare', 'all');
+          history.replaceState({}, '', url);
+        } else {
+          smoothRenderedCurves(shell);
+        }
+      });
+    };
+
+    shell.addEventListener('click', (event) => {
+      if ((event.target as Element | null)?.closest('[data-metric], [data-view]')) void enhance();
+    });
+    shell.addEventListener('change', () => void enhance());
+    document.querySelector('#hobby-time')?.addEventListener('click', () => setTimeout(() => smoothRenderedCurves(document), 0));
+    document.querySelector('#hobby-time')?.addEventListener('change', () => setTimeout(() => smoothRenderedCurves(document), 0));
+
+    setTimeout(() => smoothRenderedCurves(document), 250);
+    setTimeout(() => smoothRenderedCurves(document), 1000);
+    void enhance();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else void init();
+</script>
