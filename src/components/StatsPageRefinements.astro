@@ -1,0 +1,656 @@
+<style is:global>
+  .canonical-hobby-chart svg[data-hobby-refined="true"] .stats-chart-point,
+  .canonical-chart svg[data-daily-comparison="true"] .stats-chart-point {
+    cursor: crosshair;
+  }
+
+  .canonical-chart svg[data-daily-comparison="true"] path {
+    vector-effect: non-scaling-stroke;
+  }
+</style>
+
+<script>
+  import { getDailyMeta, getYears } from '../utils/dailyData';
+  import type { DailyMeta, DailyRecord } from '../utils/dailyData';
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const YEAR_COLORS = ['#2563eb', '#e11d48', '#059669', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f'];
+
+  type MetricKey = 'guitar' | 'audiobook' | 'running' | 'diary' | 'dance' | 'work' | 'language' | 'treadmill';
+  type Metric = {
+    label: string;
+    icon: string;
+    unit: string;
+    digits: number;
+    value: (record: DailyRecord) => number | null;
+  };
+  type DailyPoint = {
+    label: string;
+    date: string | null;
+    value: number | null;
+    future: boolean;
+  };
+  type Hobby = {
+    key: string;
+    label: string;
+    color: string;
+    value: (record: DailyRecord) => number | null;
+  };
+
+  const METRICS: Record<MetricKey, Metric> = {
+    guitar: { label: 'Guitar', icon: '🎸', unit: 'hours', digits: 1, value: (record) => record.hobbies.guitarMinutes === null ? null : record.hobbies.guitarMinutes / 60 },
+    audiobook: { label: 'Audiobooks', icon: '📚', unit: 'hours', digits: 1, value: (record) => record.audiobook.minutes === null ? null : record.audiobook.minutes / 60 },
+    running: { label: 'Running', icon: '🏃', unit: 'miles', digits: 1, value: (record) => record.hobbies.runningMiles },
+    diary: { label: 'Diary', icon: '📓', unit: 'words', digits: 0, value: (record) => record.diary.words },
+    dance: { label: 'Dance', icon: '💃', unit: 'hours', digits: 1, value: (record) => record.hobbies.danceMinutes === null ? null : record.hobbies.danceMinutes / 60 },
+    work: { label: 'Work', icon: '🧠', unit: 'hours', digits: 1, value: (record) => record.work.hours },
+    language: { label: 'Language study', icon: '🌍', unit: 'hours', digits: 1, value: (record) => record.hobbies.languageMinutes === null ? null : record.hobbies.languageMinutes / 60 },
+    treadmill: { label: 'Treadmill', icon: '🚶', unit: 'hours', digits: 1, value: (record) => record.hobbies.treadmillMinutes === null ? null : record.hobbies.treadmillMinutes / 60 },
+  };
+
+  const HOBBIES: Hobby[] = [
+    { key: 'guitar', label: 'Guitar', color: '#2563eb', value: METRICS.guitar.value },
+    { key: 'audiobook', label: 'Audiobooks', color: '#6d28d9', value: METRICS.audiobook.value },
+    { key: 'dance', label: 'Dance', color: '#e11d48', value: METRICS.dance.value },
+    { key: 'running', label: 'Running estimate', color: '#059669', value: (record) => record.hobbies.runningMiles === null ? null : record.hobbies.runningMiles / 6 },
+    { key: 'treadmill', label: 'Treadmill', color: '#ea580c', value: METRICS.treadmill.value },
+    { key: 'language', label: 'Language study', color: '#a16207', value: METRICS.language.value },
+  ];
+
+  const svg = (tag: string, attrs: Record<string, string | number> = {}) => {
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    return node;
+  };
+  const parseIso = (value: string) => new Date(`${value}T12:00:00`);
+  const format = (value: number | null, digits = 0) => value === null || !Number.isFinite(value)
+    ? '—'
+    : new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
+  const sum = (values: Array<number | null>) => values.reduce((total, value) => total + (value ?? 0), 0);
+  const setNodeText = (node: Element | null, value: string) => {
+    if (node && node.textContent !== value) node.textContent = value;
+  };
+  const waitFor = async (selector: string, attempts = 500) => {
+    for (let index = 0; index < attempts; index += 1) {
+      const node = document.querySelector(selector);
+      if (node instanceof HTMLElement) return node;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    return null;
+  };
+
+  function niceScale(maximumValue: number) {
+    const maximum = Math.max(0, maximumValue);
+    const roughStep = Math.max(Number.EPSILON, maximum / 5);
+    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+    const normalized = roughStep / magnitude;
+    const niceNormalized = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    const step = Math.max(1, niceNormalized * magnitude);
+    const niceMaximum = Math.max(step, Math.ceil(maximum / step) * step);
+    return { maximum: niceMaximum, step, intervals: Math.max(1, Math.round(niceMaximum / step)) };
+  }
+
+  function appendIntegerYAxis(
+    chart: SVGSVGElement,
+    scale: { maximum: number; step: number; intervals: number },
+    margin: { left: number; right: number; top: number; bottom: number },
+    width: number,
+    height: number,
+    gridClass: string,
+    axisClass: string,
+  ) {
+    const innerHeight = height - margin.top - margin.bottom;
+    for (let index = 0; index <= scale.intervals; index += 1) {
+      const value = scale.maximum - scale.step * index;
+      const y = margin.top + innerHeight * index / scale.intervals;
+      chart.append(svg('line', { x1: margin.left, x2: width - margin.right, y1: y, y2: y, class: gridClass }));
+      const label = svg('text', { x: margin.left - 10, y: y + 4, 'text-anchor': 'end', class: axisClass });
+      label.textContent = String(Math.round(value));
+      chart.append(label);
+    }
+  }
+
+  function monotonePath(points: Array<{ x: number; y: number }>) {
+    if (!points.length) return '';
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+    if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+    const count = points.length;
+    const widths = new Array<number>(count - 1);
+    const slopes = new Array<number>(count - 1);
+    const tangents = new Array<number>(count);
+    for (let index = 0; index < count - 1; index += 1) {
+      widths[index] = points[index + 1].x - points[index].x;
+      slopes[index] = widths[index] ? (points[index + 1].y - points[index].y) / widths[index] : 0;
+    }
+    tangents[0] = slopes[0];
+    tangents[count - 1] = slopes[count - 2];
+    for (let index = 1; index < count - 1; index += 1) {
+      if (slopes[index - 1] === 0 || slopes[index] === 0 || Math.sign(slopes[index - 1]) !== Math.sign(slopes[index])) tangents[index] = 0;
+      else {
+        const firstWeight = 2 * widths[index] + widths[index - 1];
+        const secondWeight = widths[index] + 2 * widths[index - 1];
+        tangents[index] = (firstWeight + secondWeight) / (firstWeight / slopes[index - 1] + secondWeight / slopes[index]);
+      }
+    }
+    let path = `M ${points[0].x} ${points[0].y}`;
+    for (let index = 0; index < count - 1; index += 1) {
+      const width = widths[index];
+      path += ` C ${points[index].x + width / 3} ${points[index].y + tangents[index] * width / 3}, ${points[index + 1].x - width / 3} ${points[index + 1].y - tangents[index + 1] * width / 3}, ${points[index + 1].x} ${points[index + 1].y}`;
+    }
+    return path;
+  }
+
+  function linearPath(points: Array<{ x: number; y: number }>) {
+    if (!points.length) return '';
+    return points.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
+  }
+
+  function tooltipElement() {
+    let tooltip = document.querySelector('.stats-chart-tooltip') as HTMLElement | null;
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'stats-chart-tooltip';
+      tooltip.hidden = true;
+      tooltip.setAttribute('role', 'tooltip');
+      document.body.append(tooltip);
+    }
+    return tooltip;
+  }
+
+  function positionTooltip(tooltip: HTMLElement, clientX: number, clientY: number) {
+    tooltip.style.left = `${clientX}px`;
+    tooltip.style.top = `${clientY}px`;
+    requestAnimationFrame(() => {
+      const box = tooltip.getBoundingClientRect();
+      if (box.right > window.innerWidth - 8) tooltip.style.left = `${Math.max(8, clientX - box.width - 20)}px`;
+      if (box.top < 8) tooltip.style.top = `${Math.min(window.innerHeight - 8, clientY + box.height + 18)}px`;
+    });
+  }
+
+  function bindTooltip(target: SVGElement, text: string) {
+    target.classList.add('stats-chart-point');
+    target.setAttribute('aria-label', text);
+    target.setAttribute('tabindex', '0');
+    target.querySelector('title')?.remove();
+    const tooltip = tooltipElement();
+    const showAtPointer = (event: Event) => {
+      const pointer = event as PointerEvent;
+      tooltip.textContent = text;
+      tooltip.hidden = false;
+      positionTooltip(tooltip, pointer.clientX, pointer.clientY);
+    };
+    const showAtElement = () => {
+      const box = target.getBoundingClientRect();
+      tooltip.textContent = text;
+      tooltip.hidden = false;
+      positionTooltip(tooltip, box.left + box.width / 2, box.top);
+    };
+    const hide = () => { tooltip.hidden = true; };
+    target.addEventListener('pointerenter', showAtPointer);
+    target.addEventListener('pointermove', showAtPointer);
+    target.addEventListener('pointerleave', hide);
+    target.addEventListener('focus', showAtElement);
+    target.addEventListener('blur', hide);
+  }
+
+  function replaceWorkText(root: ParentNode) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node) {
+      const current = node.nodeValue || '';
+      const next = current
+        .replace(/Work\s*&\s*study/gi, 'Work')
+        .replace(/work and university time/gi, 'work time');
+      if (next !== current) node.nodeValue = next;
+      node = walker.nextNode();
+    }
+  }
+
+  function setTrackedSince(card: HTMLElement | null, date: string) {
+    if (!card) return;
+    const facts = Array.from(card.querySelectorAll<HTMLElement>('.snapshot-card__facts > div'));
+    const fact = facts.find((item) => item.querySelector('dt')?.textContent?.trim() === 'Source') || facts.at(-1);
+    if (!fact) return;
+    setNodeText(fact.querySelector('dt'), 'Tracked since');
+    setNodeText(fact.querySelector('dd'), date);
+  }
+
+  function monthBest(records: DailyRecord[], value: (record: DailyRecord) => number | null) {
+    const groups = new Map<string, number[]>();
+    records.forEach((record) => {
+      const next = value(record);
+      if (next === null || !Number.isFinite(next)) return;
+      const key = record.date.slice(0, 7);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(next);
+    });
+    return Array.from(groups, ([key, values]) => ({ key, value: sum(values) }))
+      .sort((first, second) => second.value - first.value)[0] || null;
+  }
+
+  function patchSnapshot(records: DailyRecord[], meta: DailyMeta) {
+    const latestDate = meta.latestCompleteDate || meta.dataThrough;
+    const record = records.find((item) => item.date === latestDate);
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.daily-preview__metrics article'));
+    cards.forEach((card) => {
+      const label = card.querySelector('span')?.textContent?.trim();
+      if (/^Work(?:\s*&\s*study)?$/i.test(label || '')) setNodeText(card.querySelector('span'), 'Work');
+      if (label === 'Movement' && record) {
+        const total = record.hobbies.totalDistanceMiles;
+        const running = record.hobbies.runningMiles;
+        const treadmill = record.hobbies.treadmillMiles;
+        setNodeText(card.querySelector('strong'), format(total, 1));
+        setNodeText(card.querySelector('small'), `miles total · ${format(running, 1)} running miles + ${format(treadmill, 1)} treadmill miles`);
+      }
+    });
+  }
+
+  function patchLifetime(records: DailyRecord[], meta: DailyMeta) {
+    const dance = document.querySelector<HTMLElement>('.snapshot-card--dance');
+    const work = document.querySelector<HTMLElement>('.snapshot-card--work');
+    const language = document.querySelector<HTMLElement>('.snapshot-card--language');
+    const treadmill = document.querySelector<HTMLElement>('.snapshot-card--treadmill');
+
+    setTrackedSince(dance, 'June 2, 2026');
+    setTrackedSince(work, 'May 10, 2023');
+    setTrackedSince(language, 'February 8, 2023');
+    setTrackedSince(treadmill, 'December 2, 2022');
+
+    if (work) {
+      setNodeText(work.querySelector('h3'), 'Work');
+      setNodeText(work.querySelector('.snapshot-card__note'), 'Logged work hours from the public-safe archive.');
+    }
+
+    if (treadmill) {
+      const latestYear = Number((meta.dataThrough || '').slice(0, 4)) || new Date().getFullYear();
+      const miles = (record: DailyRecord) => record.hobbies.treadmillMiles;
+      const totalMiles = sum(records.map(miles));
+      const totalHours = sum(records.map((record) => record.hobbies.treadmillMinutes === null ? null : record.hobbies.treadmillMinutes / 60));
+      const yearMiles = sum(records.filter((record) => Number(record.date.slice(0, 4)) === latestYear).map(miles));
+      const best = monthBest(records, miles);
+      setNodeText(treadmill.querySelector('.snapshot-card__value strong'), format(totalMiles, 1));
+      setNodeText(treadmill.querySelector('.snapshot-card__value span'), 'miles');
+      setNodeText(treadmill.querySelector('.snapshot-card__note'), `Walking time: ${format(totalHours, 1)} hours at the tracked 2 mph pace.`);
+      const facts = Array.from(treadmill.querySelectorAll<HTMLElement>('.snapshot-card__facts > div'));
+      const thisYear = facts.find((item) => item.querySelector('dt')?.textContent?.trim() === 'This year');
+      const bestMonth = facts.find((item) => item.querySelector('dt')?.textContent?.trim() === 'Best month');
+      if (thisYear) setNodeText(thisYear.querySelector('dd'), `${format(yearMiles, 1)} miles`);
+      if (bestMonth) {
+        const label = best
+          ? `${MONTHS[Number(best.key.slice(5, 7)) - 1]} ${best.key.slice(0, 4)} · ${format(best.value, 1)} miles`
+          : 'No data';
+        setNodeText(bestMonth.querySelector('dd'), label);
+      }
+    }
+  }
+
+  const calendarSlots = (() => {
+    const slots: Array<{ key: string; label: string; month: number }> = [];
+    for (const date = new Date(2024, 0, 1, 12); date <= new Date(2024, 11, 31, 12); date.setDate(date.getDate() + 1)) {
+      slots.push({
+        key: `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
+        label: new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date),
+        month: date.getMonth(),
+      });
+    }
+    return slots;
+  })();
+
+  function isLeapYear(year: number) {
+    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  }
+
+  function dailyCalendarSeries(records: DailyRecord[], year: number, metric: Metric, meta: DailyMeta): DailyPoint[] {
+    const map = new Map(records.filter((record) => record.date.startsWith(`${year}-`)).map((record) => [record.date.slice(5), record]));
+    return calendarSlots.map((slot) => {
+      const validDate = slot.key !== '02-29' || isLeapYear(year);
+      const date = validDate ? `${year}-${slot.key}` : null;
+      const record = map.get(slot.key);
+      const future = Boolean(date && meta.dataThrough && date > meta.dataThrough);
+      return {
+        label: slot.label,
+        date,
+        value: !validDate || future || !record ? null : metric.value(record),
+        future,
+      };
+    });
+  }
+
+  function drawDailyComparison(
+    host: HTMLElement,
+    series: Array<{ year: number; color: string; selected: boolean; dashed: boolean; points: DailyPoint[] }>,
+    metric: Metric,
+  ) {
+    const width = 1120;
+    const height = 420;
+    const margin = { left: 76, right: 24, top: 30, bottom: 62 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const values = series.flatMap((item) => item.points.map((point) => point.value)).filter((value): value is number => value !== null);
+    const scale = niceScale(Math.max(0, ...values));
+    const chart = svg('svg', {
+      viewBox: `0 0 ${width} ${height}`,
+      role: 'img',
+      'aria-label': `${metric.label} daily comparison by calendar date`,
+      'data-stats-polished': 'true',
+      'data-daily-comparison': 'true',
+    });
+    appendIntegerYAxis(chart, scale, margin, width, height, 'canonical-grid', 'canonical-axis');
+    const x = (index: number) => margin.left + innerWidth * index / (calendarSlots.length - 1);
+    const y = (value: number) => margin.top + innerHeight - value / scale.maximum * innerHeight;
+
+    [...series].sort((first, second) => Number(first.selected) - Number(second.selected)).forEach((item) => {
+      const segments: Array<Array<{ x: number; y: number }>> = [];
+      let current: Array<{ x: number; y: number }> = [];
+      item.points.forEach((point, index) => {
+        if (point.value === null) {
+          if (current.length) segments.push(current);
+          current = [];
+        } else current.push({ x: x(index), y: y(point.value) });
+      });
+      if (current.length) segments.push(current);
+      segments.forEach((segment) => chart.append(svg('path', {
+        d: linearPath(segment),
+        fill: 'none',
+        stroke: item.color,
+        'stroke-width': item.selected ? 2.6 : 1.6,
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        opacity: item.selected ? 0.95 : 0.58,
+        ...(item.dashed ? { 'stroke-dasharray': '6 5' } : {}),
+      })));
+      item.points.forEach((point, index) => {
+        if (point.value === null) return;
+        const circle = svg('circle', {
+          cx: x(index),
+          cy: y(point.value),
+          r: item.selected ? 3.1 : 2.3,
+          fill: item.color,
+          opacity: item.selected ? 0.92 : 0.62,
+        });
+        bindTooltip(circle, `${point.label}, ${item.year} · ${format(point.value, metric.digits)} ${metric.unit}`);
+        chart.append(circle);
+      });
+    });
+
+    let lastMonth = -1;
+    calendarSlots.forEach((slot, index) => {
+      if (slot.month === lastMonth) return;
+      lastMonth = slot.month;
+      const label = svg('text', { x: x(index), y: height - 29, 'text-anchor': 'start', class: 'canonical-axis' });
+      label.textContent = MONTHS[slot.month];
+      chart.append(label);
+    });
+    const yTitle = svg('text', { x: -(margin.top + innerHeight / 2), y: 18, transform: 'rotate(-90)', 'text-anchor': 'middle', class: 'canonical-axis-title' });
+    yTitle.textContent = metric.unit;
+    chart.append(yTitle);
+    const xTitle = svg('text', { x: margin.left + innerWidth / 2, y: height - 7, 'text-anchor': 'middle', class: 'canonical-axis-title' });
+    xTitle.textContent = 'Calendar date';
+    chart.append(xTitle);
+    host.replaceChildren(chart);
+  }
+
+  async function initDailyComparison(records: DailyRecord[], meta: DailyMeta) {
+    const shell = await waitFor('.canonical-explorer');
+    if (!shell || shell.dataset.dailyComparisonReady === 'true') return;
+    shell.dataset.dailyComparisonReady = 'true';
+    const compareSelect = shell.querySelector('[data-canonical-compare]') as HTMLSelectElement | null;
+    const yearSelect = shell.querySelector('[data-canonical-year]') as HTMLSelectElement | null;
+    const host = shell.querySelector('[data-canonical-chart]') as HTMLElement | null;
+    if (!compareSelect || !yearSelect || !host) return;
+
+    let timer = 0;
+    const render = () => {
+      const activeView = shell.querySelector<HTMLElement>('.canonical-view.is-active')?.dataset.view;
+      const metricKey = shell.querySelector<HTMLElement>('.canonical-metric.is-active')?.dataset.metric as MetricKey | undefined;
+      if (activeView !== 'daily' || !metricKey) return;
+      compareSelect.disabled = false;
+      if (!compareSelect.value) return;
+      const selectedYear = Number(yearSelect.value);
+      const years = compareSelect.value === 'all'
+        ? meta.availableYears.slice().sort((first, second) => first - second)
+        : [selectedYear, Number(compareSelect.value)];
+      const uniqueYears = Array.from(new Set(years));
+      const metric = METRICS[metricKey];
+      const series = uniqueYears.map((year, index) => ({
+        year,
+        color: year === selectedYear ? '#2563eb' : YEAR_COLORS[(index + 1) % YEAR_COLORS.length],
+        selected: year === selectedYear,
+        dashed: compareSelect.value !== 'all' && year !== selectedYear,
+        points: dailyCalendarSeries(records, year, metric, meta),
+      }));
+      drawDailyComparison(host, series, metric);
+      setNodeText(shell.querySelector('[data-chart-subtitle]'), compareSelect.value === 'all'
+        ? 'All available years aligned by calendar date'
+        : `${selectedYear} and ${compareSelect.value} aligned by calendar date`);
+      setNodeText(shell.querySelector('[data-summary-change-label]'), 'Daily comparison');
+      setNodeText(shell.querySelector('[data-summary-change]'), compareSelect.value === 'all' ? `${series.length} years overlaid` : `${compareSelect.value} overlay`);
+      const legend = shell.querySelector('[data-canonical-legend]');
+      if (legend) legend.innerHTML = series.map((item) => `<span><i style="--legend-color:${item.color}"></i>${item.year}${item.selected ? ' selected' : ''}</span>`).join('');
+      const url = new URL(location.href);
+      url.searchParams.set('compare', compareSelect.value);
+      history.replaceState({}, '', url);
+    };
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(render, 180);
+    };
+    const keepEnabled = () => {
+      const activeView = shell.querySelector<HTMLElement>('.canonical-view.is-active')?.dataset.view;
+      if (activeView === 'daily' && compareSelect.disabled) compareSelect.disabled = false;
+    };
+    shell.addEventListener('click', (event) => {
+      if ((event.target as Element | null)?.closest('[data-view], [data-metric]')) schedule();
+    });
+    shell.addEventListener('change', schedule);
+    new MutationObserver(() => {
+      keepEnabled();
+      const activeView = shell.querySelector<HTMLElement>('.canonical-view.is-active')?.dataset.view;
+      if (activeView === 'daily' && compareSelect.value && !host.querySelector('svg[data-daily-comparison="true"]')) schedule();
+    }).observe(shell, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'class'] });
+    keepEnabled();
+    schedule();
+  }
+
+  function hobbyMonthly(records: DailyRecord[], year: number, value: (record: DailyRecord) => number | null) {
+    const yearRecords = records.filter((record) => Number(record.date.slice(0, 4)) === year);
+    return MONTHS.map((_, month) => sum(yearRecords.filter((record) => parseIso(record.date).getMonth() === month).map(value)));
+  }
+
+  function drawHobbyBars(host: HTMLElement, series: Array<{ label: string; color: string; values: number[] }>, year: number) {
+    const width = 1000;
+    const height = 405;
+    const margin = { left: 70, right: 24, top: 28, bottom: 58 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const totals = MONTHS.map((_, month) => sum(series.map((item) => item.values[month] || 0)));
+    const scale = niceScale(Math.max(0, ...totals));
+    const chart = svg('svg', { viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `Stacked hobby hours in ${year}`, 'data-hobby-refined': 'true' });
+    appendIntegerYAxis(chart, scale, margin, width, height, 'canonical-grid', 'canonical-axis');
+    const slot = innerWidth / 12;
+    const barWidth = slot * 0.62;
+    MONTHS.forEach((month, monthIndex) => {
+      let accumulated = 0;
+      series.forEach((item) => {
+        const value = item.values[monthIndex] || 0;
+        if (value <= 0) return;
+        const heightValue = value / scale.maximum * innerHeight;
+        const rect = svg('rect', {
+          x: margin.left + slot * monthIndex + (slot - barWidth) / 2,
+          y: margin.top + innerHeight - accumulated - heightValue,
+          width: barWidth,
+          height: heightValue,
+          fill: item.color,
+        });
+        bindTooltip(rect, `${month} ${year} · ${item.label}: ${format(value, 1)} hours`);
+        chart.append(rect);
+        accumulated += heightValue;
+      });
+      const label = svg('text', { x: margin.left + slot * monthIndex + slot / 2, y: height - 28, 'text-anchor': 'middle', class: 'canonical-axis' });
+      label.textContent = month;
+      chart.append(label);
+    });
+    const yTitle = svg('text', { x: -(margin.top + innerHeight / 2), y: 18, transform: 'rotate(-90)', 'text-anchor': 'middle', class: 'canonical-axis-title' });
+    yTitle.textContent = 'Hours';
+    chart.append(yTitle);
+    host.replaceChildren(chart);
+  }
+
+  function drawHobbyCurves(host: HTMLElement, series: Array<{ label: string; color: string; values: number[] }>, year: number) {
+    const width = 1000;
+    const height = 405;
+    const margin = { left: 70, right: 24, top: 28, bottom: 58 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const scale = niceScale(Math.max(0, ...series.flatMap((item) => item.values)));
+    const chart = svg('svg', { viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `Hobby-hour curves in ${year}`, 'data-hobby-refined': 'true' });
+    appendIntegerYAxis(chart, scale, margin, width, height, 'canonical-grid', 'canonical-axis');
+    const x = (month: number) => margin.left + innerWidth * month / 11;
+    const y = (value: number) => margin.top + innerHeight - value / scale.maximum * innerHeight;
+    series.forEach((item) => {
+      const points = item.values.map((value, month) => ({ x: x(month), y: y(value) }));
+      chart.append(svg('path', { d: monotonePath(points), fill: 'none', stroke: item.color, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      item.values.forEach((value, month) => {
+        const circle = svg('circle', { cx: x(month), cy: y(value), r: 4, fill: item.color });
+        bindTooltip(circle, `${MONTHS[month]} ${year} · ${item.label}: ${format(value, 1)} hours`);
+        chart.append(circle);
+      });
+    });
+    MONTHS.forEach((month, index) => {
+      const label = svg('text', { x: x(index), y: height - 28, 'text-anchor': 'middle', class: 'canonical-axis' });
+      label.textContent = month;
+      chart.append(label);
+    });
+    const yTitle = svg('text', { x: -(margin.top + innerHeight / 2), y: 18, transform: 'rotate(-90)', 'text-anchor': 'middle', class: 'canonical-axis-title' });
+    yTitle.textContent = 'Hours';
+    chart.append(yTitle);
+    host.replaceChildren(chart);
+  }
+
+  async function initHobby(records: DailyRecord[]) {
+    const shell = await waitFor('.canonical-hobby');
+    if (!shell || shell.dataset.hobbyRefinementReady === 'true') return;
+    shell.dataset.hobbyRefinementReady = 'true';
+    const yearSelect = shell.querySelector('[data-hobby-year]') as HTMLSelectElement | null;
+    const host = shell.querySelector('[data-hobby-chart]') as HTMLElement | null;
+    if (!yearSelect || !host) return;
+    let timer = 0;
+    const render = () => {
+      const year = Number(yearSelect.value);
+      const selected = HOBBIES.filter((item) => (shell.querySelector(`input[value="${item.key}"]`) as HTMLInputElement | null)?.checked);
+      if (!selected.length) return;
+      const series = selected.map((item) => ({ label: item.label, color: item.color, values: hobbyMonthly(records, year, item.value) }));
+      const style = shell.querySelector<HTMLElement>('.canonical-style-button.is-active')?.dataset.style;
+      if (style === 'curves') drawHobbyCurves(host, series, year);
+      else drawHobbyBars(host, series, year);
+    };
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(render, 170);
+    };
+    shell.addEventListener('click', schedule);
+    shell.addEventListener('change', schedule);
+    new MutationObserver(() => {
+      if (!host.querySelector('svg[data-hobby-refined="true"]')) schedule();
+    }).observe(host, { childList: true });
+    schedule();
+  }
+
+  function correlationLabel(key: string, granularity: 'daily' | 'monthly') {
+    if (key === 'sleep') return granularity === 'daily' ? 'Sleep hours' : 'Average sleep hours';
+    if (key === 'diary') return granularity === 'daily' ? 'Diary word count' : 'Average diary words per day';
+    if (key === 'work') return 'Work';
+    const labels: Record<string, string> = {
+      dance: 'Dance',
+      guitar: 'Guitar',
+      audiobook: 'Audiobooks',
+      running: 'Running',
+      treadmill: 'Treadmill',
+      language: 'Language study',
+    };
+    return labels[key] || key;
+  }
+
+  function correlationUnit(key: string) {
+    if (key === 'diary') return 'words';
+    if (key === 'running') return 'miles';
+    return 'hours';
+  }
+
+  async function initCorrelationLabels() {
+    const shell = await waitFor('.daily-correlation-shell');
+    if (!shell || shell.dataset.correlationLabelsReady === 'true') return;
+    shell.dataset.correlationLabelsReady = 'true';
+    const xSelect = shell.querySelector('[data-correlation-x]') as HTMLSelectElement | null;
+    const ySelect = shell.querySelector('[data-correlation-y]') as HTMLSelectElement | null;
+    const granularitySelect = shell.querySelector('[data-correlation-granularity]') as HTMLSelectElement | null;
+    const host = shell.querySelector('[data-correlation-chart]') as HTMLElement | null;
+    if (!xSelect || !ySelect || !granularitySelect || !host) return;
+    let timer = 0;
+    const update = () => {
+      const granularity = granularitySelect.value as 'daily' | 'monthly';
+      [xSelect, ySelect].forEach((select) => {
+        Array.from(select.options).forEach((option) => { option.textContent = correlationLabel(option.value, granularity); });
+      });
+      const titles = Array.from(host.querySelectorAll<SVGTextElement>('.daily-axis-title'));
+      if (titles[0]) titles[0].textContent = `${correlationLabel(xSelect.value, granularity)} (${correlationUnit(xSelect.value)})`;
+      if (titles[1]) titles[1].textContent = `${correlationLabel(ySelect.value, granularity)} (${correlationUnit(ySelect.value)})`;
+    };
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(update, 170);
+    };
+    shell.addEventListener('change', schedule);
+    new MutationObserver(schedule).observe(host, { childList: true });
+    schedule();
+  }
+
+  function patchTooltipText() {
+    const tooltip = document.querySelector('.stats-chart-tooltip');
+    if (!tooltip) return;
+    const correlationShell = document.querySelector('.daily-correlation-shell');
+    const granularity = (correlationShell?.querySelector('[data-correlation-granularity]') as HTMLSelectElement | null)?.value as 'daily' | 'monthly' | undefined;
+    let text = tooltip.textContent || '';
+    text = text.replace(/Work\s*&\s*study/gi, 'Work');
+    if (granularity === 'daily') {
+      text = text.replace(/\bSleep:/g, 'Sleep hours:').replace(/\bDiary words:/g, 'Diary word count:');
+    } else if (granularity === 'monthly') {
+      text = text.replace(/\bSleep:/g, 'Average sleep hours:').replace(/\bDiary words:/g, 'Average diary words per day:');
+    }
+    if (tooltip.textContent !== text) tooltip.textContent = text;
+  }
+
+  async function init() {
+    const dashboard = await waitFor('.stats-dashboard');
+    if (!dashboard || dashboard.dataset.pageRefinementsReady === 'true') return;
+    dashboard.dataset.pageRefinementsReady = 'true';
+    try {
+      const meta = await getDailyMeta();
+      const records = await getYears(meta.availableYears);
+      await Promise.all([initDailyComparison(records, meta), initHobby(records), initCorrelationLabels()]);
+
+      let timer = 0;
+      const applyContentFixes = () => {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          replaceWorkText(dashboard);
+          patchSnapshot(records, meta);
+          patchLifetime(records, meta);
+          patchTooltipText();
+        }, 80);
+      };
+      new MutationObserver(applyContentFixes).observe(dashboard, { childList: true, subtree: true, characterData: true });
+      const tooltip = tooltipElement();
+      new MutationObserver(patchTooltipText).observe(tooltip, { childList: true, characterData: true, subtree: true });
+      applyContentFixes();
+      setTimeout(applyContentFixes, 800);
+      setTimeout(applyContentFixes, 2200);
+    } catch (error) {
+      console.error('Stats page refinement failed', error);
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else void init();
+</script>
