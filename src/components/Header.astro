@@ -1,13 +1,8 @@
 ---
 import HeaderLink from './HeaderLink.astro';
 import NavTooltipLink from './NavTooltipLink.astro';
-import StatsDailyHusk from './StatsDailyHusk.astro';
 import DailyDataRuntime from './DailyDataRuntime.astro';
-import StatsArchiveRuntime from './StatsArchiveRuntime.astro';
-import StatsCanonicalExplorer from './StatsCanonicalExplorer.astro';
-import StatsExplorerComparisonPatch from './StatsExplorerComparisonPatch.astro';
-import StatsPageRefinements from './StatsPageRefinements.astro';
-import StatsFinalPolish from './StatsFinalPolish.astro';
+import StatsSupportRuntime from './StatsSupportRuntime.astro';
 import StatsExplorerV2 from './StatsExplorerV2.astro';
 import { SITE_TITLE } from '../consts';
 
@@ -92,12 +87,7 @@ const navItems = [
   </nav>
 </header>
 
-{isStatsPage && <StatsDailyHusk />}
-{isStatsPage && <StatsArchiveRuntime />}
-{isStatsPage && <StatsCanonicalExplorer />}
-{isStatsPage && <StatsExplorerComparisonPatch />}
-{isStatsPage && <StatsPageRefinements />}
-{isStatsPage && <StatsFinalPolish />}
+{isStatsPage && <StatsSupportRuntime />}
 {isStatsPage && <StatsExplorerV2 />}
 {isDayPage && <DailyDataRuntime />}
 
