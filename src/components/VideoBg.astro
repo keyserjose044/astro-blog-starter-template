@@ -1,5 +1,6 @@
 ---
 import LiveArchivePulse from './LiveArchivePulse.astro';
+import PulseAudiobookCover from './PulseAudiobookCover.astro';
 
 /**
  * Full-page animated background wrapper for LifeLoggerz.
@@ -37,6 +38,7 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     {isHome ? (
       <div class="live-archive-pulse-host" data-live-archive-pulse-host hidden>
         <LiveArchivePulse />
+        <PulseAudiobookCover />
       </div>
     ) : null}
   </div>
