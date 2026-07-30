@@ -1,4 +1,6 @@
 ---
+import LiveArchivePulse from './LiveArchivePulse.astro';
+
 /**
  * Full-page animated background wrapper for LifeLoggerz.
  *
@@ -9,6 +11,9 @@
 const base = import.meta.env.BASE_URL || '/';
 const backgroundVideoSrc = `${base}backgrounds/waves.mp4?v=4`;
 const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
+const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const normalizedBase = base.replace(/\/+$/, '') || '/';
+const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
 ---
 
 <div class="page-with-video-bg">
@@ -28,6 +33,12 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
 
   <div class="page-with-video-bg__content">
     <slot />
+
+    {isHome ? (
+      <div class="live-archive-pulse-host" data-live-archive-pulse-host hidden>
+        <LiveArchivePulse />
+      </div>
+    ) : null}
   </div>
 </div>
 
@@ -46,10 +57,28 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
         });
     };
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', playBackgrounds, { once: true });
-    } else {
+    const mountLiveArchivePulse = () => {
+      const host = document.querySelector('[data-live-archive-pulse-host]');
+      if (!(host instanceof HTMLElement) || host.dataset.mounted === 'true') return;
+
+      const featuredSection = document.querySelector('main.home-main .featured-section');
+      if (!(featuredSection instanceof HTMLElement)) return;
+
+      featuredSection.insertAdjacentElement('afterend', host);
+      host.hidden = false;
+      host.dataset.mounted = 'true';
+      document.dispatchEvent(new CustomEvent('lifeloggerz:pulse-mounted'));
+    };
+
+    const startPageEnhancements = () => {
       playBackgrounds();
+      mountLiveArchivePulse();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startPageEnhancements, { once: true });
+    } else {
+      startPageEnhancements();
     }
 
     document.addEventListener('visibilitychange', () => {
@@ -65,6 +94,16 @@ const backgroundPosterSrc = `${base}backgrounds/waves-poster.webp`;
         });
     });
 
-    window.addEventListener('pageshow', playBackgrounds);
+    window.addEventListener('pageshow', startPageEnhancements);
   }
 </script>
+
+<style>
+  .live-archive-pulse-host {
+    display: contents;
+  }
+
+  .live-archive-pulse-host[hidden] {
+    display: none;
+  }
+</style>
