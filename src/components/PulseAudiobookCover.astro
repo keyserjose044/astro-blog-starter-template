@@ -1,0 +1,302 @@
+---
+import { getDailyMeta, getDay } from '../utils/dailyData';
+
+interface RawBookItem {
+  title?: string;
+  link?: string;
+  cover?: string;
+  media?: Array<{ link?: string }>;
+  note?: string;
+  excerpt?: string;
+}
+
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
+const BOOKS_COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_BOOKS_ID || '54514877';
+const LOCAL_FALLBACK = '/images_webp/books-placeholder.webp';
+
+const normalizeTitle = (value?: string | null) => String(value || '')
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/&amp;/g, '&')
+  .replace(/\([^)]*\)/g, ' ')
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim()
+  .replace(/\s+/g, ' ');
+
+const splitNote = (note?: string | null) => String(note || '')
+  .split(/\s*(?:·|•)\s*/)
+  .map((part) => part.trim());
+
+const uniqueUrls = (values: Array<string | null | undefined>) => [
+  ...new Set(values.map((value) => String(value || '').trim()).filter(Boolean)),
+];
+
+function bookTitles(item: RawBookItem) {
+  const note = item.note || item.excerpt || '';
+  return uniqueUrls([item.title, splitNote(note)[1]]);
+}
+
+function titleScore(target: string, candidate: string) {
+  const normalizedTarget = normalizeTitle(target);
+  const normalizedCandidate = normalizeTitle(candidate);
+  if (!normalizedTarget || !normalizedCandidate) return -1;
+  if (normalizedCandidate === normalizedTarget) return 100;
+  if (normalizedCandidate.startsWith(normalizedTarget) || normalizedTarget.startsWith(normalizedCandidate)) return 80;
+  if (normalizedCandidate.includes(normalizedTarget) || normalizedTarget.includes(normalizedCandidate)) return 60;
+  return -1;
+}
+
+async function getCurrentAudiobookTitle() {
+  try {
+    const meta = await getDailyMeta();
+    const latestDate = meta.latestCompleteDate || meta.dataThrough;
+    if (!latestDate) return '';
+    const record = await getDay(latestDate);
+    return String(record.audiobook.title || '').trim();
+  } catch (error) {
+    console.warn('Archive Pulse audiobook cover could not read the latest public day.', error);
+    return '';
+  }
+}
+
+async function findRaindropCover(title: string) {
+  if (!RAINDROP_TOKEN || !title) return [] as string[];
+
+  try {
+    const url = new URL(`https://api.raindrop.io/rest/v1/raindrops/${BOOKS_COLLECTION_ID}`);
+    url.searchParams.set('perpage', '50');
+    url.searchParams.set('page', '0');
+    url.searchParams.set('sort', '-created');
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` },
+    });
+    if (!response.ok) return [] as string[];
+
+    const items = ((await response.json())?.items || []) as RawBookItem[];
+    const ranked = items
+      .map((item) => ({
+        item,
+        score: Math.max(...bookTitles(item).map((candidate) => titleScore(title, candidate))),
+      }))
+      .filter(({ score }) => score >= 0)
+      .sort((a, b) => b.score - a.score);
+
+    const match = ranked[0]?.item;
+    if (!match) return [] as string[];
+
+    return uniqueUrls([
+      match.cover,
+      ...(Array.isArray(match.media) ? match.media.map((entry) => entry?.link) : []),
+    ]);
+  } catch (error) {
+    console.warn('Archive Pulse audiobook cover could not search the books collection.', error);
+    return [] as string[];
+  }
+}
+
+async function findGoogleBooksCover(title: string) {
+  if (!title) return [] as string[];
+
+  try {
+    const url = new URL('https://www.googleapis.com/books/v1/volumes');
+    url.searchParams.set('q', `intitle:${title}`);
+    url.searchParams.set('maxResults', '8');
+    url.searchParams.set('printType', 'books');
+
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) return [] as string[];
+
+    const items = ((await response.json())?.items || []) as Array<{
+      volumeInfo?: {
+        title?: string;
+        imageLinks?: { thumbnail?: string; smallThumbnail?: string };
+      };
+    }>;
+
+    const ranked = items
+      .map((item) => ({
+        item,
+        score: titleScore(title, item.volumeInfo?.title || ''),
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    const imageLinks = ranked[0]?.item.volumeInfo?.imageLinks;
+    return uniqueUrls([imageLinks?.thumbnail, imageLinks?.smallThumbnail])
+      .map((urlValue) => urlValue.replace(/^http:/, 'https:'));
+  } catch (error) {
+    console.warn('Archive Pulse audiobook cover could not use the book-cover fallback.', error);
+    return [] as string[];
+  }
+}
+
+const audiobookTitle = await getCurrentAudiobookTitle();
+const raindropCovers = await findRaindropCover(audiobookTitle);
+const googleCovers = raindropCovers.length ? [] : await findGoogleBooksCover(audiobookTitle);
+const coverCandidates = uniqueUrls([...raindropCovers, ...googleCovers, LOCAL_FALLBACK]);
+const primaryCover = coverCandidates[0] || '';
+const fallbackCovers = coverCandidates.slice(1);
+---
+
+{audiobookTitle && primaryCover ? (
+  <template
+    data-pulse-audiobook-cover-template
+    data-audiobook-title={audiobookTitle}
+  >
+    <span class="pulse-audiobook-cover" aria-hidden="true">
+      <img
+        src={primaryCover}
+        data-cover-fallbacks={JSON.stringify(fallbackCovers)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+    </span>
+  </template>
+) : null}
+
+<script>
+  const normalizeAudiobookTitle = (value: string) => value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  function mountPulseAudiobookCover() {
+    const template = document.querySelector<HTMLTemplateElement>('[data-pulse-audiobook-cover-template]');
+    const root = document.querySelector<HTMLElement>('[data-live-archive-pulse]');
+    const title = root?.querySelector<HTMLElement>('[data-pulse-audiobook]');
+    const metric = title?.closest<HTMLElement>('.pulse-day__metrics > div');
+    if (!template || !root || !title || !metric) return;
+
+    let cover = metric.querySelector<HTMLElement>('.pulse-audiobook-cover');
+    if (!cover) {
+      metric.prepend(template.content.cloneNode(true));
+      metric.classList.add('has-audiobook-cover');
+      cover = metric.querySelector<HTMLElement>('.pulse-audiobook-cover');
+    }
+    if (!cover) return;
+
+    const expectedTitle = normalizeAudiobookTitle(template.dataset.audiobookTitle || '');
+    const syncVisibility = () => {
+      const currentTitle = normalizeAudiobookTitle(title.textContent || '');
+      const matches = Boolean(expectedTitle && currentTitle) && (
+        currentTitle === expectedTitle ||
+        currentTitle.includes(expectedTitle) ||
+        expectedTitle.includes(currentTitle)
+      );
+      cover!.hidden = !matches;
+      metric.classList.toggle('has-audiobook-cover', matches);
+    };
+
+    const image = cover.querySelector<HTMLImageElement>('img');
+    if (image && image.dataset.fallbackReady !== 'true') {
+      image.dataset.fallbackReady = 'true';
+      let fallbacks: string[] = [];
+      try {
+        fallbacks = JSON.parse(image.dataset.coverFallbacks || '[]');
+      } catch {
+        fallbacks = [];
+      }
+      image.addEventListener('error', () => {
+        const next = fallbacks.shift();
+        if (next) {
+          image.src = next;
+        } else {
+          cover!.hidden = true;
+          metric.classList.remove('has-audiobook-cover');
+        }
+      });
+    }
+
+    syncVisibility();
+    if (title.dataset.coverObserverReady !== 'true') {
+      title.dataset.coverObserverReady = 'true';
+      new MutationObserver(syncVisibility).observe(title, { childList: true, subtree: true, characterData: true });
+    }
+  }
+
+  document.addEventListener('lifeloggerz:pulse-mounted', mountPulseAudiobookCover);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountPulseAudiobookCover, { once: true });
+  } else {
+    mountPulseAudiobookCover();
+  }
+</script>
+
+<style is:global>
+  .archive-pulse .pulse-day__metrics > div.has-audiobook-cover {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: 0.68rem;
+    align-items: start;
+  }
+
+  .archive-pulse .has-audiobook-cover .pulse-audiobook-cover {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 42px;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    border: 1px solid rgba(24, 44, 78, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 7px 16px rgba(15, 32, 54, 0.13);
+  }
+
+  .archive-pulse .has-audiobook-cover .pulse-audiobook-cover[hidden] {
+    display: none;
+  }
+
+  .archive-pulse .pulse-audiobook-cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .archive-pulse .has-audiobook-cover dt,
+  .archive-pulse .has-audiobook-cover dd {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .archive-pulse .has-audiobook-cover dd {
+    margin-top: 0.4rem;
+  }
+
+  @media (max-width: 640px) {
+    .archive-pulse .pulse-day__metrics > div.has-audiobook-cover {
+      grid-template-columns: 46px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      column-gap: 0.75rem;
+      align-items: center;
+    }
+
+    .archive-pulse .has-audiobook-cover .pulse-audiobook-cover {
+      width: 46px;
+      border-radius: 8px;
+    }
+
+    .archive-pulse .has-audiobook-cover dd {
+      margin-top: 0.24rem;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .archive-pulse .pulse-day__metrics > div.has-audiobook-cover {
+      grid-template-columns: 42px minmax(0, 1fr);
+      column-gap: 0.62rem;
+    }
+
+    .archive-pulse .has-audiobook-cover .pulse-audiobook-cover {
+      width: 42px;
+    }
+  }
+</style>
