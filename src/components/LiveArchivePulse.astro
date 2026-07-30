@@ -1,15 +1,26 @@
 ---
 import { parseAlbumMeta } from '../utils/albumMetadata';
 import { parseArtMeta } from '../utils/artMetadata';
+import { DAILY_DATA_API_URL } from '../utils/dailyData';
+import type { DailyMeta, DailyRecord } from '../utils/dailyData';
 
 interface RawRaindrop {
   title?: string;
   link?: string;
+  cover?: string;
+  type?: string;
+  media?: Array<{ link?: string }>;
   note?: string;
   excerpt?: string;
   created?: string;
   lastUpdate?: string;
 }
+
+type PulseSnapshot = {
+  meta: DailyMeta;
+  record: DailyRecord;
+  sameDateRecords: DailyRecord[];
+};
 
 const rawBase = import.meta.env.BASE_URL || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
@@ -58,6 +69,45 @@ function loggedDateLabel(value?: string | null) {
   }).format(new Date(timestamp));
 }
 
+function getYouTubeVideoId(rawLink?: string | null): string | null {
+  if (!rawLink) return null;
+  try {
+    const url = new URL(rawLink);
+    const hostname = url.hostname.replace(/^www\./, '').toLowerCase();
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    let id: string | null = null;
+
+    if (hostname === 'youtu.be') id = pathParts[0] || null;
+    if (['youtube.com', 'm.youtube.com', 'music.youtube.com'].includes(hostname)) {
+      id = url.searchParams.get('v');
+      if (!id && ['embed', 'shorts', 'live'].includes(pathParts[0] || '')) id = pathParts[1] || null;
+    }
+    if (hostname === 'youtube-nocookie.com' && pathParts[0] === 'embed') id = pathParts[1] || null;
+
+    return id && /^[A-Za-z0-9_-]{6,}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+function uniqueUrls(values: Array<string | null | undefined>) {
+  return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
+}
+
+function imageCandidates(item: RawRaindrop | null, fallback: string, preferYouTube = false) {
+  const media = Array.isArray(item?.media)
+    ? item!.media!.map((entry) => entry?.link).filter(Boolean)
+    : [];
+  const youtubeId = preferYouTube ? getYouTubeVideoId(item?.link) : null;
+
+  return uniqueUrls([
+    youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : null,
+    item?.cover,
+    ...media,
+    fallback,
+  ]);
+}
+
 async function fetchLatestRaindrop(collectionId: string, label: string): Promise<RawRaindrop | null> {
   if (!RAINDROP_TOKEN) return null;
 
@@ -90,31 +140,99 @@ async function fetchLatestRaindrop(collectionId: string, label: string): Promise
   }
 }
 
-const [latestAlbumItem, latestArtItem] = await Promise.all([
+async function fetchPublicJson<T>(params: Record<string, string | number>): Promise<T> {
+  const url = new URL(DAILY_DATA_API_URL);
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, String(value)));
+
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), 7000);
+  try {
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    const payload = await response.json();
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.message || payload?.error || `Archive request failed (${response.status}).`);
+    }
+    return payload as T;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
+async function fetchBuildSnapshot(): Promise<PulseSnapshot | null> {
+  try {
+    const meta = await fetchPublicJson<DailyMeta>({ view: 'meta' });
+    const latestDate = meta.latestCompleteDate || meta.dataThrough;
+    if (!latestDate) return null;
+
+    const parsed = new Date(`${latestDate}T12:00:00`);
+    const [record, sameDateRecords] = await Promise.all([
+      fetchPublicJson<DailyRecord>({ view: 'day', date: latestDate }),
+      fetchPublicJson<DailyRecord[]>({
+        view: 'same-date',
+        month: parsed.getMonth() + 1,
+        day: parsed.getDate(),
+      }).catch(() => []),
+    ]);
+
+    return { meta, record, sameDateRecords };
+  } catch (error) {
+    console.warn('Live Archive Pulse build-time daily snapshot was unavailable.', error);
+    return null;
+  }
+}
+
+const [latestAlbumItem, latestArtItem, buildSnapshot] = await Promise.all([
   fetchLatestRaindrop(ALBUMS_COLLECTION_ID, 'album'),
   fetchLatestRaindrop(ART_COLLECTION_ID, 'artwork'),
+  fetchBuildSnapshot(),
 ]);
 
 const albumNote = latestAlbumItem?.note || latestAlbumItem?.excerpt || '';
 const albumParts = splitNote(albumNote);
 const albumMeta = parseAlbumMeta(albumNote);
+const albumImages = imageCandidates(latestAlbumItem, '/images_webp/album-placeholder.webp', true);
 const latestAlbum = {
   title: albumParts[1] || latestAlbumItem?.title || 'Latest album unavailable',
   creator: albumMeta.artist || 'Album archive',
   date: loggedDateLabel(albumMeta.dateListened),
+  detail: [albumMeta.style, albumMeta.subgenre, albumMeta.mood].filter(Boolean).slice(0, 2).join(' · '),
+  image: albumImages[0],
+  fallbacks: albumImages.slice(1),
 };
 
 const artNote = latestArtItem?.note || latestArtItem?.excerpt || '';
 const artParts = splitNote(artNote);
 const artMeta = parseArtMeta(artNote);
+const artImages = imageCandidates(latestArtItem, '/images_webp/art-placeholder.webp');
 const latestArtwork = {
   title: artParts[1] || latestArtItem?.title || 'Latest artwork unavailable',
-  creator: artMeta.artist || 'Art archive',
+  creator: artMeta.artist || 'Unknown artist',
   date: loggedDateLabel(artMeta.dateViewed),
+  detail: [artMeta.movement, artMeta.artworkYear, artMeta.medium].filter(Boolean).slice(0, 2).join(' · '),
+  image: artImages[0],
+  fallbacks: artImages.slice(1),
 };
+
+const bootstrapJson = JSON.stringify(buildSnapshot).replace(/</g, '\\u003c');
+const initialRecordCount = buildSnapshot?.meta.recordCount?.toLocaleString('en-US') || '—';
+const initialDataThrough = buildSnapshot?.meta.dataThrough
+  ? loggedDateLabel(buildSnapshot.meta.dataThrough)
+  : '—';
+const initialUpdated = buildSnapshot?.meta.updatedAt
+  ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(buildSnapshot.meta.updatedAt))
+  : '—';
 ---
 
-<section class="archive-pulse" aria-labelledby="archive-pulse-heading" data-live-archive-pulse aria-busy="true">
+<section
+  class="archive-pulse"
+  aria-labelledby="archive-pulse-heading"
+  data-live-archive-pulse
+  aria-busy={buildSnapshot ? 'false' : 'true'}
+>
   <div class="archive-pulse__glow archive-pulse__glow--one" aria-hidden="true"></div>
   <div class="archive-pulse__glow archive-pulse__glow--two" aria-hidden="true"></div>
 
@@ -131,9 +249,14 @@ const latestArtwork = {
       </p>
     </div>
 
-    <div class="archive-pulse__status" data-pulse-status data-state="loading" role="status">
+    <div
+      class="archive-pulse__status"
+      data-pulse-status
+      data-state={buildSnapshot ? 'build' : 'loading'}
+      role="status"
+    >
       <span aria-hidden="true"></span>
-      <strong>Connecting to the daily archive…</strong>
+      <strong>{buildSnapshot ? 'Latest site build loaded' : 'Connecting to the daily archive…'}</strong>
     </div>
   </header>
 
@@ -190,27 +313,53 @@ const latestArtwork = {
     </article>
 
     <a class="pulse-card pulse-card--collection pulse-card--album" href={link('albums/')}>
-      <div class="pulse-card__icon" aria-hidden="true">♪</div>
-      <div class="pulse-card__topline">
-        <span>Newest album</span>
-        <span class="pulse-card__badge">Listening archive</span>
+      <figure class="pulse-card__media pulse-card__media--album">
+        <img
+          src={latestAlbum.image}
+          alt={`Album preview for ${latestAlbum.title}`}
+          loading="lazy"
+          decoding="async"
+          data-pulse-image
+          data-pulse-image-fallbacks={JSON.stringify(latestAlbum.fallbacks)}
+        />
+        <span class="pulse-card__media-icon" aria-hidden="true">♪</span>
+      </figure>
+      <div class="pulse-card__collection-body">
+        <div class="pulse-card__topline">
+          <span>Newest album</span>
+          <span class="pulse-card__badge">Listening archive</span>
+        </div>
+        <h3>{latestAlbum.title}</h3>
+        <p>{latestAlbum.creator}</p>
+        {latestAlbum.detail && <span class="pulse-card__meta">{latestAlbum.detail}</span>}
+        <small>{latestAlbum.date}</small>
+        <span class="pulse-card__link">Browse albums <span aria-hidden="true">→</span></span>
       </div>
-      <h3>{latestAlbum.title}</h3>
-      <p>{latestAlbum.creator}</p>
-      <small>{latestAlbum.date}</small>
-      <span class="pulse-card__link">Browse albums <span aria-hidden="true">→</span></span>
     </a>
 
     <a class="pulse-card pulse-card--collection pulse-card--art" href={link('art/')}>
-      <div class="pulse-card__icon" aria-hidden="true">◈</div>
-      <div class="pulse-card__topline">
-        <span>Newest artwork</span>
-        <span class="pulse-card__badge">Visual archive</span>
+      <figure class="pulse-card__media pulse-card__media--art">
+        <img
+          src={latestArtwork.image}
+          alt={`Artwork preview for ${latestArtwork.title}`}
+          loading="lazy"
+          decoding="async"
+          data-pulse-image
+          data-pulse-image-fallbacks={JSON.stringify(latestArtwork.fallbacks)}
+        />
+        <span class="pulse-card__media-icon" aria-hidden="true">◈</span>
+      </figure>
+      <div class="pulse-card__collection-body">
+        <div class="pulse-card__topline">
+          <span>Newest artwork</span>
+          <span class="pulse-card__badge">Visual archive</span>
+        </div>
+        <h3>{latestArtwork.title}</h3>
+        <p>{latestArtwork.creator}</p>
+        {latestArtwork.detail && <span class="pulse-card__meta">{latestArtwork.detail}</span>}
+        <small>{latestArtwork.date}</small>
+        <span class="pulse-card__link">Browse art <span aria-hidden="true">→</span></span>
       </div>
-      <h3>{latestArtwork.title}</h3>
-      <p>{latestArtwork.creator}</p>
-      <small>{latestArtwork.date}</small>
-      <span class="pulse-card__link">Browse art <span aria-hidden="true">→</span></span>
     </a>
 
     <article class="pulse-card pulse-card--echo">
@@ -221,35 +370,42 @@ const latestArtwork = {
           <span class="pulse-card__badge" data-pulse-echo-year>Same date</span>
         </div>
         <h3 data-pulse-echo-title>Searching the same date across years…</h3>
-        <p data-pulse-echo-copy>
-          The comparison appears after the daily archive connects.
-        </p>
+        <p data-pulse-echo-copy>The comparison appears after the daily archive connects.</p>
       </div>
     </article>
   </div>
 
   <footer class="archive-pulse__footer">
     <div class="archive-pulse__facts" aria-label="Archive freshness">
-      <span><small>Public records</small><strong data-pulse-record-count>—</strong></span>
-      <span><small>Data through</small><strong data-pulse-data-through>—</strong></span>
-      <span><small>Last refresh</small><strong data-pulse-updated>—</strong></span>
+      <span><small>Public records</small><strong data-pulse-record-count>{initialRecordCount}</strong></span>
+      <span><small>Data through</small><strong data-pulse-data-through>{initialDataThrough}</strong></span>
+      <span><small>Last refresh</small><strong data-pulse-updated>{initialUpdated}</strong></span>
     </div>
 
     <div class="archive-pulse__footer-copy">
       <p>
-        Daily figures load live from the privacy-filtered public feed. Collection entries refresh when the site rebuilds.
+        Daily figures load from the privacy-filtered public feed. Collection entries refresh when the site rebuilds.
       </p>
       <div>
         <a href={link('day/')}>Explore a day</a>
+        <a href={link('day/')} data-pulse-random-day data-base-href={link('day/')}>Random day</a>
         <a href={link('stats/')}>Open live graphs</a>
       </div>
     </div>
   </footer>
+
+  <script type="application/json" data-pulse-bootstrap set:html={bootstrapJson}></script>
 </section>
 
 <script>
   import { getDailyMeta, getDay, getSameDate } from '../utils/dailyData';
-  import type { DailyRecord } from '../utils/dailyData';
+  import type { DailyMeta, DailyRecord } from '../utils/dailyData';
+
+  type PulseSnapshot = {
+    meta: DailyMeta;
+    record: DailyRecord;
+    sameDateRecords: DailyRecord[];
+  };
 
   const longDate = (value: string) => new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
@@ -300,12 +456,36 @@ const latestArtwork = {
       if (element) element.textContent = value;
     };
 
-    const setStatus = (text: string, state: 'loading' | 'live' | 'fallback') => {
+    const setStatus = (text: string, state: 'loading' | 'live' | 'build' | 'fallback') => {
       const status = root.querySelector<HTMLElement>('[data-pulse-status]');
       if (!status) return;
       status.dataset.state = state;
       const label = status.querySelector('strong');
       if (label) label.textContent = text;
+    };
+
+    const setupImageFallbacks = () => {
+      root.querySelectorAll<HTMLImageElement>('[data-pulse-image]').forEach((image) => {
+        let fallbacks: string[] = [];
+        try {
+          fallbacks = JSON.parse(image.dataset.pulseImageFallbacks || '[]');
+        } catch {
+          fallbacks = [];
+        }
+
+        const tryNext = () => {
+          const next = fallbacks.shift();
+          if (next) {
+            image.src = next;
+            image.dataset.pulseImageFallbacks = JSON.stringify(fallbacks);
+          } else {
+            image.closest<HTMLElement>('.pulse-card__media')?.classList.add('is-empty');
+          }
+        };
+
+        image.addEventListener('error', tryNext);
+        if (image.complete && image.naturalWidth === 0) tryNext();
+      });
     };
 
     const renderEcho = (current: DailyRecord, sameDateRecords: DailyRecord[]) => {
@@ -393,9 +573,55 @@ const latestArtwork = {
       }
     };
 
+    const configureRandomDay = (latestDate: string) => {
+      const randomLink = root.querySelector<HTMLAnchorElement>('[data-pulse-random-day]');
+      if (!randomLink) return;
+      randomLink.dataset.latestDate = latestDate;
+      if (randomLink.dataset.randomReady === 'true') return;
+      randomLink.dataset.randomReady = 'true';
+
+      randomLink.addEventListener('click', () => {
+        const latest = new Date(`${randomLink.dataset.latestDate || latestDate}T12:00:00`);
+        const start = new Date('2023-01-01T12:00:00');
+        const dayMs = 86_400_000;
+        const span = Math.max(0, Math.floor((latest.getTime() - start.getTime()) / dayMs));
+        const offset = Math.floor(Math.random() * (span + 1));
+        const selected = new Date(start.getTime() + offset * dayMs);
+        const iso = `${selected.getFullYear()}-${String(selected.getMonth() + 1).padStart(2, '0')}-${String(selected.getDate()).padStart(2, '0')}`;
+        const baseHref = randomLink.dataset.baseHref || randomLink.href;
+        randomLink.href = `${baseHref}?date=${encodeURIComponent(iso)}`;
+      });
+    };
+
+    const renderSnapshot = (snapshot: PulseSnapshot) => {
+      const latestDate = snapshot.meta.latestCompleteDate || snapshot.meta.dataThrough || snapshot.record.date;
+      renderRecord(snapshot.record);
+      renderEcho(snapshot.record, snapshot.sameDateRecords || []);
+      setText('[data-pulse-record-count]', snapshot.meta.recordCount === null ? '—' : snapshot.meta.recordCount.toLocaleString('en-US'));
+      setText('[data-pulse-data-through]', shortDate(snapshot.meta.dataThrough || latestDate));
+      setText('[data-pulse-updated]', shortDate(snapshot.meta.updatedAt));
+      configureRandomDay(latestDate);
+      root.setAttribute('aria-busy', 'false');
+    };
+
+    setupImageFallbacks();
+
+    let bootstrap: PulseSnapshot | null = null;
+    const bootstrapNode = root.querySelector<HTMLScriptElement>('[data-pulse-bootstrap]');
+    try {
+      bootstrap = JSON.parse(bootstrapNode?.textContent || 'null');
+    } catch {
+      bootstrap = null;
+    }
+
+    if (bootstrap) {
+      renderSnapshot(bootstrap);
+      setStatus('Latest site build loaded', 'build');
+    }
+
     const load = async () => {
       try {
-        setStatus('Connecting to the daily archive…', 'loading');
+        setStatus(bootstrap ? 'Refreshing public feed…' : 'Connecting to the daily archive…', 'loading');
         const meta = await getDailyMeta();
         const latestDate = meta.latestCompleteDate || meta.dataThrough;
         if (!latestDate) throw new Error('The archive did not report a latest date.');
@@ -406,15 +632,15 @@ const latestArtwork = {
           getSameDate(parsed.getMonth() + 1, parsed.getDate()).catch(() => []),
         ]);
 
-        renderRecord(record);
-        renderEcho(record, sameDateRecords);
-        setText('[data-pulse-record-count]', meta.recordCount === null ? '—' : meta.recordCount.toLocaleString('en-US'));
-        setText('[data-pulse-data-through]', shortDate(meta.dataThrough || latestDate));
-        setText('[data-pulse-updated]', shortDate(meta.updatedAt));
+        renderSnapshot({ meta, record, sameDateRecords });
         setStatus('Live public feed connected', 'live');
-        root.setAttribute('aria-busy', 'false');
       } catch (error) {
-        console.warn('Live Archive Pulse could not connect to the daily archive.', error);
+        console.warn('Live Archive Pulse could not refresh the daily archive.', error);
+        if (bootstrap) {
+          setStatus('Using latest site build', 'build');
+          return;
+        }
+
         setStatus('Daily feed temporarily unavailable', 'fallback');
         setText('[data-pulse-date]', 'The latest live day could not be loaded.');
         setText('[data-pulse-day-note]', 'The album and artwork cards remain available from the latest site build.');
@@ -458,8 +684,7 @@ const latestArtwork = {
     padding: clamp(1.25rem, 3vw, 2.2rem);
     border: 1px solid rgba(36, 87, 255, 0.16);
     border-radius: clamp(24px, 3vw, 34px);
-    background:
-      linear-gradient(135deg, rgba(245, 250, 255, 0.96), rgba(244, 255, 249, 0.92) 48%, rgba(255, 250, 239, 0.94));
+    background: linear-gradient(135deg, rgba(245, 250, 255, 0.96), rgba(244, 255, 249, 0.92) 48%, rgba(255, 250, 239, 0.94));
     color: var(--pulse-ink);
     box-shadow: 0 24px 65px rgba(15, 32, 54, 0.11);
   }
@@ -564,6 +789,10 @@ const latestArtwork = {
     background: #16a36a;
   }
 
+  .archive-pulse__status[data-state='build'] > span {
+    background: #3b82f6;
+  }
+
   .archive-pulse__status[data-state='fallback'] > span {
     background: #94a3b8;
   }
@@ -589,17 +818,16 @@ const latestArtwork = {
     grid-column: span 6;
     grid-row: span 2;
     padding: clamp(1rem, 2.5vw, 1.45rem);
-    background:
-      linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(236, 246, 255, 0.9));
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(236, 246, 255, 0.9));
   }
 
   .pulse-card--collection {
     position: relative;
     display: flex;
     grid-column: span 3;
-    min-height: 245px;
+    min-height: 280px;
     flex-direction: column;
-    padding: 1rem;
+    padding: 0;
     text-decoration: none;
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   }
@@ -621,6 +849,64 @@ const latestArtwork = {
     background: linear-gradient(145deg, rgba(255, 249, 239, 0.96), rgba(255, 236, 213, 0.86));
   }
 
+  .pulse-card__media {
+    position: relative;
+    flex: 0 0 auto;
+    height: 108px;
+    margin: 0;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(24, 44, 78, 0.1);
+    background: rgba(255, 255, 255, 0.65);
+  }
+
+  .pulse-card__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .pulse-card__media--album img {
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .pulse-card__media--art img {
+    padding: 0.35rem;
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .pulse-card__media.is-empty img {
+    visibility: hidden;
+  }
+
+  .pulse-card__media-icon {
+    position: absolute;
+    top: 0.65rem;
+    left: 0.65rem;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid rgba(24, 44, 78, 0.13);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.88);
+    color: #344761;
+    font-size: 1.05rem;
+    font-weight: 900;
+    box-shadow: 0 8px 20px rgba(15, 32, 54, 0.12);
+    backdrop-filter: blur(8px);
+  }
+
+  .pulse-card__collection-body {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    padding: 0.82rem 0.95rem 0.95rem;
+  }
+
   .pulse-card--echo {
     display: grid;
     grid-column: 7 / -1;
@@ -637,7 +923,7 @@ const latestArtwork = {
     justify-content: space-between;
     gap: 0.65rem;
     color: #536075;
-    font-size: 0.71rem;
+    font-size: 0.68rem;
     font-weight: 850;
     letter-spacing: 0.08em;
     line-height: 1.25;
@@ -647,13 +933,13 @@ const latestArtwork = {
   .pulse-card__badge {
     display: inline-flex;
     align-items: center;
-    min-height: 24px;
-    padding: 0.2rem 0.5rem;
+    min-height: 23px;
+    padding: 0.18rem 0.45rem;
     border: 1px solid rgba(36, 87, 255, 0.11);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.67);
     color: #496078;
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     white-space: nowrap;
   }
 
@@ -759,23 +1045,9 @@ const latestArtwork = {
     overflow-wrap: anywhere;
   }
 
-  .pulse-card__icon {
-    display: grid;
-    width: 44px;
-    height: 44px;
-    margin-bottom: 0.8rem;
-    place-items: center;
-    border: 1px solid rgba(24, 44, 78, 0.1);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.65);
-    color: #344761;
-    font-size: 1.35rem;
-    font-weight: 900;
-  }
-
   .pulse-card--collection h3,
   .pulse-card--echo h3 {
-    margin: 0.75rem 0 0;
+    margin: 0.65rem 0 0;
     color: var(--pulse-ink);
     letter-spacing: -0.025em;
     line-height: 1.16;
@@ -784,9 +1056,9 @@ const latestArtwork = {
   .pulse-card--collection h3 {
     display: -webkit-box;
     overflow: hidden;
-    font-size: 1.1rem;
+    font-size: 1.02rem;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
   }
 
   .pulse-card--collection p,
@@ -795,15 +1067,26 @@ const latestArtwork = {
   }
 
   .pulse-card--collection p {
-    margin: 0.45rem 0 0;
-    font-size: 0.84rem;
-    line-height: 1.4;
+    margin: 0.36rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.35;
   }
 
-  .pulse-card--collection > small {
-    margin-top: 0.25rem;
+  .pulse-card__meta {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 0.28rem;
+    color: #697589;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .pulse-card--collection small {
+    margin-top: 0.22rem;
     color: #7b8493;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
   }
 
   .pulse-card__link {
@@ -811,9 +1094,9 @@ const latestArtwork = {
     align-items: center;
     gap: 0.35rem;
     margin-top: auto;
-    padding-top: 0.8rem;
+    padding-top: 0.68rem;
     color: #0f4cff;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 850;
     text-decoration: none;
   }
@@ -859,10 +1142,6 @@ const latestArtwork = {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.55rem;
-  }
-
-  .archive-pulse__facts > span {
-    min-width: 0;
   }
 
   .archive-pulse__facts small,
@@ -929,6 +1208,11 @@ const latestArtwork = {
 
     .pulse-card--collection {
       grid-column: span 6;
+      min-height: 300px;
+    }
+
+    .pulse-card__media {
+      height: 135px;
     }
 
     .pulse-card--echo {
@@ -971,7 +1255,32 @@ const latestArtwork = {
     }
 
     .pulse-card--collection {
-      min-height: 220px;
+      display: grid;
+      grid-template-columns: minmax(105px, 34%) minmax(0, 1fr);
+      min-height: 175px;
+    }
+
+    .pulse-card__media {
+      width: 100%;
+      height: 100%;
+      min-height: 175px;
+      border-right: 1px solid rgba(24, 44, 78, 0.1);
+      border-bottom: 0;
+    }
+
+    .pulse-card__collection-body {
+      min-width: 0;
+      padding: 0.8rem;
+    }
+
+    .pulse-card__topline {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .pulse-card__badge {
+      min-height: 21px;
     }
 
     .pulse-day__metrics {
@@ -989,18 +1298,53 @@ const latestArtwork = {
       margin-top: 0;
     }
 
-    .pulse-day__context,
-    .archive-pulse__facts {
-      grid-template-columns: 1fr;
+    .pulse-day__context {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .pulse-card--echo {
-      grid-template-columns: 1fr;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 0.75rem;
     }
 
     .pulse-card__echo-mark {
-      width: 46px;
-      height: 46px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+    }
+
+    .archive-pulse__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .pulse-card--collection {
+      grid-template-columns: 96px minmax(0, 1fr);
+    }
+
+    .pulse-card__media {
+      min-height: 168px;
+    }
+
+    .pulse-card__media-icon {
+      width: 30px;
+      height: 30px;
+      top: 0.5rem;
+      left: 0.5rem;
+    }
+
+    .pulse-card--collection h3 {
+      font-size: 0.96rem;
+    }
+
+    .pulse-card__meta {
+      display: none;
+    }
+
+    .pulse-day__context {
+      grid-template-columns: 1fr;
     }
   }
 
