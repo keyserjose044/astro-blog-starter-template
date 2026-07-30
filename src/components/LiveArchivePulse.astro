@@ -1,0 +1,1016 @@
+---
+import { parseAlbumMeta } from '../utils/albumMetadata';
+import { parseArtMeta } from '../utils/artMetadata';
+
+interface RawRaindrop {
+  title?: string;
+  link?: string;
+  note?: string;
+  excerpt?: string;
+  created?: string;
+  lastUpdate?: string;
+}
+
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const link = (path = '') => `${base}${path}`;
+
+const RAINDROP_TOKEN = import.meta.env.RAINDROP_TOKEN;
+const ALBUMS_COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ALBUMS_ID || '54514878';
+const ART_COLLECTION_ID = import.meta.env.RAINDROP_COLLECTION_ART_ID || '58506976';
+
+const splitNote = (note?: string | null) => String(note || '')
+  .split(/\s*(?:·|•)\s*/)
+  .map((part) => part.trim());
+
+function parseLoggedDate(value?: string | null): number {
+  const raw = String(value || '').trim();
+  if (!raw) return 0;
+
+  const usDate = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
+  if (usDate) {
+    const month = Number(usDate[1]);
+    const day = Number(usDate[2]);
+    let year = Number(usDate[3]);
+    if (year < 100) year += 2000;
+    const timestamp = Date.UTC(year, month - 1, day);
+    const date = new Date(timestamp);
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+      ? timestamp
+      : 0;
+  }
+
+  const isoDate = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoDate) return Date.UTC(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
+
+  const parsed = Date.parse(raw);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function loggedDateLabel(value?: string | null) {
+  const timestamp = parseLoggedDate(value);
+  if (!timestamp) return String(value || '').trim() || 'Date unavailable';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(timestamp));
+}
+
+async function fetchLatestRaindrop(collectionId: string, label: string): Promise<RawRaindrop | null> {
+  if (!RAINDROP_TOKEN) return null;
+
+  try {
+    const url = new URL(`https://api.raindrop.io/rest/v1/raindrops/${collectionId}`);
+    url.searchParams.set('perpage', '10');
+    url.searchParams.set('page', '0');
+    url.searchParams.set('sort', '-created');
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${RAINDROP_TOKEN}` },
+    });
+    if (!response.ok) {
+      console.warn(`Live Archive Pulse could not load the latest ${label} (${response.status}).`);
+      return null;
+    }
+
+    const items = ((await response.json())?.items || []) as RawRaindrop[];
+    if (!items.length) return null;
+
+    return [...items].sort((a, b) => {
+      const aDate = parseLoggedDate(splitNote(a.note || a.excerpt)[0]);
+      const bDate = parseLoggedDate(splitNote(b.note || b.excerpt)[0]);
+      if (aDate !== bDate) return bDate - aDate;
+      return new Date(b.created || b.lastUpdate || 0).getTime() - new Date(a.created || a.lastUpdate || 0).getTime();
+    })[0] || null;
+  } catch (error) {
+    console.warn(`Live Archive Pulse could not load the latest ${label}.`, error);
+    return null;
+  }
+}
+
+const [latestAlbumItem, latestArtItem] = await Promise.all([
+  fetchLatestRaindrop(ALBUMS_COLLECTION_ID, 'album'),
+  fetchLatestRaindrop(ART_COLLECTION_ID, 'artwork'),
+]);
+
+const albumNote = latestAlbumItem?.note || latestAlbumItem?.excerpt || '';
+const albumParts = splitNote(albumNote);
+const albumMeta = parseAlbumMeta(albumNote);
+const latestAlbum = {
+  title: albumParts[1] || latestAlbumItem?.title || 'Latest album unavailable',
+  creator: albumMeta.artist || 'Album archive',
+  date: loggedDateLabel(albumMeta.dateListened),
+};
+
+const artNote = latestArtItem?.note || latestArtItem?.excerpt || '';
+const artParts = splitNote(artNote);
+const artMeta = parseArtMeta(artNote);
+const latestArtwork = {
+  title: artParts[1] || latestArtItem?.title || 'Latest artwork unavailable',
+  creator: artMeta.artist || 'Art archive',
+  date: loggedDateLabel(artMeta.dateViewed),
+};
+---
+
+<section class="archive-pulse" aria-labelledby="archive-pulse-heading" data-live-archive-pulse aria-busy="true">
+  <div class="archive-pulse__glow archive-pulse__glow--one" aria-hidden="true"></div>
+  <div class="archive-pulse__glow archive-pulse__glow--two" aria-hidden="true"></div>
+
+  <header class="archive-pulse__header">
+    <div class="archive-pulse__copy">
+      <p class="archive-pulse__eyebrow">
+        <span class="archive-pulse__live-dot" aria-hidden="true"></span>
+        Live Archive Pulse
+      </p>
+      <h2 id="archive-pulse-heading">The archive is still moving.</h2>
+      <p>
+        A compact signal from the newest public-safe day, the latest collection entries,
+        and one echo from the same date elsewhere in the archive.
+      </p>
+    </div>
+
+    <div class="archive-pulse__status" data-pulse-status data-state="loading" role="status">
+      <span aria-hidden="true"></span>
+      <strong>Connecting to the daily archive…</strong>
+    </div>
+  </header>
+
+  <div class="archive-pulse__grid">
+    <article class="pulse-card pulse-card--day">
+      <div class="pulse-card__topline">
+        <span>Latest public-safe day</span>
+        <span class="pulse-card__badge" data-pulse-record-state>Loading</span>
+      </div>
+
+      <time class="pulse-day__date" data-pulse-date>Finding the newest complete record…</time>
+      <p class="pulse-day__note" data-pulse-day-note>
+        Private notes, people, places, and raw diary text remain outside this feed.
+      </p>
+
+      <dl class="pulse-day__metrics">
+        <div>
+          <dt><span aria-hidden="true">📚</span> Audiobook</dt>
+          <dd>
+            <strong data-pulse-audiobook>Loading title…</strong>
+            <small data-pulse-audiobook-meta>—</small>
+          </dd>
+        </div>
+        <div>
+          <dt><span aria-hidden="true">🎯</span> Pursuits</dt>
+          <dd>
+            <strong data-pulse-pursuits>—</strong>
+            <small data-pulse-pursuits-meta>Guitar · dance · language</small>
+          </dd>
+        </div>
+        <div>
+          <dt><span aria-hidden="true">👟</span> Movement</dt>
+          <dd>
+            <strong data-pulse-movement>—</strong>
+            <small data-pulse-movement-meta>Running + treadmill</small>
+          </dd>
+        </div>
+      </dl>
+
+      <div class="pulse-day__context" aria-label="Latest day context">
+        <span><small>Sleep</small><strong data-pulse-sleep>—</strong></span>
+        <span><small>Work</small><strong data-pulse-work>—</strong></span>
+        <span><small>Diary</small><strong data-pulse-diary>—</strong></span>
+      </div>
+
+      <a
+        class="pulse-card__link"
+        data-pulse-day-link
+        data-base-href={link('day/')}
+        href={link('day/')}
+      >
+        Open this day <span aria-hidden="true">→</span>
+      </a>
+    </article>
+
+    <a class="pulse-card pulse-card--collection pulse-card--album" href={link('albums/')}>
+      <div class="pulse-card__icon" aria-hidden="true">♪</div>
+      <div class="pulse-card__topline">
+        <span>Newest album</span>
+        <span class="pulse-card__badge">Listening archive</span>
+      </div>
+      <h3>{latestAlbum.title}</h3>
+      <p>{latestAlbum.creator}</p>
+      <small>{latestAlbum.date}</small>
+      <span class="pulse-card__link">Browse albums <span aria-hidden="true">→</span></span>
+    </a>
+
+    <a class="pulse-card pulse-card--collection pulse-card--art" href={link('art/')}>
+      <div class="pulse-card__icon" aria-hidden="true">◈</div>
+      <div class="pulse-card__topline">
+        <span>Newest artwork</span>
+        <span class="pulse-card__badge">Visual archive</span>
+      </div>
+      <h3>{latestArtwork.title}</h3>
+      <p>{latestArtwork.creator}</p>
+      <small>{latestArtwork.date}</small>
+      <span class="pulse-card__link">Browse art <span aria-hidden="true">→</span></span>
+    </a>
+
+    <article class="pulse-card pulse-card--echo">
+      <div class="pulse-card__echo-mark" aria-hidden="true">↺</div>
+      <div>
+        <div class="pulse-card__topline">
+          <span>Historical echo</span>
+          <span class="pulse-card__badge" data-pulse-echo-year>Same date</span>
+        </div>
+        <h3 data-pulse-echo-title>Searching the same date across years…</h3>
+        <p data-pulse-echo-copy>
+          The comparison appears after the daily archive connects.
+        </p>
+      </div>
+    </article>
+  </div>
+
+  <footer class="archive-pulse__footer">
+    <div class="archive-pulse__facts" aria-label="Archive freshness">
+      <span><small>Public records</small><strong data-pulse-record-count>—</strong></span>
+      <span><small>Data through</small><strong data-pulse-data-through>—</strong></span>
+      <span><small>Last refresh</small><strong data-pulse-updated>—</strong></span>
+    </div>
+
+    <div class="archive-pulse__footer-copy">
+      <p>
+        Daily figures load live from the privacy-filtered public feed. Collection entries refresh when the site rebuilds.
+      </p>
+      <div>
+        <a href={link('day/')}>Explore a day</a>
+        <a href={link('stats/')}>Open live graphs</a>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<script>
+  import { getDailyMeta, getDay, getSameDate } from '../utils/dailyData';
+  import type { DailyRecord } from '../utils/dailyData';
+
+  const longDate = (value: string) => new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(`${value}T12:00:00`));
+
+  const shortDate = (value: string | null) => {
+    if (!value) return '—';
+    const date = new Date(value.includes('T') ? value : `${value}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: value.includes('T') ? 'numeric' : undefined,
+      minute: value.includes('T') ? '2-digit' : undefined,
+    }).format(date);
+  };
+
+  const format = (value: number | null, digits = 0) => value === null || !Number.isFinite(value)
+    ? '—'
+    : new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
+
+  const sumAvailable = (values: Array<number | null>) => {
+    const available = values.filter((value): value is number => value !== null && Number.isFinite(value));
+    return available.length ? available.reduce((total, value) => total + value, 0) : null;
+  };
+
+  const movementMiles = (record: DailyRecord) => {
+    if (record.hobbies.totalDistanceMiles !== null) return record.hobbies.totalDistanceMiles;
+    return sumAvailable([record.hobbies.runningMiles, record.hobbies.treadmillMiles]);
+  };
+
+  const pursuitMinutes = (record: DailyRecord) => sumAvailable([
+    record.hobbies.guitarMinutes,
+    record.hobbies.danceMinutes,
+    record.hobbies.languageMinutes,
+  ]);
+
+  function startPulse(root: HTMLElement) {
+    if (root.dataset.pulseReady === 'true') return;
+    root.dataset.pulseReady = 'true';
+
+    const setText = (selector: string, value: string) => {
+      const element = root.querySelector<HTMLElement>(selector);
+      if (element) element.textContent = value;
+    };
+
+    const setStatus = (text: string, state: 'loading' | 'live' | 'fallback') => {
+      const status = root.querySelector<HTMLElement>('[data-pulse-status]');
+      if (!status) return;
+      status.dataset.state = state;
+      const label = status.querySelector('strong');
+      if (label) label.textContent = text;
+    };
+
+    const renderEcho = (current: DailyRecord, sameDateRecords: DailyRecord[]) => {
+      const previous = sameDateRecords
+        .filter((record) => record.date < current.date)
+        .sort((a, b) => b.date.localeCompare(a.date))[0];
+
+      if (!previous) {
+        setText('[data-pulse-echo-year]', 'First record');
+        setText('[data-pulse-echo-title]', 'No earlier public record for this date yet.');
+        setText('[data-pulse-echo-copy]', 'The comparison will appear as the archive gains another year on this month and day.');
+        return;
+      }
+
+      const year = previous.date.slice(0, 4);
+      setText('[data-pulse-echo-year]', year);
+
+      const comparisons = [
+        { label: 'guitar practice', current: current.hobbies.guitarMinutes, previous: previous.hobbies.guitarMinutes, unit: 'min', digits: 0, scale: 60 },
+        { label: 'audiobook listening', current: current.audiobook.minutes, previous: previous.audiobook.minutes, unit: 'min', digits: 0, scale: 120 },
+        { label: 'movement', current: movementMiles(current), previous: movementMiles(previous), unit: 'mi', digits: 1, scale: 5 },
+        { label: 'sleep', current: current.sleep.hours, previous: previous.sleep.hours, unit: 'hr', digits: 1, scale: 8 },
+        { label: 'diary writing', current: current.diary.words, previous: previous.diary.words, unit: 'words', digits: 0, scale: 500 },
+      ]
+        .filter((item) => item.current !== null && item.previous !== null)
+        .sort((a, b) => Math.abs((b.current! - b.previous!) / b.scale) - Math.abs((a.current! - a.previous!) / a.scale));
+
+      const comparison = comparisons[0];
+      if (comparison) {
+        const difference = comparison.current! - comparison.previous!;
+        const relationship = difference === 0
+          ? 'the same as the latest record'
+          : `${format(Math.abs(difference), comparison.digits)} ${comparison.unit} ${difference > 0 ? 'below' : 'above'} the latest record`;
+        setText('[data-pulse-echo-title]', `${year}: ${format(comparison.previous, comparison.digits)} ${comparison.unit} of ${comparison.label}`);
+        setText('[data-pulse-echo-copy]', `On this same month and day, that was ${relationship}.`);
+        return;
+      }
+
+      if (previous.audiobook.title) {
+        setText('[data-pulse-echo-title]', `${year}: ${previous.audiobook.title}`);
+        setText('[data-pulse-echo-copy]', `${format(previous.audiobook.minutes)} minutes of audiobook listening were recorded on the same date.`);
+        return;
+      }
+
+      setText('[data-pulse-echo-title]', `${year}: another ordinary day preserved`);
+      setText('[data-pulse-echo-copy]', 'The earlier record exists, but its comparable public fields are sparse.');
+    };
+
+    const renderRecord = (record: DailyRecord) => {
+      setText('[data-pulse-date]', longDate(record.date));
+      setText('[data-pulse-record-state]', record.status === 'complete' ? 'Complete record' : 'Partial record');
+
+      const audiobookTitle = record.audiobook.title || (record.audiobook.minutes === 0 ? 'No listening recorded' : 'Title unavailable');
+      setText('[data-pulse-audiobook]', audiobookTitle);
+      setText(
+        '[data-pulse-audiobook-meta]',
+        record.audiobook.minutes === null
+          ? 'Minutes unavailable'
+          : `${format(record.audiobook.minutes)} min${record.audiobook.started ? ' · new title started' : ''}`,
+      );
+
+      const pursuits = pursuitMinutes(record);
+      setText('[data-pulse-pursuits]', pursuits === null ? '—' : `${format(pursuits)} min`);
+      setText(
+        '[data-pulse-pursuits-meta]',
+        `Guitar ${format(record.hobbies.guitarMinutes)} · Dance ${format(record.hobbies.danceMinutes)} · Language ${format(record.hobbies.languageMinutes)}`,
+      );
+
+      const miles = movementMiles(record);
+      setText('[data-pulse-movement]', miles === null ? '—' : `${format(miles, 1)} mi`);
+      setText(
+        '[data-pulse-movement-meta]',
+        `Run ${format(record.hobbies.runningMiles, 1)} · Treadmill ${format(record.hobbies.treadmillMiles, 1)}`,
+      );
+
+      setText('[data-pulse-sleep]', record.sleep.hours === null ? '—' : `${format(record.sleep.hours, 1)} hr`);
+      setText('[data-pulse-work]', record.work.hours === null ? '—' : `${format(record.work.hours, 1)} hr`);
+      setText('[data-pulse-diary]', record.diary.words === null ? '—' : `${format(record.diary.words)} words`);
+
+      const dayLink = root.querySelector<HTMLAnchorElement>('[data-pulse-day-link]');
+      if (dayLink) {
+        const baseHref = dayLink.dataset.baseHref || dayLink.href;
+        dayLink.href = `${baseHref}?date=${encodeURIComponent(record.date)}`;
+        dayLink.setAttribute('aria-label', `Open the public-safe record for ${longDate(record.date)}`);
+      }
+    };
+
+    const load = async () => {
+      try {
+        setStatus('Connecting to the daily archive…', 'loading');
+        const meta = await getDailyMeta();
+        const latestDate = meta.latestCompleteDate || meta.dataThrough;
+        if (!latestDate) throw new Error('The archive did not report a latest date.');
+
+        const parsed = new Date(`${latestDate}T12:00:00`);
+        const [record, sameDateRecords] = await Promise.all([
+          getDay(latestDate),
+          getSameDate(parsed.getMonth() + 1, parsed.getDate()).catch(() => []),
+        ]);
+
+        renderRecord(record);
+        renderEcho(record, sameDateRecords);
+        setText('[data-pulse-record-count]', meta.recordCount === null ? '—' : meta.recordCount.toLocaleString('en-US'));
+        setText('[data-pulse-data-through]', shortDate(meta.dataThrough || latestDate));
+        setText('[data-pulse-updated]', shortDate(meta.updatedAt));
+        setStatus('Live public feed connected', 'live');
+        root.setAttribute('aria-busy', 'false');
+      } catch (error) {
+        console.warn('Live Archive Pulse could not connect to the daily archive.', error);
+        setStatus('Daily feed temporarily unavailable', 'fallback');
+        setText('[data-pulse-date]', 'The latest live day could not be loaded.');
+        setText('[data-pulse-day-note]', 'The album and artwork cards remain available from the latest site build.');
+        setText('[data-pulse-record-state]', 'Offline');
+        setText('[data-pulse-echo-title]', 'Historical comparison temporarily unavailable');
+        setText('[data-pulse-echo-copy]', 'Open the Day Explorer or Stats page to try the public feed again.');
+        root.setAttribute('aria-busy', 'false');
+      }
+    };
+
+    void load();
+  }
+
+  const boot = () => {
+    document.querySelectorAll<HTMLElement>('[data-live-archive-pulse]').forEach(startPulse);
+  };
+
+  document.addEventListener('lifeloggerz:pulse-mounted', boot);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+</script>
+
+<style>
+  .archive-pulse,
+  .archive-pulse * {
+    box-sizing: border-box;
+  }
+
+  .archive-pulse {
+    --pulse-ink: #102036;
+    --pulse-muted: #5d6879;
+    --pulse-line: rgba(24, 44, 78, 0.13);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    margin: clamp(2.8rem, 7vw, 5rem) 0;
+    padding: clamp(1.25rem, 3vw, 2.2rem);
+    border: 1px solid rgba(36, 87, 255, 0.16);
+    border-radius: clamp(24px, 3vw, 34px);
+    background:
+      linear-gradient(135deg, rgba(245, 250, 255, 0.96), rgba(244, 255, 249, 0.92) 48%, rgba(255, 250, 239, 0.94));
+    color: var(--pulse-ink);
+    box-shadow: 0 24px 65px rgba(15, 32, 54, 0.11);
+  }
+
+  .archive-pulse__glow {
+    position: absolute;
+    z-index: -1;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    filter: blur(10px);
+    opacity: 0.42;
+    pointer-events: none;
+  }
+
+  .archive-pulse__glow--one {
+    top: -150px;
+    right: 14%;
+    background: rgba(36, 87, 255, 0.2);
+  }
+
+  .archive-pulse__glow--two {
+    bottom: -180px;
+    left: 5%;
+    background: rgba(20, 150, 106, 0.22);
+  }
+
+  .archive-pulse__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .archive-pulse__copy {
+    max-width: 720px;
+  }
+
+  .archive-pulse__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.55rem;
+    color: #0f6b4e;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .archive-pulse__live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #16a36a;
+    box-shadow: 0 0 0 6px rgba(22, 163, 106, 0.12);
+    animation: pulse-live 2.2s ease-in-out infinite;
+  }
+
+  .archive-pulse h2 {
+    margin: 0;
+    color: var(--pulse-ink);
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    letter-spacing: -0.055em;
+    line-height: 1;
+  }
+
+  .archive-pulse__copy > p:last-child {
+    max-width: 64ch;
+    margin: 0.8rem 0 0;
+    color: var(--pulse-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .archive-pulse__status {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 42px;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--pulse-line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #445166;
+    font-size: 0.78rem;
+    box-shadow: 0 8px 22px rgba(15, 32, 54, 0.06);
+    backdrop-filter: blur(10px);
+  }
+
+  .archive-pulse__status > span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #f59e0b;
+  }
+
+  .archive-pulse__status[data-state='live'] > span {
+    background: #16a36a;
+  }
+
+  .archive-pulse__status[data-state='fallback'] > span {
+    background: #94a3b8;
+  }
+
+  .archive-pulse__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .pulse-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--pulse-line);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.82);
+    color: inherit;
+    box-shadow: 0 12px 32px rgba(15, 32, 54, 0.07);
+    backdrop-filter: blur(12px);
+  }
+
+  .pulse-card--day {
+    grid-column: span 6;
+    grid-row: span 2;
+    padding: clamp(1rem, 2.5vw, 1.45rem);
+    background:
+      linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(236, 246, 255, 0.9));
+  }
+
+  .pulse-card--collection {
+    position: relative;
+    display: flex;
+    grid-column: span 3;
+    min-height: 245px;
+    flex-direction: column;
+    padding: 1rem;
+    text-decoration: none;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .pulse-card--collection:hover,
+  .pulse-card--collection:focus-visible {
+    color: inherit;
+    border-color: rgba(36, 87, 255, 0.34);
+    outline: none;
+    box-shadow: 0 18px 42px rgba(15, 32, 54, 0.13);
+    transform: translateY(-3px);
+  }
+
+  .pulse-card--album {
+    background: linear-gradient(145deg, rgba(251, 246, 255, 0.96), rgba(239, 232, 255, 0.86));
+  }
+
+  .pulse-card--art {
+    background: linear-gradient(145deg, rgba(255, 249, 239, 0.96), rgba(255, 236, 213, 0.86));
+  }
+
+  .pulse-card--echo {
+    display: grid;
+    grid-column: 7 / -1;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: center;
+    padding: 1.1rem 1.2rem;
+    background: linear-gradient(145deg, rgba(239, 255, 248, 0.94), rgba(226, 248, 240, 0.88));
+  }
+
+  .pulse-card__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    color: #536075;
+    font-size: 0.71rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .pulse-card__badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid rgba(36, 87, 255, 0.11);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.67);
+    color: #496078;
+    font-size: 0.62rem;
+    white-space: nowrap;
+  }
+
+  .pulse-day__date {
+    display: block;
+    margin: 0.75rem 0 0;
+    color: var(--pulse-ink);
+    font-size: clamp(1.45rem, 3vw, 2.15rem);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1.08;
+  }
+
+  .pulse-day__note {
+    margin: 0.55rem 0 1rem;
+    color: var(--pulse-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .pulse-day__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0;
+  }
+
+  .pulse-day__metrics > div {
+    min-width: 0;
+    padding: 0.78rem;
+    border: 1px solid rgba(24, 44, 78, 0.09);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.67);
+  }
+
+  .pulse-day__metrics dt {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #657086;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .pulse-day__metrics dd {
+    min-width: 0;
+    margin: 0.55rem 0 0;
+  }
+
+  .pulse-day__metrics strong,
+  .pulse-day__metrics small {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .pulse-day__metrics strong {
+    color: var(--pulse-ink);
+    font-size: 0.94rem;
+    line-height: 1.25;
+  }
+
+  .pulse-day__metrics small {
+    margin-top: 0.3rem;
+    color: #727d8f;
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  .pulse-day__context {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+  }
+
+  .pulse-day__context > span {
+    min-width: 0;
+    padding: 0.55rem 0.68rem;
+    border-left: 3px solid rgba(36, 87, 255, 0.38);
+    border-radius: 6px 12px 12px 6px;
+    background: rgba(255, 255, 255, 0.54);
+  }
+
+  .pulse-day__context small,
+  .pulse-day__context strong {
+    display: block;
+  }
+
+  .pulse-day__context small {
+    color: #6c788c;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pulse-day__context strong {
+    margin-top: 0.15rem;
+    color: var(--pulse-ink);
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+  }
+
+  .pulse-card__icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0.8rem;
+    place-items: center;
+    border: 1px solid rgba(24, 44, 78, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.65);
+    color: #344761;
+    font-size: 1.35rem;
+    font-weight: 900;
+  }
+
+  .pulse-card--collection h3,
+  .pulse-card--echo h3 {
+    margin: 0.75rem 0 0;
+    color: var(--pulse-ink);
+    letter-spacing: -0.025em;
+    line-height: 1.16;
+  }
+
+  .pulse-card--collection h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 1.1rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .pulse-card--collection p,
+  .pulse-card--echo p {
+    color: var(--pulse-muted);
+  }
+
+  .pulse-card--collection p {
+    margin: 0.45rem 0 0;
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .pulse-card--collection > small {
+    margin-top: 0.25rem;
+    color: #7b8493;
+    font-size: 0.72rem;
+  }
+
+  .pulse-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 0.8rem;
+    color: #0f4cff;
+    font-size: 0.8rem;
+    font-weight: 850;
+    text-decoration: none;
+  }
+
+  .pulse-card--day > .pulse-card__link {
+    margin-top: 0.85rem;
+  }
+
+  .pulse-card__echo-mark {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border: 1px solid rgba(15, 107, 78, 0.14);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #0f6b4e;
+    font-size: 1.5rem;
+    font-weight: 900;
+  }
+
+  .pulse-card--echo h3 {
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+  }
+
+  .pulse-card--echo p {
+    margin: 0.45rem 0 0;
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+
+  .archive-pulse__footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 1rem;
+    align-items: center;
+    margin-top: 0.95rem;
+    padding-top: 0.95rem;
+    border-top: 1px solid rgba(24, 44, 78, 0.1);
+  }
+
+  .archive-pulse__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .archive-pulse__facts > span {
+    min-width: 0;
+  }
+
+  .archive-pulse__facts small,
+  .archive-pulse__facts strong {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .archive-pulse__facts small {
+    color: #778294;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .archive-pulse__facts strong {
+    margin-top: 0.2rem;
+    color: var(--pulse-ink);
+    font-size: 0.78rem;
+  }
+
+  .archive-pulse__footer-copy {
+    text-align: right;
+  }
+
+  .archive-pulse__footer-copy p {
+    margin: 0;
+    color: #667286;
+    font-size: 0.74rem;
+    line-height: 1.45;
+  }
+
+  .archive-pulse__footer-copy > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 0.45rem;
+  }
+
+  .archive-pulse__footer-copy a {
+    color: #0f4cff;
+    font-size: 0.76rem;
+    font-weight: 850;
+    text-decoration: none;
+  }
+
+  @keyframes pulse-live {
+    0%, 100% { box-shadow: 0 0 0 5px rgba(22, 163, 106, 0.1); }
+    50% { box-shadow: 0 0 0 9px rgba(22, 163, 106, 0.04); }
+  }
+
+  @media (max-width: 920px) {
+    .archive-pulse__header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .pulse-card--day {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+
+    .pulse-card--collection {
+      grid-column: span 6;
+    }
+
+    .pulse-card--echo {
+      grid-column: 1 / -1;
+    }
+
+    .archive-pulse__footer {
+      grid-template-columns: 1fr;
+    }
+
+    .archive-pulse__footer-copy {
+      text-align: left;
+    }
+
+    .archive-pulse__footer-copy > div {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .archive-pulse {
+      margin-block: 2.6rem;
+      padding: 1rem;
+      border-radius: 24px;
+    }
+
+    .archive-pulse__status {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .archive-pulse__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pulse-card--day,
+    .pulse-card--collection,
+    .pulse-card--echo {
+      grid-column: 1;
+    }
+
+    .pulse-card--collection {
+      min-height: 220px;
+    }
+
+    .pulse-day__metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .pulse-day__metrics > div {
+      display: grid;
+      grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr);
+      gap: 0.55rem;
+      align-items: start;
+    }
+
+    .pulse-day__metrics dd {
+      margin-top: 0;
+    }
+
+    .pulse-day__context,
+    .archive-pulse__facts {
+      grid-template-columns: 1fr;
+    }
+
+    .pulse-card--echo {
+      grid-template-columns: 1fr;
+    }
+
+    .pulse-card__echo-mark {
+      width: 46px;
+      height: 46px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .archive-pulse__live-dot {
+      animation: none;
+    }
+
+    .pulse-card--collection {
+      transition: none;
+    }
+  }
+</style>
