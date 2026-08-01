@@ -1,0 +1,11 @@
+/* Ensure the master Books collection never leaks beneath non-collection views.
+   Several legacy layout rules set #grid to display:grid, which can override
+   the browser's default [hidden] styling unless we enforce it explicitly. */
+#grid[hidden] {
+  display: none !important;
+}
+
+body.books-explorer-open #grid,
+body.books-calendar-open #grid {
+  display: none !important;
+}
