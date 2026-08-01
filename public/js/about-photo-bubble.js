@@ -16,31 +16,74 @@
     let resizeFrame = 0;
     const mobileQuery = window.matchMedia('(max-width: 640px)');
 
-    const fitMobileBubble = (spot) => {
-      if (!spot || bubble.dataset.visible !== '1') return;
+    const parsePercent = (value, fallback) => {
+      const parsed = Number.parseFloat(value || '');
+      return Number.isFinite(parsed) ? parsed / 100 : fallback;
+    };
 
+    const placementBounds = (placement, anchorY, bubbleHeight, extraTop, extraBottom) => {
+      if (placement === 'below') {
+        return {
+          top: anchorY + 15 - extraTop,
+          bottom: anchorY + 15 + bubbleHeight + extraBottom,
+        };
+      }
+
+      return {
+        top: anchorY - 15 - bubbleHeight - extraTop,
+        bottom: anchorY - 15 + extraBottom,
+      };
+    };
+
+    const overflowAmount = (bounds, safeTop, safeBottom) =>
+      Math.max(0, safeTop - bounds.top) + Math.max(0, bounds.bottom - safeBottom);
+
+    const fitMobileBubble = (spot) => {
+      if (!spot) return;
+
+      const preferredPlacement = spot.dataset.placement || 'above';
       bubble.style.left = spot.dataset.bubbleLeft || '50%';
+      bubble.style.top = spot.dataset.bubbleTop || '50%';
+      bubble.dataset.placement = preferredPlacement;
       bubble.style.setProperty('--mobile-shift', '0px');
+
       if (!mobileQuery.matches) return;
 
       const wrapperRect = wrapper.getBoundingClientRect();
       const bubbleWidth = bubble.offsetWidth;
-      if (!wrapperRect.width || !bubbleWidth) return;
+      const bubbleHeight = bubble.offsetHeight;
+      if (!wrapperRect.width || !wrapperRect.height || !bubbleWidth || !bubbleHeight) return;
 
-      const parsedLeft = Number.parseFloat(spot.dataset.bubbleLeft || '50');
-      const desiredCenter = wrapperRect.width * (Number.isFinite(parsedLeft) ? parsedLeft / 100 : 0.5);
+      const leftRatio = parsePercent(spot.dataset.bubbleLeft, 0.5);
+      const topRatio = parsePercent(spot.dataset.bubbleTop, 0.5);
+      const desiredCenter = wrapperRect.width * leftRatio;
+      const desiredAnchorY = wrapperRect.height * topRatio;
       const corner = spot.dataset.corner || '';
       const hasAdornment = Boolean(spot.dataset.adornment);
       const edgePad = 10;
+
       let extraLeft = 10;
       let extraRight = 10;
+      let extraTop = 8;
+      let extraBottom = 8;
 
       if (hasAdornment) {
-        if (corner === 'bottom-left') extraLeft += bubbleWidth * 0.19;
-        else if (corner === 'top-left') extraLeft += bubbleWidth * 0.05;
-        else if (corner.endsWith('right')) extraRight += bubbleWidth * 0.13;
+        if (corner === 'bottom-left') {
+          extraLeft += bubbleWidth * 0.19;
+          extraBottom += bubbleHeight * 0.16;
+        } else if (corner === 'top-left') {
+          extraLeft += bubbleWidth * 0.05;
+          extraTop += bubbleHeight * 0.18;
+        } else if (corner === 'top-right') {
+          extraRight += bubbleWidth * 0.13;
+          extraTop += bubbleHeight * 0.24;
+        } else if (corner === 'bottom-right') {
+          extraRight += bubbleWidth * 0.13;
+          extraBottom += bubbleHeight * 0.2;
+        }
       }
 
+      // Horizontal fitting: keep the cloud and any protruding adornment inside the phone width.
       const viewportMin = edgePad - wrapperRect.left + bubbleWidth / 2 + extraLeft;
       const viewportMax = window.innerWidth - edgePad - wrapperRect.left - bubbleWidth / 2 - extraRight;
       const wrapperMin = bubbleWidth / 2 + extraLeft;
@@ -52,9 +95,65 @@
         ? Math.min(maxCenter, Math.max(minCenter, desiredCenter))
         : wrapperRect.width / 2;
 
-      const shift = fittedCenter - desiredCenter;
+      const horizontalShift = fittedCenter - desiredCenter;
       bubble.style.left = `${fittedCenter}px`;
-      bubble.style.setProperty('--mobile-shift', `${shift}px`);
+      bubble.style.setProperty('--mobile-shift', `${horizontalShift}px`);
+
+      // Vertical fitting: on phones, top-row clouds do not have enough room above the person's head.
+      // Prefer the desktop direction when it fits; otherwise flip the cloud below the person so the
+      // thought dots still point naturally at the same hotspot instead of moving the whole anchor away.
+      const safeTop = 8;
+      const safeBottom = wrapperRect.height - 8;
+      const alternatePlacement = preferredPlacement === 'above' ? 'below' : 'above';
+      const preferredBounds = placementBounds(
+        preferredPlacement,
+        desiredAnchorY,
+        bubbleHeight,
+        extraTop,
+        extraBottom
+      );
+      const alternateBounds = placementBounds(
+        alternatePlacement,
+        desiredAnchorY,
+        bubbleHeight,
+        extraTop,
+        extraBottom
+      );
+
+      const preferredOverflow = overflowAmount(preferredBounds, safeTop, safeBottom);
+      const alternateOverflow = overflowAmount(alternateBounds, safeTop, safeBottom);
+      const chosenPlacement = alternateOverflow < preferredOverflow
+        ? alternatePlacement
+        : preferredPlacement;
+
+      bubble.dataset.placement = chosenPlacement;
+
+      let fittedAnchorY = desiredAnchorY;
+      const chosenBounds = placementBounds(
+        chosenPlacement,
+        fittedAnchorY,
+        bubbleHeight,
+        extraTop,
+        extraBottom
+      );
+
+      if (chosenBounds.top < safeTop) {
+        fittedAnchorY += safeTop - chosenBounds.top;
+      }
+
+      const shiftedBounds = placementBounds(
+        chosenPlacement,
+        fittedAnchorY,
+        bubbleHeight,
+        extraTop,
+        extraBottom
+      );
+
+      if (shiftedBounds.bottom > safeBottom) {
+        fittedAnchorY -= shiftedBounds.bottom - safeBottom;
+      }
+
+      bubble.style.top = `${fittedAnchorY}px`;
     };
 
     const hide = () => {
@@ -101,6 +200,8 @@
         img.alt = '';
       }
 
+      // Pre-fit while hidden so mobile users never see a one-frame desktop placement flash.
+      fitMobileBubble(spot);
       bubble.dataset.visible = '1';
       bubble.setAttribute('aria-hidden', 'false');
 
