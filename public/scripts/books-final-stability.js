@@ -19,7 +19,10 @@ function bootBooksFinalStability(attempt = 0) {
   if (!ready || document.body.dataset.booksFinalStabilityReady) return;
   document.body.dataset.booksFinalStabilityReady = 'true';
 
-  const mobileQuery = window.matchMedia('(max-width: 900px), (hover: none), (pointer: coarse)');
+  /* The compact stack -> chooser interaction is a phone treatment only. Keeping
+     this width-based prevents resized desktop windows and touch-capable PCs from
+     inheriting the phone Calendar behavior. */
+  const mobileQuery = window.matchMedia('(max-width: 600px)');
   const cards = Array.from(grid.querySelectorAll('.card'));
   const particles = new Set(['da', 'das', 'de', 'del', 'della', 'di', 'dos', 'du', 'la', 'le', 'van', 'von', 'y', 'e', 'of', 'the']);
 
