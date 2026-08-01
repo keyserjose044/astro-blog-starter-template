@@ -320,7 +320,7 @@ function bootAlbumsExpansion(attempt = 0) {
     list.replaceChildren();
 
     albums.forEach((album) => {
-      const tile = makeQuiltTile(album, { className: 'albums-day-dialog-album' });
+      const tile = makeQuiltTile(album, { className: 'albums-quilt-tile albums-day-dialog-album' });
       tile.addEventListener('click', (event) => {
         event.stopImmediatePropagation();
         closeDayDialog();
