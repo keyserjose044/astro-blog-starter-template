@@ -24,7 +24,7 @@ const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/boo
 const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const aboutAssetVersion = '20260801-1426';
-const booksAssetVersion = '20260801-1508';
+const booksAssetVersion = '20260801-1535';
 const albumsAssetVersion = '20260726-1535';
 const artAssetVersion = '20260727-1945';
 ---
@@ -65,6 +65,7 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-mobile-pass-2.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-mobile-pass-2-guardrails.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-final-stability.css?v=${booksAssetVersion}`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-desktop-calendar-milestones.css?v=${booksAssetVersion}`} /> : null}
 
 {isAlbumsPage ? <meta name="lifeloggerz-albums-assets" content={albumsAssetVersion} /> : null}
 {isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer.css?v=${albumsAssetVersion}`} /> : null}
@@ -119,6 +120,7 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-mobile-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-mobile-pass-2.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-stability.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-desktop-authors-fast.js?v=${booksAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
