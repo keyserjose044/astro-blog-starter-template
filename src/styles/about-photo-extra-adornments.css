@@ -1,0 +1,25 @@
+.speech-bubble[data-size='mom'] .cloud-adornment{width:42%}
+.speech-bubble[data-size='little-cousin'] .cloud-adornment{width:48%}
+.speech-bubble[data-size='little-brother'] .cloud-adornment{width:54%}
+.speech-bubble[data-size='aunt'] .cloud-adornment{width:48%}
+
+.speech-bubble[data-size='mom'] p{padding-right:1.2rem}
+.speech-bubble[data-size='little-cousin'] p{padding-right:1.7rem}
+.speech-bubble[data-size='little-brother'] p{padding-right:1.2rem}
+.speech-bubble[data-size='aunt'] p{padding-left:1.65rem}
+
+.speech-bubble[data-size='aunt'][data-corner='bottom-left'] .cloud-adornment{left:-20%;bottom:-13%}
+.speech-bubble[data-size='little-brother'][data-corner='top-right'] .cloud-adornment{top:-23%;right:-8%}
+.speech-bubble[data-size='mom'][data-corner='top-right'] .cloud-adornment{top:-21%;right:-8%}
+
+@media(max-width:640px){
+  .speech-bubble[data-size='mom'] .cloud-adornment{width:42%}
+  .speech-bubble[data-size='little-cousin'] .cloud-adornment{width:46%}
+  .speech-bubble[data-size='little-brother'] .cloud-adornment{width:58%}
+  .speech-bubble[data-size='aunt'] .cloud-adornment{width:45%}
+  .speech-bubble[data-size='mom'] p{padding-right:.65rem}
+  .speech-bubble[data-size='little-cousin'] p{padding-right:.9rem}
+  .speech-bubble[data-size='little-brother'] p{padding-right:.6rem}
+  .speech-bubble[data-size='aunt'] p{padding-left:.85rem}
+  .speech-bubble[data-size='aunt'][data-corner='bottom-left'] .cloud-adornment{left:-14%;bottom:-10%}
+}
