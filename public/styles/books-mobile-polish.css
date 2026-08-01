@@ -163,6 +163,17 @@
     min-height: 40px;
   }
 
+  /* Match the parent grids to the enlarged arrow targets so they never spill
+     into the book-copy column. */
+  .books-record-book-card,
+  .books-record-book-card--champion {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+
+  .books-explorer-bottom-book {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+
   .books-timeline-viewport,
   .books-record-milestone-track {
     scroll-snap-type: x proximity;
