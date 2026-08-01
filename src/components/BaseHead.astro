@@ -2,6 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
+import { DAILY_DATA_API_URL } from '../utils/dailyData';
 
 interface Props {
   title: string;
@@ -21,7 +22,7 @@ const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/books');
 const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
-const booksAssetVersion = '20260731-1933';
+const booksAssetVersion = '20260731-1949';
 const albumsAssetVersion = '20260726-1535';
 const artAssetVersion = '20260727-1945';
 ---
@@ -43,12 +44,12 @@ const artAssetVersion = '20260727-1945';
 <link rel="preload" href={`${base}fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
 
 {isBooksPage ? <meta name="lifeloggerz-books-assets" content={booksAssetVersion} /> : null}
+{isBooksPage ? <meta name="lifeloggerz-daily-data-api" content={DAILY_DATA_API_URL} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-insights.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-refinement.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-final-polish.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-calendar.css?v=${booksAssetVersion}`} /> : null}
-{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-calendar-refinement.css?v=${booksAssetVersion}`} /> : null}
 
 {isAlbumsPage ? <meta name="lifeloggerz-albums-assets" content={albumsAssetVersion} /> : null}
 {isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer.css?v=${albumsAssetVersion}`} /> : null}
