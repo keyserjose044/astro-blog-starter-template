@@ -1,5 +1,5 @@
 const RELEASE_CUTOFF_YEAR = 1920;
-const ASSET_VERSION = '20260726-1535';
+const ASSET_VERSION = '20260801-1721';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -78,14 +78,25 @@ function boot() {
     mapNote: $('#albums-map-note'),
     timelineContent: $('#albums-timeline-content'),
     timelineHelp: $('#albums-timeline-help'),
+    preview: $('#album-rich-preview'),
+    dialog: $('#album-details-dialog'),
+    selectionShelf: $('#albums-selection-shelf'),
+    selectionTitle: $('#albums-selection-title'),
+    selectionSummary: $('#albums-selection-summary'),
+    selectionGrid: $('#albums-selection-grid'),
+    selectionClear: $('#albums-selection-clear'),
   };
   const state = {
     activeView: 'list',
     selectedMapCountryId: '',
     mapModule: null,
     timelineModule: null,
+    previewTimer: 0,
+    previewAnchor: null,
+    dialogTrigger: null,
     last: { album: null, country: null, style: null, release: null, year: null },
   };
+  const desktopPreviewQuery = matchMedia('(min-width:761px) and (hover:hover) and (pointer:fine)');
 
   const haystack = new Map(cards.map((card) => [
     card,
@@ -101,10 +112,196 @@ function boot() {
   ]));
 
   cards.forEach((card) => {
+    card.href = card.dataset.href || '';
     card._countryTokens = split(card.dataset.country).map(norm);
     card._subgenreTokens = split(card.dataset.subgenre).map(norm);
     card._moodTokens = split(card.dataset.mood).map(norm);
   });
+
+  function cardInfo(card) {
+    if (!card) return null;
+    return {
+      card,
+      title: card.dataset.title || 'Untitled album',
+      artist: card.dataset.artist || 'Artist not recorded',
+      country: card.dataset.country || '',
+      style: card.dataset.style || '',
+      subgenre: card.dataset.subgenre || '',
+      mood: card.dataset.mood || '',
+      dateListened: card.dataset.dateListened || '',
+      release: card.dataset.releaseLabel || '',
+      length: card.dataset.length || '',
+      lengthMinutes: num(card.dataset.lengthMinutes) || 0,
+      cover: $('.album-cover', card)?.getAttribute('src') || '',
+      href: card.dataset.href || card.href || '',
+      index: card.dataset.originalIndex || '',
+    };
+  }
+
+  const formatListenedDate = (value) => {
+    const timestamp = dateValue(value);
+    if (timestamp == null) return value || '';
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+    }).format(new Date(timestamp));
+  };
+
+  const formatRuntime = (minutes) => {
+    const total = Math.round(Number(minutes || 0));
+    const hours = Math.floor(total / 60);
+    const remainder = total % 60;
+    if (!hours) return `${remainder} min`;
+    return remainder ? `${hours} hr ${remainder} min` : `${hours} hr`;
+  };
+
+  function detailRows(album) {
+    return [
+      ['Length', album.length],
+      ['Released', album.release && !/^unknown$/i.test(album.release) ? album.release : ''],
+      ['Primary style', album.style],
+      ['Subgenre', album.subgenre],
+      ['Mood', album.mood],
+      ['Country / origin', album.country],
+    ].filter(([, value]) => value);
+  }
+
+  function fillAlbumPanel(root, prefix, album) {
+    if (!root || !album) return;
+    const image = root.querySelector(`[data-${prefix}-image]`);
+    const title = root.querySelector(`[data-${prefix}-title]`);
+    const artist = root.querySelector(`[data-${prefix}-artist]`);
+    const date = root.querySelector(`[data-${prefix}-date]`);
+    const details = root.querySelector(`[data-${prefix}-details]`);
+    const source = root.querySelector(`[data-${prefix}-source]`);
+
+    if (image) { image.src = album.cover; image.alt = album.title; }
+    if (title) title.textContent = album.title;
+    if (artist) artist.textContent = album.artist;
+    if (date) date.textContent = album.dateListened
+      ? `Listened ${formatListenedDate(album.dateListened)}`
+      : 'Album details';
+    if (details) {
+      details.replaceChildren();
+      detailRows(album).forEach(([label, value]) => {
+        const dt = document.createElement('dt');
+        const dd = document.createElement('dd');
+        dt.textContent = label;
+        dd.textContent = value;
+        details.append(dt, dd);
+      });
+    }
+    if (source) {
+      source.href = album.href || '#';
+      source.hidden = !album.href;
+      source.setAttribute('aria-label', `Open the original source for ${album.title} in a new tab`);
+    }
+  }
+
+  function positionPreview(anchor) {
+    const preview = controls.preview;
+    if (!preview || preview.hidden || !anchor?.isConnected) return;
+    const anchorRect = anchor.getBoundingClientRect();
+    const rect = preview.getBoundingClientRect();
+    const margin = 14;
+    const gap = 16;
+    let side = 'right';
+    let left = anchorRect.right + gap;
+    if (left + rect.width > innerWidth - margin) {
+      side = 'left';
+      left = anchorRect.left - rect.width - gap;
+    }
+    left = Math.max(margin, Math.min(left, innerWidth - rect.width - margin));
+    let top = anchorRect.top + (anchorRect.height - rect.height) / 2;
+    top = Math.max(margin, Math.min(top, innerHeight - rect.height - margin));
+    preview.dataset.side = side;
+    preview.style.left = `${Math.round(left)}px`;
+    preview.style.top = `${Math.round(top)}px`;
+  }
+
+  function showPreview(card, anchor = card) {
+    const anchorInGrid = Boolean(anchor?.closest?.('#albums-grid'));
+    if (!desktopPreviewQuery.matches || !card || (anchorInGrid && grid.dataset.albumView !== 'quilt')) return;
+    clearTimeout(state.previewTimer);
+    state.previewAnchor = anchor;
+    fillAlbumPanel(controls.preview, 'album-preview', cardInfo(card));
+    controls.preview.hidden = false;
+    requestAnimationFrame(() => {
+      positionPreview(anchor);
+      controls.preview.classList.add('is-visible');
+    });
+  }
+
+  function hidePreview(immediate = false) {
+    if (!controls.preview) return;
+    clearTimeout(state.previewTimer);
+    const hide = () => {
+      controls.preview.classList.remove('is-visible');
+      setTimeout(() => {
+        if (!controls.preview.classList.contains('is-visible')) controls.preview.hidden = true;
+      }, 130);
+      state.previewAnchor = null;
+    };
+    if (immediate) hide();
+    else state.previewTimer = setTimeout(hide, 150);
+  }
+
+  function openDetails(card, trigger = card) {
+    if (!card || !controls.dialog) return;
+    hidePreview(true);
+    state.dialogTrigger = trigger;
+    fillAlbumPanel(controls.dialog, 'album-dialog', cardInfo(card));
+    if (typeof controls.dialog.showModal === 'function' && !controls.dialog.open) controls.dialog.showModal();
+    else controls.dialog.setAttribute('open', '');
+  }
+
+  function closeDetails() {
+    if (!controls.dialog) return;
+    if (typeof controls.dialog.close === 'function' && controls.dialog.open) controls.dialog.close();
+    else controls.dialog.removeAttribute('open');
+  }
+
+  function cardByHref(href) {
+    const target = String(href || '').replace(/\/$/, '');
+    return cards.find((card) => String(card.dataset.href || card.href || '').replace(/\/$/, '') === target) || null;
+  }
+
+  function bindDetailTrigger(element, card) {
+    if (!element || !card || element.dataset.albumDetailsBound) return;
+    element.dataset.albumDetailsBound = 'true';
+    element.addEventListener('pointerenter', () => showPreview(card, element));
+    element.addEventListener('pointerleave', () => hidePreview(false));
+    element.addEventListener('focus', () => showPreview(card, element));
+    element.addEventListener('blur', () => hidePreview(false));
+    element.addEventListener('click', (event) => {
+      event.preventDefault();
+      openDetails(card, element);
+    });
+  }
+
+  function enhanceCountryAlbumLinks() {
+    $$('.albums-country-album', controls.countryPanel).forEach((link) => {
+      if (link.dataset.albumDetailsBound || link.closest('.albums-country-album-wrap')) return;
+      const card = cardByHref(link.getAttribute('href'));
+      if (!card) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'albums-country-album-wrap';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'albums-country-album';
+      while (link.firstChild) button.append(link.firstChild);
+      const source = document.createElement('a');
+      source.className = 'albums-country-source';
+      source.href = card.dataset.href || card.href || '#';
+      source.target = '_blank';
+      source.rel = 'noopener noreferrer';
+      source.textContent = '↗';
+      source.setAttribute('aria-label', `Open the original source for ${card.dataset.title} in a new tab`);
+      wrapper.append(button, source);
+      link.replaceWith(wrapper);
+      bindDetailTrigger(button, card);
+    });
+  }
 
   function populate(select, values, sorter = (a, b) => collator.compare(a, b)) {
     if (!select) return;
@@ -156,8 +353,9 @@ function boot() {
       || String(card.dataset.albumCountryIds || '').split(' ').includes(state.selectedMapCountryId);
   }
 
-  const getBaseCards = () => cards.filter(baseMatch);
-  const getVisibleCards = () => cards.filter((card) => baseMatch(card) && mapMatch(card));
+  const orderedCards = () => $$('.album-card', grid);
+  const getBaseCards = () => orderedCards().filter(baseMatch);
+  const getVisibleCards = () => orderedCards().filter((card) => baseMatch(card) && mapMatch(card));
   const activeCount = () => [
     controls.style,
     controls.subgenre,
@@ -166,6 +364,80 @@ function boot() {
     controls.year,
     controls.release,
   ].filter((control) => control?.value).length + Number(Boolean(state.selectedMapCountryId));
+
+  function selectionContext() {
+    if (state.activeView === 'map' && state.selectedMapCountryId) {
+      const heading = $('.albums-country-panel h3', controls.countryPanel)?.textContent?.trim() || 'Selected country';
+      return { title: `Albums from ${heading}`, kind: 'map' };
+    }
+    if (state.activeView === 'timeline') {
+      const mode = $('[data-timeline-mode][aria-pressed="true"]')?.dataset.timelineMode || 'release';
+      if (mode === 'listening' && controls.year?.value) {
+        return { title: `Albums listened to in ${controls.year.value}`, kind: 'year' };
+      }
+      if (mode === 'release' && controls.release?.value) {
+        return {
+          title: `Albums released in ${controls.release.selectedOptions[0]?.textContent || controls.release.value}`,
+          kind: 'release',
+        };
+      }
+    }
+    return null;
+  }
+
+  function renderSelectionShelf() {
+    const shelf = controls.selectionShelf;
+    const context = selectionContext();
+    if (!shelf || !controls.selectionGrid || !context) {
+      if (shelf) shelf.hidden = true;
+      return;
+    }
+
+    const visible = getVisibleCards();
+    const minutes = visible.reduce((sum, card) => sum + (num(card.dataset.lengthMinutes) || 0), 0);
+    controls.selectionTitle.textContent = context.title;
+    controls.selectionSummary.textContent = `${visible.length.toLocaleString('en-US')} ${visible.length === 1 ? 'album' : 'albums'} · ${formatRuntime(minutes)} of album runtime`;
+    controls.selectionGrid.replaceChildren();
+
+    visible.slice(0, 16).forEach((card) => {
+      const album = cardInfo(card);
+      const item = document.createElement('article');
+      item.className = 'albums-selection-card';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'albums-selection-main';
+      const image = document.createElement('img');
+      image.src = album.cover;
+      image.alt = '';
+      image.loading = 'lazy';
+      const copy = document.createElement('span');
+      const title = document.createElement('strong');
+      const artist = document.createElement('small');
+      title.textContent = album.title;
+      artist.textContent = album.artist;
+      copy.append(title, artist);
+      button.append(image, copy);
+      const source = document.createElement('a');
+      source.className = 'albums-selection-source';
+      source.href = album.href || '#';
+      source.target = '_blank';
+      source.rel = 'noopener noreferrer';
+      source.textContent = '↗';
+      source.setAttribute('aria-label', `Open the original source for ${album.title} in a new tab`);
+      item.append(button, source);
+      controls.selectionGrid.append(item);
+      bindDetailTrigger(button, card);
+    });
+
+    if (visible.length > 16) {
+      const more = document.createElement('p');
+      more.className = 'albums-selection-more';
+      more.textContent = `+ ${visible.length - 16} more albums match this selection`;
+      controls.selectionGrid.append(more);
+    }
+    controls.selectionClear.dataset.selectionKind = context.kind;
+    shelf.hidden = false;
+  }
 
   function updateResults() {
     const visible = getVisibleCards();
@@ -185,16 +457,21 @@ function boot() {
     }
     controls.filtersToggle?.classList.toggle('has-active-filters', count > 0);
     if (controls.clear) controls.clear.hidden = !(count || controls.search?.value.trim());
+    renderSelectionShelf();
   }
 
   async function refreshExplorer() {
-    if (state.activeView === 'map' && state.mapModule) await state.mapModule.renderAlbumMap(api);
+    if (state.activeView === 'map' && state.mapModule) {
+      await state.mapModule.renderAlbumMap(api);
+      enhanceCountryAlbumLinks();
+    }
     if (state.activeView === 'timeline' && state.timelineModule) state.timelineModule.renderAlbumTimeline(api);
+    renderSelectionShelf();
   }
 
   function applyFilters() {
     updateResults();
-    refreshExplorer();
+    void refreshExplorer();
   }
 
   function clearFilters() {
@@ -253,10 +530,11 @@ function boot() {
     explorer.hidden = true;
     controls.mapView.hidden = true;
     controls.timelineView.hidden = true;
+    controls.selectionShelf.hidden = true;
     grid.hidden = false;
     grid.dataset.albumView = view;
     press(view);
-    cards.forEach((card) => card.classList.remove('show-note'));
+    hidePreview(true);
 
     if (persist) {
       try {
@@ -271,6 +549,7 @@ function boot() {
   }
 
   async function showView(view) {
+    hidePreview(true);
     if (view === 'list' || view === 'quilt') {
       setCollectionView(view);
       return;
@@ -286,11 +565,12 @@ function boot() {
     if (view === 'map') {
       state.mapModule ??= await import(`./albums-map.js?v=${ASSET_VERSION}`);
       await state.mapModule.renderAlbumMap(api);
+      enhanceCountryAlbumLinks();
     } else {
       state.timelineModule ??= await import(`./albums-timeline.js?v=${ASSET_VERSION}`);
       state.timelineModule.renderAlbumTimeline(api);
     }
-
+    renderSelectionShelf();
     explorer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -321,10 +601,57 @@ function boot() {
     }));
   controls.sort?.addEventListener('change', sortCards);
   controls.clear?.addEventListener('click', clearFilters);
+  explorer.addEventListener('click', (event) => {
+    if (event.target.closest('[data-timeline-mode]')) setTimeout(renderSelectionShelf, 0);
+  });
+  controls.selectionClear?.addEventListener('click', () => {
+    const kind = controls.selectionClear.dataset.selectionKind;
+    if (kind === 'map') state.selectedMapCountryId = '';
+    else if (kind === 'year' && controls.year) controls.year.value = '';
+    else if (kind === 'release' && controls.release) controls.release.value = '';
+    applyFilters();
+  });
   buttons.forEach((button) => button.addEventListener('click', () => showView(button.dataset.albumView)));
   $$('[data-close-explorer]').forEach((button) => button.addEventListener('click', () => {
     setCollectionView(grid.dataset.albumView === 'list' ? 'list' : 'quilt');
   }));
+
+  grid.addEventListener('pointerover', (event) => {
+    if (grid.dataset.albumView !== 'quilt') return;
+    const card = event.target.closest('.album-card');
+    if (!card || event.target.closest('.album-source-link') || card.contains(event.relatedTarget)) return;
+    showPreview(card, card);
+  });
+  grid.addEventListener('pointerout', (event) => {
+    if (grid.dataset.albumView !== 'quilt') return;
+    const card = event.target.closest('.album-card');
+    if (card && !card.contains(event.relatedTarget)) hidePreview(false);
+  });
+  grid.addEventListener('focusin', (event) => {
+    const card = event.target.closest('.album-card');
+    if (grid.dataset.albumView === 'quilt' && card && !event.target.closest('.album-source-link')) showPreview(card, card);
+  });
+  grid.addEventListener('focusout', (event) => {
+    if (grid.dataset.albumView === 'quilt' && event.target.closest('.album-card')) hidePreview(false);
+  });
+  grid.addEventListener('click', (event) => {
+    if (event.target.closest('.album-source-link')) return;
+    const card = event.target.closest('.album-card');
+    if (!card) return;
+    openDetails(card, card);
+  });
+  controls.preview?.addEventListener('pointerenter', () => clearTimeout(state.previewTimer));
+  controls.preview?.addEventListener('pointerleave', () => hidePreview(false));
+  $('[data-album-dialog-close]', controls.dialog)?.addEventListener('click', closeDetails);
+  controls.dialog?.addEventListener('click', (event) => {
+    if (event.target === controls.dialog) closeDetails();
+  });
+  controls.dialog?.addEventListener('close', () => {
+    state.dialogTrigger?.focus?.({ preventScroll: true });
+    state.dialogTrigger = null;
+  });
+  addEventListener('resize', () => { if (state.previewAnchor) positionPreview(state.previewAnchor); });
+  addEventListener('scroll', () => { if (state.previewAnchor) positionPreview(state.previewAnchor); }, true);
 
   const surprise = $('#albums-surprise');
   const trigger = $('#albums-surprise-trigger');
@@ -343,6 +670,7 @@ function boot() {
     toastTimer = setTimeout(() => { toast.hidden = true; }, 3000);
   };
   const closeMenu = () => {
+    if (!menu || !trigger) return;
     menu.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
   };
@@ -354,8 +682,8 @@ function boot() {
       const card = random(current, state.last.album);
       if (!card) return say('No albums match the current filters.');
       state.last.album = card;
-      window.open(card.href, '_blank', 'noopener,noreferrer');
-      return say(`Opening: ${card.dataset.title}`);
+      openDetails(card, trigger);
+      return say(`Album details: ${card.dataset.title}`);
     }
 
     const field = action === 'country'
@@ -415,7 +743,7 @@ function boot() {
   $$('[data-surprise]', menu).forEach((button) => button.addEventListener('click', () => {
     closeMenu();
     trigger.focus();
-    surpriseRun(button.dataset.surprise);
+    void surpriseRun(button.dataset.surprise);
   }));
   document.addEventListener('click', (event) => {
     if (surprise && !surprise.contains(event.target)) closeMenu();
@@ -431,42 +759,12 @@ function boot() {
     infoButton.setAttribute('aria-pressed', String(open));
   });
 
-  function adjustBubble(bubble) {
-    if (!bubble) return;
-    bubble.style.setProperty('--shift', '0px');
-    const rect = bubble.getBoundingClientRect();
-    const margin = 8;
-    let shift = 0;
-    if (rect.left < margin) shift = margin - rect.left;
-    else if (rect.right > innerWidth - margin) shift = innerWidth - margin - rect.right;
-    if (shift) bubble.style.setProperty('--shift', `${shift}px`);
-  }
-
-  grid.addEventListener('mouseenter', (event) => {
-    requestAnimationFrame(() => adjustBubble(event.target.closest('.album-card')?.querySelector('.album-note-bubble')));
-  }, true);
-  grid.addEventListener('focusin', (event) => {
-    requestAnimationFrame(() => adjustBubble(event.target.closest('.album-card')?.querySelector('.album-note-bubble')));
-  });
-  document.addEventListener('click', (event) => {
-    const card = event.target.closest('.album-card');
-    if (!card) {
-      cards.forEach((item) => item.classList.remove('show-note'));
-      return;
-    }
-    if (!matchMedia('(max-width:900px)').matches || grid.dataset.albumView !== 'quilt' || card.classList.contains('show-note')) return;
-    event.preventDefault();
-    cards.forEach((item) => item.classList.remove('show-note'));
-    card.classList.add('show-note');
-    setTimeout(() => card.classList.remove('show-note'), 2500);
-  }, true);
-
   window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       closeMenu();
-      clearFilters();
-      if (state.activeView === 'map' || state.activeView === 'timeline') {
-        setCollectionView(grid.dataset.albumView === 'list' ? 'list' : 'quilt');
+      if (controls.filtersPanel && !controls.filtersPanel.hidden) {
+        controls.filtersPanel.hidden = true;
+        controls.filtersToggle?.setAttribute('aria-expanded', 'false');
       }
     } else if (event.key === '/' && event.target === document.body) {
       event.preventDefault();
@@ -484,6 +782,7 @@ function boot() {
     getVisibleCards,
     applyFilters,
     updateResults,
+    openDetails,
     setMapCountryId(id) {
       state.selectedMapCountryId = state.selectedMapCountryId === id ? '' : id;
       if (id && controls.country) controls.country.value = '';
