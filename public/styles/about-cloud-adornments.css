@@ -1,0 +1,100 @@
+/* About portrait memory adornments — staged after the thought cloud appears. */
+.speech-bubble .cloud-adornment {
+  --adornment-width: 30%;
+  --adornment-final-rotate: 0deg;
+  position: absolute;
+  z-index: 3;
+  width: var(--adornment-width);
+  max-width: 94px;
+  height: auto;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 4px 5px rgba(44, 31, 20, 0.24));
+  will-change: opacity, transform, filter;
+}
+
+.speech-bubble .cloud-adornment[data-corner='top-left'] {
+  top: -23%;
+  left: -8%;
+  transform-origin: 82% 88%;
+}
+
+.speech-bubble .cloud-adornment[data-corner='top-right'] {
+  top: -28%;
+  right: -10%;
+  transform-origin: 18% 88%;
+}
+
+.speech-bubble .cloud-adornment[data-corner='bottom-left'] {
+  bottom: -20%;
+  left: -7%;
+  transform-origin: 82% 12%;
+}
+
+.speech-bubble .cloud-adornment[data-corner='bottom-right'] {
+  right: -9%;
+  bottom: -18%;
+  transform-origin: 18% 12%;
+}
+
+.speech-bubble[data-adornment='grandmother'] p { padding-right: 2.35rem; }
+.speech-bubble[data-adornment='grandfather'] p { padding-left: 1.65rem; }
+.speech-bubble[data-adornment='dad'] p { padding-left: 1.7rem; }
+.speech-bubble[data-adornment='uncle'] p { padding-right: 2rem; }
+
+.speech-bubble[data-visible='1'] .cloud-adornment.is-revealing[data-animation='swing'] {
+  animation: cloud-adornment-swing 560ms cubic-bezier(0.18, 0.9, 0.3, 1.16) 500ms both;
+}
+.speech-bubble[data-visible='1'] .cloud-adornment.is-revealing[data-animation='tip'] {
+  animation: cloud-adornment-tip 540ms cubic-bezier(0.2, 0.85, 0.25, 1.12) 500ms both;
+}
+.speech-bubble[data-visible='1'] .cloud-adornment.is-revealing[data-animation='rise'] {
+  animation: cloud-adornment-rise 520ms cubic-bezier(0.18, 0.88, 0.3, 1.08) 500ms both;
+}
+.speech-bubble[data-visible='1'] .cloud-adornment.is-revealing[data-animation='drift'] {
+  animation: cloud-adornment-drift 560ms cubic-bezier(0.2, 0.86, 0.25, 1.08) 500ms both;
+}
+
+@keyframes cloud-adornment-swing {
+  0% { opacity:0; filter:blur(2px) drop-shadow(0 2px 3px rgba(44,31,20,.12)); transform:translate(12px,10px) rotate(18deg) scale(.42); }
+  64% { opacity:1; filter:blur(0) drop-shadow(0 5px 6px rgba(44,31,20,.25)); transform:translate(-2px,-2px) rotate(-3deg) scale(1.06); }
+  82% { transform:translate(1px,0) rotate(1deg) scale(.985); }
+  100% { opacity:.96; filter:blur(0) drop-shadow(0 4px 5px rgba(44,31,20,.24)); transform:translate(0,0) rotate(var(--adornment-final-rotate)) scale(1); }
+}
+@keyframes cloud-adornment-tip {
+  0% { opacity:0; filter:blur(1.6px) drop-shadow(0 2px 3px rgba(44,31,20,.12)); transform:perspective(220px) rotateY(68deg) rotate(-13deg) scale(.58); }
+  68% { opacity:1; transform:perspective(220px) rotateY(-5deg) rotate(3deg) scale(1.05); }
+  84% { transform:perspective(220px) rotateY(2deg) rotate(-1deg) scale(.99); }
+  100% { opacity:.96; filter:blur(0) drop-shadow(0 4px 5px rgba(44,31,20,.24)); transform:perspective(220px) rotateY(0) rotate(var(--adornment-final-rotate)) scale(1); }
+}
+@keyframes cloud-adornment-rise {
+  0% { opacity:0; filter:blur(2px) drop-shadow(0 2px 3px rgba(44,31,20,.1)); transform:translateY(22px) scale(.82,.72); }
+  68% { opacity:1; transform:translateY(-3px) scale(1.03,1.06); }
+  84% { transform:translateY(1px) scale(.995,.99); }
+  100% { opacity:.94; filter:blur(0) drop-shadow(0 4px 5px rgba(44,31,20,.22)); transform:translateY(0) scale(1); }
+}
+@keyframes cloud-adornment-drift {
+  0% { opacity:0; filter:blur(2px) drop-shadow(0 2px 3px rgba(44,31,20,.1)); transform:translate(12px,9px) rotate(6deg) scale(.82); }
+  70% { opacity:1; transform:translate(-2px,-1px) rotate(-1.5deg) scale(1.035); }
+  100% { opacity:.92; filter:blur(0) drop-shadow(0 4px 5px rgba(44,31,20,.2)); transform:translate(0,0) rotate(var(--adornment-final-rotate)) scale(1); }
+}
+
+@media (max-width:640px) {
+  .speech-bubble .cloud-adornment { max-width:66px; }
+  .speech-bubble[data-adornment] p { padding-left:0; padding-right:0; max-width:84%; }
+  .speech-bubble[data-adornment='grandmother'] p,
+  .speech-bubble[data-adornment='uncle'] p { margin-left:-7%; }
+  .speech-bubble[data-adornment='grandfather'] p,
+  .speech-bubble[data-adornment='dad'] p { margin-left:7%; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .speech-bubble[data-visible='1'] .cloud-adornment.is-revealing {
+    animation: cloud-adornment-fade 180ms ease 260ms both !important;
+  }
+  @keyframes cloud-adornment-fade {
+    from { opacity:0; }
+    to { opacity:.94; }
+  }
+}
