@@ -10,25 +10,24 @@ function bootBooksCalendarTuning(attempt = 0) {
   const monthSelect = calendar?.querySelector('[data-calendar-month]');
   const annualSummary = calendar?.querySelector('[data-calendar-rich-summary]');
   const preview = document.querySelector('.books-calendar-preview');
-  const sheet = document.querySelector('.books-calendar-book-sheet');
 
-  if ((!calendar || !grid || !monthSelect || !annualSummary || !preview || !sheet) && attempt < BOOKS_CALENDAR_TUNING_RETRIES) {
+  if ((!calendar || !grid || !monthSelect || !annualSummary || !preview) && attempt < BOOKS_CALENDAR_TUNING_RETRIES) {
     window.setTimeout(() => bootBooksCalendarTuning(attempt + 1), 80);
     return;
   }
-  if (!calendar || !grid || !monthSelect || !annualSummary || !preview || !sheet || calendar.dataset.tuningReady) return;
+  if (!calendar || !grid || !monthSelect || !annualSummary || !preview || calendar.dataset.tuningReady) return;
   calendar.dataset.tuningReady = 'true';
 
   const cards = Array.from(grid.querySelectorAll('.card'));
   const dailyApiUrl = document.querySelector('meta[name="lifeloggerz-daily-data-api"]')?.content || '';
   const yearRequests = new Map();
-  let activeBook = null;
   let renderTimer = 0;
   let annualWriteInProgress = false;
 
   const cleanTitle = (value) => String(value || '')
     .replace(/↗/g, '')
     .replace(/\s*\(?\s*opens in (?:a )?new tab\s*\)?/gi, '')
+    .replace(/\s*\(?\s*opens? book details\s*\)?/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -179,36 +178,31 @@ function bootBooksCalendarTuning(attempt = 0) {
     preview.style.top = `${Math.round(top)}px`;
   }
 
-  function polishPanels(book, anchor) {
-    activeBook = book;
+  /* This tuning layer owns only the desktop hover/focus preview. The shared book
+     details dialog is owned by the interaction that opened it. Keeping those
+     responsibilities separate prevents an old Calendar selection from rewriting
+     a later Quilt/Authors/Records selection. */
+  function polishPreview(book, anchor) {
     fillPanel(preview, 'rich-preview', book);
-    fillPanel(sheet, 'rich-sheet', book);
     if (!preview.hidden) requestAnimationFrame(() => positionPreview(anchor));
   }
 
-  function schedulePanelPolish(link) {
+  function schedulePreviewPolish(link) {
     const book = bookFromLink(link);
     if (!book) return;
     link.title = book.title;
     link.setAttribute('aria-label', `Open ${book.title} on Goodreads`);
-    window.setTimeout(() => polishPanels(book, link), 0);
-    window.setTimeout(() => polishPanels(book, link), 60);
+    window.setTimeout(() => polishPreview(book, link), 0);
+    window.setTimeout(() => polishPreview(book, link), 60);
   }
 
   calendar.addEventListener('pointerover', (event) => {
     const link = event.target.closest('.books-calendar-cover,.books-calendar-agenda-cover');
-    if (link) schedulePanelPolish(link);
+    if (link) schedulePreviewPolish(link);
   });
   calendar.addEventListener('focusin', (event) => {
     const link = event.target.closest('.books-calendar-cover,.books-calendar-agenda-cover');
-    if (link) schedulePanelPolish(link);
-  });
-  calendar.addEventListener('click', (event) => {
-    const link = event.target.closest('.books-calendar-cover,.books-calendar-agenda-cover');
-    if (link) schedulePanelPolish(link);
-  });
-  sheet.addEventListener('toggle', () => {
-    if (sheet.open && activeBook) window.setTimeout(() => fillPanel(sheet, 'rich-sheet', activeBook), 0);
+    if (link) schedulePreviewPolish(link);
   });
 
   const monthSection = document.createElement('section');

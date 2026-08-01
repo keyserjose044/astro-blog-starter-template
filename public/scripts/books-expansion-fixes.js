@@ -74,7 +74,7 @@
       return {
         card,
         href: card.getAttribute('href') || '#',
-        title: card.querySelector('.title')?.textContent?.replace(/↗|\s*\(?opens in (?:a )?new tab\)?/gi, '').trim() || 'Untitled',
+        title: card.querySelector('.title')?.textContent?.replace(/↗|\s*\(?opens in (?:a )?new tab\)?|\s*\(?opens? book details\)?/gi, '').trim() || 'Untitled',
         author: titleCaseName(card.dataset.author || parts[2] || ''),
         cover: card.querySelector('.thumb')?.getAttribute('src') || '',
         date: parseDate(card.dataset.dateFinished || parts[0]),
@@ -222,14 +222,6 @@
       empty.hidden = false;
     };
 
-    const refreshTimelineAfterCore = () => {
-      if (timelineView.hidden) return;
-      const active = timelineView.querySelector('[data-timeline-mode][aria-pressed="true"]');
-      if (!active) return;
-      active.setAttribute('aria-pressed', 'false');
-      window.setTimeout(() => active.setAttribute('aria-pressed', 'true'), 0);
-    };
-
     const refresh = () => {
       enableActivity();
       enhanceMonth();
@@ -237,21 +229,21 @@
       stabilizePublicationBottom();
     };
 
-    const schedule = (delay = 60, timeline = false) => {
+    /* Do not force Timeline mode buttons off/on to make downstream observers
+       rerender. That old workaround caused the reading heatmap and zoom content
+       to repeatedly tear down and rebuild while the user was scrolling. */
+    const schedule = (delay = 60) => {
       window.clearTimeout(refreshTimer);
-      refreshTimer = window.setTimeout(() => {
-        refresh();
-        if (timeline) window.setTimeout(() => { refreshTimelineAfterCore(); window.setTimeout(stabilizePublicationBottom, 80); }, 190);
-      }, delay);
+      refreshTimer = window.setTimeout(refresh, delay);
     };
 
     monthSelect.addEventListener('change', () => schedule(90));
     ['#q', '#genre-filter', '#year-filter', '#period-filter', '#language-filter', '#country-filter', '#clear-filters']
       .forEach((selector) => {
         const control = document.querySelector(selector);
-        control?.addEventListener('input', () => schedule(160, true));
-        control?.addEventListener('change', () => schedule(60, true));
-        control?.addEventListener('click', () => schedule(80, true));
+        control?.addEventListener('input', () => schedule(160));
+        control?.addEventListener('change', () => schedule(60));
+        control?.addEventListener('click', () => schedule(80));
       });
 
     const observer = new MutationObserver(() => schedule(70));
@@ -260,7 +252,7 @@
     observer.observe(timelineBottom, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
 
     document.addEventListener('click', (event) => {
-      if (event.target.closest('[data-timeline-mode], [data-reading-year], [data-reading-month], [data-country-rank-id], .books-map-country')) schedule(90, true);
+      if (event.target.closest('[data-timeline-mode], [data-reading-year], [data-reading-month], [data-country-rank-id], .books-map-country')) schedule(90);
     });
 
     refresh();
