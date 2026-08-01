@@ -6,16 +6,24 @@ function startBooksMobilePolish() {
   if (!grid || !viewToggle || document.body.dataset.booksMobilePolishReady) return;
   document.body.dataset.booksMobilePolishReady = 'true';
 
-  const mobileQuery = window.matchMedia('(max-width: 900px), (hover: none), (pointer: coarse)');
+  const layoutQuery = window.matchMedia('(max-width: 900px)');
+  const sheetQuery = window.matchMedia('(max-width: 760px), (hover: none), (pointer: coarse)');
   const cards = Array.from(grid.querySelectorAll('.card'));
 
-  /* The old Quilt interaction still adds `show-note` before the newer rich-sheet
-     handler runs. The note itself is hidden now, so remove the stale state and
-     leave the rich detail sheet as the one mobile interaction model. */
+  /* The old Quilt interaction still adds `show-note` at <=900px before the newer
+     rich-sheet handler runs. The note is hidden now, so remove that stale state.
+     At 761–900px with a fine pointer, where the rich sheet is not used, open the
+     original book directly instead of requiring an invisible first tap. */
   document.addEventListener('click', (event) => {
-    if (!mobileQuery.matches || grid.dataset.bookView !== 'quilt') return;
+    if (!layoutQuery.matches || grid.dataset.bookView !== 'quilt') return;
     const card = event.target.closest('.card');
     if (!card || !grid.contains(card)) return;
+
+    if (!sheetQuery.matches) {
+      const href = card.getAttribute('href');
+      if (href) window.open(href, '_blank', 'noopener,noreferrer');
+    }
+
     queueMicrotask(() => card.classList.remove('show-note'));
   }, true);
 
@@ -28,7 +36,7 @@ function startBooksMobilePolish() {
   }
 
   function syncCardSemantics() {
-    const mobileQuilt = mobileQuery.matches && grid.dataset.bookView === 'quilt';
+    const opensDetails = sheetQuery.matches && grid.dataset.bookView === 'quilt';
 
     cards.forEach((card) => {
       if (!card.dataset.mobilePolishOriginalTitle) {
@@ -36,7 +44,7 @@ function startBooksMobilePolish() {
       }
 
       const screenReaderCue = card.querySelector('.sr-only');
-      if (mobileQuilt) {
+      if (opensDetails) {
         card.setAttribute('title', `${cleanTitle(card)} — opens book details`);
         if (screenReaderCue) screenReaderCue.textContent = ' (opens book details)';
       } else {
@@ -63,7 +71,7 @@ function startBooksMobilePolish() {
   viewToggle.insertAdjacentElement('afterend', hint);
 
   function updateViewHint() {
-    if (!mobileQuery.matches) {
+    if (!layoutQuery.matches) {
       hint.hidden = true;
       return;
     }
@@ -73,7 +81,7 @@ function startBooksMobilePolish() {
   }
 
   function centerActiveView() {
-    if (!mobileQuery.matches) return;
+    if (!layoutQuery.matches) return;
     const active = viewToggle.querySelector('.view-button[aria-pressed="true"]');
     if (!active) return;
     active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -123,11 +131,13 @@ function startBooksMobilePolish() {
     window.setTimeout(updateViewHint, 120);
   };
 
-  if (typeof mobileQuery.addEventListener === 'function') {
-    mobileQuery.addEventListener('change', handleViewportChange);
-  } else {
-    mobileQuery.addListener(handleViewportChange);
-  }
+  [layoutQuery, sheetQuery].forEach((query) => {
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', handleViewportChange);
+    } else {
+      query.addListener(handleViewportChange);
+    }
+  });
 
   window.addEventListener('resize', handleViewportChange, { passive: true });
 
