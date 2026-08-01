@@ -1,0 +1,27 @@
+/* Mobile completion-calendar stack count. */
+@media (max-width: 900px) {
+  .books-calendar-day-covers.is-stack[data-count]::after {
+    content: attr(data-count);
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    display: grid;
+    min-width: 18px;
+    height: 18px;
+    place-items: center;
+    padding-inline: 3px;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #172a91;
+    color: #fff;
+    font-size: .5rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .books-calendar-day-covers.is-stack + .books-calendar-stack-toggle + .books-calendar-stack-overflow,
+  .books-calendar-day-covers.is-stack .books-calendar-stack-overflow {
+    display: none !important;
+  }
+}
