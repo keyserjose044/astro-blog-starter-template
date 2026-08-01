@@ -175,3 +175,105 @@
     margin-bottom: max(6px, env(safe-area-inset-bottom));
   }
 }
+
+@media (max-width: 559px) {
+  #grid.grid[data-book-view="quilt"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px 10px !important;
+  }
+}
+
+@media (min-width: 560px) and (max-width: 900px) {
+  #grid.grid[data-book-view="quilt"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 18px 12px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .filters-panel {
+    width: calc(100% - 20px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filters-panel .filter-field:last-child {
+    grid-column: auto;
+  }
+
+  .filter-field select {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  #grid.grid[data-book-view="list"] .card {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 6px 10px;
+    min-height: 154px;
+    padding: 9px;
+  }
+
+  #grid.grid[data-book-view="list"] .thumb {
+    width: 84px;
+    height: 126px;
+  }
+
+  #grid.grid[data-book-view="list"] .title {
+    font-size: 0.92rem;
+  }
+
+  #grid.grid[data-book-view="list"] .card-meta {
+    font-size: 0.75rem;
+  }
+
+  .books-calendar-controls {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+  }
+
+  .books-calendar-agenda-day {
+    grid-template-columns: 48px 84px minmax(0, 1fr);
+  }
+
+  .books-calendar-agenda-cover {
+    width: 31px;
+    flex-basis: 31px;
+  }
+
+  .books-calendar-book-sheet img {
+    width: min(190px, 56vw);
+    max-height: 38vh;
+  }
+
+  .books-record-burst-card button {
+    grid-template-columns: 96px minmax(0, 1fr);
+    min-height: 88px;
+  }
+
+  .books-record-milestone-track {
+    grid-auto-columns: minmax(156px, 82vw);
+  }
+}
+
+@media (max-width: 380px) {
+  .toolbar {
+    gap: 7px;
+  }
+
+  #filters-toggle,
+  #sort-books {
+    font-size: 0.8rem;
+  }
+
+  .view-toggle .view-button {
+    padding-inline: 11px;
+  }
+
+  .books-explorer,
+  .books-calendar {
+    padding-inline: 6px;
+  }
+
+  .books-explorer-shell,
+  .books-calendar-shell {
+    padding: 11px;
+  }
+}
