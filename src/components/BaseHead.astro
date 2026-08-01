@@ -22,7 +22,7 @@ const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/books');
 const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
-const booksAssetVersion = '20260731-2122';
+const booksAssetVersion = '20260731-2145';
 const albumsAssetVersion = '20260726-1535';
 const artAssetVersion = '20260727-1945';
 ---
@@ -55,6 +55,7 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-calendar-final-polish.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-views-expansion.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-view-visibility-fix.css?v=${booksAssetVersion}`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-records-redesign.css?v=${booksAssetVersion}`} /> : null}
 
 {isAlbumsPage ? <meta name="lifeloggerz-albums-assets" content={albumsAssetVersion} /> : null}
 {isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer.css?v=${albumsAssetVersion}`} /> : null}
@@ -104,6 +105,8 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-expansion-stability.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-views-expansion.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-expansion-fixes.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-records-redesign.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-records-stability.js?v=${booksAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
