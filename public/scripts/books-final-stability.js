@@ -205,18 +205,25 @@ function bootBooksFinalStability(attempt = 0) {
     }, 0);
   }
 
+  function comparableInsightMarkup(node) {
+    if (!node) return '';
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll('.books-timeline-zoom-proxy').forEach((proxy) => proxy.remove());
+    return clone.outerHTML;
+  }
+
   function stabilizeTimelineInsights() {
     cancelAnimationFrame(timelineStabilizeFrame);
     timelineStabilizeFrame = requestAnimationFrame(() => {
       const incoming = timelineContent.querySelector('[data-books-timeline-insights]:not([data-books-timeline-insights-placeholder])');
       if (incoming) {
         const current = insightsHost.querySelector('[data-books-timeline-insights]');
-        if (current && current.outerHTML === incoming.outerHTML) {
+        if (current && comparableInsightMarkup(current) === comparableInsightMarkup(incoming)) {
           incoming.remove();
         } else {
           insightsHost.replaceChildren(incoming);
+          nudgeTimelineProxy();
         }
-        nudgeTimelineProxy();
       }
       ensureTimelineMarker();
     });
