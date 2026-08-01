@@ -1,0 +1,419 @@
+/* Books page expansion: shared details, Authors, Reading Insights, and richer chronology. */
+
+.books-expansion-view[hidden],
+.books-explorer-bottom-list[hidden] {
+  display: none !important;
+}
+
+.books-calendar-activity-legend i[data-level="zero"],
+.books-calendar-activity-strip[data-level="zero"] { background: #e5e7eb !important; }
+.books-calendar-activity-legend i[data-level="low"],
+.books-calendar-activity-strip[data-level="low"] { background: #bbf7d0 !important; }
+.books-calendar-activity-legend i[data-level="medium"],
+.books-calendar-activity-strip[data-level="medium"] { background: #4ade80 !important; }
+.books-calendar-activity-legend i[data-level="high"],
+.books-calendar-activity-strip[data-level="high"] { background: #16a34a !important; }
+.books-calendar-activity-legend i[data-level="very-high"],
+.books-calendar-activity-strip[data-level="very-high"] { background: #166534 !important; }
+.books-calendar-mobile-activity-day[data-level="zero"] { background: #e5e7eb !important; color: #374151 !important; }
+.books-calendar-mobile-activity-day[data-level="low"] { background: #bbf7d0 !important; color: #14532d !important; }
+.books-calendar-mobile-activity-day[data-level="medium"] { background: #4ade80 !important; color: #052e16 !important; }
+.books-calendar-mobile-activity-day[data-level="high"] { background: #16a34a !important; color: #fff !important; }
+.books-calendar-mobile-activity-day[data-level="very-high"] { background: #166534 !important; color: #fff !important; }
+
+.books-calendar-month-books-summary {
+  max-width: 88ch;
+  margin: 5px 0 0;
+  color: var(--books-calendar-muted, #626a78);
+  font-size: .72rem;
+  line-height: 1.4;
+}
+.books-calendar-month-book-copy .books-calendar-month-book-genre {
+  color: #687080;
+  font-size: .66rem;
+  font-weight: 650;
+}
+.books-calendar-month-book-copy .books-calendar-month-book-date {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #f1f3f8;
+  color: #596170;
+  font-size: .62rem;
+  font-weight: 750;
+}
+.books-calendar-month-book-arrow {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 999px;
+}
+.books-calendar-month-book-arrow:hover { background: #eef1ff; }
+
+.books-authors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+.books-author-card {
+  overflow: hidden;
+  border: 1px solid var(--books-atlas-border, #e2e6ee);
+  border-radius: 15px;
+  background: rgba(255,255,255,.84);
+  text-align: left;
+}
+.books-author-card summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: 74px minmax(0,1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 11px 36px 11px 11px;
+  cursor: pointer;
+  list-style: none;
+}
+.books-author-card summary::-webkit-details-marker { display: none; }
+.books-author-card summary::after {
+  content: "+";
+  position: absolute;
+  right: 13px;
+  color: #6b7280;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.books-author-card[open] summary::after { content: "–"; }
+.books-author-card summary img {
+  width: 74px;
+  height: 104px;
+  object-fit: cover;
+  border: 1px solid #d9dde6;
+  border-radius: 8px;
+  background: #eef0f5;
+  box-shadow: 0 5px 14px rgba(15,23,42,.12);
+}
+.books-author-card h3 { margin: 0; color: #0e121b; font-size: .98rem; }
+.books-author-card p { margin: 4px 0 0; color: #626a78; font-size: .72rem; line-height: 1.35; }
+.books-author-works {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 8px;
+  padding: 0 11px 11px;
+}
+.books-author-work {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0e121b;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.books-author-work img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border: 1px solid #d9dde6;
+  border-radius: 7px;
+  background: #eef0f5;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.books-author-work:hover img,
+.books-author-work:focus-visible img { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(15,23,42,.15); }
+.books-author-work span {
+  display: -webkit-box;
+  margin-top: 4px;
+  overflow: hidden;
+  font-size: .64rem;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.books-insights-dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 13px;
+}
+.books-insight-panel {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #e2e6ee;
+  border-radius: 16px;
+  background: rgba(255,255,255,.82);
+  text-align: left;
+}
+.books-insight-panel--wide { grid-column: 1 / -1; }
+.books-insight-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.books-insight-heading p { margin: 0 0 2px; color: #263ebd; font-size: .66rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.books-insight-heading h3 { margin: 0; color: #0e121b; font-size: 1rem; }
+.books-insight-heading > span { color: #6b7280; font-size: .68rem; }
+.books-insight-years {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px,1fr));
+  gap: 10px;
+  align-items: end;
+  min-height: 190px;
+}
+.books-insight-year { display: grid; min-width: 0; grid-template-rows: auto 120px auto auto; gap: 4px; text-align: center; }
+.books-insight-year > strong { font-size: .8rem; }
+.books-insight-year > i { display: flex; align-items: end; justify-content: center; border-radius: 9px; background: #f1f3f8; overflow: hidden; }
+.books-insight-year > i b { display: block; width: 62%; min-height: 8px; border-radius: 7px 7px 0 0; background: #405cf5; }
+.books-insight-year span { color: #4b5563; font-size: .68rem; font-weight: 750; }
+.books-insight-year small { color: #7b8290; font-size: .6rem; }
+.books-insight-bars { display: grid; gap: 7px; }
+.books-insight-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 4px 9px;
+  align-items: center;
+}
+.books-insight-bar-row > span { overflow: hidden; color: #29303d; font-size: .73rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.books-insight-bar-row > strong { color: #626a78; font-size: .68rem; }
+.books-insight-bar-row > i { grid-column: 1 / -1; height: 7px; overflow: hidden; border-radius: 999px; background: #eceff5; }
+.books-insight-bar-row > i b { display: block; height: 100%; border-radius: inherit; background: #405cf5; }
+.books-insight-split,
+.books-insight-records { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+.books-insight-split h4,
+.books-insight-records h4 { margin: 0 0 8px; color: #4b5563; font-size: .73rem; }
+.books-insight-records > div { display: grid; gap: 7px; align-content: start; }
+.books-insight-record {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 42px minmax(0,1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 7px;
+  border: 1px solid #e2e6ee;
+  border-radius: 11px;
+  background: #fff;
+  color: #0e121b;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.books-insight-record img { width: 42px; height: 63px; object-fit: cover; border-radius: 5px; }
+.books-insight-record span { min-width: 0; }
+.books-insight-record strong,
+.books-insight-record small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.books-insight-record strong { font-size: .72rem; }
+.books-insight-record small { margin-top: 3px; color: #626a78; font-size: .62rem; }
+.books-insight-empty { color: #626a78; font-size: .72rem; }
+
+.books-timeline-zoom {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid #e2e6ee;
+  border-radius: 999px;
+  background: rgba(255,255,255,.82);
+}
+.books-timeline-zoom[hidden] { display: none !important; }
+.books-timeline-zoom button {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #626a78;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.books-timeline-zoom button[aria-pressed="true"] { background: #405cf5; color: #fff; }
+.books-timeline-cumulative {
+  display: grid;
+  grid-template-columns: 190px minmax(0,1fr);
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e2e6ee;
+  border-radius: 14px;
+  background: rgba(255,255,255,.76);
+}
+.books-timeline-cumulative strong,
+.books-timeline-cumulative span { display: block; }
+.books-timeline-cumulative strong { font-size: .82rem; }
+.books-timeline-cumulative span { margin-top: 3px; color: #626a78; font-size: .68rem; }
+.books-timeline-cumulative svg { width: 100%; height: 86px; overflow: visible; }
+.books-timeline-cumulative polyline { fill: none; stroke: #405cf5; stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.books-timeline-cumulative circle { fill: #405cf5; vector-effect: non-scaling-stroke; }
+.books-reading-years {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px,1fr));
+  gap: 11px;
+}
+.books-reading-year {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid #e2e6ee;
+  border-radius: 14px;
+  background: rgba(255,255,255,.82);
+  color: #0e121b;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.books-reading-year:hover,
+.books-reading-year.is-selected { border-color: rgba(64,92,245,.45); box-shadow: 0 10px 24px rgba(15,23,42,.09); }
+.books-reading-year > span strong,
+.books-reading-year > span small { display: block; }
+.books-reading-year > span strong { font-size: 1rem; }
+.books-reading-year > span small { margin-top: 2px; color: #626a78; font-size: .7rem; }
+.books-reading-year-covers { display: flex; align-items: center; justify-content: center; min-height: 88px; margin: 10px 0; }
+.books-reading-year-covers img { width: 48px; height: 72px; margin-left: -13px; object-fit: cover; border: 2px solid #fff; border-radius: 6px; box-shadow: 0 5px 12px rgba(15,23,42,.14); }
+.books-reading-year-covers img:first-child { margin-left: 0; }
+.books-reading-month-bars { display: flex; height: 56px; align-items: end; gap: 3px; margin-top: auto; }
+.books-reading-month-bars i { flex: 1; min-height: 5px; border-radius: 4px 4px 1px 1px; background: rgba(64,92,245,.45); }
+.books-reading-detail-heading {
+  display: grid;
+  grid-template-columns: 40px minmax(0,1fr) 40px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 13px;
+  text-align: center;
+}
+.books-reading-detail-heading button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e2e6ee;
+  border-radius: 11px;
+  background: #fff;
+  color: #263ebd;
+  font: inherit;
+  cursor: pointer;
+}
+.books-reading-detail-heading button:disabled { opacity: .35; cursor: default; }
+.books-reading-detail-heading p { margin: 0; color: #263ebd; font-size: .65rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.books-reading-detail-heading h3 { margin: 2px 0; font-size: 1.35rem; }
+.books-reading-detail-heading span { color: #626a78; font-size: .7rem; }
+.books-reading-month-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.books-reading-month {
+  min-width: 0;
+  min-height: 145px;
+  padding: 10px;
+  border: 1px solid #e2e6ee;
+  border-radius: 13px;
+  background: rgba(255,255,255,.82);
+  color: #0e121b;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.books-reading-month:disabled { opacity: .48; cursor: default; }
+.books-reading-month.is-selected { border-color: #405cf5; background: #f3f5ff; }
+.books-reading-month > span strong,
+.books-reading-month > span small { display: block; }
+.books-reading-month > span strong { font-size: .8rem; }
+.books-reading-month > span small { margin-top: 2px; color: #626a78; font-size: .65rem; }
+.books-reading-month > div { display: flex; min-height: 72px; align-items: end; justify-content: center; margin-top: 9px; }
+.books-reading-month img { width: 39px; height: 59px; margin-left: -11px; object-fit: cover; border: 2px solid #fff; border-radius: 5px; }
+.books-reading-month img:first-child { margin-left: 0; }
+.books-reading-month b { align-self: center; margin-left: 5px; color: #263ebd; font-size: .65rem; }
+
+.books-explorer-bottom-list {
+  width: min(1600px, calc(100% - clamp(24px,6vw,96px)));
+  margin: 30px auto 0;
+  padding: clamp(16px,2vw,24px);
+  border: 1px solid #e2e6ee;
+  border-radius: 22px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 14px 38px rgba(15,23,42,.07);
+  color: #0e121b;
+  color-scheme: light;
+}
+.books-explorer-bottom-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 14px;
+}
+.books-explorer-bottom-heading p { margin: 0 0 3px; color: #263ebd; font-size: .67rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.books-explorer-bottom-heading h2 { margin: 0; font-size: clamp(1.1rem,2vw,1.45rem); }
+.books-explorer-bottom-heading span { display: block; margin-top: 4px; color: #626a78; font-size: .69rem; }
+.books-explorer-bottom-heading > strong { padding: 5px 9px; border: 1px solid rgba(64,92,245,.2); border-radius: 999px; background: #eef1ff; color: #263ebd; font-size: .69rem; }
+.books-explorer-bottom-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.books-explorer-bottom-book {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0,1fr) 30px;
+  align-items: center;
+  border: 1px solid #e2e6ee;
+  border-radius: 13px;
+  background: #fff;
+  overflow: hidden;
+}
+.books-explorer-bottom-main {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 54px minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.books-explorer-bottom-main img { width: 54px; height: 81px; object-fit: cover; border-radius: 6px; }
+.books-explorer-bottom-main span { min-width: 0; }
+.books-explorer-bottom-main strong,
+.books-explorer-bottom-main small,
+.books-explorer-bottom-main em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.books-explorer-bottom-main strong { font-size: .78rem; }
+.books-explorer-bottom-main small { margin-top: 3px; color: #555d6b; font-size: .68rem; font-style: normal; font-weight: 700; }
+.books-explorer-bottom-main em { margin-top: 4px; color: #747c89; font-size: .6rem; font-style: normal; }
+.books-explorer-bottom-book > a { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 999px; color: #263ebd; text-decoration: none; }
+.books-explorer-bottom-book > a:hover { background: #eef1ff; }
+.books-explorer-bottom-empty { margin: 0; padding: 22px; border: 1px dashed #d7dce5; border-radius: 13px; color: #626a78; text-align: center; font-size: .78rem; }
+.books-explorer-bottom-empty[hidden] { display: none; }
+
+.grid[data-book-view="quilt"] .note-bubble { display: none !important; }
+
+@media (max-width: 1200px) {
+  .books-explorer-bottom-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .books-reading-month-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+@media (max-width: 900px) {
+  .books-insights-dashboard { grid-template-columns: 1fr; }
+  .books-insight-panel--wide { grid-column: auto; }
+  .books-explorer-bottom-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .books-reading-month-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .books-timeline-cumulative { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .books-authors-grid { grid-template-columns: 1fr; }
+  .books-author-works { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .books-insight-split,
+  .books-insight-records { grid-template-columns: 1fr; }
+  .books-insight-years { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .books-explorer-bottom-list { width: calc(100% - 20px); margin-top: 20px; padding: 13px; border-radius: 17px; }
+  .books-explorer-bottom-grid { grid-template-columns: 1fr; }
+  .books-reading-month-grid { grid-template-columns: 1fr 1fr; }
+  .books-calendar-month-books-summary { font-size: .66rem; }
+}
+@media (max-width: 480px) {
+  .books-author-works { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .books-insight-years { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .books-reading-month-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .books-author-work img,
+  .books-reading-year,
+  .books-calendar-month-book { transition: none !important; }
+}
