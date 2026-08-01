@@ -19,9 +19,11 @@ const absoluteImageURL = new URL(image, Astro.site);
 // For reliable favicon paths on GitHub Pages or subpaths
 const base = import.meta.env.BASE_URL || '/';
 const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isAboutPage = normalizedPath === '/about' || normalizedPath.endsWith('/about');
 const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/books');
 const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
+const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260801-1342';
 const albumsAssetVersion = '20260726-1535';
 const artAssetVersion = '20260727-1945';
@@ -42,6 +44,9 @@ const artAssetVersion = '20260727-1945';
 <!-- Preload the font files that actually exist in /public/fonts -->
 <link rel="preload" href={`${base}fonts/atkinson-regular.woff`} as="font" type="font/woff" crossorigin />
 <link rel="preload" href={`${base}fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
+
+{isAboutPage ? <meta name="lifeloggerz-about-assets" content={aboutAssetVersion} /> : null}
+{isAboutPage ? <link rel="stylesheet" href={`${base}styles/about-cloud-adornments.css?v=${aboutAssetVersion}`} /> : null}
 
 {isBooksPage ? <meta name="lifeloggerz-books-assets" content={booksAssetVersion} /> : null}
 {isBooksPage ? <meta name="lifeloggerz-daily-data-api" content={DAILY_DATA_API_URL} /> : null}
@@ -99,6 +104,7 @@ const artAssetVersion = '20260727-1945';
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={absoluteImageURL.toString()} />
 
+{isAboutPage ? <script is:inline type="module" src={`${base}scripts/about-cloud-adornments.js?v=${aboutAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
