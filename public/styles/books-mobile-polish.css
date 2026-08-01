@@ -1,0 +1,356 @@
+/* Books mobile QA fixes — August 1, 2026.
+ * Loaded last so page-specific responsive rules win over legacy global helpers.
+ */
+
+@media (max-width: 900px) {
+  /* The global mobile `.grid { ... !important }` helper collapses Quilt to one column.
+     Reassert the Books collection layout with higher specificity and !important. */
+  #grid.grid[data-book-view="quilt"] {
+    justify-items: stretch !important;
+  }
+
+  #grid.grid[data-book-view="list"] {
+    grid-auto-rows: auto;
+    justify-items: stretch !important;
+  }
+
+  #grid.grid[data-book-view="list"] .card {
+    height: auto;
+    min-height: 176px;
+    overflow: visible;
+  }
+
+  #grid.grid[data-book-view="list"] .card-meta span {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  /* Give the toolbar three intentional rows instead of letting injected controls
+     auto-place themselves into whatever grid cells remain. */
+  .toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .toolbar input[type="search"] {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 44px;
+    font-size: 0.94rem;
+  }
+
+  #filters-toggle {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 44px;
+  }
+
+  #sort-books {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    min-height: 44px;
+    font-size: 0.86rem;
+  }
+
+  .books-surprise {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: center;
+    order: initial;
+  }
+
+  #info-toggle {
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: center;
+  }
+
+  .toolbar > a.info-toggle {
+    grid-column: 3;
+    grid-row: 3;
+    justify-self: center;
+  }
+
+  .info-toggle,
+  .books-surprise-trigger {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  /* Surprise becomes an icon control throughout the mobile layout so the third
+     toolbar row remains balanced at tablet as well as phone widths. */
+  .books-surprise-trigger {
+    justify-content: center;
+    padding-inline: 0;
+    border-radius: 999px;
+  }
+
+  .books-surprise-trigger > span:nth-child(2),
+  .books-surprise-chevron {
+    display: none;
+  }
+
+  /* Seven views cannot fit in a phone-width pill. Make the strip deliberately
+     swipeable and keep every target comfortably tappable. */
+  .view-toggle {
+    max-width: calc(100vw - 20px);
+    min-height: 50px;
+    padding: 3px 20px 3px 3px;
+    scroll-padding-inline: 12px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    box-shadow:
+      inset -18px 0 18px -18px rgba(36, 51, 120, 0.55),
+      0 6px 16px rgba(15, 23, 42, 0.06);
+  }
+
+  .view-toggle .view-button {
+    min-height: 44px;
+    padding: 8px 13px;
+    font-size: 0.84rem;
+    scroll-snap-align: center;
+  }
+
+  .books-mobile-view-hint {
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    margin: -8px auto 11px;
+    color: #747c8b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    transition: opacity 160ms ease;
+  }
+
+  .books-mobile-view-hint[hidden] {
+    display: none !important;
+  }
+
+  .books-mobile-view-hint.is-used {
+    opacity: 0.45;
+  }
+
+  /* Common alternate-view touch targets. */
+  .books-explorer-close,
+  .books-calendar-close,
+  .books-calendar-dialog-close,
+  .books-calendar-book-sheet-close,
+  .books-reading-detail-heading button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .books-country-rank-button,
+  .books-timeline-mode button,
+  .books-calendar-nav,
+  .books-calendar-latest,
+  .books-calendar-picker select,
+  .books-calendar-activity-toggle {
+    min-height: 44px;
+  }
+
+  .books-record-external,
+  .books-explorer-bottom-book > a,
+  .books-calendar-month-book-arrow {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .books-timeline-viewport,
+  .books-record-milestone-track {
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .books-timeline-stop,
+  .books-record-milestone {
+    scroll-snap-align: start;
+  }
+
+  .books-timeline-viewport {
+    box-shadow: inset -18px 0 18px -20px rgba(36, 51, 120, 0.45);
+  }
+
+  /* Phone-sized copy should read like a mobile interface, not a miniaturized dashboard. */
+  .books-country-rank-name,
+  .books-record-book-copy strong,
+  .books-record-burst-card strong,
+  .books-record-author-card strong,
+  .books-explorer-bottom-main strong {
+    font-size: 0.78rem;
+  }
+
+  .books-country-rank-count,
+  .books-country-panel-subtitle,
+  .books-record-book-copy small,
+  .books-record-burst-card em,
+  .books-record-author-card span,
+  .books-explorer-bottom-main small {
+    font-size: 0.7rem;
+  }
+
+  .books-record-book-copy em,
+  .books-record-author-card em,
+  .books-record-section-heading > span,
+  .books-explorer-bottom-main em {
+    font-size: 0.68rem;
+  }
+
+  .books-author-work span {
+    font-size: 0.72rem;
+    line-height: 1.28;
+  }
+
+  .books-author-card p {
+    font-size: 0.76rem;
+  }
+
+  .books-calendar-summary,
+  .books-calendar-activity-status {
+    font-size: 0.7rem;
+  }
+
+  .books-calendar-mobile-weekdays span {
+    font-size: 0.64rem;
+  }
+
+  .books-calendar-mobile-activity-day {
+    font-size: 0.7rem;
+  }
+
+  .books-calendar-agenda-copy strong {
+    font-size: 0.82rem;
+  }
+
+  .books-calendar-agenda-copy span {
+    font-size: 0.72rem;
+  }
+
+  /* Respect iPhone home-indicator space for bottom-positioned surfaces. */
+  .books-surprise-menu {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .books-surprise-toast {
+    bottom: max(18px, env(safe-area-inset-bottom));
+  }
+
+  .books-calendar-book-sheet {
+    margin-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 559px) {
+  #grid.grid[data-book-view="quilt"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px 10px !important;
+  }
+}
+
+@media (min-width: 560px) and (max-width: 900px) {
+  #grid.grid[data-book-view="quilt"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 18px 12px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .filters-panel {
+    width: calc(100% - 20px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filters-panel .filter-field:last-child {
+    grid-column: auto;
+  }
+
+  .filter-field select {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  #grid.grid[data-book-view="list"] .card {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 6px 10px;
+    min-height: 154px;
+    padding: 9px;
+  }
+
+  #grid.grid[data-book-view="list"] .thumb {
+    width: 84px;
+    height: 126px;
+  }
+
+  #grid.grid[data-book-view="list"] .title {
+    font-size: 0.92rem;
+  }
+
+  #grid.grid[data-book-view="list"] .card-meta {
+    font-size: 0.75rem;
+  }
+
+  .books-calendar-controls {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+  }
+
+  .books-calendar-agenda-day {
+    grid-template-columns: 48px 84px minmax(0, 1fr);
+  }
+
+  .books-calendar-agenda-cover {
+    width: 31px;
+    flex-basis: 31px;
+  }
+
+  .books-calendar-book-sheet img {
+    width: min(190px, 56vw);
+    max-height: 38vh;
+  }
+
+  .books-record-burst-card button {
+    grid-template-columns: 96px minmax(0, 1fr);
+    min-height: 88px;
+  }
+
+  .books-record-milestone-track {
+    grid-auto-columns: minmax(156px, 82vw);
+  }
+}
+
+@media (max-width: 380px) {
+  .toolbar {
+    gap: 7px;
+  }
+
+  #filters-toggle,
+  #sort-books {
+    font-size: 0.8rem;
+  }
+
+  .view-toggle .view-button {
+    padding-inline: 11px;
+  }
+
+  .books-explorer,
+  .books-calendar {
+    padding-inline: 6px;
+  }
+
+  .books-explorer-shell,
+  .books-calendar-shell {
+    padding: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .books-mobile-view-hint {
+    transition: none !important;
+  }
+}
