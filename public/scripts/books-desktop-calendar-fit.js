@@ -36,10 +36,10 @@ function bootBooksDesktopCalendarFit(attempt = 0) {
     const rect = cell.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
 
-    /* The cover region starts below the date badge and keeps breathing room at
-       the bottom/sides. The resulting dimensions are always a complete 2:3 cover. */
-    const availableWidth = Math.max(24, rect.width - 20);
-    const availableHeight = Math.max(36, rect.height - 50);
+    /* Cover box = cell minus the 36px date/header zone and 8px bottom inset.
+       Dimensions stay 2:3, so the artwork is always completely visible. */
+    const availableWidth = Math.max(24, rect.width - 16);
+    const availableHeight = Math.max(36, rect.height - 44);
 
     const singleHeight = Math.floor(Math.min(
       148,
@@ -48,11 +48,11 @@ function bootBooksDesktopCalendarFit(attempt = 0) {
     ));
     const singleWidth = Math.floor(singleHeight * (2 / 3));
 
-    /* Stacks need lateral room to fan out, so each individual cover is narrower
-       than a single-book cover while remaining fully visible in the row. */
+    /* A stacked cover is intentionally narrower so the existing fan-out stays
+       inside the same cell instead of turning into a full-size overlapping card. */
     const stackHeight = Math.floor(Math.min(
-      108,
-      availableHeight - 2,
+      99,
+      availableHeight,
       availableWidth * 1.5 * 0.46,
     ));
     const stackWidth = Math.floor(stackHeight * (2 / 3));
