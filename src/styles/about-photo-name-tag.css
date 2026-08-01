@@ -1,0 +1,8 @@
+.person-name-tag{--label-shift-x:0px;--label-shift-y:0px;position:absolute;z-index:6;min-width:max-content;max-width:160px;padding:.34rem .62rem;border:1px solid rgba(126,106,84,.46);border-radius:999px;background:linear-gradient(180deg,#fffaf1 0%,#f2e6d5 100%);color:#3a3027;box-shadow:0 5px 12px rgba(35,25,16,.18),inset 0 1px 0 rgba(255,255,255,.72);font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;font-size:.72rem;font-weight:600;letter-spacing:.025em;line-height:1;white-space:nowrap;opacity:0;pointer-events:none;transform:translate(calc(-50% + var(--label-shift-x)),calc(12px + var(--label-shift-y))) translateY(-2px) scale(.96);transform-origin:center top;transition:opacity 150ms ease,transform 190ms cubic-bezier(.2,.82,.2,1);filter:drop-shadow(0 1px 0 rgba(255,255,255,.52))}
+.person-name-tag::before{content:"";position:absolute;left:50%;top:-4px;width:7px;height:7px;background:#fff8ed;border-left:1px solid rgba(126,106,84,.4);border-top:1px solid rgba(126,106,84,.4);transform:translateX(-50%) rotate(45deg)}
+.person-name-tag[data-visible='1']{opacity:.97;transform:translate(calc(-50% + var(--label-shift-x)),calc(12px + var(--label-shift-y))) translateY(0) scale(1)}
+.speech-bubble[data-size='older-brother'] .cloud-adornment{width:53%}
+.speech-bubble[data-size='older-brother'] p{padding-right:2.55rem}
+@media(max-width:640px){.speech-bubble[data-size='older-brother'] .cloud-adornment{width:53%}.speech-bubble[data-size='older-brother'] p{padding-right:1.35rem}}
+@media(hover:none),(pointer:coarse){.person-name-tag{display:none}}
+@media(prefers-reduced-motion:reduce){.person-name-tag{transition:none}}
