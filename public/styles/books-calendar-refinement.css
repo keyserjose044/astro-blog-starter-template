@@ -1,0 +1,5 @@
+/* Small follow-up refinements for the public Books completion calendar. */
+
+.books-calendar-day-covers.is-stack {
+  bottom: 26px;
+}
