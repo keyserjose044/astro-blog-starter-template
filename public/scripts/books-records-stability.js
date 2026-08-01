@@ -16,9 +16,9 @@
 
     let timer = 0;
     const restoreRecords = () => {
+      window.clearTimeout(timer);
       if (view.hidden || button.getAttribute('aria-pressed') !== 'true') return;
       if (!content.querySelector('.books-insight-panel') && content.classList.contains('books-records-dashboard')) return;
-      window.clearTimeout(timer);
       timer = window.setTimeout(() => button.click(), 0);
     };
 
