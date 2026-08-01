@@ -9,6 +9,30 @@ function startBooksMobilePolish() {
   const layoutQuery = window.matchMedia('(max-width: 900px)');
   const sheetQuery = window.matchMedia('(max-width: 760px), (hover: none), (pointer: coarse)');
   const cards = Array.from(grid.querySelectorAll('.card'));
+  const particles = new Set(['da', 'das', 'de', 'del', 'della', 'di', 'dos', 'du', 'la', 'le', 'van', 'von', 'y', 'e', 'of', 'the']);
+
+  function titleCaseName(value) {
+    const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+    return words.map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index > 0 && index < words.length - 1 && particles.has(lower)) return lower;
+      return word.split(/([-’'])/).map((piece) => {
+        if (piece === '-' || piece === '’' || piece === "'") return piece;
+        if (/^(?:[a-z]\.){2,}$/i.test(piece)) return piece.toUpperCase();
+        if (/^[a-z]$/i.test(piece)) return piece.toUpperCase();
+        return piece ? piece.charAt(0).toUpperCase() + piece.slice(1).toLowerCase() : piece;
+      }).join('');
+    }).join(' ');
+  }
+
+  /* The filter dataset was intentionally lower-cased. Recover the author's
+     original display casing from the structured note when it is available;
+     only fall back to title-casing the normalized dataset. */
+  cards.forEach((card) => {
+    const noteAuthor = String(card.dataset.noteRaw || '').split('·')[2]?.trim() || '';
+    if (noteAuthor) card.dataset.author = noteAuthor;
+    else if (card.dataset.author) card.dataset.author = titleCaseName(card.dataset.author);
+  });
 
   /* The old Quilt interaction still adds `show-note` at <=900px before the newer
      rich-sheet handler runs. The note is hidden now, so remove that stale state.
@@ -31,6 +55,7 @@ function startBooksMobilePolish() {
     return card.querySelector('.title')?.textContent
       ?.replace(/↗/g, '')
       .replace(/\s*\(?\s*opens in (?:a )?new tab\s*\)?/gi, '')
+      .replace(/\s*\(?\s*opens? book details\s*\)?/gi, '')
       .replace(/\s+/g, ' ')
       .trim() || 'Book';
   }
@@ -43,13 +68,16 @@ function startBooksMobilePolish() {
         card.dataset.mobilePolishOriginalTitle = card.getAttribute('title') || `${cleanTitle(card)} — opens in a new tab`;
       }
 
+      const title = cleanTitle(card);
       const screenReaderCue = card.querySelector('.sr-only');
+      if (screenReaderCue) screenReaderCue.remove();
+
       if (opensDetails) {
-        card.setAttribute('title', `${cleanTitle(card)} — opens book details`);
-        if (screenReaderCue) screenReaderCue.textContent = ' (opens book details)';
+        card.setAttribute('title', `${title} — open book details`);
+        card.setAttribute('aria-label', `${title} — open book details`);
       } else {
         card.setAttribute('title', card.dataset.mobilePolishOriginalTitle);
-        if (screenReaderCue) screenReaderCue.textContent = ' (opens in a new tab)';
+        card.setAttribute('aria-label', `${title} — open Goodreads in a new tab`);
       }
     });
   }
@@ -81,7 +109,7 @@ function startBooksMobilePolish() {
   }
 
   function centerActiveView() {
-    if (!layoutQuery.matches) return;
+    if (!layoutQuery.matches || viewToggle.scrollWidth <= viewToggle.clientWidth + 4) return;
     const active = viewToggle.querySelector('.view-button[aria-pressed="true"]');
     if (!active) return;
     active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
