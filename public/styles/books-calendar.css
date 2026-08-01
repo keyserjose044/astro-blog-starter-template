@@ -1,0 +1,808 @@
+/* LifeLoggerz Books completion calendar — July 31, 2026 */
+
+:root {
+  --books-calendar-accent: #405cf5;
+  --books-calendar-accent-dark: #263ebd;
+  --books-calendar-accent-soft: #eef1ff;
+  --books-calendar-ink: #0e121b;
+  --books-calendar-muted: #626a78;
+  --books-calendar-border: #e2e6ee;
+  --books-calendar-panel: rgba(255, 255, 255, 0.94);
+  --books-calendar-panel-solid: #ffffff;
+  --books-calendar-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+}
+
+.books-calendar[hidden] {
+  display: none !important;
+}
+
+.books-calendar {
+  width: 100%;
+  padding-inline: clamp(12px, 3vw, 48px);
+  animation: booksCalendarReveal 220ms ease-out;
+}
+
+@keyframes booksCalendarReveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.books-calendar-shell {
+  width: min(1600px, 100%);
+  margin-inline: auto;
+  padding: clamp(14px, 2vw, 24px);
+  border: 1px solid rgba(226, 230, 238, 0.98);
+  border-radius: 24px;
+  background: var(--books-calendar-panel);
+  box-shadow: var(--books-calendar-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.books-calendar-heading,
+.books-calendar-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.books-calendar-heading {
+  margin-bottom: 16px;
+}
+
+.books-calendar-eyebrow {
+  margin: 0 0 4px;
+  color: var(--books-calendar-accent-dark);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.books-calendar-title,
+.books-calendar-dialog h2 {
+  margin: 0;
+  color: var(--books-calendar-ink);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.books-calendar-description {
+  max-width: 72ch;
+  margin: 6px 0 0;
+  color: var(--books-calendar-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.books-calendar-close,
+.books-calendar-dialog-close {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--books-calendar-border);
+  border-radius: 999px;
+  background: var(--books-calendar-panel-solid);
+  color: var(--books-calendar-muted);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.books-calendar-close:hover,
+.books-calendar-dialog-close:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 92, 245, 0.42);
+  color: var(--books-calendar-accent-dark);
+}
+
+.books-calendar button:focus-visible,
+.books-calendar select:focus-visible,
+.books-calendar a:focus-visible,
+.books-calendar-dialog button:focus-visible,
+.books-calendar-dialog a:focus-visible {
+  outline: 2px solid var(--books-calendar-accent);
+  outline-offset: 2px;
+}
+
+.books-calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.books-calendar-nav,
+.books-calendar-latest {
+  min-height: 38px;
+  border: 1px solid var(--books-calendar-border);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--books-calendar-ink);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.books-calendar-nav {
+  width: 40px;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.books-calendar-latest {
+  padding: 8px 12px;
+  color: var(--books-calendar-accent-dark);
+  font-size: 0.78rem;
+}
+
+.books-calendar-nav:hover,
+.books-calendar-latest:hover {
+  border-color: rgba(64, 92, 245, 0.38);
+  background: var(--books-calendar-accent-soft);
+}
+
+.books-calendar-nav:disabled,
+.books-calendar-latest:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.books-calendar-picker select {
+  min-width: 180px;
+  min-height: 38px;
+  padding: 7px 34px 7px 12px;
+  border: 1px solid var(--books-calendar-border);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--books-calendar-ink);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+.books-calendar-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.books-calendar-metrics > div {
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--books-calendar-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.books-calendar-metrics span {
+  display: block;
+  color: var(--books-calendar-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.books-calendar-metrics strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--books-calendar-ink);
+  font-size: clamp(1rem, 2vw, 1.32rem);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-calendar-weekdays,
+.books-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.books-calendar-weekdays {
+  border: 1px solid var(--books-calendar-border);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: rgba(247, 248, 252, 0.9);
+}
+
+.books-calendar-weekdays span {
+  padding: 9px 6px;
+  color: var(--books-calendar-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.books-calendar-grid {
+  overflow: hidden;
+  border-top: 1px solid var(--books-calendar-border);
+  border-left: 1px solid var(--books-calendar-border);
+  border-radius: 0 0 16px 16px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.books-calendar-day {
+  position: relative;
+  min-width: 0;
+  min-height: clamp(122px, 10vw, 178px);
+  padding: 8px;
+  border-right: 1px solid var(--books-calendar-border);
+  border-bottom: 1px solid var(--books-calendar-border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.books-calendar-day--blank {
+  background: rgba(244, 246, 250, 0.62);
+}
+
+.books-calendar-day[data-has-books="true"] {
+  background:
+    linear-gradient(180deg, rgba(238, 241, 255, 0.86), rgba(255, 255, 255, 0.84) 36%),
+    rgba(255, 255, 255, 0.8);
+}
+
+.books-calendar-day-number {
+  display: inline-flex;
+  min-width: 27px;
+  height: 27px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--books-calendar-muted);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+button.books-calendar-day-number {
+  background: var(--books-calendar-accent);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.books-calendar-day-covers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 7px;
+  align-items: end;
+}
+
+.books-calendar-cover,
+.books-calendar-agenda-cover {
+  display: block;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.books-calendar-cover img,
+.books-calendar-agenda-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border: 1px solid rgba(214, 218, 228, 0.98);
+  border-radius: 5px;
+  background: #eef0f5;
+  box-shadow: 0 4px 9px rgba(15, 23, 42, 0.13);
+  transition: transform 130ms ease, box-shadow 130ms ease;
+}
+
+.books-calendar-cover:hover img,
+.books-calendar-agenda-cover:hover img {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 14px rgba(15, 23, 42, 0.18);
+}
+
+.books-calendar-more {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  place-items: center;
+  border: 1px dashed rgba(64, 92, 245, 0.42);
+  border-radius: 5px;
+  background: var(--books-calendar-accent-soft);
+  color: var(--books-calendar-accent-dark);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.books-calendar-day-count {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  color: var(--books-calendar-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.books-calendar-agenda {
+  display: none;
+}
+
+.books-calendar-empty {
+  margin: 14px 0 0;
+  padding: 18px;
+  border: 1px dashed var(--books-calendar-border);
+  border-radius: 14px;
+  color: var(--books-calendar-muted);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.books-calendar-empty[hidden] {
+  display: none;
+}
+
+.books-calendar-dialog {
+  width: min(650px, calc(100vw - 28px));
+  max-height: min(82vh, 760px);
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--books-calendar-border);
+  border-radius: 22px;
+  background: var(--books-calendar-panel-solid);
+  color: var(--books-calendar-ink);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.26);
+}
+
+.books-calendar-dialog::backdrop {
+  background: rgba(13, 18, 31, 0.56);
+  backdrop-filter: blur(3px);
+}
+
+.books-calendar-dialog-shell {
+  max-height: min(82vh, 760px);
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.books-calendar-dialog-heading {
+  margin-bottom: 14px;
+}
+
+.books-calendar-dialog-heading p[data-calendar-dialog-summary] {
+  margin: 5px 0 0;
+  color: var(--books-calendar-muted);
+  font-size: 0.8rem;
+}
+
+.books-calendar-dialog-list {
+  display: grid;
+  gap: 9px;
+}
+
+.books-calendar-dialog-book {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--books-calendar-border);
+  border-radius: 13px;
+  background: rgba(248, 249, 252, 0.82);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 130ms ease, border-color 130ms ease, background 130ms ease;
+}
+
+.books-calendar-dialog-book:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 92, 245, 0.34);
+  background: var(--books-calendar-accent-soft);
+}
+
+.books-calendar-dialog-book img {
+  display: block;
+  width: 54px;
+  height: 81px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #eef0f5;
+}
+
+.books-calendar-dialog-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.books-calendar-dialog-copy strong,
+.books-calendar-dialog-copy span,
+.books-calendar-dialog-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.books-calendar-dialog-copy strong {
+  font-size: 0.9rem;
+}
+
+.books-calendar-dialog-copy span,
+.books-calendar-dialog-copy small {
+  color: var(--books-calendar-muted);
+  font-size: 0.74rem;
+}
+
+.books-calendar-dialog-cue {
+  color: var(--books-calendar-accent-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.books-calendar-button-icon {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+/* Make the completion date unmistakable in List view. */
+.grid[data-book-view="list"] .book-completion-row {
+  display: flex !important;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+.grid[data-book-view="list"] .book-completion-row > span {
+  display: inline-flex !important;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+.book-finished-pill {
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid rgba(64, 92, 245, 0.22);
+  border-radius: 999px;
+  background: var(--books-calendar-accent-soft);
+  color: var(--books-calendar-accent-dark);
+  font-size: 0.69rem;
+  font-weight: 800;
+}
+
+.book-duration {
+  color: var(--books-calendar-muted);
+  font-size: 0.7rem;
+}
+
+/* Full-width date headings when chronological sorting is active. */
+.books-date-divider {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+  margin-top: 3px;
+  padding: 7px 11px;
+  border-bottom: 1px solid rgba(64, 92, 245, 0.23);
+  color: var(--books-calendar-ink);
+  font-size: 0.83rem;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.books-date-divider::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--books-calendar-accent);
+  box-shadow: 0 0 0 4px rgba(64, 92, 245, 0.1);
+}
+
+.books-date-divider span {
+  margin-right: auto;
+}
+
+.books-date-divider small {
+  color: var(--books-calendar-muted);
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+@media (min-width: 901px) {
+  .grid[data-book-view="list"] {
+    grid-auto-rows: auto !important;
+  }
+
+  .grid[data-book-view="list"] .card {
+    height: 184px !important;
+    min-height: 184px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .view-toggle {
+    display: flex !important;
+    width: max-content;
+    max-width: calc(100vw - 20px);
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .view-toggle::-webkit-scrollbar {
+    display: none;
+  }
+
+  .view-toggle .view-button {
+    flex: 0 0 auto;
+  }
+
+  .grid[data-book-view="list"] {
+    grid-auto-rows: auto !important;
+  }
+
+  .grid[data-book-view="list"] .card {
+    height: 176px !important;
+    min-height: 176px !important;
+  }
+
+  .book-finished-pill {
+    font-size: 0.64rem;
+  }
+
+  .book-duration {
+    font-size: 0.64rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .books-calendar {
+    padding-inline: 10px;
+  }
+
+  .books-calendar-shell {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .books-calendar-heading {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .books-calendar-title {
+    font-size: 1.2rem;
+  }
+
+  .books-calendar-description {
+    font-size: 0.79rem;
+  }
+
+  .books-calendar-controls {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 38px auto;
+    gap: 6px;
+  }
+
+  .books-calendar-picker select {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.8rem;
+  }
+
+  .books-calendar-metrics {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .books-calendar-metrics > div {
+    padding: 9px 6px;
+  }
+
+  .books-calendar-metrics span {
+    font-size: 0.61rem;
+  }
+
+  .books-calendar-metrics strong {
+    font-size: 0.92rem;
+  }
+
+  .books-calendar-desktop {
+    display: none;
+  }
+
+  .books-calendar-agenda {
+    display: grid;
+    gap: 8px;
+  }
+
+  .books-calendar-agenda-day {
+    display: grid;
+    grid-template-columns: 52px 88px minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid var(--books-calendar-border);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.76);
+  }
+
+  .books-calendar-agenda-date,
+  .books-calendar-agenda-copy {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .books-calendar-agenda-date {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--books-calendar-accent-soft);
+    color: var(--books-calendar-accent-dark);
+  }
+
+  .books-calendar-agenda-date strong {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .books-calendar-agenda-date span {
+    margin-top: 3px;
+    font-size: 0.62rem;
+    font-weight: 750;
+  }
+
+  .books-calendar-agenda-covers {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+  }
+
+  .books-calendar-agenda-cover {
+    width: 31px;
+    flex: 0 0 31px;
+    margin-left: -7px;
+  }
+
+  .books-calendar-agenda-cover:first-child {
+    margin-left: 0;
+  }
+
+  .books-calendar-agenda-cover img {
+    border: 2px solid #ffffff;
+    border-radius: 5px;
+  }
+
+  .books-calendar-agenda-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px 0;
+    text-align: left;
+  }
+
+  .books-calendar-agenda-copy strong,
+  .books-calendar-agenda-copy span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .books-calendar-agenda-copy strong {
+    font-size: 0.76rem;
+  }
+
+  .books-calendar-agenda-copy span {
+    color: var(--books-calendar-muted);
+    font-size: 0.67rem;
+  }
+
+  .books-calendar-dialog-shell {
+    padding: 15px;
+  }
+
+  .books-calendar-dialog-book {
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    gap: 9px;
+  }
+
+  .books-calendar-dialog-book img {
+    width: 46px;
+    height: 69px;
+  }
+
+  .books-date-divider {
+    min-height: 30px;
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .books-calendar-controls {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+  }
+
+  .books-calendar-latest {
+    grid-column: 1 / -1;
+    min-height: 32px;
+  }
+
+  .books-calendar-agenda-day {
+    grid-template-columns: 48px 72px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .books-calendar-agenda-cover {
+    width: 27px;
+    flex-basis: 27px;
+  }
+
+  .grid[data-book-view="list"] .book-completion-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --books-calendar-ink: #f4f6fb;
+    --books-calendar-muted: #aeb5c3;
+    --books-calendar-border: #303643;
+    --books-calendar-panel: rgba(17, 21, 29, 0.94);
+    --books-calendar-panel-solid: #151922;
+    --books-calendar-accent-soft: rgba(64, 92, 245, 0.18);
+  }
+
+  .books-calendar-shell,
+  .books-calendar-dialog,
+  .books-calendar-picker select,
+  .books-calendar-nav,
+  .books-calendar-latest,
+  .books-calendar-close,
+  .books-calendar-dialog-close {
+    background-color: var(--books-calendar-panel-solid);
+  }
+
+  .books-calendar-metrics > div,
+  .books-calendar-weekdays,
+  .books-calendar-day,
+  .books-calendar-agenda-day,
+  .books-calendar-dialog-book {
+    background-color: rgba(22, 27, 36, 0.82);
+  }
+
+  .books-calendar-day--blank {
+    background-color: rgba(12, 16, 23, 0.7);
+  }
+
+  .books-calendar-agenda-cover img {
+    border-color: #151922;
+  }
+}
