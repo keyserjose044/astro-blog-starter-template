@@ -1,57 +1,52 @@
 /* Desktop Calendar cover fitting — August 1, 2026.
- * Full-width desktop keeps the existing presentation. At narrower desktop
- * widths, covers scale to the actual calendar-cell box instead of visually
- * retaining their full-screen size.
+ * Cover dimensions are measured from each rendered calendar cell in JS. This
+ * prevents intrinsic image size from surviving after a desktop window narrows.
  */
 
-@media (min-width: 601px) and (max-width: 1300px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 601px) and (hover: hover) and (pointer: fine) {
   .books-calendar-day-covers,
   .books-calendar-day-covers.is-single,
   .books-calendar-day-covers.is-stack {
-    inset: 36px 10px 10px !important;
+    inset: 36px 8px 8px !important;
   }
 
+  /* Single-book days: the link itself is the measured 2:3 cover rectangle. */
   .books-calendar-day-covers.is-single .books-calendar-cover {
-    width: auto !important;
-    height: min(calc(100% - 8px), clamp(78px, 8.4vw, 126px)) !important;
-    max-width: calc(100% - 10px) !important;
-    max-height: calc(100% - 8px) !important;
+    width: var(--calendar-single-cover-width, 88px) !important;
+    height: var(--calendar-single-cover-height, 132px) !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     aspect-ratio: 2 / 3 !important;
   }
 
   .books-calendar-day-covers.is-single .books-calendar-cover img {
+    display: block !important;
     width: 100% !important;
     height: 100% !important;
-    object-fit: cover !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
   }
 
+  /* Multi-book days use the same measured cell geometry, with each cover kept
+     smaller so the existing fan-out has room to breathe. */
   .books-calendar-day-covers.is-stack .books-calendar-cover,
   .books-calendar-day-covers.is-stack:hover .books-calendar-cover,
   .books-calendar-day-covers.is-stack:focus-within .books-calendar-cover,
   .books-calendar-day-covers.is-stack.is-expanded .books-calendar-cover {
-    width: auto !important;
-    height: min(calc(100% - 12px), clamp(68px, 7vw, 96px)) !important;
-    max-width: 54% !important;
-    max-height: calc(100% - 12px) !important;
+    width: var(--calendar-stack-cover-width, 60px) !important;
+    height: var(--calendar-stack-cover-height, 90px) !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     aspect-ratio: 2 / 3 !important;
   }
 
   .books-calendar-day-covers.is-stack .books-calendar-cover img {
+    display: block !important;
     width: 100% !important;
     height: 100% !important;
-    object-fit: cover !important;
-  }
-
-  /* Keep the fan-out effect, but don't let the hover treatment become larger
-     than the narrowed cell it belongs to. */
-  .books-calendar-day-covers.is-stack:hover .books-calendar-cover,
-  .books-calendar-day-covers.is-stack:focus-within .books-calendar-cover,
-  .books-calendar-day-covers.is-stack.is-expanded .books-calendar-cover {
-    transform: translateX(calc(-50% + var(--splay-shift))) translateY(-4px) rotate(var(--splay-rotation)) !important;
-  }
-
-  .books-calendar-day-covers.is-stack .books-calendar-cover:hover,
-  .books-calendar-day-covers.is-stack .books-calendar-cover:focus-visible {
-    transform: translateX(calc(-50% + var(--splay-shift))) translateY(-6px) rotate(0deg) scale(1.035) !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
   }
 }
