@@ -1,5 +1,6 @@
 ---
 import '../styles/about-photo-bubble.css';
+import '../styles/about-photo-name-tag.css';
 
 export interface Props {
   src: string;
@@ -46,6 +47,7 @@ const familyMembers = [
           tabindex="0"
           aria-label={`Hear from ${member.label}`}
           data-person={member.id}
+          data-label={member.label}
           data-quote={member.quote}
           data-bubble-left={member.left}
           data-bubble-top={member.top}
@@ -58,9 +60,11 @@ const familyMembers = [
           data-corner={member.corner || ''}
           data-size={member.size || ''}
           data-adornment-tilt={member.adornmentTilt || '0deg'}
-        ><title>{member.label}</title></polygon>
+        ></polygon>
       ))}
     </svg>
+
+    <div class="person-name-tag" data-visible="0" aria-hidden="true"></div>
 
     <div class="speech-bubble" data-visible="0" data-placement="above" data-cloud-variant="wide" data-has-adornment="0" aria-hidden="true" role="status">
       <p></p>
@@ -72,3 +76,4 @@ const familyMembers = [
 </section>
 
 <script is:inline src="/js/about-photo-bubble.js?v=20260801-mobile-v2"></script>
+<script is:inline src="/js/about-photo-name-tag.js?v=20260801-labels-v1"></script>
