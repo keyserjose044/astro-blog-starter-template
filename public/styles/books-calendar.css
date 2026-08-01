@@ -1,4 +1,4 @@
-/* LifeLoggerz Books completion calendar — July 31, 2026 */
+/* LifeLoggerz Books completion calendar — light public view */
 
 :root {
   --books-calendar-accent: #405cf5;
@@ -7,9 +7,16 @@
   --books-calendar-ink: #0e121b;
   --books-calendar-muted: #626a78;
   --books-calendar-border: #e2e6ee;
-  --books-calendar-panel: rgba(255, 255, 255, 0.94);
+  --books-calendar-panel: rgba(255, 255, 255, 0.95);
   --books-calendar-panel-solid: #ffffff;
   --books-calendar-shadow: 0 18px 48px rgba(15, 23, 42, 0.1);
+}
+
+.books-calendar,
+.books-calendar-dialog,
+.books-calendar select,
+.books-calendar button {
+  color-scheme: light;
 }
 
 .books-calendar[hidden] {
@@ -19,6 +26,7 @@
 .books-calendar {
   width: 100%;
   padding-inline: clamp(12px, 3vw, 48px);
+  color: var(--books-calendar-ink);
   animation: booksCalendarReveal 220ms ease-out;
 }
 
@@ -33,9 +41,8 @@
   padding: clamp(14px, 2vw, 24px);
   border: 1px solid rgba(226, 230, 238, 0.98);
   border-radius: 24px;
-  background: var(--books-calendar-panel);
+  background: var(--books-calendar-panel-solid);
   box-shadow: var(--books-calendar-shadow);
-  backdrop-filter: blur(14px);
 }
 
 .books-calendar-heading,
@@ -83,7 +90,7 @@
   height: 38px;
   border: 1px solid var(--books-calendar-border);
   border-radius: 999px;
-  background: var(--books-calendar-panel-solid);
+  background: #ffffff;
   color: var(--books-calendar-muted);
   font: inherit;
   font-size: 1.05rem;
@@ -120,7 +127,7 @@
   min-height: 38px;
   border: 1px solid var(--books-calendar-border);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
   color: var(--books-calendar-ink);
   font: inherit;
   font-weight: 750;
@@ -157,7 +164,7 @@
   padding: 7px 34px 7px 12px;
   border: 1px solid var(--books-calendar-border);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.94);
+  background: #ffffff;
   color: var(--books-calendar-ink);
   font: inherit;
   font-size: 0.86rem;
@@ -177,7 +184,7 @@
   padding: 11px 13px;
   border: 1px solid var(--books-calendar-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: #f9faff;
   text-align: center;
 }
 
@@ -200,6 +207,11 @@
   white-space: nowrap;
 }
 
+.books-calendar-desktop {
+  position: relative;
+  overflow: visible;
+}
+
 .books-calendar-weekdays,
 .books-calendar-grid {
   display: grid;
@@ -210,7 +222,7 @@
   border: 1px solid var(--books-calendar-border);
   border-bottom: 0;
   border-radius: 16px 16px 0 0;
-  background: rgba(247, 248, 252, 0.9);
+  background: #f7f8fc;
 }
 
 .books-calendar-weekdays span {
@@ -224,37 +236,49 @@
 }
 
 .books-calendar-grid {
-  overflow: hidden;
+  position: relative;
+  overflow: visible;
   border-top: 1px solid var(--books-calendar-border);
   border-left: 1px solid var(--books-calendar-border);
   border-radius: 0 0 16px 16px;
-  background: rgba(255, 255, 255, 0.64);
+  background: #ffffff;
 }
 
 .books-calendar-day {
   position: relative;
+  z-index: 1;
   min-width: 0;
-  min-height: clamp(122px, 10vw, 178px);
+  min-height: clamp(150px, 11vw, 194px);
   padding: 8px;
+  overflow: visible;
   border-right: 1px solid var(--books-calendar-border);
   border-bottom: 1px solid var(--books-calendar-border);
-  background: rgba(255, 255, 255, 0.72);
+  background: #ffffff;
+  transition: z-index 0s, background 150ms ease, box-shadow 150ms ease;
 }
 
 .books-calendar-day--blank {
-  background: rgba(244, 246, 250, 0.62);
+  background: #f6f7fa;
 }
 
 .books-calendar-day[data-has-books="true"] {
-  background:
-    linear-gradient(180deg, rgba(238, 241, 255, 0.86), rgba(255, 255, 255, 0.84) 36%),
-    rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, #f5f7ff 0, #ffffff 40%);
+}
+
+.books-calendar-day:has(.is-stack:hover),
+.books-calendar-day:has(.is-stack:focus-within),
+.books-calendar-day[data-stack-expanded="true"] {
+  z-index: 30;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
 }
 
 .books-calendar-day-number {
+  position: relative;
+  z-index: 42;
   display: inline-flex;
-  min-width: 27px;
-  height: 27px;
+  min-width: 28px;
+  height: 28px;
   align-items: center;
   justify-content: center;
   padding: 0 6px;
@@ -274,17 +298,16 @@ button.books-calendar-day-number {
 }
 
 .books-calendar-day-covers {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
-  margin-top: 7px;
-  align-items: end;
+  position: absolute;
+  inset: 36px 8px 8px;
+  min-width: 0;
 }
 
 .books-calendar-cover,
 .books-calendar-agenda-cover {
   display: block;
   min-width: 0;
+  color: inherit;
   text-decoration: none;
 }
 
@@ -292,43 +315,100 @@ button.books-calendar-day-number {
 .books-calendar-agenda-cover img {
   display: block;
   width: 100%;
-  aspect-ratio: 2 / 3;
+  height: 100%;
   object-fit: cover;
-  border: 1px solid rgba(214, 218, 228, 0.98);
-  border-radius: 5px;
+  border: 1px solid rgba(205, 211, 225, 0.98);
+  border-radius: 7px;
   background: #eef0f5;
-  box-shadow: 0 4px 9px rgba(15, 23, 42, 0.13);
-  transition: transform 130ms ease, box-shadow 130ms ease;
+  box-shadow: 0 5px 13px rgba(15, 23, 42, 0.16);
 }
 
-.books-calendar-cover:hover img,
-.books-calendar-agenda-cover:hover img {
-  transform: translateY(-2px);
-  box-shadow: 0 7px 14px rgba(15, 23, 42, 0.18);
-}
-
-.books-calendar-more {
+/* A single completion uses the available cell instead of becoming a thumbnail. */
+.books-calendar-day-covers.is-single {
   display: grid;
-  width: 100%;
-  aspect-ratio: 2 / 3;
   place-items: center;
-  border: 1px dashed rgba(64, 92, 245, 0.42);
-  border-radius: 5px;
-  background: var(--books-calendar-accent-soft);
+}
+
+.books-calendar-day-covers.is-single .books-calendar-cover {
+  width: auto;
+  height: 100%;
+  max-width: 88%;
+  max-height: 148px;
+  aspect-ratio: 2 / 3;
+  transition: transform 150ms ease, filter 150ms ease;
+}
+
+.books-calendar-day-covers.is-single .books-calendar-cover:hover,
+.books-calendar-day-covers.is-single .books-calendar-cover:focus-visible {
+  transform: translateY(-3px) scale(1.025);
+  filter: drop-shadow(0 8px 12px rgba(15, 23, 42, 0.15));
+}
+
+/* Multiple completions collapse into a stack and fan out on hover, focus, or click. */
+.books-calendar-day-covers.is-stack {
+  inset-bottom: 26px;
+  pointer-events: none;
+}
+
+.books-calendar-day-covers.is-stack .books-calendar-cover {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: calc(var(--stack-index) + 1);
+  width: min(57%, 76px);
+  aspect-ratio: 2 / 3;
+  pointer-events: auto;
+  transform:
+    translateX(calc(-50% + var(--collapsed-shift)))
+    rotate(var(--collapsed-rotation));
+  transform-origin: 50% 100%;
+  transition:
+    transform 230ms cubic-bezier(.2,.75,.2,1),
+    filter 180ms ease;
+}
+
+.books-calendar-day-covers.is-stack:hover .books-calendar-cover,
+.books-calendar-day-covers.is-stack:focus-within .books-calendar-cover,
+.books-calendar-day-covers.is-stack.is-expanded .books-calendar-cover {
+  transform:
+    translateX(calc(-50% + var(--splay-shift)))
+    translateY(-5px)
+    rotate(var(--splay-rotation));
+}
+
+.books-calendar-day-covers.is-stack .books-calendar-cover:hover,
+.books-calendar-day-covers.is-stack .books-calendar-cover:focus-visible {
+  z-index: 80;
+  filter: drop-shadow(0 9px 13px rgba(15, 23, 42, 0.22));
+  transform:
+    translateX(calc(-50% + var(--splay-shift)))
+    translateY(-11px)
+    rotate(0deg)
+    scale(1.08);
+}
+
+.books-calendar-stack-toggle {
+  position: absolute;
+  right: 7px;
+  bottom: 6px;
+  z-index: 45;
+  min-height: 23px;
+  padding: 3px 7px;
+  border: 1px solid rgba(64, 92, 245, 0.24);
+  border-radius: 999px;
+  background: #ffffff;
   color: var(--books-calendar-accent-dark);
   font: inherit;
-  font-size: 0.7rem;
-  font-weight: 850;
+  font-size: 0.63rem;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
 }
 
-.books-calendar-day-count {
-  position: absolute;
-  right: 8px;
-  bottom: 6px;
-  color: var(--books-calendar-muted);
-  font-size: 0.62rem;
-  font-weight: 700;
+.books-calendar-stack-toggle:hover,
+.books-calendar-stack-toggle[aria-expanded="true"] {
+  border-color: var(--books-calendar-accent);
+  background: var(--books-calendar-accent-soft);
 }
 
 .books-calendar-agenda {
@@ -356,13 +436,13 @@ button.books-calendar-day-number {
   padding: 0;
   border: 1px solid var(--books-calendar-border);
   border-radius: 22px;
-  background: var(--books-calendar-panel-solid);
+  background: #ffffff;
   color: var(--books-calendar-ink);
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.26);
 }
 
 .books-calendar-dialog::backdrop {
-  background: rgba(13, 18, 31, 0.56);
+  background: rgba(13, 18, 31, 0.42);
   backdrop-filter: blur(3px);
 }
 
@@ -370,6 +450,7 @@ button.books-calendar-day-number {
   max-height: min(82vh, 760px);
   overflow-y: auto;
   padding: 20px;
+  background: #ffffff;
 }
 
 .books-calendar-dialog-heading {
@@ -395,7 +476,7 @@ button.books-calendar-day-number {
   padding: 8px;
   border: 1px solid var(--books-calendar-border);
   border-radius: 13px;
-  background: rgba(248, 249, 252, 0.82);
+  background: #f8f9fc;
   color: inherit;
   text-decoration: none;
   transition: transform 130ms ease, border-color 130ms ease, background 130ms ease;
@@ -452,86 +533,23 @@ button.books-calendar-day-number {
   line-height: 1;
 }
 
-/* Make the completion date unmistakable in List view. */
-.grid[data-book-view="list"] .book-completion-row {
-  display: flex !important;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  overflow: visible !important;
-  white-space: normal !important;
+/* Preserve the original List layout; only emphasize its existing completion text. */
+.grid[data-book-view="list"] .book-finished-date {
+  color: var(--ink, #0e121b);
+  font-weight: 900;
 }
 
-.grid[data-book-view="list"] .book-completion-row > span {
-  display: inline-flex !important;
-  min-width: 0;
-  align-items: center;
-  overflow: hidden !important;
-  text-overflow: ellipsis;
-  white-space: nowrap !important;
-}
-
-.book-finished-pill {
-  max-width: 100%;
-  padding: 3px 7px;
-  border: 1px solid rgba(64, 92, 245, 0.22);
-  border-radius: 999px;
-  background: var(--books-calendar-accent-soft);
-  color: var(--books-calendar-accent-dark);
-  font-size: 0.69rem;
-  font-weight: 800;
-}
-
-.book-duration {
-  color: var(--books-calendar-muted);
-  font-size: 0.7rem;
-}
-
-/* Full-width date headings when chronological sorting is active. */
-.books-date-divider {
-  display: flex;
-  grid-column: 1 / -1;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 34px;
-  margin-top: 3px;
-  padding: 7px 11px;
-  border-bottom: 1px solid rgba(64, 92, 245, 0.23);
-  color: var(--books-calendar-ink);
-  font-size: 0.83rem;
-  font-weight: 850;
-  letter-spacing: -0.01em;
-}
-
-.books-date-divider::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: var(--books-calendar-accent);
-  box-shadow: 0 0 0 4px rgba(64, 92, 245, 0.1);
-}
-
-.books-date-divider span {
-  margin-right: auto;
-}
-
-.books-date-divider small {
-  color: var(--books-calendar-muted);
-  font-size: 0.69rem;
-  font-weight: 700;
-}
-
-@media (min-width: 901px) {
-  .grid[data-book-view="list"] {
-    grid-auto-rows: auto !important;
+@media (max-width: 1100px) and (min-width: 761px) {
+  .books-calendar-day {
+    min-height: 142px;
   }
 
-  .grid[data-book-view="list"] .card {
-    height: 184px !important;
-    min-height: 184px !important;
+  .books-calendar-day-covers.is-stack .books-calendar-cover {
+    width: min(60%, 66px);
+  }
+
+  .books-calendar-stack-toggle {
+    font-size: 0.58rem;
   }
 }
 
@@ -552,23 +570,6 @@ button.books-calendar-day-number {
 
   .view-toggle .view-button {
     flex: 0 0 auto;
-  }
-
-  .grid[data-book-view="list"] {
-    grid-auto-rows: auto !important;
-  }
-
-  .grid[data-book-view="list"] .card {
-    height: 176px !important;
-    min-height: 176px !important;
-  }
-
-  .book-finished-pill {
-    font-size: 0.64rem;
-  }
-
-  .book-duration {
-    font-size: 0.64rem;
   }
 }
 
@@ -642,7 +643,7 @@ button.books-calendar-day-number {
     padding: 8px;
     border: 1px solid var(--books-calendar-border);
     border-radius: 13px;
-    background: rgba(255, 255, 255, 0.76);
+    background: #ffffff;
   }
 
   .books-calendar-agenda-date,
@@ -694,6 +695,7 @@ button.books-calendar-day-number {
   }
 
   .books-calendar-agenda-cover img {
+    aspect-ratio: 2 / 3;
     border: 2px solid #ffffff;
     border-radius: 5px;
   }
@@ -736,12 +738,6 @@ button.books-calendar-day-number {
     width: 46px;
     height: 69px;
   }
-
-  .books-date-divider {
-    min-height: 30px;
-    padding: 6px 8px;
-    font-size: 0.75rem;
-  }
 }
 
 @media (max-width: 480px) {
@@ -763,46 +759,15 @@ button.books-calendar-day-number {
     width: 27px;
     flex-basis: 27px;
   }
-
-  .grid[data-book-view="list"] .book-completion-row {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --books-calendar-ink: #f4f6fb;
-    --books-calendar-muted: #aeb5c3;
-    --books-calendar-border: #303643;
-    --books-calendar-panel: rgba(17, 21, 29, 0.94);
-    --books-calendar-panel-solid: #151922;
-    --books-calendar-accent-soft: rgba(64, 92, 245, 0.18);
-  }
-
-  .books-calendar-shell,
-  .books-calendar-dialog,
-  .books-calendar-picker select,
-  .books-calendar-nav,
-  .books-calendar-latest,
+@media (prefers-reduced-motion: reduce) {
+  .books-calendar,
+  .books-calendar-cover,
   .books-calendar-close,
-  .books-calendar-dialog-close {
-    background-color: var(--books-calendar-panel-solid);
-  }
-
-  .books-calendar-metrics > div,
-  .books-calendar-weekdays,
-  .books-calendar-day,
-  .books-calendar-agenda-day,
+  .books-calendar-dialog-close,
   .books-calendar-dialog-book {
-    background-color: rgba(22, 27, 36, 0.82);
-  }
-
-  .books-calendar-day--blank {
-    background-color: rgba(12, 16, 23, 0.7);
-  }
-
-  .books-calendar-agenda-cover img {
-    border-color: #151922;
+    animation: none !important;
+    transition: none !important;
   }
 }
