@@ -1,0 +1,436 @@
+.albums-expansion-views {
+  max-width: 1240px;
+  margin: 0 auto 24px;
+}
+
+.albums-extra-shell {
+  padding: 18px;
+  border: 1px solid var(--albums-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(10px);
+}
+
+.albums-extra-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.albums-extra-heading h2 {
+  margin: 2px 0 5px;
+  color: var(--albums-ink);
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+}
+
+.albums-extra-heading p:last-child {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--albums-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.albums-extra-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.albums-extra-metrics > div {
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--albums-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.albums-extra-metrics span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--albums-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.albums-extra-metrics strong {
+  display: block;
+  overflow: hidden;
+  color: var(--albums-ink);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.albums-calendar-controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.albums-calendar-controls button,
+.albums-calendar-controls select {
+  min-height: 38px;
+  padding: 7px 11px;
+  border: 1px solid var(--albums-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,.86);
+  color: var(--albums-ink);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.albums-calendar-controls button { cursor: pointer; font-weight: 800; }
+.albums-calendar-controls button:disabled { opacity: .38; cursor: default; }
+
+.albums-calendar-weekdays,
+.albums-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.albums-calendar-weekdays {
+  margin-top: 6px;
+  color: var(--albums-muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.albums-calendar-weekdays span { padding: 6px 3px; }
+
+.albums-calendar-grid {
+  overflow: hidden;
+  border: 1px solid var(--albums-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.55);
+}
+
+.albums-calendar-day {
+  position: relative;
+  min-height: 116px;
+  padding: 7px;
+  border-right: 1px solid var(--albums-border);
+  border-bottom: 1px solid var(--albums-border);
+  background: rgba(255,255,255,.48);
+}
+
+.albums-calendar-day:nth-child(7n) { border-right: 0; }
+.albums-calendar-day.is-outside { background: rgba(240,242,248,.55); }
+.albums-calendar-day.has-albums { background: rgba(248,249,255,.94); }
+
+.albums-calendar-day-number {
+  position: relative;
+  z-index: 3;
+  color: var(--albums-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.albums-calendar-cover-stack {
+  position: absolute;
+  inset: 28px 7px 7px;
+}
+
+.albums-calendar-cover {
+  position: absolute;
+  top: calc(var(--stack-index) * 6px);
+  left: calc(var(--stack-index) * 7px);
+  width: calc(100% - 14px);
+  max-width: 72px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: 0 5px 14px rgba(15,23,42,.14);
+  cursor: pointer;
+  transition: transform .14s ease, z-index .14s ease;
+}
+
+.albums-calendar-cover:hover,
+.albums-calendar-cover:focus-visible {
+  z-index: 8;
+  transform: translateY(-3px) scale(1.03);
+}
+
+.albums-calendar-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.albums-calendar-more {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  z-index: 10;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(20,24,38,.86);
+  color: #fff;
+  font-size: .58rem;
+  font-weight: 800;
+}
+
+.albums-calendar-month-shelf { margin-top: 20px; }
+.albums-calendar-month-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.albums-calendar-month-heading h3 { margin: 0; color: var(--albums-ink); font-size: 1rem; }
+.albums-calendar-month-heading p { margin: 0; color: var(--albums-muted); font-size: .72rem; }
+
+.albums-calendar-month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 9px;
+}
+
+.albums-calendar-month-item {
+  position: relative;
+  min-width: 0;
+}
+
+.albums-calendar-month-date {
+  display: block;
+  margin: 4px 4px 0;
+  color: var(--albums-muted);
+  font-size: .63rem;
+}
+
+.albums-extra-album,
+.albums-record-album {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 48px minmax(0,1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 7px;
+  border: 1px solid var(--albums-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,.82);
+  color: var(--albums-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.albums-extra-album:hover,
+.albums-extra-album:focus-visible,
+.albums-record-album:hover,
+.albums-record-album:focus-visible {
+  border-color: rgba(64,92,245,.42);
+  box-shadow: 0 7px 16px rgba(15,23,42,.07);
+}
+
+.albums-extra-album img,
+.albums-record-album img {
+  width: 48px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+.albums-extra-album span,
+.albums-record-album span { min-width: 0; }
+.albums-extra-album strong,
+.albums-extra-album small,
+.albums-record-album strong,
+.albums-record-album small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.albums-extra-album strong,
+.albums-record-album strong { font-size: .76rem; }
+.albums-extra-album small,
+.albums-record-album small { margin-top: 2px; color: var(--albums-muted); font-size: .65rem; }
+
+.albums-artists-metrics { grid-template-columns: repeat(4, minmax(0,1fr)); }
+.albums-artists-grid { display: grid; gap: 9px; }
+
+.albums-artist-card {
+  overflow: hidden;
+  border: 1px solid var(--albums-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.68);
+}
+
+.albums-artist-card.is-open { border-color: rgba(64,92,245,.28); box-shadow: 0 9px 24px rgba(15,23,42,.06); }
+
+.albums-artist-head {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 96px minmax(0,1fr) 28px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--albums-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.albums-artist-covers { position: relative; display: block; width: 86px; height: 64px; }
+.albums-artist-covers img {
+  position: absolute;
+  top: calc(var(--cover-index) * 2px);
+  left: calc(var(--cover-index) * 16px);
+  width: 58px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(15,23,42,.13);
+}
+
+.albums-artist-copy { display: block; min-width: 0; }
+.albums-artist-copy strong { display: block; font-size: .95rem; }
+.albums-artist-copy small { display: block; margin-top: 2px; color: var(--albums-muted); font-size: .69rem; line-height: 1.35; }
+.albums-artist-copy .albums-artist-meta { white-space: normal; }
+.albums-artist-chevron { color: var(--albums-muted); font-size: 1.1rem; transition: transform .14s ease; }
+.albums-artist-card.is-open .albums-artist-chevron { transform: rotate(180deg); }
+
+.albums-artist-works {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px,1fr));
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.albums-records-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 11px;
+}
+
+.albums-record-card {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--albums-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.72);
+}
+
+.albums-record-kicker {
+  display: block;
+  color: var(--albums-muted);
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.albums-record-value {
+  display: block;
+  margin: 4px 0 2px;
+  color: var(--albums-ink);
+  font-size: 1.08rem;
+}
+
+.albums-record-card > p {
+  min-height: 2.55em;
+  margin: 0 0 10px;
+  color: var(--albums-muted);
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.albums-record-album { grid-template-columns: 44px minmax(0,1fr); padding: 6px; }
+.albums-record-album img { width: 44px; }
+
+.albums-milestones { margin-top: 22px; }
+.albums-record-section-heading h3 { margin: 0; color: var(--albums-ink); font-size: 1rem; }
+.albums-record-section-heading p { margin: 3px 0 10px; color: var(--albums-muted); font-size: .72rem; }
+.albums-milestone-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap: 9px; }
+.albums-milestone-card { position: relative; }
+.albums-milestone-card > span {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  z-index: 4;
+  min-width: 30px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--albums-accent);
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(64,92,245,.22);
+}
+
+.albums-extra-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 28px 12px;
+  color: var(--albums-muted);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .albums-view-toggle {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .albums-view-button {
+    min-width: 0;
+    min-height: 42px;
+    justify-content: center;
+    padding: 6px 5px;
+    border-radius: 11px;
+    font-size: .68rem;
+  }
+
+  .albums-extra-shell { padding: 12px; border-radius: 15px; }
+  .albums-extra-heading { margin-bottom: 12px; }
+  .albums-extra-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+  .albums-artists-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .albums-calendar-day { min-height: 88px; padding: 5px; }
+  .albums-calendar-cover-stack { inset: 23px 4px 4px; }
+  .albums-calendar-cover { width: calc(100% - 9px); max-width: 58px; left: calc(var(--stack-index) * 4px); top: calc(var(--stack-index) * 4px); border-radius: 6px; }
+  .albums-calendar-month-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .albums-records-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 620px) {
+  .albums-extra-heading p:last-child { font-size: .74rem; }
+  .albums-calendar-controls { display: grid; grid-template-columns: 42px minmax(0,1fr) 42px; }
+  .albums-calendar-controls button:last-child { grid-column: 1 / -1; }
+  .albums-calendar-weekdays { font-size: .55rem; }
+  .albums-calendar-day { min-height: 66px; padding: 3px; }
+  .albums-calendar-day-number { font-size: .58rem; }
+  .albums-calendar-cover-stack { inset: 18px 2px 2px; }
+  .albums-calendar-cover { max-width: 44px; left: calc(var(--stack-index) * 3px); top: calc(var(--stack-index) * 3px); border-radius: 5px; }
+  .albums-calendar-more { right: 0; bottom: 0; padding: 1px 3px; font-size: .48rem; }
+  .albums-calendar-month-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .albums-calendar-month-grid { grid-template-columns: 1fr; }
+  .albums-artist-head { grid-template-columns: 76px minmax(0,1fr) 22px; gap: 8px; padding: 9px; }
+  .albums-artist-covers { width: 70px; height: 52px; }
+  .albums-artist-covers img { width: 48px; left: calc(var(--cover-index) * 11px); border-radius: 6px; }
+  .albums-artist-works { grid-template-columns: 1fr; padding: 0 9px 9px; }
+  .albums-records-grid { grid-template-columns: 1fr; }
+  .albums-record-card > p { min-height: 0; }
+  .albums-milestone-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .albums-view-toggle { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .albums-view-button { min-height: 40px; padding: 5px 2px; font-size: .61rem; }
+  .albums-view-button span:first-child { display: none; }
+  .albums-calendar-day { min-height: 58px; }
+  .albums-calendar-cover { max-width: 38px; }
+}
