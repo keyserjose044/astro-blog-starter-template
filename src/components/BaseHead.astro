@@ -25,7 +25,7 @@ const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/a
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260801-1650';
-const albumsAssetVersion = '20260726-1535';
+const albumsAssetVersion = '20260801-1721';
 const artAssetVersion = '20260727-1945';
 ---
 
@@ -71,6 +71,7 @@ const artAssetVersion = '20260727-1945';
 {isAlbumsPage ? <meta name="lifeloggerz-albums-assets" content={albumsAssetVersion} /> : null}
 {isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer.css?v=${albumsAssetVersion}`} /> : null}
 {isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer-responsive.css?v=${albumsAssetVersion}`} /> : null}
+{isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-details.css?v=${albumsAssetVersion}`} /> : null}
 
 {isArtPage ? <meta name="lifeloggerz-art-assets" content={artAssetVersion} /> : null}
 {isArtPage ? <link rel="stylesheet" href={`${base}styles/art-explorer.css?v=${artAssetVersion}`} /> : null}
