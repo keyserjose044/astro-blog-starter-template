@@ -1,0 +1,14 @@
+/* Guardrails for the second Books mobile pass. */
+
+@media (max-width: 900px) {
+  /* The World instruction is removed in JS; keep its legend visible when the
+     legend becomes the footer's first remaining child. */
+  .books-map-footer > .books-map-legend:first-child {
+    display: flex !important;
+  }
+
+  /* The heatmap-adjacent zoom control is meaningful only in Reading Journey. */
+  #books-timeline-view:not(:has([data-timeline-mode="reading"][aria-pressed="true"])) .books-timeline-zoom-proxy {
+    display: none !important;
+  }
+}

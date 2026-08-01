@@ -1,0 +1,570 @@
+/* Books mobile pass 2 — August 1, 2026.
+ * Advanced-view layout, calendar, and Records polish.
+ */
+
+/* Records improvements shared by desktop and mobile. */
+.books-record-stack img:nth-child(n + 5) {
+  display: none !important;
+}
+
+.books-record-burst-switch {
+  display: inline-flex;
+  gap: 3px;
+  margin: -3px 0 13px;
+  padding: 3px;
+  border: 1px solid #e0e5ed;
+  border-radius: 999px;
+  background: #f7f8fc;
+}
+
+.books-record-burst-switch button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #646c7a;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.books-record-burst-switch button[aria-pressed="true"] {
+  background: #405cf5;
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(64,92,245,.2);
+}
+
+.books-record-burst-columns[hidden] {
+  display: none !important;
+}
+
+.books-record-time-list {
+  display: grid;
+  gap: 8px;
+}
+
+.books-record-time-rank {
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 68px;
+  padding: 9px 11px;
+  border: 1px solid #e2e6ed;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.books-record-time-rank > b {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 999px;
+  background: #eef1ff;
+  color: #3148c8;
+  font-size: .7rem;
+}
+
+.books-record-time-rank > span {
+  min-width: 0;
+}
+
+.books-record-time-rank strong,
+.books-record-time-rank small {
+  display: block;
+}
+
+.books-record-time-rank strong {
+  color: #131927;
+  font-size: .82rem;
+}
+
+.books-record-time-rank small {
+  margin-top: 3px;
+  color: #69717f;
+  font-size: .68rem;
+}
+
+.books-record-time-rank > em {
+  color: #3148c8;
+  font-size: .76rem;
+  font-style: normal;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.books-record-time-rank i {
+  grid-column: 2 / -1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf0f6;
+}
+
+.books-record-time-rank i span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #405cf5;
+}
+
+.books-record-time-status {
+  margin: 0;
+  padding: 18px 12px;
+  border: 1px dashed #d5dbe5;
+  border-radius: 13px;
+  color: #687080;
+  font-size: .76rem;
+  text-align: center;
+}
+
+/* Pace Record covers should read as actual covers, not thumbnail slivers. */
+.books-record-gap-feature .books-record-stack {
+  min-height: 118px;
+  padding-left: 30px;
+}
+
+.books-record-gap-feature .books-record-stack img {
+  width: 72px;
+  height: 108px;
+  margin-left: -28px;
+  transform: none;
+}
+
+/* Author marathons have enough room for a real 2 × 2 cover block. */
+.books-record-author-card {
+  grid-template-columns: 124px minmax(0,1fr);
+  gap: 14px;
+}
+
+.books-record-author-card .books-record-stack {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: repeat(2, 54px);
+  gap: 5px;
+  justify-content: center;
+  padding-left: 0;
+}
+
+.books-record-author-card .books-record-stack img {
+  width: 54px;
+  height: 81px;
+  margin-left: 0;
+  transform: none;
+}
+
+.books-record-author-card strong {
+  font-size: .95rem;
+  white-space: normal;
+}
+
+.books-record-author-card span {
+  font-size: .75rem;
+}
+
+.books-record-author-card em {
+  font-size: .8rem;
+}
+
+.books-timeline-zoom-proxy {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Android Chrome is much happier scrolling long Authors/Records pages without
+     a live backdrop blur over the animated site background. */
+  .books-explorer {
+    animation: none !important;
+  }
+
+  .books-explorer-shell {
+    background: #fff;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* All seven views + Random are visible in a deliberate 4 × 2 control grid. */
+  .view-toggle {
+    display: grid !important;
+    width: calc(100% - 20px);
+    max-width: 760px;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 4px;
+    min-height: 0;
+    padding: 4px;
+    overflow: visible;
+    scroll-snap-type: none;
+    box-shadow: 0 6px 16px rgba(15,23,42,.06);
+  }
+
+  .view-toggle .view-button,
+  .view-toggle .books-surprise-trigger {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    height: 46px;
+    justify-content: center;
+    padding: 7px 4px;
+    border-radius: 999px;
+    font-size: .76rem;
+    white-space: nowrap;
+  }
+
+  .view-toggle .view-button {
+    gap: 5px;
+  }
+
+  .view-toggle > .books-surprise {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: stretch;
+    order: initial;
+  }
+
+  .view-toggle .books-surprise-trigger > span:nth-child(2) {
+    display: inline !important;
+  }
+
+  .view-toggle .books-surprise-chevron {
+    display: none !important;
+  }
+
+  .books-mobile-view-hint {
+    display: none !important;
+  }
+
+  /* World: restore a wide atlas ratio and remove the redundant instruction. */
+  .books-map-svg {
+    aspect-ratio: 16 / 9;
+  }
+
+  .books-map-footer {
+    justify-content: flex-end;
+    padding-top: 7px;
+  }
+
+  .books-map-footer > span:first-child {
+    display: none;
+  }
+
+  /* My Reading Journey: the zoom choice belongs with the heatmap it controls. */
+  #books-timeline-view .books-timeline-controls .books-timeline-zoom {
+    display: none !important;
+  }
+
+  .books-timeline-zoom-proxy {
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+    gap: 3px;
+    margin: 10px 0 16px;
+    padding: 3px;
+    border: 1px solid #e2e6ee;
+    border-radius: 999px;
+    background: rgba(255,255,255,.9);
+  }
+
+  .books-timeline-zoom-proxy button {
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #626a78;
+    font: inherit;
+    font-size: .76rem;
+    font-weight: 800;
+  }
+
+  .books-timeline-zoom-proxy button[aria-pressed="true"] {
+    background: #405cf5;
+    color: #fff;
+  }
+
+  /* Calendar: use the real seven-column calendar on phones, not the agenda list. */
+  .books-calendar-desktop {
+    display: block !important;
+    overflow: hidden;
+    border-radius: 13px;
+  }
+
+  .books-calendar-agenda,
+  .books-calendar-mobile-activity {
+    display: none !important;
+  }
+
+  .books-calendar-weekdays {
+    border-radius: 13px 13px 0 0;
+  }
+
+  .books-calendar-weekdays span {
+    padding: 7px 1px;
+    font-size: .59rem;
+    letter-spacing: .01em;
+  }
+
+  .books-calendar-grid {
+    border-radius: 0 0 13px 13px;
+  }
+
+  .books-calendar-day {
+    min-height: 78px;
+    padding: 3px;
+    overflow: hidden;
+  }
+
+  .books-calendar-day:has(.is-stack:hover),
+  .books-calendar-day:has(.is-stack:focus-within),
+  .books-calendar-day[data-stack-expanded="true"] {
+    z-index: 1;
+    box-shadow: none;
+  }
+
+  .books-calendar-day-number {
+    z-index: 4;
+    min-width: 23px;
+    height: 23px;
+    padding: 0 4px;
+    font-size: .62rem;
+  }
+
+  .books-calendar-day-covers {
+    inset: 27px 2px 3px;
+  }
+
+  .books-calendar-day-covers.is-single .books-calendar-cover {
+    width: 30px;
+    height: 45px;
+    max-width: 100%;
+    max-height: 45px;
+  }
+
+  .books-calendar-day-covers.is-stack {
+    position: absolute;
+    display: flex;
+    inset: 28px 1px 3px;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: auto;
+  }
+
+  .books-calendar-day-covers.is-stack .books-calendar-cover,
+  .books-calendar-day-covers.is-stack:hover .books-calendar-cover,
+  .books-calendar-day-covers.is-stack:focus-within .books-calendar-cover,
+  .books-calendar-day-covers.is-stack.is-expanded .books-calendar-cover,
+  .books-calendar-day-covers.is-stack .books-calendar-cover:hover,
+  .books-calendar-day-covers.is-stack .books-calendar-cover:focus-visible {
+    position: static;
+    width: 24px;
+    height: 40px;
+    margin: 0 -3px;
+    aspect-ratio: auto;
+    transform: none !important;
+    filter: none;
+  }
+
+  .books-calendar-day-covers.is-stack .books-calendar-cover:nth-of-type(n + 3) {
+    display: none !important;
+  }
+
+  .books-calendar-stack-toggle {
+    display: none !important;
+  }
+
+  .books-calendar-stack-overflow {
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+    z-index: 5;
+    display: grid;
+    min-width: 19px;
+    min-height: 19px;
+    place-items: center;
+    padding: 2px;
+    border-radius: 999px;
+    background: #172a91;
+    color: #fff;
+    font-size: .52rem;
+    font-weight: 900;
+  }
+
+  /* Records: vertical milestones and larger, calmer content. */
+  .books-record-milestone-track {
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: minmax(0,1fr);
+    gap: 10px;
+    overflow-x: visible;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+
+  .books-record-milestone {
+    padding-top: 0;
+  }
+
+  .books-record-milestone > span {
+    top: 9px;
+    left: 9px;
+  }
+
+  .books-record-milestone > i {
+    display: none;
+  }
+
+  .books-record-milestone .books-record-book-card {
+    min-height: 126px;
+    height: auto;
+    padding: 9px;
+  }
+
+  .books-record-milestone .books-record-book-main {
+    grid-template-columns: 72px minmax(0,1fr);
+    gap: 12px;
+  }
+
+  .books-record-milestone .books-record-cover-wrap {
+    width: 72px;
+    height: 108px;
+  }
+
+  .books-record-milestone .books-record-book-copy strong {
+    font-size: .86rem;
+  }
+
+  .books-record-milestone .books-record-book-copy small,
+  .books-record-milestone .books-record-book-copy em {
+    font-size: .73rem;
+  }
+
+  .books-record-gap-feature .books-record-stack {
+    min-height: 132px;
+    padding-left: 34px;
+  }
+
+  .books-record-gap-feature .books-record-stack img {
+    width: 82px;
+    height: 123px;
+    margin-left: -32px;
+  }
+
+  .books-record-author-card {
+    grid-template-columns: 118px minmax(0,1fr);
+    gap: 13px;
+  }
+
+  .books-record-author-card .books-record-stack {
+    grid-template-columns: repeat(2, 50px);
+    gap: 5px;
+  }
+
+  .books-record-author-card .books-record-stack img {
+    width: 50px;
+    height: 75px;
+  }
+
+  .books-record-author-card strong {
+    font-size: .92rem;
+    line-height: 1.2;
+  }
+
+  .books-record-author-card span {
+    font-size: .76rem;
+    line-height: 1.25;
+  }
+
+  .books-record-author-card em {
+    font-size: .8rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .view-toggle {
+    width: calc(100% - 16px);
+    gap: 3px;
+  }
+
+  .view-toggle .view-button,
+  .view-toggle .books-surprise-trigger {
+    min-height: 44px;
+    height: 44px;
+    padding-inline: 2px;
+    font-size: .7rem;
+  }
+
+  .view-toggle .view-button {
+    gap: 4px;
+  }
+
+  .books-map-svg {
+    aspect-ratio: 1.78 / 1;
+  }
+
+  .books-calendar-shell {
+    padding: 10px;
+  }
+
+  .books-calendar-day {
+    min-height: 72px;
+  }
+
+  .books-calendar-day-covers.is-single .books-calendar-cover {
+    width: 27px;
+    height: 41px;
+  }
+
+  .books-calendar-day-covers.is-stack .books-calendar-cover,
+  .books-calendar-day-covers.is-stack:hover .books-calendar-cover,
+  .books-calendar-day-covers.is-stack:focus-within .books-calendar-cover,
+  .books-calendar-day-covers.is-stack.is-expanded .books-calendar-cover,
+  .books-calendar-day-covers.is-stack .books-calendar-cover:hover,
+  .books-calendar-day-covers.is-stack .books-calendar-cover:focus-visible {
+    width: 21px;
+    height: 35px;
+  }
+
+  .books-record-time-rank {
+    grid-template-columns: 31px minmax(0,1fr);
+  }
+
+  .books-record-time-rank > em {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .books-record-time-rank i {
+    grid-column: 2;
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .view-toggle .view-button,
+  .view-toggle .books-surprise-trigger {
+    font-size: .66rem;
+  }
+
+  .view-toggle .view-button > span:first-child {
+    font-size: .82rem;
+  }
+
+  .books-record-author-card {
+    grid-template-columns: 108px minmax(0,1fr);
+  }
+
+  .books-record-author-card .books-record-stack {
+    grid-template-columns: repeat(2, 46px);
+  }
+
+  .books-record-author-card .books-record-stack img {
+    width: 46px;
+    height: 69px;
+  }
+}
