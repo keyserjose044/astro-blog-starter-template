@@ -12,3 +12,19 @@
     display: none !important;
   }
 }
+
+@media (min-width: 901px) {
+  /* Year/Month controls belong to the Full Reading Log they drill into, not to
+     the mode switch above it. Keep the original control as the state source but
+     show its desktop mirror directly below the stable heatmap block. */
+  #books-timeline-view .books-timeline-controls > .books-timeline-zoom {
+    display: none !important;
+  }
+
+  .books-timeline-desktop-zoom-proxy {
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+    margin: 10px 0 16px;
+  }
+}
