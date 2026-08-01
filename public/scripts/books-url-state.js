@@ -31,7 +31,6 @@ function bootBooksUrlState(attempt = 0) {
     language: document.querySelector('#language-filter'),
     country: document.querySelector('#country-filter'),
     sort: document.querySelector('#sort-books'),
-    month: document.querySelector('[data-calendar-month]'),
   };
 
   let applying = false;
@@ -49,6 +48,10 @@ function bootBooksUrlState(attempt = 0) {
       records: '[data-books-expansion-view="records"]',
     };
     return selectors[String(view || '').toLowerCase()] || '';
+  }
+
+  function calendarMonthControl() {
+    return document.querySelector('[data-calendar-month]');
   }
 
   function buttonView(button) {
@@ -103,7 +106,7 @@ function bootBooksUrlState(attempt = 0) {
     setOrDelete(params, 'country', controls.country?.value);
     setOrDelete(params, 'sort', controls.sort?.value, 'date-desc');
 
-    if (view === 'calendar') setOrDelete(params, 'month', controls.month?.value);
+    if (view === 'calendar') setOrDelete(params, 'month', calendarMonthControl()?.value);
     else params.delete('month');
 
     if (view === 'timeline') {
@@ -146,8 +149,9 @@ function bootBooksUrlState(attempt = 0) {
     const viewButton = selector ? document.querySelector(selector) : null;
     if (viewButton) viewButton.click();
 
-    if (view === 'calendar' && params.has('month') && chooseOption(controls.month, params.get('month'))) {
-      dispatch(controls.month, 'change');
+    const monthControl = calendarMonthControl();
+    if (view === 'calendar' && params.has('month') && chooseOption(monthControl, params.get('month'))) {
+      dispatch(monthControl, 'change');
     }
 
     if (view === 'timeline') {
