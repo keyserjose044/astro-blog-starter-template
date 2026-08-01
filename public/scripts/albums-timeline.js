@@ -1,5 +1,5 @@
 const RELEASE_CUTOFF_YEAR = 1920;
-let mode = 'listening';
+let mode = 'release';
 let installed = false;
 let lastApi = null;
 
@@ -131,7 +131,7 @@ function install(api) {
 
   document.querySelectorAll('[data-timeline-mode]').forEach((button) => {
     button.addEventListener('click', () => {
-      mode = button.dataset.timelineMode === 'release' ? 'release' : 'listening';
+      mode = button.dataset.timelineMode === 'listening' ? 'listening' : 'release';
       syncModeButtons();
       renderAlbumTimeline(lastApi);
     });
@@ -185,8 +185,8 @@ export function renderAlbumTimeline(api) {
   ].join('');
 
   api.controls.timelineHelp.textContent = mode === 'listening'
-    ? 'Each stop is a listening year. Select one to apply the Year listened filter.'
-    : `Only exact years and decades from ${RELEASE_CUTOFF_YEAR} onward are shown. Release metadata is user-entered and may still need correction.`;
+    ? 'Each stop is a listening year. Select one to reveal those albums below and apply the Year listened filter.'
+    : `Select a release period to reveal those albums below. Only exact years and decades from ${RELEASE_CUTOFF_YEAR} onward are shown.`;
 
   if (!groups.length) {
     api.controls.timelineContent.innerHTML = `<div class="albums-timeline-empty">${

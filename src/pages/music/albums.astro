@@ -1,6 +1,6 @@
 ---
 // src/pages/music/albums.astro
-// Revision: metadata-aware filters, List/Quilt/World Map/Timeline views, and Surprise Me — July 2026
+// Revision: internal album details plus List/Quilt/World/Timeline/Calendar/Artists/Records — Aug 1, 2026
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
@@ -123,10 +123,10 @@ const totalListeningTime = formatAlbumDuration(totalListeningMinutes);
         <p>Music fills the stretches when an audiobook would demand too much attention. I log complete albums rather than shuffled playlists so the listening history remains a record of distinct works.</p>
 
         <h2>How the Metadata Works</h2>
-        <p>The usual structure is <strong>Date · Album · Artist · Country · Primary Style · Subgenre · Mood · Length · Release Period</strong>. Older entries are sometimes sparse, so the page keeps unknown fields visible without forcing them into the wrong category.</p>
+        <p>The usual structure is <strong>Date · Album · Artist · Country · Primary Style · Subgenre · Mood · Length · Release Period</strong>. Older entries are sometimes sparse, so the page keeps unavailable fields out of the way rather than forcing them into the wrong category.</p>
 
         <h2>How to Browse</h2>
-        <p>List and Quilt browse the collection itself. World Map uses artist-country metadata, including multinational labels such as USA/Italy. Timeline switches between album release history and the years when I listened.</p>
+        <p>List and Quilt browse the collection itself. On desktop, Quilt adds a rich hover preview; clicking or tapping an album opens its LifeLoggerz details, while the ↗ control opens the original source. World explores artist origins, Timeline compares release history with my listening journey, Calendar shows logged album dates, Artists groups the archive by artist or group, and Records surfaces extremes and milestones.</p>
       </section>
     </div>
 
@@ -162,7 +162,7 @@ const totalListeningTime = formatAlbumDuration(totalListeningMinutes);
               <div>
                 <p class="albums-eyebrow">Music through time</p>
                 <h2>The collection as a timeline</h2>
-                <p>Move between when the music was released and when it entered my listening log.</p>
+                <p>Move between when the music was released and when it entered my listening log. Selecting a period reveals its albums below.</p>
               </div>
               <button type="button" class="albums-explorer-close" data-close-explorer aria-label="Close timeline">×</button>
             </div>
@@ -172,10 +172,21 @@ const totalListeningTime = formatAlbumDuration(totalListeningMinutes);
                 <button type="button" data-timeline-mode="release" aria-pressed="true">Release history</button>
                 <button type="button" data-timeline-mode="listening" aria-pressed="false">My listening journey</button>
               </div>
-              <p id="albums-timeline-help">Select a period to apply it as a filter.</p>
+              <p id="albums-timeline-help">Select a period to reveal its albums below.</p>
             </div>
             <div id="albums-timeline-content"></div>
           </div>
+
+          <section id="albums-selection-shelf" class="albums-selection-shelf" hidden aria-live="polite">
+            <div class="albums-selection-heading">
+              <div>
+                <h3 id="albums-selection-title">Selected albums</h3>
+                <p id="albums-selection-summary"></p>
+              </div>
+              <button type="button" id="albums-selection-clear" class="albums-selection-clear">Clear selection</button>
+            </div>
+            <div id="albums-selection-grid" class="albums-selection-grid"></div>
+          </section>
         </section>
 
         <div id="albums-grid" class="albums-grid" role="list" data-album-view="list">
@@ -188,13 +199,10 @@ const totalListeningTime = formatAlbumDuration(totalListeningMinutes);
             const listeningLine = [meta.dateListened ? `Listened ${meta.dateListened}` : '', meta.length].filter(Boolean).join(' · ');
 
             return (
-              <a
+              <article
                 class="album-card"
                 role="listitem"
-                href={album.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`${album.title} — opens in a new tab`}
+                data-href={album.href}
                 data-title={album.title}
                 data-artist={meta.artist}
                 data-country={meta.country}
@@ -216,18 +224,58 @@ const totalListeningTime = formatAlbumDuration(totalListeningMinutes);
                 data-original-index={index}
               >
                 <img class="album-cover" src={album.cover} alt={album.title} loading="lazy" decoding="async" sizes="(max-width: 559px) 112px, (max-width: 900px) 31vw, (min-width: 901px) 220px" />
-                <div class="album-title">{album.title}<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></div>
+                <div class="album-title">{album.title}</div>
                 <div class="album-card-meta">
                   {meta.artist ? <span><strong>{meta.artist}</strong></span> : null}
                   {styleLine ? <span>{styleLine}</span> : null}
                   {originLine ? <span>{originLine}</span> : null}
                   {(release.label || listeningLine) ? <span>{[release.label !== 'Unknown' ? release.label : '', listeningLine].filter(Boolean).join(' · ')}</span> : null}
                 </div>
-                {album.note ? <div class="album-note-bubble" role="tooltip">{album.note}</div> : null}
-              </a>
+                <button
+                  type="button"
+                  class="album-details-hit"
+                  aria-label={`${album.title} — open album details`}
+                  title="Open album details"
+                ></button>
+                <a
+                  class="album-source-link"
+                  href={album.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open the original source for ${album.title} in a new tab`}
+                  title="Open original source"
+                >↗</a>
+              </article>
             );
           })}
         </div>
+
+        <aside id="album-rich-preview" class="album-rich-preview" hidden aria-label="Album preview">
+          <div class="album-rich-preview-shell">
+            <img data-album-preview-image alt="" />
+            <div class="album-rich-preview-copy">
+              <p class="album-details-eyebrow" data-album-preview-date></p>
+              <h3 data-album-preview-title></h3>
+              <p class="album-details-artist" data-album-preview-artist></p>
+              <dl data-album-preview-details></dl>
+              <a class="album-details-source" data-album-preview-source target="_blank" rel="noopener noreferrer">Open original source <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </aside>
+
+        <dialog id="album-details-dialog" class="album-details-dialog" aria-labelledby="album-details-title">
+          <div class="album-details-shell">
+            <button type="button" class="album-details-close" data-album-dialog-close aria-label="Close album details">×</button>
+            <img data-album-dialog-image alt="" />
+            <div class="album-details-copy">
+              <p class="album-details-eyebrow" data-album-dialog-date></p>
+              <h2 id="album-details-title" data-album-dialog-title></h2>
+              <p class="album-details-artist" data-album-dialog-artist></p>
+              <dl data-album-dialog-details></dl>
+              <a class="album-details-source" data-album-dialog-source target="_blank" rel="noopener noreferrer">Open original source <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </dialog>
       </>
     )}
   </main>
