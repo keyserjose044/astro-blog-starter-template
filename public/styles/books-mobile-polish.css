@@ -1,10 +1,9 @@
-/* Books mobile QA fixes — August 1, 2026.
- * Loaded last so page-specific responsive rules win over legacy global helpers.
+/* Books mobile QA foundations — August 1, 2026.
+ * Loaded late so Books-specific responsive rules win over legacy global helpers.
+ * View navigation itself now lives in books-mobile-pass-2.css.
  */
 
 @media (max-width: 900px) {
-  /* The global mobile `.grid { ... !important }` helper collapses Quilt to one column.
-     Reassert the Books collection layout with higher specificity and !important. */
   #grid.grid[data-book-view="quilt"] {
     justify-items: stretch !important;
   }
@@ -26,8 +25,6 @@
     white-space: normal;
   }
 
-  /* Give the toolbar three intentional rows instead of letting injected controls
-     auto-place themselves into whatever grid cells remain. */
   .toolbar {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
@@ -53,87 +50,12 @@
     font-size: 0.86rem;
   }
 
-  .books-surprise {
-    grid-column: 1;
-    grid-row: 3;
-    justify-self: center;
-    order: initial;
-  }
-
-  #info-toggle {
-    grid-column: 2;
-    grid-row: 3;
-    justify-self: center;
-  }
-
+  #info-toggle,
   .toolbar > a.info-toggle {
-    grid-column: 3;
-    grid-row: 3;
-    justify-self: center;
-  }
-
-  .info-toggle,
-  .books-surprise-trigger {
-    width: 44px;
-    height: 44px;
+    min-width: 44px;
     min-height: 44px;
   }
 
-  /* Surprise becomes an icon control throughout the mobile layout so the third
-     toolbar row remains balanced at tablet as well as phone widths. */
-  .books-surprise-trigger {
-    justify-content: center;
-    padding-inline: 0;
-    border-radius: 999px;
-  }
-
-  .books-surprise-trigger > span:nth-child(2),
-  .books-surprise-chevron {
-    display: none;
-  }
-
-  /* Seven views cannot fit in a phone-width pill. Make the strip deliberately
-     swipeable and keep every target comfortably tappable. */
-  .view-toggle {
-    max-width: calc(100vw - 20px);
-    min-height: 50px;
-    padding: 3px 20px 3px 3px;
-    scroll-padding-inline: 12px;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    box-shadow:
-      inset -18px 0 18px -18px rgba(36, 51, 120, 0.55),
-      0 6px 16px rgba(15, 23, 42, 0.06);
-  }
-
-  .view-toggle .view-button {
-    min-height: 44px;
-    padding: 8px 13px;
-    font-size: 0.84rem;
-    scroll-snap-align: center;
-  }
-
-  .books-mobile-view-hint {
-    width: max-content;
-    max-width: calc(100vw - 24px);
-    margin: -8px auto 11px;
-    color: #747c8b;
-    font-size: 0.7rem;
-    font-weight: 700;
-    line-height: 1.2;
-    text-align: center;
-    transition: opacity 160ms ease;
-  }
-
-  .books-mobile-view-hint[hidden] {
-    display: none !important;
-  }
-
-  .books-mobile-view-hint.is-used {
-    opacity: 0.45;
-  }
-
-  /* Common alternate-view touch targets. */
   .books-explorer-close,
   .books-calendar-close,
   .books-calendar-dialog-close,
@@ -163,8 +85,6 @@
     min-height: 40px;
   }
 
-  /* Match the parent grids to the enlarged arrow targets so they never spill
-     into the book-copy column. */
   .books-record-book-card,
   .books-record-book-card--champion {
     grid-template-columns: minmax(0, 1fr) 40px;
@@ -189,7 +109,6 @@
     box-shadow: inset -18px 0 18px -20px rgba(36, 51, 120, 0.45);
   }
 
-  /* Phone-sized copy should read like a mobile interface, not a miniaturized dashboard. */
   .books-country-rank-name,
   .books-record-book-copy strong,
   .books-record-burst-card strong,
@@ -244,7 +163,6 @@
     font-size: 0.72rem;
   }
 
-  /* Respect iPhone home-indicator space for bottom-positioned surfaces. */
   .books-surprise-menu {
     bottom: max(14px, env(safe-area-inset-bottom));
   }
@@ -357,11 +275,5 @@
   .books-explorer-shell,
   .books-calendar-shell {
     padding: 11px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .books-mobile-view-hint {
-    transition: none !important;
   }
 }
