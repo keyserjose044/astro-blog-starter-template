@@ -50,6 +50,8 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-atlas-refinement.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-final-polish.css?v=${booksAssetVersion}`} /> : null}
 {isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-calendar.css?v=${booksAssetVersion}`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-calendar-refinement.css?v=${booksAssetVersion}`} /> : null}
+{isBooksPage ? <link rel="stylesheet" href={`${base}styles/books-calendar-enhancements.css?v=${booksAssetVersion}`} /> : null}
 
 {isAlbumsPage ? <meta name="lifeloggerz-albums-assets" content={albumsAssetVersion} /> : null}
 {isAlbumsPage ? <link rel="stylesheet" href={`${base}styles/albums-explorer.css?v=${albumsAssetVersion}`} /> : null}
@@ -94,6 +96,7 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-calendar.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-calendar-enhancements.js?v=${booksAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
