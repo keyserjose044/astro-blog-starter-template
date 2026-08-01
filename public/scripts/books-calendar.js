@@ -1,6 +1,6 @@
 /*
- * LifeLoggerz Books completion calendar and chronological list polish.
- * Uses the public Raindrop metadata already rendered on /books.
+ * LifeLoggerz Books completion calendar.
+ * Uses only public Raindrop metadata already rendered on /books.
  */
 
 const BOOKS_CALENDAR_STORAGE_KEY = 'lifeloggerz-books-calendar-month';
@@ -22,7 +22,6 @@ function bootBooksCalendar(attempt = 0) {
   if (!cards.length) return;
 
   const explorer = document.querySelector('#books-explorer');
-  const sortSelect = document.querySelector('#sort-books');
   const filterControls = [
     document.querySelector('#q'),
     document.querySelector('#genre-filter'),
@@ -59,21 +58,18 @@ function bootBooksCalendar(attempt = 0) {
       ) ? date : null;
     }
 
-    const numeric = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
-    if (numeric) {
-      const month = Number(numeric[1]);
-      const day = Number(numeric[2]);
-      const year = numeric[3].length === 2 ? 2000 + Number(numeric[3]) : Number(numeric[3]);
+    const numericDate = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
+    if (numericDate) {
+      const month = Number(numericDate[1]);
+      const day = Number(numericDate[2]);
+      const rawYear = numericDate[3];
+      const year = rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear);
       const date = new Date(Date.UTC(year, month - 1, day));
-      if (
-        Number.isNaN(date.getTime()) ||
-        date.getUTCFullYear() !== year ||
-        date.getUTCMonth() !== month - 1 ||
-        date.getUTCDate() !== day
-      ) {
-        return null;
-      }
-      return date;
+      return (
+        date.getUTCFullYear() === year &&
+        date.getUTCMonth() === month - 1 &&
+        date.getUTCDate() === day
+      ) ? date : null;
     }
 
     const parsed = new Date(raw);
@@ -120,19 +116,16 @@ function bootBooksCalendar(attempt = 0) {
   const formatMonth = (key) => {
     const date = monthDateFromKey(key);
     return date
-      ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date)
+      ? new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(date)
       : '';
   };
 
   const formatFullDate = (date) => new Intl.DateTimeFormat('en-US', {
     month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(date);
-
-  const formatCompactDate = (date) => new Intl.DateTimeFormat('en-US', {
-    month: 'short',
     day: 'numeric',
     year: 'numeric',
     timeZone: 'UTC',
@@ -154,19 +147,16 @@ function bootBooksCalendar(attempt = 0) {
     'Untitled'
   );
 
-  const getCardInfo = (card) => {
-    const finishedDate = parseFinishedDate(card.dataset.dateFinished);
-    return {
-      card,
-      title: getCardTitle(card),
-      author: String(card.dataset.author || '').trim(),
-      cover: card.querySelector('.thumb')?.getAttribute('src') || '',
-      href: card.getAttribute('href') || '#',
-      finishedDate,
-      length: String(card.dataset.length || '').trim(),
-      lengthMinutes: parseLengthMinutes(card.dataset.length),
-    };
-  };
+  const getCardInfo = (card) => ({
+    card,
+    title: getCardTitle(card),
+    author: String(card.dataset.author || '').trim(),
+    cover: card.querySelector('.thumb')?.getAttribute('src') || '',
+    href: card.getAttribute('href') || '#',
+    finishedDate: parseFinishedDate(card.dataset.dateFinished),
+    length: String(card.dataset.length || '').trim(),
+    lengthMinutes: parseLengthMinutes(card.dataset.length),
+  });
 
   const isCardVisible = (card) => (
     card.style.display !== 'none' &&
@@ -177,52 +167,31 @@ function bootBooksCalendar(attempt = 0) {
   const visibleBookInfo = () => cards.filter(isCardVisible).map(getCardInfo);
   const allDatedBookInfo = () => cards.map(getCardInfo).filter((book) => book.finishedDate);
 
-  function polishCompletionRows() {
+  function boldenCompletionDates() {
     cards.forEach((card) => {
       const meta = card.querySelector('.card-meta');
-      if (!meta || meta.querySelector('.book-completion-row')) return;
+      if (!meta) return;
 
       const rawDate = String(card.dataset.dateFinished || '').trim();
       const rawLength = String(card.dataset.length || '').trim();
-      if (!rawDate && !rawLength) return;
+      if (!rawDate) return;
 
-      const existing = Array.from(meta.children).find((element) => {
-        const text = element.textContent.trim();
-        return text.startsWith('Finished ') || (rawLength && text === rawLength);
-      });
+      const row = Array.from(meta.children).find((element) => (
+        element.textContent.trim().startsWith('Finished ')
+      ));
+      if (!row || row.querySelector('.book-finished-date')) return;
 
-      const row = existing || document.createElement('span');
-      row.className = 'book-completion-row';
       row.replaceChildren();
+      const dateText = document.createElement('strong');
+      dateText.className = 'book-finished-date';
+      dateText.textContent = `Finished ${rawDate}`;
+      row.append(dateText);
 
-      const parsedDate = parseFinishedDate(rawDate);
-      if (rawDate) {
-        const pill = document.createElement('span');
-        pill.className = 'book-finished-pill';
-        pill.append('Finished · ');
-
-        if (parsedDate) {
-          const time = document.createElement('time');
-          time.dateTime = dateKey(parsedDate);
-          time.textContent = formatCompactDate(parsedDate);
-          pill.append(time);
-        } else {
-          pill.append(rawDate);
-        }
-
-        row.append(pill);
-      }
-
-      if (rawLength) {
-        const duration = document.createElement('span');
-        duration.className = 'book-duration';
-        duration.textContent = rawLength;
-        row.append(duration);
-      }
-
-      if (!existing) meta.append(row);
+      if (rawLength) row.append(` · ${rawLength}`);
     });
   }
+
+  boldenCompletionDates();
 
   const calendarButton = document.createElement('button');
   calendarButton.type = 'button';
@@ -243,7 +212,7 @@ function bootBooksCalendar(attempt = 0) {
         <div>
           <p class="books-calendar-eyebrow">Completion calendar</p>
           <h2 class="books-calendar-title">Books finished by day</h2>
-          <p class="books-calendar-description">A public calendar built from completion dates. Covers mark the day each audiobook was finished.</p>
+          <p class="books-calendar-description">Covers mark the day each audiobook was finished. Hover a stack on desktop to fan its books out.</p>
         </div>
         <button type="button" class="books-calendar-close" data-close-calendar aria-label="Close calendar view">×</button>
       </div>
@@ -275,7 +244,6 @@ function bootBooksCalendar(attempt = 0) {
       <p class="books-calendar-empty" data-calendar-empty hidden>No finished books match the current filters in this month.</p>
     </div>
   `;
-
   grid.parentElement.insertBefore(calendar, grid);
 
   const dialog = document.createElement('dialog');
@@ -386,6 +354,7 @@ function bootBooksCalendar(attempt = 0) {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.title = `${book.title} — opens in a new tab`;
+    link.setAttribute('aria-label', `${book.title} — opens in a new tab`);
 
     const image = document.createElement('img');
     image.src = book.cover;
@@ -445,20 +414,62 @@ function bootBooksCalendar(attempt = 0) {
       dialogList.append(link);
     });
 
-    if (typeof dialog.showModal === 'function') {
-      dialog.showModal();
-    } else {
-      dialog.setAttribute('open', '');
-    }
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
   }
 
   function closeDayDetails() {
-    if (typeof dialog.close === 'function' && dialog.open) {
-      dialog.close();
-    } else {
+    if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+    else {
       dialog.removeAttribute('open');
       state.lastDayTrigger?.focus?.();
     }
+  }
+
+  function collapseOtherStacks(exception = null) {
+    calendarGrid.querySelectorAll('.books-calendar-day-covers.is-expanded').forEach((stack) => {
+      if (stack === exception) return;
+      stack.classList.remove('is-expanded');
+      stack.closest('.books-calendar-day')?.removeAttribute('data-stack-expanded');
+      const toggle = stack.closest('.books-calendar-day')?.querySelector('.books-calendar-stack-toggle');
+      toggle?.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function configureStack(covers, books, dayDate, cell) {
+    covers.classList.add('is-stack');
+    covers.dataset.count = String(books.length);
+
+    const center = (books.length - 1) / 2;
+    const spread = books.length <= 3 ? 44 : books.length <= 5 ? 31 : books.length <= 8 ? 23 : 18;
+
+    books.forEach((book, index) => {
+      const link = createCoverLink(book);
+      const distance = index - center;
+      link.style.setProperty('--stack-index', String(index));
+      link.style.setProperty('--collapsed-shift', `${(distance * 3.2).toFixed(1)}px`);
+      link.style.setProperty('--collapsed-rotation', `${(distance * 1.25).toFixed(2)}deg`);
+      link.style.setProperty('--splay-shift', `${(distance * spread).toFixed(1)}px`);
+      link.style.setProperty('--splay-rotation', `${(distance * 2.25).toFixed(2)}deg`);
+      covers.append(link);
+    });
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'books-calendar-stack-toggle';
+    toggle.textContent = `${books.length} books`;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', `Fan out ${books.length} books finished on ${formatFullDate(dayDate)}`);
+    toggle.addEventListener('click', () => {
+      const willExpand = !covers.classList.contains('is-expanded');
+      collapseOtherStacks(covers);
+      covers.classList.toggle('is-expanded', willExpand);
+      toggle.setAttribute('aria-expanded', String(willExpand));
+      if (willExpand) cell.dataset.stackExpanded = 'true';
+      else cell.removeAttribute('data-stack-expanded');
+    });
+
+    cell.append(covers, toggle);
   }
 
   function renderDesktopCalendar(booksByDay, year, monthIndex, daysInMonth) {
@@ -482,6 +493,7 @@ function bootBooksCalendar(attempt = 0) {
       cell.className = 'books-calendar-day';
       cell.setAttribute('role', 'gridcell');
       cell.dataset.hasBooks = books.length ? 'true' : 'false';
+      cell.dataset.bookCount = String(books.length);
 
       const header = document.createElement(books.length ? 'button' : 'span');
       header.className = 'books-calendar-day-number';
@@ -493,27 +505,16 @@ function bootBooksCalendar(attempt = 0) {
       }
       cell.append(header);
 
-      if (books.length) {
+      if (books.length === 1) {
+        const covers = document.createElement('div');
+        covers.className = 'books-calendar-day-covers is-single';
+        covers.dataset.count = '1';
+        covers.append(createCoverLink(books[0]));
+        cell.append(covers);
+      } else if (books.length > 1) {
         const covers = document.createElement('div');
         covers.className = 'books-calendar-day-covers';
-        books.slice(0, 3).forEach((book) => covers.append(createCoverLink(book)));
-
-        if (books.length > 3) {
-          const more = document.createElement('button');
-          more.type = 'button';
-          more.className = 'books-calendar-more';
-          more.textContent = `+${books.length - 3}`;
-          more.setAttribute('aria-label', `Show ${books.length - 3} more books finished on ${formatFullDate(dayDate)}`);
-          more.addEventListener('click', () => openDayDetails(dayDate, books, more));
-          covers.append(more);
-        }
-
-        cell.append(covers);
-
-        const count = document.createElement('span');
-        count.className = 'books-calendar-day-count';
-        count.textContent = `${books.length} ${books.length === 1 ? 'book' : 'books'}`;
-        cell.append(count);
+        configureStack(covers, books, dayDate, cell);
       }
 
       calendarGrid.append(cell);
@@ -548,7 +549,9 @@ function bootBooksCalendar(attempt = 0) {
 
       const covers = document.createElement('div');
       covers.className = 'books-calendar-agenda-covers';
-      books.slice(0, 4).forEach((book) => covers.append(createCoverLink(book, 'books-calendar-agenda-cover')));
+      books.slice(0, 4).forEach((book) => {
+        covers.append(createCoverLink(book, 'books-calendar-agenda-cover'));
+      });
 
       const copy = document.createElement('button');
       copy.type = 'button';
@@ -605,52 +608,10 @@ function bootBooksCalendar(attempt = 0) {
     renderAgenda(booksByDay);
   }
 
-  function removeDateDividers() {
-    grid.querySelectorAll('.books-date-divider').forEach((divider) => divider.remove());
-  }
-
-  function refreshDateDividers() {
-    removeDateDividers();
-
-    const sortMode = sortSelect?.value || 'date-desc';
-    if (grid.dataset.bookView !== 'list' || !['date-desc', 'date-asc'].includes(sortMode)) return;
-
-    const visible = cards.filter(isCardVisible);
-    const counts = new Map();
-    visible.forEach((card) => {
-      const date = parseFinishedDate(card.dataset.dateFinished);
-      const key = date ? dateKey(date) : 'unknown';
-      counts.set(key, (counts.get(key) || 0) + 1);
-    });
-
-    let previousKey = null;
-    visible.forEach((card) => {
-      const date = parseFinishedDate(card.dataset.dateFinished);
-      const key = date ? dateKey(date) : 'unknown';
-      if (key === previousKey) return;
-      previousKey = key;
-
-      const divider = document.createElement('div');
-      divider.className = 'books-date-divider';
-      divider.setAttribute('role', 'heading');
-      divider.setAttribute('aria-level', '2');
-
-      const label = document.createElement('span');
-      label.textContent = date ? formatFullDate(date) : 'Completion date unknown';
-
-      const count = document.createElement('small');
-      const amount = counts.get(key) || 0;
-      count.textContent = `${amount} ${amount === 1 ? 'book' : 'books'}`;
-
-      divider.append(label, count);
-      grid.insertBefore(divider, card);
-    });
-  }
-
   function scheduleRefresh(delay = 40) {
     window.clearTimeout(state.refreshTimer);
     state.refreshTimer = window.setTimeout(() => {
-      refreshDateDividers();
+      boldenCompletionDates();
       if (state.active) renderCalendar();
     }, delay);
   }
@@ -678,6 +639,7 @@ function bootBooksCalendar(attempt = 0) {
     state.active = false;
     calendar.hidden = true;
     document.body.classList.remove('books-calendar-open');
+    collapseOtherStacks();
   }
 
   function closeCalendarToCollection() {
@@ -696,7 +658,6 @@ function bootBooksCalendar(attempt = 0) {
     const button = event.target.closest('.view-button');
     if (!button || button === calendarButton) return;
     deactivateCalendar();
-    window.requestAnimationFrame(refreshDateDividers);
   });
 
   calendar.querySelector('[data-close-calendar]')?.addEventListener('click', closeCalendarToCollection);
@@ -734,8 +695,14 @@ function bootBooksCalendar(attempt = 0) {
   dialog.addEventListener('click', (event) => {
     if (event.target === dialog) closeDayDetails();
   });
-  dialog.addEventListener('close', () => {
-    state.lastDayTrigger?.focus?.();
+  dialog.addEventListener('close', () => state.lastDayTrigger?.focus?.());
+
+  calendar.addEventListener('click', (event) => {
+    if (!event.target.closest('.books-calendar-day')) collapseOtherStacks();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.books-calendar-day')) collapseOtherStacks();
   });
 
   filterControls.forEach((control) => {
@@ -744,13 +711,11 @@ function bootBooksCalendar(attempt = 0) {
     control.addEventListener('click', () => scheduleRefresh(40));
   });
 
-  sortSelect?.addEventListener('change', () => scheduleRefresh(0));
-
   const observer = new MutationObserver(() => scheduleRefresh(45));
   observer.observe(grid, {
     attributes: true,
     subtree: true,
-    attributeFilter: ['style', 'class', 'data-book-view'],
+    attributeFilter: ['style', 'data-book-view'],
   });
 
   window.addEventListener('keydown', (event) => {
@@ -766,9 +731,7 @@ function bootBooksCalendar(attempt = 0) {
     infoPanel.append(note);
   }
 
-  polishCompletionRows();
   populateMonthSelect();
-  refreshDateDividers();
 }
 
 if (document.readyState === 'loading') {
