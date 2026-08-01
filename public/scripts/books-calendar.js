@@ -46,6 +46,19 @@ function bootBooksCalendar(attempt = 0) {
     const raw = String(value || '').trim().replace(/(\d)(st|nd|rd|th)\b/gi, '$1');
     if (!raw) return null;
 
+    const isoDate = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoDate) {
+      const year = Number(isoDate[1]);
+      const month = Number(isoDate[2]);
+      const day = Number(isoDate[3]);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      return (
+        date.getUTCFullYear() === year &&
+        date.getUTCMonth() === month - 1 &&
+        date.getUTCDate() === day
+      ) ? date : null;
+    }
+
     const numeric = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2}|\d{4})$/);
     if (numeric) {
       const month = Number(numeric[1]);
