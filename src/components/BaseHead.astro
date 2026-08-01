@@ -22,7 +22,7 @@ const normalizedPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/books');
 const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
-const booksAssetVersion = '20260731-2140';
+const booksAssetVersion = '20260731-2145';
 const albumsAssetVersion = '20260726-1535';
 const artAssetVersion = '20260727-1945';
 ---
@@ -106,6 +106,7 @@ const artAssetVersion = '20260727-1945';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-views-expansion.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-expansion-fixes.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-records-redesign.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-records-stability.js?v=${booksAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
