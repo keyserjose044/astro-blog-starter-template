@@ -26,7 +26,7 @@ const {
 } = Astro.props;
 
 // The portrait is 985 × 551. Each polygon follows a visible silhouette.
-// Empty quote fields remain dormant until a line is chosen.
+// Tail offsets point the thought dots toward each person's head.
 const familyMembers = [
   {
     id: 'mom',
@@ -36,6 +36,9 @@ const familyMembers = [
     bubbleLeft: '13%',
     bubbleTop: '29%',
     placement: 'above',
+    tailShift: '34px',
+    cloudVariant: 'soft-left',
+    cloudTilt: '-0.45deg',
     isJose: false,
   },
   {
@@ -46,6 +49,9 @@ const familyMembers = [
     bubbleLeft: '27.5%',
     bubbleTop: '18%',
     placement: 'above',
+    tailShift: '20px',
+    cloudVariant: 'wide',
+    cloudTilt: '0.35deg',
     isJose: true,
   },
   {
@@ -56,6 +62,9 @@ const familyMembers = [
     bubbleLeft: '36%',
     bubbleTop: '23%',
     placement: 'above',
+    tailShift: '12px',
+    cloudVariant: 'compact',
+    cloudTilt: '-0.2deg',
     isJose: false,
   },
   {
@@ -66,6 +75,9 @@ const familyMembers = [
     bubbleLeft: '49%',
     bubbleTop: '19%',
     placement: 'above',
+    tailShift: '1px',
+    cloudVariant: 'wide',
+    cloudTilt: '0.25deg',
     isJose: false,
   },
   {
@@ -76,6 +88,9 @@ const familyMembers = [
     bubbleLeft: '59%',
     bubbleTop: '23%',
     placement: 'above',
+    tailShift: '-13px',
+    cloudVariant: 'soft-left',
+    cloudTilt: '-0.35deg',
     isJose: false,
   },
   {
@@ -86,6 +101,9 @@ const familyMembers = [
     bubbleLeft: '70%',
     bubbleTop: '17%',
     placement: 'below',
+    tailShift: '-10px',
+    cloudVariant: 'compact',
+    cloudTilt: '0.45deg',
     isJose: true,
   },
   {
@@ -96,6 +114,9 @@ const familyMembers = [
     bubbleLeft: '89%',
     bubbleTop: '16%',
     placement: 'below',
+    tailShift: '-36px',
+    cloudVariant: 'soft-left',
+    cloudTilt: '-0.25deg',
     isJose: false,
   },
 
@@ -108,6 +129,9 @@ const familyMembers = [
     bubbleLeft: '19.5%',
     bubbleTop: '20%',
     placement: 'above',
+    tailShift: '25px',
+    cloudVariant: 'compact',
+    cloudTilt: '0.4deg',
     isJose: true,
   },
   {
@@ -118,6 +142,9 @@ const familyMembers = [
     bubbleLeft: '68.5%',
     bubbleTop: '59%',
     placement: 'above',
+    tailShift: '-4px',
+    cloudVariant: 'wide',
+    cloudTilt: '-0.3deg',
     isJose: true,
   },
   {
@@ -128,6 +155,9 @@ const familyMembers = [
     bubbleLeft: '29.5%',
     bubbleTop: '60%',
     placement: 'above',
+    tailShift: '15px',
+    cloudVariant: 'soft-left',
+    cloudTilt: '0.2deg',
     isJose: true,
   },
 ];
@@ -174,6 +204,9 @@ void bubbleLeft;
           data-bubble-left={member.bubbleLeft}
           data-bubble-top={member.bubbleTop}
           data-placement={member.placement}
+          data-tail-shift={member.tailShift}
+          data-cloud-variant={member.cloudVariant}
+          data-cloud-tilt={member.cloudTilt}
           data-jose={member.isJose ? 'true' : 'false'}
         >
           <title>{member.label}</title>
@@ -185,6 +218,7 @@ void bubbleLeft;
       class="speech-bubble"
       data-visible="0"
       data-placement="above"
+      data-cloud-variant="wide"
       aria-hidden="true"
       role="status"
     >
@@ -249,6 +283,11 @@ void bubbleLeft;
     --cloud-paper-light: #fffaf1;
     --cloud-ink: #302820;
     --cloud-outline: rgba(126, 106, 84, 0.62);
+    --tail-shift: 0px;
+    --cloud-tilt: 0deg;
+    --cloud-shape-x: 1;
+    --cloud-shape-y: 1;
+    --cloud-shape-rotate: 0deg;
 
     position: absolute;
     z-index: 4;
@@ -281,15 +320,33 @@ void bubbleLeft;
     overflow-wrap: anywhere;
 
     opacity: 0;
-    filter: blur(1.35px) drop-shadow(0 9px 12px rgba(35, 25, 16, 0.23));
+    filter: blur(1.2px) drop-shadow(0 8px 11px rgba(35, 25, 16, 0.2));
     pointer-events: none;
     transform-origin: center bottom;
-    transform: translate(-50%, calc(-100% - 15px)) translateY(8px) scale(0.9);
+    transform: translate(-50%, calc(-100% - 15px)) translateY(8px) scale(0.92) rotate(var(--cloud-tilt));
     transition:
-      opacity 320ms ease,
-      filter 360ms ease,
-      transform 480ms cubic-bezier(0.2, 0.82, 0.2, 1);
+      opacity 180ms ease,
+      filter 200ms ease,
+      transform 220ms ease;
     will-change: opacity, filter, transform;
+  }
+
+  .speech-bubble[data-cloud-variant='wide'] {
+    --cloud-shape-x: 1.035;
+    --cloud-shape-y: 0.985;
+    --cloud-shape-rotate: -0.2deg;
+  }
+
+  .speech-bubble[data-cloud-variant='compact'] {
+    --cloud-shape-x: 0.975;
+    --cloud-shape-y: 1.035;
+    --cloud-shape-rotate: 0.35deg;
+  }
+
+  .speech-bubble[data-cloud-variant='soft-left'] {
+    --cloud-shape-x: 1.01;
+    --cloud-shape-y: 1;
+    --cloud-shape-rotate: -0.55deg;
   }
 
   .speech-bubble::before {
@@ -301,6 +358,8 @@ void bubbleLeft;
     background-repeat: no-repeat;
     background-position: center;
     background-size: 100% 100%;
+    transform: scale(var(--cloud-shape-x), var(--cloud-shape-y)) rotate(var(--cloud-shape-rotate));
+    transform-origin: center;
     pointer-events: none;
   }
 
@@ -308,16 +367,20 @@ void bubbleLeft;
     content: '';
     position: absolute;
     z-index: 1;
-    left: 50%;
+    left: calc(50% + var(--tail-shift));
     bottom: -29px;
     width: 54px;
     height: 40px;
-    transform: translateX(-50%);
+    opacity: 0;
+    transform: translateX(-50%) translateY(-3px) scale(0.88);
     background:
       radial-gradient(circle at 38px 7px, var(--cloud-paper-light) 0 6px, var(--cloud-outline) 6.4px 7.2px, transparent 7.7px),
       radial-gradient(circle at 22px 21px, var(--cloud-paper) 0 4.4px, var(--cloud-outline) 4.8px 5.5px, transparent 6px),
       radial-gradient(circle at 9px 33px, var(--cloud-paper) 0 3px, var(--cloud-outline) 3.4px 4px, transparent 4.5px);
     filter: drop-shadow(0 2px 2px rgba(35, 25, 16, 0.14));
+    transition:
+      opacity 130ms ease,
+      transform 150ms ease;
     pointer-events: none;
   }
 
@@ -330,44 +393,58 @@ void bubbleLeft;
 
   .speech-bubble[data-placement='below'] {
     transform-origin: center top;
-    transform: translate(-50%, 15px) translateY(-8px) scale(0.9);
+    transform: translate(-50%, 15px) translateY(-8px) scale(0.92) rotate(var(--cloud-tilt));
   }
 
   .speech-bubble[data-placement='below']::after {
     top: -29px;
     bottom: auto;
-    transform: translateX(-50%) rotate(180deg);
+    transform: translateX(-50%) translateY(3px) rotate(180deg) scale(0.88);
   }
 
   .speech-bubble[data-visible='1'] {
     opacity: 1;
     filter: blur(0) drop-shadow(0 10px 14px rgba(35, 25, 16, 0.23));
-    transform: translate(-50%, calc(-100% - 15px)) translateY(0) scale(1);
-    animation: cloud-float-above 4.8s ease-in-out 520ms infinite;
+    transform: translate(-50%, calc(-100% - 15px)) translateY(0) scale(1) rotate(var(--cloud-tilt));
+    transition:
+      opacity 340ms ease,
+      filter 390ms ease,
+      transform 500ms cubic-bezier(0.2, 0.82, 0.2, 1);
+    animation: cloud-float-above 4.5s ease-in-out 560ms 2;
+  }
+
+  .speech-bubble[data-visible='1']::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    transition-delay: 150ms;
   }
 
   .speech-bubble[data-visible='1'][data-placement='below'] {
-    transform: translate(-50%, 15px) translateY(0) scale(1);
+    transform: translate(-50%, 15px) translateY(0) scale(1) rotate(var(--cloud-tilt));
     animation-name: cloud-float-below;
+  }
+
+  .speech-bubble[data-visible='1'][data-placement='below']::after {
+    transform: translateX(-50%) translateY(0) rotate(180deg) scale(1);
   }
 
   @keyframes cloud-float-above {
     0%,
     100% {
-      transform: translate(-50%, calc(-100% - 15px)) translateY(0) scale(1);
+      transform: translate(-50%, calc(-100% - 15px)) translateY(0) scale(1) rotate(var(--cloud-tilt));
     }
     50% {
-      transform: translate(-50%, calc(-100% - 15px)) translateY(-3px) scale(1.012);
+      transform: translate(-50%, calc(-100% - 15px)) translateY(-2.5px) scale(1.008) rotate(var(--cloud-tilt));
     }
   }
 
   @keyframes cloud-float-below {
     0%,
     100% {
-      transform: translate(-50%, 15px) translateY(0) scale(1);
+      transform: translate(-50%, 15px) translateY(0) scale(1) rotate(var(--cloud-tilt));
     }
     50% {
-      transform: translate(-50%, 15px) translateY(3px) scale(1.012);
+      transform: translate(-50%, 15px) translateY(2.5px) scale(1.008) rotate(var(--cloud-tilt));
     }
   }
 
@@ -407,13 +484,21 @@ void bubbleLeft;
     }
 
     .speech-bubble::after {
-      transform: translateX(-50%) scale(0.82);
+      transform: translateX(-50%) translateY(-3px) scale(0.74);
       transform-origin: center top;
     }
 
+    .speech-bubble[data-visible='1']::after {
+      transform: translateX(-50%) translateY(0) scale(0.82);
+    }
+
     .speech-bubble[data-placement='below']::after {
-      transform: translateX(-50%) rotate(180deg) scale(0.82);
+      transform: translateX(-50%) translateY(3px) rotate(180deg) scale(0.74);
       transform-origin: center;
+    }
+
+    .speech-bubble[data-visible='1'][data-placement='below']::after {
+      transform: translateX(-50%) translateY(0) rotate(180deg) scale(0.82);
     }
 
     .secret-bubble {
@@ -424,6 +509,7 @@ void bubbleLeft;
 
   @media (prefers-reduced-motion: reduce) {
     .speech-bubble,
+    .speech-bubble::after,
     .secret-bubble {
       transition: none;
     }
@@ -461,7 +547,10 @@ void bubbleLeft;
         bubbleCopy.textContent = quote;
         bubble.style.left = hotspot.getAttribute('data-bubble-left') || '50%';
         bubble.style.top = hotspot.getAttribute('data-bubble-top') || '50%';
+        bubble.style.setProperty('--tail-shift', hotspot.getAttribute('data-tail-shift') || '0px');
+        bubble.style.setProperty('--cloud-tilt', hotspot.getAttribute('data-cloud-tilt') || '0deg');
         bubble.setAttribute('data-placement', hotspot.getAttribute('data-placement') || 'above');
+        bubble.setAttribute('data-cloud-variant', hotspot.getAttribute('data-cloud-variant') || 'wide');
         bubble.setAttribute('data-person', hotspot.getAttribute('data-person') || '');
         bubble.setAttribute('data-visible', '1');
         bubble.setAttribute('aria-hidden', 'false');
