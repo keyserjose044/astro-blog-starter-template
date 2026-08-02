@@ -8,6 +8,8 @@ interface Props {
 }
 
 const { active } = Astro.props;
+const base = import.meta.env.BASE_URL || '/';
+const classicalAssetVersion = '20260802-0914';
 
 const sections = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
@@ -23,19 +25,24 @@ const sections = [
     </script>
   </>
 ) : (
-  <nav class="music-nav" aria-label="Music sections">
-    <div class="music-nav__inner">
-      {sections.map((section) => (
-        <a
-          href={section.href}
-          class:list={['music-nav__item', { 'music-nav__item--active': active === section.id }]}
-          aria-current={active === section.id ? 'page' : undefined}
-        >
-          {section.label}
-        </a>
-      ))}
-    </div>
-  </nav>
+  <>
+    <nav class="music-nav" aria-label="Music sections">
+      <div class="music-nav__inner">
+        {sections.map((section) => (
+          <a
+            href={section.href}
+            class:list={['music-nav__item', { 'music-nav__item--active': active === section.id }]}
+            aria-current={active === section.id ? 'page' : undefined}
+          >
+            {section.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+    {active === 'composers' ? (
+      <script is:inline type="module" src={`${base}scripts/classical-expansion.js?v=${classicalAssetVersion}`}></script>
+    ) : null}
+  </>
 )}
 
 <style>
