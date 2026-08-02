@@ -3,7 +3,7 @@
 import('./albums-listening-log.js?v=20260801-2058')
   .then(() => import('./albums-listening-log-identity.js?v=20260802-0945'))
   .then(() => import('./albums-listening-log-titles-identity.js?v=20260802-0945'))
-  .then(() => import('./albums-repeated-thumbnails.js?v=20260802-1104'))
+  .then(() => import('./albums-repeated-thumbnails.js?v=20260802-1115'))
   .catch((error) => {
     console.warn('[Albums] Listening Log modules could not be loaded:', error);
   });
