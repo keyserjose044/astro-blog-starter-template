@@ -283,7 +283,7 @@
   #art-calendar-view .art-calendar-stack,
   #art-calendar-view .art-calendar-stack[data-count='1'],
   #art-calendar-view .art-calendar-stack[data-count='2'] {
-    inset-top: 25px;
+    inset: 25px 2px 3px;
   }
 
   #art-calendar-view .art-calendar-work {
