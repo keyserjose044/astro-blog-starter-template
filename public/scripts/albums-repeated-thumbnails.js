@@ -1,15 +1,24 @@
 /* LifeLoggerz Albums: YouTube thumbnails for the repeated-title Listening Log. */
 
-const ALBUMS_REPEATED_THUMBNAILS_VERSION = '20260802-1104';
+const ALBUMS_REPEATED_THUMBNAILS_VERSION = '20260802-1115';
 const ALBUMS_REPEATED_THUMBNAILS_RETRIES = 180;
 
 function ensureRepeatedThumbnailStyles() {
-  if (document.querySelector('link[data-albums-repeated-thumbnails-css]')) return;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.dataset.albumsRepeatedThumbnailsCss = 'true';
-  link.href = new URL(`../styles/albums-repeated-thumbnails.css?v=${ALBUMS_REPEATED_THUMBNAILS_VERSION}`, import.meta.url).toString();
-  document.head.append(link);
+  if (!document.querySelector('link[data-albums-repeated-thumbnails-css]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.dataset.albumsRepeatedThumbnailsCss = 'true';
+    link.href = new URL(`../styles/albums-repeated-thumbnails.css?v=${ALBUMS_REPEATED_THUMBNAILS_VERSION}`, import.meta.url).toString();
+    document.head.append(link);
+  }
+
+  if (!document.querySelector('link[data-albums-repeated-thumbnails-layout-v2-css]')) {
+    const layout = document.createElement('link');
+    layout.rel = 'stylesheet';
+    layout.dataset.albumsRepeatedThumbnailsLayoutV2Css = 'true';
+    layout.href = new URL(`../styles/albums-repeated-thumbnails-layout-v2.css?v=${ALBUMS_REPEATED_THUMBNAILS_VERSION}`, import.meta.url).toString();
+    document.head.append(layout);
+  }
 }
 
 function youtubeVideoId(value) {

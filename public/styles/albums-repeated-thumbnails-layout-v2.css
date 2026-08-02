@@ -1,0 +1,61 @@
+/* LifeLoggerz Albums: responsive placement for repeated-title YouTube thumbnails. */
+
+/* Desktop/tablet: use the otherwise empty right side of each repeated card. */
+@media (min-width: 621px) {
+  .albums-listening-log-repeated-card.has-youtube-thumbnail {
+    grid-template-columns: 42px minmax(0, 1fr) clamp(190px, 18vw, 250px);
+    align-items: start;
+  }
+
+  .albums-listening-log-repeated-card.has-youtube-thumbnail .albums-listening-log-repeat-main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .albums-listening-log-repeated-card.has-youtube-thumbnail .albums-listening-log-repeat-thumbnail {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    max-width: 250px;
+    justify-self: end;
+  }
+}
+
+/* Mobile: let the image breathe. Put it above the rank/text row at full card width. */
+@media (max-width: 620px) {
+  .albums-listening-log-repeated-card.has-youtube-thumbnail {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .albums-listening-log-repeated-card.has-youtube-thumbnail .albums-listening-log-repeat-thumbnail {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    max-width: none;
+    border-radius: 12px;
+  }
+
+  .albums-listening-log-repeated-card.has-youtube-thumbnail .albums-listening-log-repeat-rank {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .albums-listening-log-repeated-card.has-youtube-thumbnail .albums-listening-log-repeat-main {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .albums-listening-log-repeated-card.has-youtube-thumbnail .albums-listening-log-repeat-thumbnail-play {
+    width: 38px;
+    height: 38px;
+    font-size: .72rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .albums-listening-log-repeated-card.has-youtube-thumbnail {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 9px;
+  }
+}
