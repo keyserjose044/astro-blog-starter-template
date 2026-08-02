@@ -3,6 +3,7 @@
 const mobileQuery = window.matchMedia('(max-width: 900px)');
 let surprisePlaceholder = null;
 let queued = false;
+let gallerySignature = '';
 
 const esc = (value) => String(value || '').replace(/[&<>'"]/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
@@ -45,12 +46,12 @@ function syncMobileViews() {
 
   if (mobileQuery.matches) {
     if (surprise.parentElement !== toggle) toggle.append(surprise);
-    if (label) label.textContent = 'Random';
+    if (label && label.textContent !== 'Random') label.textContent = 'Random';
   } else {
     if (surprisePlaceholder?.parentNode && surprise.parentElement !== surprisePlaceholder.parentNode) {
       surprisePlaceholder.after(surprise);
     }
-    if (label) label.textContent = 'Surprise Me';
+    if (label && label.textContent !== 'Surprise Me') label.textContent = 'Surprise Me';
   }
 }
 
@@ -103,10 +104,14 @@ function renderMonthGallery() {
       return aDate - bDate || Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
     });
 
+  const label = select.selectedOptions?.[0]?.textContent?.trim() || 'Selected month';
+  const signature = `${selectedMonth}|${label}|${cards.map((card) => card.dataset.originalIndex).join(',')}`;
+  if (gallerySignature === signature) return;
+  gallerySignature = signature;
+
   const title = host.querySelector('[data-art-month-gallery-title]');
   const count = host.querySelector('[data-art-month-gallery-count]');
   const grid = host.querySelector('[data-art-month-gallery-grid]');
-  const label = select.selectedOptions?.[0]?.textContent?.trim() || 'Selected month';
   if (title) title.textContent = `${label} works`;
   if (count) count.textContent = `${cards.length.toLocaleString('en-US')} ${cards.length === 1 ? 'work' : 'works'}`;
   if (!grid) return;
@@ -135,17 +140,18 @@ function normalizeNetherlandsCards() {
 
 function cleanNetherlandsUi() {
   const caribbeanPath = document.querySelector('.art-map-country[data-country-id="535"]');
+  const caribbeanCount = Number(caribbeanPath?.querySelector('title')?.textContent?.match(/:\s*([\d,]+)\s+works?/)?.[1]?.replace(/,/g, '') || 0);
+
   if (caribbeanPath) {
-    caribbeanPath.style.display = 'none';
-    caribbeanPath.dataset.count = '0';
-    caribbeanPath.dataset.hasArt = 'false';
+    if (caribbeanPath.style.display !== 'none') caribbeanPath.style.display = 'none';
+    if (caribbeanPath.dataset.count !== '0') caribbeanPath.dataset.count = '0';
+    if (caribbeanPath.dataset.hasArt !== 'false') caribbeanPath.dataset.hasArt = 'false';
     caribbeanPath.removeAttribute('tabindex');
   }
 
   document.querySelectorAll('.art-country-rank[data-country-id="535"]').forEach((button) => button.remove());
 
   const netherlandsPath = document.querySelector('.art-map-country[data-country-id="528"]');
-  const caribbeanCount = Number(caribbeanPath?.querySelector('title')?.textContent?.match(/:\s*([\d,]+)\s+works?/)?.[1]?.replace(/,/g, '') || 0);
   const netherlandsCount = Number(netherlandsPath?.dataset.count || 0);
 
   if (caribbeanCount > 0 && netherlandsPath && netherlandsCount === 0) {
@@ -189,11 +195,13 @@ observer.observe(document.documentElement, {
 mobileQuery.addEventListener?.('change', queueSync);
 document.addEventListener('change', (event) => {
   if (event.target.matches?.('[data-art-calendar-month], #art-country-filter, #art-viewed-year-filter, #art-period-filter, #art-artist-filter, #art-movement-filter, #art-medium-filter')) {
+    gallerySignature = '';
     window.setTimeout(queueSync, 0);
   }
 });
 document.addEventListener('click', (event) => {
   if (event.target.closest('[data-art-calendar-prev], [data-art-calendar-next], [data-art-calendar-latest], [data-art-view="calendar"], [data-art-view="map"], [data-country-id]')) {
+    gallerySignature = '';
     window.setTimeout(queueSync, 30);
   }
 });
