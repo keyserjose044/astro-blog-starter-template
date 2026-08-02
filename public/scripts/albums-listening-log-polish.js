@@ -312,10 +312,17 @@ async function bootAlbumsListeningLogPolish(attempt = 0) {
         albumBadge.title = 'This listening entry was marked as a full-album listen.';
       }
 
-      meta.querySelectorAll('.albums-listening-log-badge.is-repeat').forEach((node) => node.remove());
       const key = `${logNormalize(artist)}|${logNormalize(title)}`;
       const count = repeatCounts.get(key) || 0;
-      if (count > 1) meta.append(makeRepeatBadge(count));
+      const existingRepeat = meta.querySelector('.albums-listening-log-badge.is-repeat');
+      if (count > 1) {
+        const label = `↻ ${count.toLocaleString('en-US')} listens`;
+        const tooltip = `This title appears ${count.toLocaleString('en-US')} times in the listening log.`;
+        if (existingRepeat) {
+          if (existingRepeat.textContent !== label) existingRepeat.textContent = label;
+          if (existingRepeat.title !== tooltip) existingRepeat.title = tooltip;
+        } else meta.append(makeRepeatBadge(count));
+      } else if (existingRepeat) existingRepeat.remove();
 
       if (mode === 'titles') {
         Array.from(meta.children).forEach((child) => {
