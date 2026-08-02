@@ -81,6 +81,35 @@ main.wrap .page-tabs .page-tab:focus-visible {
   outline-offset: 2px;
 }
 
+/* The repeat-count select is created by classical-expansion.js, so Astro's scoped
+   Works toolbar styles do not reach it. Normalize it explicitly and force a light
+   native popup so it matches the rest of the Explorer controls. */
+main.wrap #works-repeat-filter {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--classical-border, #e5e8ef);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--classical-ink, #10131b);
+  color-scheme: light;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+  font: inherit;
+  font-size: .76rem;
+  appearance: auto;
+}
+
+main.wrap #works-repeat-filter:hover { border-color: #cfd5e3; }
+main.wrap #works-repeat-filter:focus-visible {
+  outline: 3px solid rgba(64, 92, 245, .42);
+  outline-offset: 2px;
+}
+main.wrap #works-repeat-filter option,
+main.wrap #works-repeat-filter optgroup {
+  background: #fff;
+  color: #10131b;
+  color-scheme: light;
+}
+
 @media (max-width: 700px) {
   main.wrap .page-tabs {
     display: grid;
@@ -106,6 +135,13 @@ main.wrap .page-tabs .page-tab:focus-visible {
 
   main.wrap .page-tabs .page-tab[data-page-tab='favorites'] {
     grid-column: 2;
+  }
+}
+
+@media (max-width: 620px) {
+  main.wrap #works-repeat-filter {
+    width: 100%;
+    min-width: 0;
   }
 }
 
