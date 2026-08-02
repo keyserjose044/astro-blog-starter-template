@@ -1,5 +1,5 @@
 (() => {
-  const IMAGE_SELECTOR = 'img.art-cover[data-cover-fallbacks]';
+  const IMAGE_SELECTOR = 'img.art-cover[data-cover-fallbacks], img.art-derived-cover[data-cover-fallbacks]';
   const PLACEHOLDER_TOKEN = 'art-placeholder.webp';
 
   function parseFallbacks(image) {
@@ -77,8 +77,6 @@
       const image = event.target;
       if (!(image instanceof HTMLImageElement) || !image.matches(IMAGE_SELECTOR)) return;
 
-      // The masonry script used to hide the image on the first failed URL.
-      // Own the entire fallback chain here so later lazy candidates can load.
       event.stopImmediatePropagation();
       tryNextImage(image);
     },
