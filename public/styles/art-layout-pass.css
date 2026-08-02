@@ -1,0 +1,314 @@
+/* Art layout pass — August 1, 2026.
+ * Removes horizontal discovery patterns, mirrors the Books mobile view grid,
+ * and turns the Art calendar into a compact month-at-a-glance on phones.
+ */
+
+/* Timeline should read in rows, not as a horizontal carousel. */
+#art-timeline-view .art-timeline-viewport {
+  overflow-x: visible !important;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+#art-timeline-view .art-timeline-track {
+  display: grid !important;
+  grid-auto-flow: row !important;
+  grid-auto-columns: auto !important;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 11px;
+}
+
+/* The month gallery is intentionally a mobile companion to the calendar. */
+.art-calendar-month-gallery {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Same deliberate 4 × 2 control box as Books: seven views + Random. */
+  body .art-view-toggle {
+    display: grid !important;
+    width: calc(100% - 20px);
+    max-width: 760px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    overflow: visible !important;
+    border-radius: 24px;
+    scroll-snap-type: none !important;
+  }
+
+  body .art-view-toggle .art-view-button,
+  body .art-view-toggle #art-surprise-trigger {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    height: 46px;
+    justify-content: center;
+    padding: 7px 4px;
+    border-radius: 999px;
+    font-size: .74rem;
+    white-space: nowrap;
+  }
+
+  body .art-view-toggle .art-view-button {
+    gap: 5px;
+  }
+
+  body .art-view-toggle > .art-surprise {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  body .art-view-toggle #art-surprise-trigger {
+    border: 0;
+    background: transparent;
+    color: var(--art-muted);
+    box-shadow: none;
+  }
+
+  body .art-view-toggle #art-surprise-trigger:hover,
+  body .art-view-toggle #art-surprise-trigger[aria-expanded='true'] {
+    transform: none;
+    background: var(--art-soft);
+    color: var(--art-accent-dark);
+  }
+
+  body .art-view-toggle #art-surprise-trigger .art-chevron {
+    display: none !important;
+  }
+
+  body .art-view-toggle .art-surprise-menu {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  /* Keep the Timeline row-based on phones too. */
+  #art-timeline-view .art-timeline-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  #art-timeline-view .art-timeline-stop button {
+    min-height: 188px;
+    padding: 10px;
+  }
+
+  /* Use the real 7-column calendar on phones instead of the agenda list. */
+  #art-calendar-view .art-calendar-desktop {
+    display: block !important;
+    overflow: hidden;
+    border-radius: 13px;
+  }
+
+  #art-calendar-view .art-calendar-agenda {
+    display: none !important;
+  }
+
+  #art-calendar-view .art-calendar-weekdays,
+  #art-calendar-view .art-calendar-grid {
+    gap: 3px;
+  }
+
+  #art-calendar-view .art-calendar-weekdays {
+    margin-bottom: 4px;
+  }
+
+  #art-calendar-view .art-calendar-weekdays span {
+    padding: 5px 0;
+    font-size: .56rem;
+    letter-spacing: 0;
+  }
+
+  #art-calendar-view .art-calendar-day {
+    min-height: 70px !important;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  #art-calendar-view .art-calendar-day[data-outside='true'] {
+    min-height: 0 !important;
+  }
+
+  #art-calendar-view .art-calendar-day-number {
+    top: 4px;
+    left: 4px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    font-size: .56rem;
+  }
+
+  #art-calendar-view .art-calendar-stack,
+  #art-calendar-view .art-calendar-stack[data-count='1'],
+  #art-calendar-view .art-calendar-stack[data-count='2'] {
+    position: absolute;
+    inset: 27px 2px 3px;
+    display: flex !important;
+    min-height: 0 !important;
+    height: auto;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0;
+    overflow: visible;
+    border-radius: 0;
+  }
+
+  #art-calendar-view .art-calendar-stack[data-count='3'] > :first-child {
+    grid-row: auto;
+  }
+
+  #art-calendar-view .art-calendar-work {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 36px;
+    min-width: 0;
+    min-height: 0;
+    margin: 0 -4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.88);
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(15,23,42,.14);
+  }
+
+  #art-calendar-view .art-calendar-stack[data-count='1'] .art-calendar-work {
+    width: 30px;
+    height: 39px;
+    margin: 0;
+  }
+
+  #art-calendar-view .art-calendar-work img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+  }
+
+  #art-calendar-view .art-calendar-hover {
+    display: none !important;
+  }
+
+  #art-calendar-view .art-calendar-more {
+    right: 2px;
+    bottom: 2px;
+    padding: 2px 4px;
+    font-size: .48rem;
+  }
+
+  .art-calendar-month-gallery {
+    display: block;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--art-border);
+  }
+
+  .art-calendar-month-gallery-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+    text-align: left;
+  }
+
+  .art-calendar-month-gallery-heading h3 {
+    margin: 2px 0 0;
+    color: var(--art-ink);
+    font-size: .96rem;
+  }
+
+  .art-calendar-month-gallery-heading strong {
+    color: var(--art-muted);
+    font-size: .68rem;
+    white-space: nowrap;
+  }
+
+  .art-calendar-month-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .art-calendar-month-gallery-work {
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--art-border);
+    border-radius: 7px;
+    background: var(--art-soft);
+    cursor: pointer;
+  }
+
+  .art-calendar-month-gallery-work img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .art-calendar-month-gallery-empty {
+    margin: 0;
+    padding: 16px 10px;
+    border: 1px dashed var(--art-border);
+    border-radius: 10px;
+    color: var(--art-muted);
+    font-size: .72rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 520px) {
+  body .art-view-toggle {
+    width: calc(100% - 16px);
+    gap: 3px;
+  }
+
+  body .art-view-toggle .art-view-button,
+  body .art-view-toggle #art-surprise-trigger {
+    min-height: 44px;
+    height: 44px;
+    padding-inline: 2px;
+    font-size: .68rem;
+  }
+
+  #art-timeline-view .art-timeline-stop button {
+    min-height: 172px;
+  }
+
+  #art-calendar-view .art-calendar-day {
+    min-height: 64px !important;
+  }
+
+  #art-calendar-view .art-calendar-stack,
+  #art-calendar-view .art-calendar-stack[data-count='1'],
+  #art-calendar-view .art-calendar-stack[data-count='2'] {
+    inset-top: 25px;
+  }
+
+  #art-calendar-view .art-calendar-work {
+    width: 24px;
+    height: 31px;
+    margin-inline: -4px;
+  }
+
+  #art-calendar-view .art-calendar-stack[data-count='1'] .art-calendar-work {
+    width: 26px;
+    height: 34px;
+  }
+
+  .art-calendar-month-gallery-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
+  body .art-view-toggle .art-view-button,
+  body .art-view-toggle #art-surprise-trigger {
+    font-size: .63rem;
+  }
+
+  #art-timeline-view .art-timeline-track {
+    grid-template-columns: 1fr;
+  }
+}
