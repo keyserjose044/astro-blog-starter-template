@@ -1,7 +1,7 @@
 /* Keep Timeline Selection visible before a release/listening period is chosen. */
 
 import('./albums-listening-log.js?v=20260801-2058')
-  .then(() => import('./albums-listening-log-polish.js?v=20260801-2221'))
+  .then(() => import('./albums-listening-log-polish-v2.js?v=20260802-0915'))
   .then(() => import('./albums-listening-log-repeated-v2.js?v=20260802-0915'))
   .then(() => import('./albums-listening-log-controls-fix.js?v=20260802-0845'))
   .catch((error) => {
