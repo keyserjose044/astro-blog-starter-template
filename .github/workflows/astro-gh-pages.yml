@@ -26,6 +26,7 @@ jobs:
       RAINDROP_COLLECTION_ART_ID: ${{ secrets.RAINDROP_COLLECTION_ART_ID }}
       RAINDROP_COLLECTION_COMPOSERS_ID: ${{ secrets.RAINDROP_COLLECTION_COMPOSERS_ID }}
       CLASSICAL_LISTENING_DATA_URL: ${{ secrets.CLASSICAL_LISTENING_DATA_URL }}
+      MUSIC_LISTENING_DATA_URL: ${{ secrets.MUSIC_LISTENING_DATA_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,6 +46,23 @@ jobs:
           if [ -z "${RAINDROP_COLLECTION_BOOKS_ID}" ]; then echo "❌ RAINDROP_COLLECTION_BOOKS_ID missing"; exit 1; else echo "✅ RAINDROP_COLLECTION_BOOKS_ID present"; fi
           if [ -z "${RAINDROP_COLLECTION_COMPOSERS_ID}" ]; then echo "⚠️ RAINDROP_COLLECTION_COMPOSERS_ID missing; fallback ID will be used"; else echo "✅ RAINDROP_COLLECTION_COMPOSERS_ID present"; fi
           if [ -z "${CLASSICAL_LISTENING_DATA_URL}" ]; then echo "⚠️ CLASSICAL_LISTENING_DATA_URL missing; composer listening stats will be disabled"; else echo "✅ CLASSICAL_LISTENING_DATA_URL present"; fi
+          if [ -z "${MUSIC_LISTENING_DATA_URL}" ]; then echo "⚠️ MUSIC_LISTENING_DATA_URL missing; Albums Listening Log will stay hidden"; else echo "✅ MUSIC_LISTENING_DATA_URL present"; fi
+
+      - name: 🎵 Snapshot public music listening feed
+        if: env.MUSIC_LISTENING_DATA_URL != ''
+        run: |
+          mkdir -p public/data
+          tmp_file="$(mktemp)"
+          if curl --fail --location --retry 3 --retry-delay 2 \
+            --header "Accept: application/json" \
+            "${MUSIC_LISTENING_DATA_URL}" \
+            --output "${tmp_file}" \
+            && node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(!p||!Array.isArray(p.rows))process.exit(1);console.log('✅ Music listening rows:',p.rows.length);" "${tmp_file}"; then
+            mv "${tmp_file}" public/data/music-listening.json
+          else
+            echo "⚠️ Music listening feed unavailable or malformed; keeping the empty checked-in snapshot for this deployment."
+            rm -f "${tmp_file}"
+          fi
 
       - name: 🔎 Show homepage file CI is using
         run: |

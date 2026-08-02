@@ -1,0 +1,565 @@
+/* LifeLoggerz Albums: complete Listen Log + actual music-minute calendar activity. */
+
+.albums-listening-log-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0 0 14px;
+}
+
+.albums-listening-log-metrics > div {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--albums-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.albums-listening-log-metrics span,
+.albums-listening-log-metrics strong {
+  display: block;
+}
+
+.albums-listening-log-metrics span {
+  margin-bottom: 3px;
+  color: var(--albums-muted);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.albums-listening-log-metrics strong {
+  overflow: hidden;
+  color: var(--albums-ink);
+  font-size: 0.96rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.albums-listening-log-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 11px;
+}
+
+.albums-listening-log-mode-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--albums-border);
+  border-radius: 11px;
+  background: rgba(247, 248, 252, 0.9);
+}
+
+.albums-listening-log-mode-group button {
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--albums-muted);
+  font: inherit;
+  font-size: 0.71rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.albums-listening-log-mode-group button[aria-pressed='true'] {
+  background: var(--albums-accent);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(64, 92, 245, 0.18);
+}
+
+.albums-listening-log-source-note {
+  margin: 0;
+  color: var(--albums-muted);
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.albums-listening-log-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.7fr) repeat(5, minmax(125px, 0.8fr));
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.albums-listening-log-toolbar input,
+.albums-listening-log-toolbar select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--albums-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--albums-ink);
+  font: inherit;
+  font-size: 0.73rem;
+}
+
+.albums-listening-log-toolbar input:focus-visible,
+.albums-listening-log-toolbar select:focus-visible,
+.albums-listening-log-mode-group button:focus-visible,
+.albums-listening-log-more:focus-visible,
+.albums-listening-log-results button:focus-visible,
+.albums-listening-log-play:focus-visible,
+.albums-music-activity-toggle:focus-visible {
+  outline: 2px solid rgba(64, 92, 245, 0.42);
+  outline-offset: 2px;
+}
+
+.albums-listening-log-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 32px;
+  margin-bottom: 7px;
+}
+
+.albums-listening-log-results p {
+  margin: 0;
+  color: var(--albums-muted);
+  font-size: 0.7rem;
+}
+
+.albums-listening-log-results button {
+  padding: 5px 8px;
+  border: 1px solid var(--albums-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--albums-accent-dark);
+  font: inherit;
+  font-size: 0.67rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.albums-listening-log-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.albums-listening-log-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--albums-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.84);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.albums-listening-log-item:hover {
+  border-color: rgba(64, 92, 245, 0.25);
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+.albums-listening-log-play {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(64, 92, 245, 0.09);
+  color: var(--albums-accent-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.albums-listening-log-play.is-missing {
+  background: rgba(240, 242, 248, 0.86);
+  color: #a0a6b3;
+}
+
+.albums-listening-log-main {
+  display: block;
+  min-width: 0;
+}
+
+.albums-listening-log-artist,
+.albums-listening-log-title,
+.albums-listening-log-meta {
+  display: block;
+}
+
+.albums-listening-log-artist {
+  margin-bottom: 2px;
+  color: var(--albums-accent-dark);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.albums-listening-log-title {
+  overflow: hidden;
+  color: var(--albums-ink);
+  font-size: 0.8rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.albums-listening-log-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--albums-muted);
+  font-size: 0.63rem;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.albums-listening-log-meta > span:not(.albums-listening-log-badge) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.albums-listening-log-badge {
+  flex: 0 0 auto;
+  max-width: 150px;
+  padding: 2px 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef0f5;
+  color: #586071;
+  font-size: 0.58rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.albums-listening-log-badge.is-album {
+  background: rgba(64, 92, 245, 0.1);
+  color: var(--albums-accent-dark);
+}
+
+.albums-listening-log-badge.is-rating {
+  background: rgba(156, 85, 205, 0.1);
+  color: #7841a0;
+}
+
+.albums-listening-log-note {
+  color: #737a88;
+  font-style: italic;
+}
+
+.albums-listening-log-side {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--albums-muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.albums-listening-log-side > span {
+  color: var(--albums-ink);
+  font-weight: 800;
+}
+
+.albums-listening-log-side small {
+  font-size: 0.57rem;
+}
+
+.albums-listening-log-empty {
+  padding: 28px 10px;
+  color: var(--albums-muted);
+  text-align: center;
+}
+
+.albums-listening-log-more {
+  display: block;
+  min-width: 150px;
+  min-height: 38px;
+  margin: 13px auto 0;
+  padding: 7px 12px;
+  border: 1px solid var(--albums-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--albums-accent-dark);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.albums-music-activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  margin: -3px 0 8px;
+}
+
+.albums-music-activity-row p {
+  margin: 0;
+  color: var(--albums-muted);
+  font-size: 0.65rem;
+}
+
+.albums-music-activity-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid var(--albums-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--albums-ink);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.albums-music-activity-toggle strong {
+  min-width: 28px;
+  color: var(--albums-accent-dark);
+  font-size: 0.62rem;
+  text-align: right;
+}
+
+.albums-music-activity-legend {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 9px;
+  color: var(--albums-muted);
+  font-size: 0.58rem;
+}
+
+.albums-music-activity-legend[hidden] {
+  display: none !important;
+}
+
+.albums-music-activity-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.albums-music-activity-legend i {
+  display: block;
+  width: 18px;
+  height: 5px;
+  border-radius: 999px;
+  background: #e7e9ef;
+}
+
+.albums-music-activity-strip {
+  position: absolute;
+  z-index: 50;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #e7e9ef;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.show-music-activity .albums-music-activity-strip {
+  opacity: 1;
+}
+
+.albums-music-activity-strip[data-level='zero'],
+.albums-music-activity-legend i[data-level='zero'] {
+  background: #e4e7ee;
+}
+
+.albums-music-activity-strip[data-level='low'],
+.albums-music-activity-legend i[data-level='low'] {
+  background: rgba(64, 92, 245, 0.26);
+}
+
+.albums-music-activity-strip[data-level='medium'],
+.albums-music-activity-legend i[data-level='medium'] {
+  background: rgba(64, 92, 245, 0.46);
+}
+
+.albums-music-activity-strip[data-level='high'],
+.albums-music-activity-legend i[data-level='high'] {
+  background: rgba(64, 92, 245, 0.68);
+}
+
+.albums-music-activity-strip[data-level='very-high'],
+.albums-music-activity-legend i[data-level='very-high'] {
+  background: var(--albums-accent);
+}
+
+.albums-music-activity-strip[data-level='missing'] {
+  background: repeating-linear-gradient(135deg, #d7dae2 0 2px, transparent 2px 4px);
+}
+
+.albums-music-activity-most {
+  position: absolute;
+  z-index: 52;
+  right: 7px;
+  top: 6px;
+  display: none;
+  color: var(--albums-accent-dark);
+  font-size: 0.62rem;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.show-music-activity .albums-music-activity-most {
+  display: block;
+}
+
+@media (max-width: 1180px) {
+  .albums-listening-log-toolbar {
+    grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(125px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  body[data-albums-listening-log-ready='true'] .albums-view-toggle {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  body[data-albums-listening-log-ready='true'] .albums-view-button,
+  body[data-albums-listening-log-ready='true'] .albums-view-toggle > .albums-surprise > #albums-surprise-trigger {
+    font-size: 0.67rem;
+  }
+
+  .albums-listening-log-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .albums-listening-log-metrics > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .albums-listening-log-mode-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .albums-listening-log-source-note {
+    text-align: left;
+  }
+
+  .albums-listening-log-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .albums-listening-log-toolbar input {
+    grid-column: 1 / -1;
+  }
+
+  .albums-listening-log-item {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  .albums-listening-log-title {
+    font-size: 0.76rem;
+  }
+
+  .albums-listening-log-side {
+    font-size: 0.61rem;
+  }
+
+  .albums-music-activity-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .albums-music-activity-toggle {
+    justify-content: center;
+  }
+
+  .albums-music-activity-row p {
+    text-align: center;
+  }
+
+  .albums-music-activity-strip {
+    right: 3px;
+    bottom: 2px;
+    left: 3px;
+    height: 4px;
+  }
+
+  .albums-music-activity-most {
+    right: 4px;
+    top: 2px;
+    font-size: 0.52rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .albums-listening-log-toolbar {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .albums-listening-log-mode-group {
+    width: 100%;
+  }
+
+  .albums-listening-log-mode-group button {
+    flex: 1 1 50%;
+    padding-inline: 6px;
+  }
+
+  .albums-listening-log-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .albums-listening-log-play {
+    width: 32px;
+    height: 32px;
+  }
+
+  .albums-listening-log-side {
+    grid-column: 2;
+    grid-row: 2;
+    justify-items: start;
+    grid-auto-flow: column;
+    justify-content: start;
+    gap: 7px;
+    margin-top: -2px;
+  }
+
+  .albums-listening-log-side small {
+    display: none;
+  }
+
+  .albums-listening-log-meta {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .albums-listening-log-badge {
+    max-width: 112px;
+  }
+
+  .albums-music-activity-legend {
+    gap: 6px 8px;
+  }
+}
