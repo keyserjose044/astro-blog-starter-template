@@ -17,7 +17,6 @@
     let settleTimer = 0;
     let resizeFrame = 0;
     let explorerResizeFrame = 0;
-    let fullscreenOwned = false;
     let previousBodyOverflow = '';
     const mobileQuery = window.matchMedia('(max-width: 640px)');
 
@@ -25,13 +24,14 @@
     hint.type = 'button';
     hint.className = 'about-photo-mobile-hint';
     hint.setAttribute('aria-expanded', 'false');
-    hint.setAttribute('aria-label', "Open the interactive family portrait");
+    hint.setAttribute('aria-label', 'Open the interactive family portrait');
     hint.innerHTML = '<span aria-hidden="true">💭</span><span>Tap the photo to see what\'s going on in their heads.</span>';
     wrapper.insertAdjacentElement('afterend', hint);
 
     const stage = document.createElement('div');
     stage.className = 'about-photo-explorer-stage';
     stage.dataset.visible = '0';
+    stage.dataset.virtualRotation = '0';
     stage.setAttribute('aria-hidden', 'true');
     stage.setAttribute('role', 'dialog');
     stage.setAttribute('aria-modal', 'true');
@@ -46,7 +46,8 @@
     exitButton.innerHTML = '<span aria-hidden="true">×</span><span>Exit</span>';
     exitButton.setAttribute('aria-label', 'Exit interactive family portrait');
 
-    stage.append(canvas, exitButton);
+    canvas.append(exitButton);
+    stage.append(canvas);
     document.body.append(stage);
 
     const originParent = wrapper.parentNode;
@@ -85,7 +86,7 @@
       bubble.dataset.placement = preferredPlacement;
       bubble.style.setProperty('--mobile-shift', '0px');
 
-      if (!mobileQuery.matches) return;
+      if (!mobileQuery.matches && !isExplorerOpen()) return;
 
       const wrapperRect = wrapper.getBoundingClientRect();
       const explorerOpen = isExplorerOpen();
@@ -201,25 +202,6 @@
       bubble.style.top = `${fittedAnchorY}px`;
     };
 
-    const bringBubbleIntoExplorerView = () => {
-      if (!isExplorerOpen() || bubble.dataset.visible !== '1') return;
-      requestAnimationFrame(() => {
-        const stageRect = stage.getBoundingClientRect();
-        const bubbleRect = bubble.getBoundingClientRect();
-        const pad = 18;
-        let dx = 0;
-        let dy = 0;
-
-        if (bubbleRect.left < stageRect.left + pad) dx = bubbleRect.left - stageRect.left - pad;
-        else if (bubbleRect.right > stageRect.right - pad) dx = bubbleRect.right - stageRect.right + pad;
-
-        if (bubbleRect.top < stageRect.top + pad) dy = bubbleRect.top - stageRect.top - pad;
-        else if (bubbleRect.bottom > stageRect.bottom - pad) dy = bubbleRect.bottom - stageRect.bottom + pad;
-
-        if (dx || dy) stage.scrollBy({ left: dx, top: dy, behavior: 'smooth' });
-      });
-    };
-
     const hide = () => {
       cancelAnimationFrame(frame);
       clearTimeout(settleTimer);
@@ -271,13 +253,9 @@
       frame = requestAnimationFrame(() => {
         fitMobileBubble(spot);
         if (src) bubble.dataset.hasAdornment = '1';
-        bringBubbleIntoExplorerView();
       });
 
-      settleTimer = window.setTimeout(() => {
-        fitMobileBubble(spot);
-        bringBubbleIntoExplorerView();
-      }, 720);
+      settleTimer = window.setTimeout(() => fitMobileBubble(spot), 720);
     };
 
     const layoutExplorer = () => {
@@ -286,24 +264,29 @@
       explorerResizeFrame = requestAnimationFrame(() => {
         const viewportWidth = window.visualViewport?.width || window.innerWidth;
         const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const rotateVirtually = viewportHeight >= viewportWidth;
+        const surfaceWidth = rotateVirtually ? viewportHeight : viewportWidth;
+        const surfaceHeight = rotateVirtually ? viewportWidth : viewportHeight;
         const ratio = photo.naturalWidth && photo.naturalHeight
           ? photo.naturalWidth / photo.naturalHeight
           : 985 / 551;
-        const landscape = viewportWidth > viewportHeight;
-        const logicalWidth = landscape
-          ? Math.min(viewportWidth - 24, (viewportHeight - 24) * ratio)
-          : Math.min(980, Math.max(viewportWidth - 24, (viewportHeight - 72) * ratio));
 
+        stage.dataset.virtualRotation = rotateVirtually ? '1' : '0';
+        stage.style.setProperty('--explorer-surface-width', `${surfaceWidth}px`);
+        stage.style.setProperty('--explorer-surface-height', `${surfaceHeight}px`);
+
+        const availableWidth = Math.max(300, surfaceWidth - 24);
+        const availableHeight = Math.max(180, surfaceHeight - 60);
+        const logicalWidth = Math.min(availableWidth, availableHeight * ratio);
         wrapper.style.setProperty('--explorer-width', `${Math.max(300, logicalWidth)}px`);
 
         requestAnimationFrame(() => {
           if (activeSpot) fitMobileBubble(activeSpot);
-          bringBubbleIntoExplorerView();
         });
       });
     };
 
-    const openExplorer = async () => {
+    const openExplorer = () => {
       if (!mobileQuery.matches || isExplorerOpen()) return;
 
       pinned = null;
@@ -319,29 +302,8 @@
       layoutExplorer();
 
       requestAnimationFrame(() => {
-        stage.scrollLeft = Math.max(0, (stage.scrollWidth - stage.clientWidth) / 2);
-        stage.scrollTop = Math.max(0, (stage.scrollHeight - stage.clientHeight) / 2);
         exitButton.focus({ preventScroll: true });
       });
-
-      try {
-        if (stage.requestFullscreen && !document.fullscreenElement) {
-          await stage.requestFullscreen({ navigationUI: 'hide' });
-          fullscreenOwned = document.fullscreenElement === stage;
-        }
-      } catch (_error) {
-        fullscreenOwned = false;
-      }
-
-      try {
-        if (fullscreenOwned && screen.orientation?.lock) {
-          await screen.orientation.lock('landscape');
-        }
-      } catch (_error) {
-        // The fixed explorer remains fully usable when orientation locking is unavailable.
-      }
-
-      layoutExplorer();
     };
 
     const closeExplorer = () => {
@@ -351,27 +313,21 @@
       hide();
       wrapper.dataset.mobileExplorer = '0';
       wrapper.style.removeProperty('--explorer-width');
+      stage.style.removeProperty('--explorer-surface-width');
+      stage.style.removeProperty('--explorer-surface-height');
+      stage.dataset.virtualRotation = '0';
       hint.setAttribute('aria-expanded', 'false');
       stage.dataset.visible = '0';
       stage.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = previousBodyOverflow;
       document.body.classList.remove('about-photo-explorer-open');
       originParent.insertBefore(wrapper, originNextSibling);
-
-      try { screen.orientation?.unlock?.(); } catch (_error) { /* noop */ }
-      if (fullscreenOwned && document.fullscreenElement === stage) {
-        document.exitFullscreen?.().catch(() => {});
-      }
-      fullscreenOwned = false;
       hint.focus({ preventScroll: true });
     };
 
     img.addEventListener('load', () => {
       if (!activeSpot) return;
-      requestAnimationFrame(() => {
-        fitMobileBubble(activeSpot);
-        bringBubbleIntoExplorerView();
-      });
+      requestAnimationFrame(() => fitMobileBubble(activeSpot));
     });
 
     spots.forEach((spot) => {
@@ -393,7 +349,7 @@
         event.stopPropagation();
 
         if (mobileQuery.matches && !isExplorerOpen()) {
-          void openExplorer();
+          openExplorer();
           return;
         }
 
@@ -423,7 +379,7 @@
 
     wrapper.addEventListener('click', (event) => {
       if (mobileQuery.matches && !isExplorerOpen()) {
-        void openExplorer();
+        openExplorer();
         return;
       }
       if (event.target.closest?.('.person-hotspot')) return;
@@ -431,7 +387,7 @@
       hide();
     });
 
-    hint.addEventListener('click', () => void openExplorer());
+    hint.addEventListener('click', openExplorer);
     exitButton.addEventListener('click', closeExplorer);
 
     stage.addEventListener('click', (event) => {
@@ -450,10 +406,6 @@
     };
     window.addEventListener('resize', refit, { passive: true });
     window.visualViewport?.addEventListener('resize', refit, { passive: true });
-
-    mobileQuery.addEventListener?.('change', (event) => {
-      if (!event.matches && isExplorerOpen()) closeExplorer();
-    });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && isExplorerOpen()) closeExplorer();
