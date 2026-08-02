@@ -25,7 +25,7 @@ const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/a
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260801-1650';
-const albumsAssetVersion = '20260801-2015';
+const albumsAssetVersion = '20260801-2035';
 const artAssetVersion = '20260727-1945';
 ---
 
@@ -131,6 +131,7 @@ const artAssetVersion = '20260727-1945';
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-expansion.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-polish.js?v=${albumsAssetVersion}`}></script> : null}
+{isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-timeline-selection-empty.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-gallery-masonry.js?v=${artAssetVersion}`}></script> : null}
