@@ -9,7 +9,7 @@ interface Props {
 
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL || '/';
-const classicalAssetVersion = '20260802-0914';
+const classicalAssetVersion = '20260802-0936';
 
 const sections = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
@@ -40,7 +40,10 @@ const sections = [
       </div>
     </nav>
     {active === 'composers' ? (
-      <script is:inline type="module" src={`${base}scripts/classical-expansion.js?v=${classicalAssetVersion}`}></script>
+      <>
+        <link rel="stylesheet" href={`${base}styles/classical-nav-polish.css?v=${classicalAssetVersion}`} />
+        <script is:inline type="module" src={`${base}scripts/classical-expansion.js?v=${classicalAssetVersion}`}></script>
+      </>
     ) : null}
   </>
 )}
