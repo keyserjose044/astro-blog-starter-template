@@ -2,6 +2,7 @@
 
 import('./albums-listening-log.js?v=20260801-2058')
   .then(() => import('./albums-listening-log-polish.js?v=20260801-2221'))
+  .then(() => import('./albums-listening-log-repeated.js?v=20260801-2242'))
   .catch((error) => {
     console.warn('[Albums] Listening Log modules could not be loaded:', error);
   });

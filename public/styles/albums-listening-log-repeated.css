@@ -1,0 +1,294 @@
+/* LifeLoggerz Albums: repeated-title ranking, history, and quick-filter controls. */
+
+.albums-listening-log-layout-group button[data-log-layout='repeated'][aria-pressed='true'] {
+  background: var(--albums-accent);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(64, 92, 245, 0.18);
+}
+
+.albums-listening-log-artist.is-filterable {
+  width: fit-content;
+  max-width: 100%;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(64, 92, 245, 0.22);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.albums-listening-log-artist.is-filterable:hover,
+.albums-listening-log-artist.is-filterable:focus-visible {
+  color: var(--albums-accent);
+  text-decoration-color: currentColor;
+}
+
+.albums-listening-log-artist.is-filterable:focus-visible {
+  outline: 2px solid rgba(64, 92, 245, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.albums-listening-log-inline-filters,
+.albums-listening-log-repeat-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.albums-listening-log-filter-chip {
+  max-width: 180px;
+  padding: 1px 5px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--albums-muted);
+  font: inherit;
+  font-size: inherit;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.albums-listening-log-filter-chip:hover,
+.albums-listening-log-filter-chip:focus-visible {
+  background: rgba(64, 92, 245, 0.08);
+  color: var(--albums-accent-dark);
+}
+
+.albums-listening-log-filter-chip:focus-visible {
+  outline: 2px solid rgba(64, 92, 245, 0.3);
+  outline-offset: 1px;
+}
+
+.albums-listening-log-list.is-repeated-ranking {
+  gap: 9px;
+}
+
+.albums-listening-log-repeated-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 11px;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--albums-border);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.025);
+}
+
+.albums-listening-log-repeated-card:hover {
+  border-color: rgba(64, 92, 245, 0.24);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.055);
+}
+
+.albums-listening-log-repeat-rank {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  align-self: start;
+  border-radius: 10px;
+  background: rgba(64, 92, 245, 0.09);
+  color: var(--albums-accent-dark);
+  font-size: 0.68rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.albums-listening-log-repeat-main {
+  min-width: 0;
+}
+
+.albums-listening-log-repeat-artist {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 2px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--albums-accent-dark);
+  font: inherit;
+  font-size: 0.67rem;
+  font-weight: 850;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.albums-listening-log-repeat-artist:hover,
+.albums-listening-log-repeat-artist:focus-visible {
+  color: var(--albums-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.albums-listening-log-repeat-artist:focus-visible {
+  outline: 2px solid rgba(64, 92, 245, 0.32);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.albums-listening-log-repeat-title {
+  display: block;
+  min-width: 0;
+  color: var(--albums-ink);
+  font-size: 0.84rem;
+  line-height: 1.32;
+}
+
+.albums-listening-log-repeat-meta {
+  margin-top: 6px;
+  color: var(--albums-muted);
+  font-size: 0.62rem;
+}
+
+.albums-listening-log-repeat-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eef0f5;
+  color: #586071;
+  font-size: 0.59rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.albums-listening-log-repeat-pill.is-count {
+  background: rgba(17, 129, 96, 0.09);
+  color: #24725d;
+}
+
+.albums-listening-log-repeat-pill.is-album {
+  background: rgba(64, 92, 245, 0.1);
+  color: var(--albums-accent-dark);
+}
+
+.albums-listening-log-repeat-stats {
+  display: flex;
+  align-items: center;
+  gap: 5px 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  color: var(--albums-muted);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.albums-listening-log-repeat-stats strong {
+  color: var(--albums-ink);
+  font-weight: 850;
+}
+
+.albums-listening-log-rediscovered {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(218, 145, 44, 0.1);
+  color: #91601d;
+  font-weight: 800;
+}
+
+.albums-listening-log-repeat-history {
+  margin-top: 8px;
+  border-top: 1px solid rgba(218, 221, 230, 0.75);
+  padding-top: 7px;
+}
+
+.albums-listening-log-repeat-history summary {
+  width: fit-content;
+  color: var(--albums-accent-dark);
+  font-size: 0.62rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.albums-listening-log-repeat-history summary:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.albums-listening-log-repeat-history ol {
+  display: grid;
+  gap: 4px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.albums-listening-log-repeat-history li {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) minmax(65px, auto) 24px;
+  justify-content: start;
+  gap: 8px;
+  align-items: center;
+  color: var(--albums-muted);
+  font-size: 0.61rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.albums-listening-log-repeat-history a {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(64, 92, 245, 0.08);
+  color: var(--albums-accent-dark);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.albums-listening-log-repeat-history a:hover,
+.albums-listening-log-repeat-history a:focus-visible {
+  background: rgba(64, 92, 245, 0.14);
+}
+
+.albums-listening-log-repeated-more {
+  margin-top: 14px;
+}
+
+@media (max-width: 620px) {
+  .albums-listening-log-layout-group button {
+    flex: 1 1 33.333%;
+  }
+
+  .albums-listening-log-repeated-card {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 8px;
+    padding: 11px 10px;
+  }
+
+  .albums-listening-log-repeat-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 0.62rem;
+  }
+
+  .albums-listening-log-repeat-title {
+    font-size: 0.78rem;
+  }
+
+  .albums-listening-log-repeat-stats {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .albums-listening-log-repeat-history li {
+    grid-template-columns: minmax(106px, auto) minmax(58px, auto) 22px;
+    gap: 6px;
+  }
+
+  .albums-listening-log-filter-chip {
+    max-width: 128px;
+  }
+}
