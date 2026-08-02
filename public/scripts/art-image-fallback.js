@@ -127,3 +127,13 @@
     recoverAlreadyFailedImages();
   }
 })();
+
+(() => {
+  if (document.querySelector('script[data-art-view-polish]')) return;
+  const current = document.currentScript?.src || window.location.href;
+  const script = document.createElement('script');
+  script.type = 'module';
+  script.dataset.artViewPolish = 'true';
+  script.src = new URL('./art-view-polish.js?v=20260801-2342', current).href;
+  document.head.append(script);
+})();
