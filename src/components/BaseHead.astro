@@ -26,7 +26,7 @@ const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260801-1650';
 const albumsAssetVersion = '20260801-2035';
-const artAssetVersion = '20260801-2342';
+const artAssetVersion = '20260801-2347';
 ---
 
 <!-- Global Metadata -->
@@ -79,6 +79,7 @@ const artAssetVersion = '20260801-2342';
 {isArtPage ? <link rel="stylesheet" href={`${base}styles/art-explorer.css?v=${artAssetVersion}`} /> : null}
 {isArtPage ? <link rel="stylesheet" href={`${base}styles/art-explorer-light.css?v=${artAssetVersion}`} /> : null}
 {isArtPage ? <link rel="stylesheet" href={`${base}styles/art-gallery-masonry.css?v=${artAssetVersion}`} /> : null}
+{isArtPage ? <link rel="stylesheet" href={`${base}styles/art-layout-pass.css?v=${artAssetVersion}`} /> : null}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL.toString()} />
@@ -135,3 +136,5 @@ const artAssetVersion = '20260801-2342';
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-gallery-masonry.js?v=${artAssetVersion}`}></script> : null}
+{isArtPage ? <script is:inline type="module" src={`${base}scripts/art-view-polish.js?v=${artAssetVersion}`}></script> : null}
+{isArtPage ? <script is:inline type="module" src={`${base}scripts/art-layout-pass.js?v=${artAssetVersion}`}></script> : null}
