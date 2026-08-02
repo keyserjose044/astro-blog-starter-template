@@ -13,7 +13,10 @@
   document.querySelectorAll('.about-photo-block').forEach((figure) => {
     const wrapper = figure.querySelector('[data-family-photo]');
     const button = figure.querySelector('[data-random-thought]');
+    const progress = figure.querySelector('[data-random-progress]');
+    const status = figure.querySelector('[data-random-status]');
     const bubble = wrapper?.querySelector('.speech-bubble');
+    const whoLayer = wrapper?.querySelector('[data-whos-who-layer]');
     const spots = wrapper
       ? Array.from(wrapper.querySelectorAll('.person-hotspot')).filter((spot) => spot.dataset.quote?.trim())
       : [];
@@ -22,9 +25,25 @@
 
     let deck = [];
     let lastServed = null;
+    let roundCount = 0;
+    let roundPulseTimer = 0;
+
+    const updateProgress = () => {
+      if (progress) progress.textContent = `${roundCount} / ${spots.length}`;
+    };
+
+    const pulseRoundComplete = () => {
+      window.clearTimeout(roundPulseTimer);
+      button.dataset.roundComplete = '1';
+      if (status) status.textContent = `Round complete. You saw all ${spots.length} thoughts.`;
+      roundPulseTimer = window.setTimeout(() => {
+        button.dataset.roundComplete = '0';
+      }, 760);
+    };
 
     const refillDeck = () => {
       deck = shuffle(spots);
+      roundCount = 0;
 
       // Avoid an immediate repeat where one completed round meets the next.
       if (lastServed && deck.length > 1 && deck[0] === lastServed) {
@@ -44,9 +63,21 @@
       }
 
       const spot = deck.shift();
-      lastServed = spot || lastServed;
+      if (!spot) return null;
+
+      lastServed = spot;
+      roundCount += 1;
+      updateProgress();
+
+      if (status && roundCount < spots.length) {
+        status.textContent = `Random thought ${roundCount} of ${spots.length}: ${spot.dataset.label || 'family member'}.`;
+      }
+
+      if (roundCount === spots.length) pulseRoundComplete();
       return spot;
     };
+
+    updateProgress();
 
     button.addEventListener('click', (event) => {
       // Replace the older independent-random handler without changing the
@@ -63,5 +94,70 @@
         view: window,
       }));
     }, true);
+
+    if (!whoLayer) return;
+
+    let unfurlFrame = 0;
+    let unfurlSettleFrame = 0;
+
+    const whoLabels = () => Array.from(whoLayer.querySelectorAll('.whos-who-label'));
+
+    const decorateWhoLabels = () => {
+      whoLabels().forEach((label, index) => {
+        label.style.setProperty('--who-delay', `${index * 50}ms`);
+        if (!label.dataset.unfurl) label.dataset.unfurl = '0';
+      });
+    };
+
+    const playWhoUnfurl = () => {
+      decorateWhoLabels();
+      const labels = whoLabels();
+      cancelAnimationFrame(unfurlFrame);
+      cancelAnimationFrame(unfurlSettleFrame);
+
+      if (whoLayer.dataset.visible !== '1') {
+        labels.forEach((label) => { label.dataset.unfurl = '0'; });
+        return;
+      }
+
+      labels.forEach((label) => { label.dataset.unfurl = '0'; });
+      unfurlFrame = requestAnimationFrame(() => {
+        unfurlSettleFrame = requestAnimationFrame(() => {
+          labels.forEach((label) => { label.dataset.unfurl = '1'; });
+        });
+      });
+    };
+
+    const syncWhoActive = () => {
+      const activePerson = bubble?.dataset.visible === '1' ? (bubble.dataset.person || '') : '';
+      const labels = whoLabels();
+      whoLayer.dataset.hasActive = activePerson ? '1' : '0';
+
+      labels.forEach((label) => {
+        label.classList.toggle('is-active', Boolean(activePerson) && label.dataset.forPerson === activePerson);
+      });
+    };
+
+    const whoObserver = new MutationObserver(() => {
+      playWhoUnfurl();
+      syncWhoActive();
+    });
+
+    whoObserver.observe(whoLayer, {
+      childList: true,
+      attributes: true,
+      attributeFilter: ['data-visible'],
+    });
+
+    if (bubble) {
+      const bubbleObserver = new MutationObserver(syncWhoActive);
+      bubbleObserver.observe(bubble, {
+        attributes: true,
+        attributeFilter: ['data-person', 'data-visible'],
+      });
+    }
+
+    decorateWhoLabels();
+    syncWhoActive();
   });
 })();
