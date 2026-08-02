@@ -10,7 +10,7 @@
 
 .speech-bubble[data-size='mom'] p{padding-right:1.2rem}
 .speech-bubble[data-size='little-cousin'] p{padding-right:1.7rem}
-.speech-bubble[data-size='little-brother'] p{padding-right:1.2rem;white-space:pre-line}
+.speech-bubble[data-size='little-brother'] p{width:100%;box-sizing:border-box;text-align:left;padding-left:.15rem;padding-right:3.1rem;white-space:pre-line}
 .speech-bubble[data-size='aunt'] p{padding-left:1.65rem}
 .speech-bubble[data-size='grandmother'] p{padding-right:2.15rem}
 .speech-bubble[data-size='uncle'] p{padding-right:1.65rem}
@@ -31,7 +31,7 @@
   .speech-bubble[data-size='older-brother'] .cloud-adornment{width:51%}
   .speech-bubble[data-size='mom'] p{padding-right:.65rem}
   .speech-bubble[data-size='little-cousin'] p{padding-right:.9rem}
-  .speech-bubble[data-size='little-brother'] p{padding-right:.6rem;white-space:pre-line}
+  .speech-bubble[data-size='little-brother'] p{width:100%;box-sizing:border-box;text-align:left;padding-left:.1rem;padding-right:2.7rem;white-space:pre-line}
   .speech-bubble[data-size='aunt'] p{padding-left:.85rem}
   .speech-bubble[data-size='grandmother'] p{padding-right:1.25rem}
   .speech-bubble[data-size='uncle'] p{padding-right:1rem}
