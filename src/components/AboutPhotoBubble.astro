@@ -3,6 +3,7 @@ import '../styles/about-photo-bubble.css';
 import '../styles/about-photo-name-tag.css';
 import '../styles/about-photo-extra-adornments.css';
 import '../styles/about-photo-round-polish.css';
+import '../styles/about-photo-where.css';
 
 export interface Props {
   src: string;
@@ -36,67 +37,176 @@ const familyMembers = [
 ];
 ---
 
-<figure class="about-photo-block">
-  <p id="family-photo-instructions" class="about-photo-sr-only">
-    Interactive family portrait. Use Tab to move between people, then press Enter or Space to open a thought. Press Escape to close an open thought.
-  </p>
+<div class="about-photo-feature" data-about-photo-feature>
+  <figure class="about-photo-block">
+    <p id="family-photo-instructions" class="about-photo-sr-only">
+      Interactive family portrait. Use Tab to move between people, then press Enter or Space to open a thought. Press Escape to close an open thought.
+    </p>
 
-  <div class="about-photo-wrapper" data-family-photo>
-    <img src={src} alt={alt} class="about-photo-img" loading="lazy" draggable="false" />
+    <div class="about-photo-wrapper" data-family-photo>
+      <img src={src} alt={alt} class="about-photo-img" loading="lazy" draggable="false" />
 
-    <svg class="family-hotspot-layer" viewBox="0 0 985 551" preserveAspectRatio="none" role="group" aria-label="Interactive family portrait" aria-describedby="family-photo-instructions">
-      {familyMembers.map((member) => (
-        <polygon
-          class="person-hotspot has-quote"
-          points={member.points}
-          role="button"
-          tabindex="0"
-          aria-label={`Show ${member.label}'s thought`}
-          aria-controls="family-thought-bubble"
-          aria-expanded="false"
-          data-person={member.id}
-          data-label={member.label}
-          data-quote={member.quote}
-          data-bubble-left={member.left}
-          data-bubble-top={member.top}
-          data-placement={member.placement}
-          data-tail-shift={member.tail}
-          data-cloud-variant={member.variant}
-          data-cloud-tilt={member.tilt}
-          data-motion={member.motion}
-          data-adornment={member.adornment || ''}
-          data-adornment-alt={member.adornmentAlt || ''}
-          data-corner={member.corner || ''}
-          data-size={member.size || ''}
-          data-adornment-tilt={member.adornmentTilt || '0deg'}
-        ></polygon>
-      ))}
-    </svg>
+      <svg class="family-hotspot-layer" viewBox="0 0 985 551" preserveAspectRatio="none" role="group" aria-label="Interactive family portrait" aria-describedby="family-photo-instructions">
+        {familyMembers.map((member) => (
+          <polygon
+            class="person-hotspot has-quote"
+            points={member.points}
+            role="button"
+            tabindex="0"
+            aria-label={`Show ${member.label}'s thought`}
+            aria-controls="family-thought-bubble"
+            aria-expanded="false"
+            data-person={member.id}
+            data-label={member.label}
+            data-quote={member.quote}
+            data-bubble-left={member.left}
+            data-bubble-top={member.top}
+            data-placement={member.placement}
+            data-tail-shift={member.tail}
+            data-cloud-variant={member.variant}
+            data-cloud-tilt={member.tilt}
+            data-motion={member.motion}
+            data-adornment={member.adornment || ''}
+            data-adornment-alt={member.adornmentAlt || ''}
+            data-corner={member.corner || ''}
+            data-size={member.size || ''}
+            data-adornment-tilt={member.adornmentTilt || '0deg'}
+          ></polygon>
+        ))}
+      </svg>
 
-    <div class="whos-who-layer" id="family-whos-who-layer" data-whos-who-layer data-visible="0" aria-hidden="true"></div>
-    <div class="person-name-tag" data-visible="0" aria-hidden="true"></div>
+      <div class="whos-who-layer" id="family-whos-who-layer" data-whos-who-layer data-visible="0" aria-hidden="true"></div>
+      <div class="person-name-tag" data-visible="0" aria-hidden="true"></div>
 
-    <div id="family-thought-bubble" class="speech-bubble" data-visible="0" data-placement="above" data-cloud-variant="wide" data-has-adornment="0" aria-hidden="true" role="status" aria-live="polite" aria-atomic="true">
-      <p></p>
-      <img class="cloud-adornment" alt="" src="" aria-hidden="true" />
+      <div id="family-thought-bubble" class="speech-bubble" data-visible="0" data-placement="above" data-cloud-variant="wide" data-has-adornment="0" aria-hidden="true" role="status" aria-live="polite" aria-atomic="true">
+        <p></p>
+        <img class="cloud-adornment" alt="" src="" aria-hidden="true" />
+      </div>
     </div>
-  </div>
 
-  <figcaption class="about-photo-footer">
-    <span class="about-photo-caption">Amarillas de Esparza, Asientos, Aguascalientes, México, c. 2006 - José at work</span>
-    <span class="about-photo-actions" role="group" aria-label="Family portrait controls">
-      <button class="about-photo-action" type="button" data-random-thought aria-controls="family-thought-bubble">
-        <span aria-hidden="true">↻</span> Random thought
-        <span class="about-photo-random-progress" data-random-progress aria-hidden="true">0 / 10</span>
-      </button>
-      <button class="about-photo-action" type="button" data-whos-who aria-controls="family-whos-who-layer" aria-pressed="false">
-        Who’s Who
-      </button>
-      <span class="about-photo-sr-only" data-random-status aria-live="polite" aria-atomic="true"></span>
-    </span>
-  </figcaption>
-</figure>
+    <figcaption class="about-photo-footer">
+      <span class="about-photo-caption">Amarillas de Esparza, Asientos, Aguascalientes, México, c. 2006 - José at work</span>
+      <span class="about-photo-actions" role="group" aria-label="Family portrait controls">
+        <button class="about-photo-action" type="button" data-where-toggle aria-controls="family-where-panel" aria-expanded="false">
+          Where?
+        </button>
+        <button class="about-photo-action" type="button" data-random-thought aria-controls="family-thought-bubble">
+          <span aria-hidden="true">↻</span> Random thought
+          <span class="about-photo-random-progress" data-random-progress aria-hidden="true">0 / 10</span>
+        </button>
+        <button class="about-photo-action" type="button" data-whos-who aria-controls="family-whos-who-layer" aria-pressed="false">
+          Who’s Who
+        </button>
+        <span class="about-photo-sr-only" data-random-status aria-live="polite" aria-atomic="true"></span>
+      </span>
+    </figcaption>
+  </figure>
+
+  <section
+    class="about-photo-where"
+    id="family-where-panel"
+    data-where-panel
+    data-open="0"
+    aria-labelledby="family-where-title"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="about-photo-where-head">
+      <div>
+        <span class="about-photo-where-kicker">Where was this?</span>
+        <p class="about-photo-where-title" id="family-where-title">From México to Amarillas de Esparza</p>
+        <p class="about-photo-where-subtitle">Country → state → municipality → locality → the family’s corner of town.</p>
+      </div>
+      <button class="about-photo-where-close" type="button" data-where-close aria-label="Close Where panel">×</button>
+    </div>
+
+    <ol class="about-photo-where-steps">
+      <li class="about-photo-where-step">
+        <article class="about-photo-where-card">
+          <div class="about-photo-where-card-head">
+            <span class="about-photo-where-number" aria-hidden="true">1</span>
+            <span>
+              <span class="about-photo-where-level">Country</span>
+              <span class="about-photo-where-name">México</span>
+            </span>
+          </div>
+          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México map placeholder" role="img" aria-label="Placeholder for a map of México with the family location marked">
+            <span class="about-photo-map-marker" style="--marker-x:56%;--marker-y:53%" aria-hidden="true"></span>
+          </div>
+          <p class="about-photo-where-note">Start wide: place the village within the country.</p>
+        </article>
+      </li>
+
+      <li class="about-photo-where-step">
+        <article class="about-photo-where-card">
+          <div class="about-photo-where-card-head">
+            <span class="about-photo-where-number" aria-hidden="true">2</span>
+            <span>
+              <span class="about-photo-where-level">State</span>
+              <span class="about-photo-where-name">Aguascalientes</span>
+            </span>
+          </div>
+          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México + Aguascalientes placeholder" role="img" aria-label="Placeholder for a map showing Aguascalientes within México">
+            <span class="about-photo-map-marker" style="--marker-x:52%;--marker-y:49%" aria-hidden="true"></span>
+          </div>
+          <p class="about-photo-where-note">Zoom from México into the state of Aguascalientes.</p>
+        </article>
+      </li>
+
+      <li class="about-photo-where-step">
+        <article class="about-photo-where-card">
+          <div class="about-photo-where-card-head">
+            <span class="about-photo-where-number" aria-hidden="true">3</span>
+            <span>
+              <span class="about-photo-where-level">Municipality</span>
+              <span class="about-photo-where-name">Asientos</span>
+            </span>
+          </div>
+          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Aguascalientes + Asientos placeholder" role="img" aria-label="Placeholder for a map showing Asientos within Aguascalientes">
+            <span class="about-photo-map-marker" style="--marker-x:61%;--marker-y:42%" aria-hidden="true"></span>
+          </div>
+          <p class="about-photo-where-note">Then narrow to the municipality of Asientos.</p>
+        </article>
+      </li>
+
+      <li class="about-photo-where-step">
+        <article class="about-photo-where-card">
+          <div class="about-photo-where-card-head">
+            <span class="about-photo-where-number" aria-hidden="true">4</span>
+            <span>
+              <span class="about-photo-where-level">Locality</span>
+              <span class="about-photo-where-name">Amarillas de Esparza</span>
+            </span>
+          </div>
+          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Asientos + Amarillas placeholder" role="img" aria-label="Placeholder for a local map pinpointing Amarillas de Esparza">
+            <span class="about-photo-map-marker" style="--marker-x:48%;--marker-y:55%" aria-hidden="true"></span>
+          </div>
+          <p class="about-photo-where-note">Arrive at the locality where the family photograph was taken.</p>
+        </article>
+      </li>
+
+      <li class="about-photo-where-step">
+        <article class="about-photo-where-card">
+          <div class="about-photo-where-card-head">
+            <span class="about-photo-where-number" aria-hidden="true">5</span>
+            <span>
+              <span class="about-photo-where-level">The place itself</span>
+              <span class="about-photo-where-name">Life in Amarillas</span>
+            </span>
+          </div>
+          <div class="about-photo-where-visual about-photo-place-collage" role="group" aria-label="Photo placeholders for a future Amarillas de Esparza collage">
+            <span class="about-photo-placeholder-photo">Charreada</span>
+            <span class="about-photo-placeholder-photo">Chapel</span>
+            <span class="about-photo-placeholder-photo">Grandparents’ store</span>
+          </div>
+          <p class="about-photo-where-note">Future collage: culture, town, and a family place tied directly to the photograph.</p>
+        </article>
+      </li>
+    </ol>
+  </section>
+</div>
 
 <script is:inline src="/js/about-photo-bubble.js?v=20260801-portrait-polish-v1"></script>
 <script is:inline src="/js/about-photo-random-deck.js?v=20260801-random-deck-v4"></script>
 <script is:inline src="/js/about-photo-name-tag.js?v=20260801-labels-v2"></script>
+<script is:inline src="/js/about-photo-where.js?v=20260801-where-prototype-v1"></script>
