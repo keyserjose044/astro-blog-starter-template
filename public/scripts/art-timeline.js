@@ -235,7 +235,7 @@ export function renderArtTimeline(api) {
             <button type="button" data-timeline-key="${esc(group.key)}" aria-pressed="${selection?.mode === mode && selection?.zoom === zoom && selection?.key === group.key}">
               <span class="art-timeline-period">${esc(group.label)}</span>
               <span class="art-timeline-count">${fmt(group.cards.length)} ${group.cards.length === 1 ? 'work' : 'works'}</span>
-              <span class="art-timeline-covers">${group.cards.slice(0, 3).map((card) => `<img src="${esc(card.dataset.cover || '')}" alt="" loading="lazy">`).join('')}</span>
+              <span class="art-timeline-covers">${group.cards.slice(0, 3).map((card) => `<img class="art-derived-cover" src="${esc(card.dataset.cover || '')}" data-cover-fallbacks="${esc(card.dataset.coverFallbacks || '[]')}" alt="" loading="lazy">`).join('')}</span>
               <span class="art-timeline-bars">${bars(group)}</span>
               <span class="art-timeline-caption">${esc(caption(group))}</span>
             </button>
