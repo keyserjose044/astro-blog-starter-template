@@ -24,7 +24,7 @@
 
 .about-photo-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .about-photo-footer{box-sizing:border-box;width:100%;max-width:985px;display:flex;align-items:center;justify-content:space-between;gap:.65rem 1rem;margin:.55rem auto 0;padding:0 .2rem;color:#6b5a48;font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
-.about-photo-caption{font-size:.76rem;font-style:italic;letter-spacing:.015em;line-height:1.25}
+.about-photo-caption{color:#000;font-size:.76rem;font-style:italic;letter-spacing:.015em;line-height:1.25}
 .about-photo-actions{display:flex;align-items:center;justify-content:center;gap:.45rem;flex:0 0 auto}
 .about-photo-action{appearance:none;border:1px solid rgba(126,106,84,.38);border-radius:999px;background:linear-gradient(180deg,rgba(255,250,241,.98),rgba(242,230,213,.96));color:#43372c;box-shadow:0 3px 9px rgba(35,25,16,.1),inset 0 1px 0 rgba(255,255,255,.7);min-height:34px;padding:.38rem .72rem;font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;font-size:.72rem;font-weight:600;letter-spacing:.018em;line-height:1;cursor:pointer;transition:transform 150ms ease,box-shadow 150ms ease,border-color 150ms ease,background 150ms ease}
 .about-photo-action:hover{transform:translateY(-1px);border-color:rgba(126,106,84,.56);box-shadow:0 5px 12px rgba(35,25,16,.14),inset 0 1px 0 rgba(255,255,255,.75)}
@@ -32,13 +32,19 @@
 .about-photo-action:focus-visible{outline:2px solid rgba(44,91,71,.72);outline-offset:2px}
 .about-photo-action[aria-pressed='true']{background:linear-gradient(180deg,#f3e5ce,#e7d4b8);border-color:rgba(112,88,61,.62);box-shadow:0 2px 7px rgba(35,25,16,.12),inset 0 1px 2px rgba(96,71,44,.08)}
 .whos-who-layer{position:absolute;inset:0;z-index:3;overflow:visible;pointer-events:none}
-.whos-who-label{position:absolute;max-width:105px;padding:.28rem .48rem;border:1px solid rgba(126,106,84,.45);border-radius:999px;background:linear-gradient(180deg,rgba(255,250,241,.98),rgba(242,230,213,.97));color:#3a3027;box-shadow:0 4px 10px rgba(35,25,16,.17),inset 0 1px 0 rgba(255,255,255,.72);font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;font-size:.68rem;font-weight:600;letter-spacing:.018em;line-height:1;white-space:nowrap;opacity:0;transform:translate(-50%,-50%) translateY(3px) scale(.94);transition:opacity 170ms ease,transform 220ms cubic-bezier(.2,.82,.2,1)}
-.whos-who-layer[data-visible='1'] .whos-who-label{opacity:.96;transform:translate(-50%,-50%) translateY(0) scale(1)}
+.whos-who-label{position:absolute;max-width:110px;padding:.3rem .62rem;border:1px solid rgba(120,89,53,.62);border-radius:4px;background:linear-gradient(90deg,rgba(161,117,62,.12),transparent 15%,transparent 85%,rgba(161,117,62,.12)),linear-gradient(180deg,#fff8e9 0%,#f0dab6 54%,#faecd2 100%);color:#2e251d;box-shadow:0 4px 10px rgba(35,25,16,.18),inset 0 1px 0 rgba(255,255,255,.78),inset 0 -1px 0 rgba(125,88,49,.08);font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;font-size:.68rem;font-weight:700;letter-spacing:.018em;line-height:1;white-space:nowrap;opacity:0;transform:translate(-50%,-50%) translateY(3px) scale(.94);transition:opacity 170ms ease,transform 220ms cubic-bezier(.2,.82,.2,1)}
+.whos-who-label::before,.whos-who-label::after{content:"";position:absolute;top:50%;width:8px;height:calc(100% + 8px);transform:translateY(-50%);background:linear-gradient(90deg,#b88f59 0%,#e2c393 28%,#fff0cf 58%,#b1834e 100%);border:1px solid rgba(112,79,42,.62);box-shadow:0 2px 4px rgba(47,31,16,.18),inset 1px 0 0 rgba(255,255,255,.38)}
+.whos-who-label::before{left:-7px;border-radius:7px 3px 3px 7px}
+.whos-who-label::after{right:-7px;border-radius:3px 7px 7px 3px;transform:translateY(-50%) scaleX(-1)}
+.whos-who-layer[data-visible='1'] .whos-who-label{opacity:.98;transform:translate(-50%,-50%) translateY(0) scale(1)}
 
 .about-photo-mobile-hint{display:none}
 
 @media(max-width:640px){
   .about-photo-block{flex-direction:column;align-items:center}
+  .about-photo-wrapper{order:1}
+  .about-photo-footer{order:2;flex-direction:column;justify-content:center;gap:.48rem;margin-top:.58rem;padding:0 .55rem;text-align:center}
+  .about-photo-mobile-hint{order:3}
   .speech-bubble[data-size='mom'] .cloud-adornment{width:42%}
   .speech-bubble[data-size='little-cousin'] .cloud-adornment{width:46%}
   .speech-bubble[data-size='little-brother'] .cloud-adornment{width:58%}
@@ -58,11 +64,13 @@
   .speech-bubble[data-size='grandmother'][data-corner='top-right'] .cloud-adornment{right:-14%}
   .speech-bubble[data-size='dad']{width:min(260px,calc(100vw - 16px));max-width:calc(100vw - 16px)}
   .speech-bubble[data-size='dad'] p{padding-left:.45rem;padding-right:.2rem;white-space:pre-line;overflow-wrap:normal;word-break:keep-all;hyphens:none}
-  .about-photo-footer{flex-direction:column;justify-content:center;gap:.48rem;margin-top:.58rem;padding:0 .55rem;text-align:center}
   .about-photo-caption{font-size:.7rem}
   .about-photo-actions{width:100%;gap:.4rem}
   .about-photo-action{min-height:38px;padding:.42rem .68rem;font-size:.7rem}
-  .whos-who-label{max-width:76px;padding:.2rem .34rem;font-size:.54rem;letter-spacing:0}
+  .whos-who-label{max-width:80px;padding:.22rem .4rem;border-radius:3px;font-size:.54rem;letter-spacing:0}
+  .whos-who-label::before,.whos-who-label::after{width:6px;height:calc(100% + 6px)}
+  .whos-who-label::before{left:-5px}
+  .whos-who-label::after{right:-5px}
 }
 
 @media (hover:none) and (pointer:coarse){
@@ -123,7 +131,10 @@
   .about-photo-caption{font-size:.68rem}
   .about-photo-actions{width:auto}
   .about-photo-action{min-height:38px;padding:.38rem .7rem;font-size:.68rem}
-  .whos-who-label{max-width:105px;padding:.25rem .44rem;font-size:.64rem}
+  .whos-who-label{max-width:110px;padding:.26rem .5rem;font-size:.64rem}
+  .whos-who-label::before,.whos-who-label::after{width:8px;height:calc(100% + 8px)}
+  .whos-who-label::before{left:-7px}
+  .whos-who-label::after{right:-7px}
 }
 
 @keyframes about-mobile-hint-nudge{
