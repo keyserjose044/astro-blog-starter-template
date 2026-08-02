@@ -10,6 +10,31 @@
     return shuffled;
   };
 
+  const parsePolygonPoints = (spot) =>
+    (spot.getAttribute('points') || '')
+      .trim()
+      .split(/\s+/)
+      .map((pair) => pair.split(',').map(Number))
+      .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+
+  const pointInPolygon = (x, y, polygon) => {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+      const [xi, yi] = polygon[i];
+      const [xj, yj] = polygon[j];
+      const intersects = ((yi > y) !== (yj > y)) &&
+        (x < ((xj - xi) * (y - yi)) / ((yj - yi) || Number.EPSILON) + xi);
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  };
+
+  const polygonCenter = (polygon) => {
+    if (!polygon.length) return { x: 0, y: 0 };
+    const totals = polygon.reduce((sum, [x, y]) => ({ x: sum.x + x, y: sum.y + y }), { x: 0, y: 0 });
+    return { x: totals.x / polygon.length, y: totals.y / polygon.length };
+  };
+
   document.querySelectorAll('.about-photo-block').forEach((figure) => {
     const wrapper = figure.querySelector('[data-family-photo]');
     const button = figure.querySelector('[data-random-thought]');
@@ -17,11 +42,71 @@
     const status = figure.querySelector('[data-random-status]');
     const bubble = wrapper?.querySelector('.speech-bubble');
     const whoLayer = wrapper?.querySelector('[data-whos-who-layer]');
+    const hotspotLayer = wrapper?.querySelector('.family-hotspot-layer');
     const spots = wrapper
       ? Array.from(wrapper.querySelectorAll('.person-hotspot')).filter((spot) => spot.dataset.quote?.trim())
       : [];
 
     if (!wrapper || !button || !spots.length) return;
+
+    const touchQuery = window.matchMedia('(hover: none) and (pointer: coarse)');
+    const portraitQuery = window.matchMedia('(orientation: portrait)');
+    const spotGeometry = new Map(
+      spots.map((spot) => {
+        const polygon = parsePolygonPoints(spot);
+        return [spot, { polygon, center: polygonCenter(polygon) }];
+      })
+    );
+
+    let reroutingLandscapeTap = false;
+
+    if (hotspotLayer) {
+      hotspotLayer.addEventListener('click', (event) => {
+        // On a real touch tap in landscape, overlapping SVG polygons can cause
+        // a person above the intended subject to steal the click. Resolve the
+        // tap from its actual coordinates and choose the nearest matching
+        // person's polygon instead. Keyboard/programmatic clicks are left alone.
+        if (reroutingLandscapeTap || !touchQuery.matches || portraitQuery.matches || event.detail === 0) return;
+
+        const rect = hotspotLayer.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const x = ((event.clientX - rect.left) / rect.width) * 985;
+        const y = ((event.clientY - rect.top) / rect.height) * 551;
+        if (x < 0 || x > 985 || y < 0 || y > 551) return;
+
+        const matches = spots.filter((spot) => {
+          const geometry = spotGeometry.get(spot);
+          return geometry?.polygon?.length && pointInPolygon(x, y, geometry.polygon);
+        });
+        if (!matches.length) return;
+
+        const chosen = matches.reduce((best, spot) => {
+          const center = spotGeometry.get(spot)?.center;
+          if (!center) return best;
+          const distance = ((center.x - x) ** 2) + ((center.y - y) ** 2);
+          if (!best || distance < best.distance) return { spot, distance };
+          return best;
+        }, null)?.spot;
+
+        const browserTarget = event.target.closest?.('.person-hotspot');
+        if (!chosen || chosen === browserTarget) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        reroutingLandscapeTap = true;
+        chosen.dispatchEvent(new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          detail: 1,
+        }));
+        reroutingLandscapeTap = false;
+      }, true);
+    }
 
     let deck = [];
     let lastServed = null;
