@@ -97,15 +97,40 @@
 
     if (!whoLayer) return;
 
+    let unfurlFrame = 0;
+    let unfurlSettleFrame = 0;
+
+    const whoLabels = () => Array.from(whoLayer.querySelectorAll('.whos-who-label'));
+
     const decorateWhoLabels = () => {
-      Array.from(whoLayer.querySelectorAll('.whos-who-label')).forEach((label, index) => {
+      whoLabels().forEach((label, index) => {
         label.style.setProperty('--who-delay', `${index * 50}ms`);
+        if (!label.dataset.unfurl) label.dataset.unfurl = '0';
+      });
+    };
+
+    const playWhoUnfurl = () => {
+      decorateWhoLabels();
+      const labels = whoLabels();
+      cancelAnimationFrame(unfurlFrame);
+      cancelAnimationFrame(unfurlSettleFrame);
+
+      if (whoLayer.dataset.visible !== '1') {
+        labels.forEach((label) => { label.dataset.unfurl = '0'; });
+        return;
+      }
+
+      labels.forEach((label) => { label.dataset.unfurl = '0'; });
+      unfurlFrame = requestAnimationFrame(() => {
+        unfurlSettleFrame = requestAnimationFrame(() => {
+          labels.forEach((label) => { label.dataset.unfurl = '1'; });
+        });
       });
     };
 
     const syncWhoActive = () => {
       const activePerson = bubble?.dataset.visible === '1' ? (bubble.dataset.person || '') : '';
-      const labels = Array.from(whoLayer.querySelectorAll('.whos-who-label'));
+      const labels = whoLabels();
       whoLayer.dataset.hasActive = activePerson ? '1' : '0';
 
       labels.forEach((label) => {
@@ -114,7 +139,7 @@
     };
 
     const whoObserver = new MutationObserver(() => {
-      decorateWhoLabels();
+      playWhoUnfurl();
       syncWhoActive();
     });
 
