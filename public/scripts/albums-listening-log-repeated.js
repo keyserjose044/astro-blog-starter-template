@@ -174,8 +174,13 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         active: false,
         limit: ALBUMS_LISTENING_REPEATED_PAGE_SIZE,
         lastFilterSignature: '',
+        lastRenderSignature: '',
         frame: 0,
         patching: false,
+      };
+
+      const setNodeText = (node, text) => {
+        if (node && node.textContent !== text) node.textContent = text;
       };
 
       const activeMode = () => {
@@ -208,10 +213,6 @@ function bootAlbumsListeningRepeated(attempt = 0) {
           type: c.type?.value || '',
           year: c.year?.value || '',
         } : { search: '', artist: '', genre: '', type: '', year: '' };
-      }
-
-      function filterSignature(filters) {
-        return JSON.stringify(filters);
       }
 
       function matches(entry, filters) {
@@ -287,8 +288,7 @@ function bootAlbumsListeningRepeated(attempt = 0) {
 
       function setSelectAndDispatch(select, value) {
         if (!select) return;
-        const optionExists = Array.from(select.options).some((option) => option.value === value);
-        if (!optionExists) return;
+        if (!Array.from(select.options).some((option) => option.value === value)) return;
         select.value = value;
         select.dispatchEvent(new Event('change', { bubbles: true }));
       }
@@ -324,15 +324,15 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         });
       }
 
-      function patchSort(shell) {
+      function patchSort() {
         const c = controls();
         const option = c?.sort ? Array.from(c.sort.options).find((item) => item.value === 'most-listened') : null;
         if (!option) return;
         if (activeMode() === 'titles') {
-          option.textContent = 'Most repeats';
+          setNodeText(option, 'Most repeats');
           return;
         }
-        option.textContent = state.active ? 'Most repeats' : 'Most repeats → Repeated';
+        setNodeText(option, state.active ? 'Most repeats' : 'Most repeats → Repeated');
         if (state.active && c.sort.value !== 'most-listened') c.sort.value = 'most-listened';
       }
 
@@ -343,9 +343,7 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         button.dataset.logFilterKind = kind;
         button.dataset.logFilterValue = value;
         button.textContent = label;
-        button.title = kind === 'genre'
-          ? `Filter to ${value}`
-          : `Search the Listening Log for ${value}`;
+        button.title = kind === 'genre' ? `Filter to ${value}` : `Search the Listening Log for ${value}`;
         return button;
       }
 
@@ -482,19 +480,20 @@ function bootAlbumsListeningRepeated(attempt = 0) {
       function renderRepeated(shell) {
         const list = shell.querySelector('.albums-listening-log-list');
         const resultsText = shell.querySelector('.albums-listening-log-results p');
-        const baseMore = shell.querySelector('.albums-listening-log-more');
+        const baseMore = shell.querySelector('.albums-listening-log-more:not(.albums-listening-log-repeated-more)');
         if (!list || !resultsText) return;
 
         if (!state.active || activeMode() !== 'entries') {
           removeRepeatedMore(shell);
           if (baseMore) baseMore.hidden = false;
+          state.lastRenderSignature = '';
           return;
         }
 
         const filters = filterValues();
-        const signature = filterSignature(filters);
-        if (signature !== state.lastFilterSignature) {
-          state.lastFilterSignature = signature;
+        const filterSig = JSON.stringify(filters);
+        if (filterSig !== state.lastFilterSignature) {
+          state.lastFilterSignature = filterSig;
           state.limit = ALBUMS_LISTENING_REPEATED_PAGE_SIZE;
         }
 
@@ -502,22 +501,27 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         const visible = repeatedGroups.slice(0, state.limit);
         const totalListens = repeatedGroups.reduce((sum, group) => sum + group.listenCount, 0);
         const totalMinutes = repeatedGroups.reduce((sum, group) => sum + group.totalMinutes, 0);
+        const summaryText = repeatedGroups.length
+          ? `Showing ${visible.length.toLocaleString('en-US')} of ${repeatedGroups.length.toLocaleString('en-US')} repeated titles · ${totalListens.toLocaleString('en-US')} underlying listens · ${repeatedFormatDuration(totalMinutes)}`
+          : 'No repeated titles within these filters';
+        setNodeText(resultsText, summaryText);
+        if (baseMore) baseMore.hidden = true;
+
+        const renderSig = `${filterSig}|${state.limit}|${repeatedGroups.length}|${visible.map((group) => `${repeatedNormalize(group.artist)}:${repeatedNormalize(group.title)}:${group.listenCount}`).join('~')}`;
+        if (list.dataset.repeatedRenderSignature === renderSig && list.classList.contains('is-repeated-ranking')) return;
 
         list.classList.add('is-repeated-ranking');
         list.replaceChildren();
         visible.forEach((group, index) => list.append(makeRepeatedCard(group, index + 1)));
-
         if (!repeatedGroups.length) {
           const empty = document.createElement('li');
           empty.className = 'albums-listening-log-empty';
           empty.textContent = 'No titles occur more than once within these filters.';
           list.append(empty);
-          resultsText.textContent = 'No repeated titles within these filters';
-        } else {
-          resultsText.textContent = `Showing ${visible.length.toLocaleString('en-US')} of ${repeatedGroups.length.toLocaleString('en-US')} repeated titles · ${totalListens.toLocaleString('en-US')} underlying listens · ${repeatedFormatDuration(totalMinutes)}`;
         }
+        list.dataset.repeatedRenderSignature = renderSig;
+        state.lastRenderSignature = renderSig;
 
-        if (baseMore) baseMore.hidden = true;
         removeRepeatedMore(shell);
         if (repeatedGroups.length > state.limit) {
           const more = document.createElement('button');
@@ -535,7 +539,9 @@ function bootAlbumsListeningRepeated(attempt = 0) {
       function cleanupRepeatedList(shell) {
         if (state.active) return;
         const list = shell.querySelector('.albums-listening-log-list');
-        list?.classList.remove('is-repeated-ranking');
+        if (!list) return;
+        list.classList.remove('is-repeated-ranking');
+        delete list.dataset.repeatedRenderSignature;
       }
 
       function patch() {
@@ -546,7 +552,7 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         try {
           if (activeMode() === 'titles') state.active = false;
           ensureRepeatedControl(shell);
-          patchSort(shell);
+          patchSort();
           patchRowQuickFilters(shell);
           renderRepeated(shell);
           cleanupRepeatedList(shell);
@@ -560,12 +566,23 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         state.frame = window.requestAnimationFrame(patch);
       }
 
+      function leaveRepeatedForLayout() {
+        state.active = false;
+        state.lastRenderSignature = '';
+        const c = controls();
+        if (c?.sort) {
+          c.sort.value = 'latest';
+          c.sort.dispatchEvent(new Event('change', { bubbles: true }));
+        } else queuePatch();
+      }
+
       expansion.addEventListener('click', (event) => {
         const repeatedButton = event.target.closest('[data-log-layout="repeated"]');
         if (repeatedButton) {
           event.preventDefault();
           state.active = true;
           state.limit = ALBUMS_LISTENING_REPEATED_PAGE_SIZE;
+          state.lastRenderSignature = '';
           const c = controls();
           if (c?.sort) c.sort.value = 'most-listened';
           queuePatch();
@@ -573,15 +590,15 @@ function bootAlbumsListeningRepeated(attempt = 0) {
         }
 
         const ordinaryLayout = event.target.closest('[data-log-layout="rows"],[data-log-layout="days"]');
-        if (ordinaryLayout) {
-          state.active = false;
-          queuePatch();
+        if (ordinaryLayout && state.active) {
+          leaveRepeatedForLayout();
           return;
         }
 
         const modeButton = event.target.closest('.albums-listening-log-mode-group button');
         if (modeButton && /titles|works/i.test(modeButton.textContent || '')) {
           state.active = false;
+          state.lastRenderSignature = '';
           queuePatch();
           return;
         }
@@ -619,7 +636,11 @@ function bootAlbumsListeningRepeated(attempt = 0) {
           if (sort.value === 'most-listened') {
             state.active = true;
             state.limit = ALBUMS_LISTENING_REPEATED_PAGE_SIZE;
-          } else if (state.active) state.active = false;
+            state.lastRenderSignature = '';
+          } else if (state.active) {
+            state.active = false;
+            state.lastRenderSignature = '';
+          }
         }
         queuePatch();
       }, true);
