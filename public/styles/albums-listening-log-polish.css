@@ -57,25 +57,6 @@
   outline-offset: 2px;
 }
 
-/* The Repeated explorer is rendered by a separate controller. Its list-state is the
- * authoritative visual signal, so keep the three-way layout control stable even if
- * another patch pass briefly rewrites aria-pressed while the ranking is rendering. */
-.albums-listening-log-view:has(.albums-listening-log-list.is-repeated-ranking)
-  .albums-listening-log-layout-group [data-log-layout='rows'],
-.albums-listening-log-view:has(.albums-listening-log-list.is-repeated-ranking)
-  .albums-listening-log-layout-group [data-log-layout='days'] {
-  background: transparent !important;
-  color: var(--albums-muted) !important;
-  box-shadow: none !important;
-}
-
-.albums-listening-log-view:has(.albums-listening-log-list.is-repeated-ranking)
-  .albums-listening-log-layout-group [data-log-layout='repeated'] {
-  background: var(--albums-accent) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 10px rgba(64, 92, 245, 0.18) !important;
-}
-
 .albums-listening-log-badge.is-repeat {
   background: rgba(17, 129, 96, 0.09);
   color: #24725d;
