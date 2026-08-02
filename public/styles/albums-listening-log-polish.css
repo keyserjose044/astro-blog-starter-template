@@ -114,6 +114,19 @@
 }
 
 @media (max-width: 900px) {
+  /* Keep all eight Albums views plus Random visible as a stable 3x3 mobile grid. */
+  .albums-view-toggle {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .albums-listening-log-view-button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
   .albums-listening-log-switches {
     width: 100%;
   }
