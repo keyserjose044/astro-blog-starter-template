@@ -20,6 +20,11 @@ function injectRepeatedControlStyles() {
       color: #fff !important;
       box-shadow: 0 4px 10px rgba(64, 92, 245, 0.18) !important;
     }
+
+    .albums-listening-log-layout-group [data-log-layout='repeated'][disabled] {
+      opacity: 0.55;
+      cursor: wait;
+    }
   `;
   document.head.append(style);
 }
@@ -44,31 +49,46 @@ function ensureRepeatedButton(layoutGroup) {
   return button;
 }
 
+function repeatedDataReady() {
+  return document.body.dataset.albumsListeningRepeatedReady === 'true';
+}
+
 function bootAlbumsListeningControlsFix(attempt = 0) {
   injectRepeatedControlStyles();
 
   const expansion = document.querySelector('#albums-expansion-views');
   const viewToggle = document.querySelector('#album-view-toggle');
   const layoutGroup = expansion?.querySelector('.albums-listening-log-layout-group');
-  const repeatedReady = document.body.dataset.albumsListeningRepeatedReady === 'true';
 
-  if ((!expansion || !viewToggle || !layoutGroup || !repeatedReady)
+  if ((!expansion || !viewToggle || !layoutGroup)
       && attempt < ALBUMS_LISTENING_CONTROLS_FIX_RETRIES) {
     window.setTimeout(() => bootAlbumsListeningControlsFix(attempt + 1), 75);
     return;
   }
 
-  if (!expansion || !viewToggle || !layoutGroup || !repeatedReady
+  if (!expansion || !viewToggle || !layoutGroup
       || document.body.dataset.albumsListeningControlsFixReady) return;
 
   document.body.dataset.albumsListeningControlsFixReady = 'true';
   ensureRepeatedButton(layoutGroup);
 
+  function syncAvailability() {
+    const group = expansion.querySelector('.albums-listening-log-layout-group');
+    if (!group) return;
+    const repeated = ensureRepeatedButton(group);
+    const ready = repeatedDataReady();
+    repeated.disabled = !ready;
+    repeated.setAttribute('aria-disabled', String(!ready));
+    repeated.title = ready
+      ? 'Rank titles heard more than once by number of recorded listens.'
+      : 'Loading repeated-listening data…';
+  }
+
   function setRepeatedUiActive(active) {
     const group = expansion.querySelector('.albums-listening-log-layout-group');
     if (!group) return;
     const repeated = ensureRepeatedButton(group);
-    const next = Boolean(active && isEntriesMode(expansion));
+    const next = Boolean(active && repeatedDataReady() && isEntriesMode(expansion));
 
     if (next) document.body.setAttribute(REPEATED_UI_ATTR, 'true');
     else document.body.removeAttribute(REPEATED_UI_ATTR);
@@ -88,6 +108,7 @@ function bootAlbumsListeningControlsFix(attempt = 0) {
     const group = expansion.querySelector('.albums-listening-log-layout-group');
     if (!group) return;
     ensureRepeatedButton(group);
+    syncAvailability();
 
     const ranking = expansion.querySelector('.albums-listening-log-list.is-repeated-ranking');
     const uiLocked = document.body.getAttribute(REPEATED_UI_ATTR) === 'true';
@@ -97,6 +118,11 @@ function bootAlbumsListeningControlsFix(attempt = 0) {
   expansion.addEventListener('click', (event) => {
     const repeated = event.target.closest('[data-log-layout="repeated"]');
     if (repeated) {
+      if (!repeatedDataReady()) {
+        event.preventDefault();
+        syncAvailability();
+        return;
+      }
       /* Lock the visual state immediately, before the other modules' queued patches run. */
       setRepeatedUiActive(true);
       return;
@@ -127,14 +153,22 @@ function bootAlbumsListeningControlsFix(attempt = 0) {
     }
   }, true);
 
-  const observer = new MutationObserver(() => {
+  const expansionObserver = new MutationObserver(() => {
     window.requestAnimationFrame(syncRepeatedButton);
   });
-  observer.observe(expansion, {
+  expansionObserver.observe(expansion, {
     childList: true,
     subtree: true,
     attributes: true,
     attributeFilter: ['aria-pressed', 'class'],
+  });
+
+  const readinessObserver = new MutationObserver(() => {
+    window.requestAnimationFrame(syncRepeatedButton);
+  });
+  readinessObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['data-albums-listening-repeated-ready'],
   });
 
   syncRepeatedButton();
