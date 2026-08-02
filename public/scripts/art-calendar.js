@@ -109,7 +109,7 @@ function renderMetrics(api, monthCards, daysInMonth) {
 function workButton(card) {
   return `
     <button type="button" class="art-calendar-work" data-art-card-index="${esc(card.dataset.originalIndex)}" aria-label="Open ${esc(card.dataset.title || 'artwork')}">
-      <img src="${esc(card.dataset.cover || '')}" alt="" loading="lazy" decoding="async">
+      <img class="art-derived-cover" src="${esc(card.dataset.cover || '')}" data-cover-fallbacks="${esc(card.dataset.coverFallbacks || '[]')}" alt="" loading="lazy" decoding="async">
       <span class="art-calendar-hover"><strong>${esc(card.dataset.title || 'Untitled')}</strong><span>${esc(cardTooltip(card))}</span></span>
     </button>
   `;
@@ -161,7 +161,7 @@ function renderAgenda(api, month, cardsByDay) {
         <div class="art-calendar-agenda-date">${esc(formatDay(date))}<br>${new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' }).format(date)}</div>
         ${dayCards.length ? `<div class="art-calendar-agenda-works">${dayCards.map((card) => `
           <button type="button" class="art-calendar-agenda-work" data-art-card-index="${esc(card.dataset.originalIndex)}">
-            <img src="${esc(card.dataset.cover || '')}" alt="" loading="lazy" decoding="async"><strong>${esc(card.dataset.title || 'Untitled')}</strong>
+            <img class="art-derived-cover" src="${esc(card.dataset.cover || '')}" data-cover-fallbacks="${esc(card.dataset.coverFallbacks || '[]')}" alt="" loading="lazy" decoding="async"><strong>${esc(card.dataset.title || 'Untitled')}</strong>
           </button>`).join('')}</div>` : '<div class="art-calendar-agenda-empty">No artwork recorded</div>'}
       </div>
     `);
