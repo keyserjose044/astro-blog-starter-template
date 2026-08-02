@@ -22,13 +22,24 @@
     const hint = document.createElement('div');
     hint.className = 'about-photo-mobile-hint';
     hint.setAttribute('role', 'note');
-    hint.innerHTML = '<span class="about-photo-mobile-hint-icon" aria-hidden="true">↻</span><span>Rotate your phone sideways, then tap someone in the photo to see what\'s going on in their heads.</span>';
+    hint.innerHTML = '<span class="about-photo-mobile-hint-icon" aria-hidden="true">💭</span><span class="about-photo-mobile-hint-copy"></span>';
     wrapper.insertAdjacentElement('afterend', hint);
 
-    const needsLandscape = () => touchQuery.matches && portraitQuery.matches;
+    const hintCopy = hint.querySelector('.about-photo-mobile-hint-copy');
+
+    const updateHint = () => {
+      if (!hintCopy) return;
+      hintCopy.textContent = portraitQuery.matches
+        ? "Tap someone to see what they're thinking — rotate your phone sideways for a better view."
+        : "Tap someone to see what they're thinking.";
+    };
+
+    updateHint();
+
+    const shouldNudgeHint = () => touchQuery.matches && portraitQuery.matches;
 
     const nudgeHint = () => {
-      if (!needsLandscape()) return;
+      if (!shouldNudgeHint()) return;
       window.clearTimeout(hintTimer);
       hint.dataset.nudge = '1';
       hintTimer = window.setTimeout(() => {
@@ -235,7 +246,6 @@
 
     spots.forEach((spot) => {
       spot.addEventListener('pointerenter', () => {
-        if (needsLandscape()) return;
         if (!pinned) show(spot);
       });
 
@@ -244,7 +254,6 @@
       });
 
       spot.addEventListener('focus', () => {
-        if (needsLandscape()) return;
         if (!pinned) show(spot);
       });
 
@@ -254,13 +263,6 @@
 
       spot.addEventListener('click', (event) => {
         event.stopPropagation();
-
-        if (needsLandscape()) {
-          pinned = null;
-          hide();
-          nudgeHint();
-          return;
-        }
 
         if (pinned === spot) {
           pinned = null;
@@ -284,25 +286,14 @@
     });
 
     wrapper.addEventListener('click', (event) => {
-      if (needsLandscape()) {
-        pinned = null;
-        hide();
-        nudgeHint();
-        return;
-      }
-
       if (event.target.closest?.('.person-hotspot')) return;
       pinned = null;
       hide();
+      nudgeHint();
     });
 
     const refit = () => {
-      if (needsLandscape()) {
-        pinned = null;
-        hide();
-        return;
-      }
-
+      updateHint();
       if (!activeSpot) return;
       cancelAnimationFrame(resizeFrame);
       resizeFrame = requestAnimationFrame(() => fitTouchBubble(activeSpot));
@@ -311,6 +302,7 @@
     window.addEventListener('resize', refit, { passive: true });
     window.visualViewport?.addEventListener('resize', refit, { passive: true });
     portraitQuery.addEventListener?.('change', refit);
+    touchQuery.addEventListener?.('change', updateHint);
 
     if (secret) {
       const messages = [
