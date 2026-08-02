@@ -89,22 +89,26 @@ function buildLifeLoggerzMusicListeningPayload_() {
     if (!date) return;
 
     const artist = cleanMusicValue_(values[c.artist - 1]);
-    const title = cleanMusicValue_(values[c.title - 1]);
+    const titleRaw = cleanMusicValue_(values[c.title - 1]);
 
     // Only structural identifiers are required. Older/newer rows may legitimately
     // have sparse genre/country/year metadata and should remain in the archive.
-    if (!artist || !title) return;
+    if (!artist || !titleRaw) return;
 
     const albumRaw = cleanMusicValue_(values[c.albumRaw - 1]);
     const richTitle = richTextValues[index][c.title - 1];
     const titleFormula = formulas[index][c.title - 1];
+    const sourceUrl = extractMusicCellLink_(richTitle, titleFormula, titleRaw);
+    const title = isMusicHttpUrl_(titleRaw) ? 'Linked music entry' : titleRaw;
+    const isAlbum = /^(?:y|yes|album|full album)$/i.test(albumRaw) ||
+      /\b(?:full album|album completo|disco completo|full lp)\b/i.test(titleRaw);
 
     rows.push({
       rowNumber: config.firstDataRow + index,
       date,
       artist,
       title,
-      sourceUrl: extractMusicCellLink_(richTitle, titleFormula, title),
+      sourceUrl,
       minutes: cleanMusicValue_(values[c.minutes - 1]),
       rating: cleanMusicValue_(values[c.rating - 1]),
       genre: cleanMusicValue_(values[c.genre - 1]),
@@ -113,7 +117,7 @@ function buildLifeLoggerzMusicListeningPayload_() {
       year: cleanMusicValue_(values[c.year - 1]),
       instrumentRaw: cleanMusicValue_(values[c.instrumentRaw - 1]),
       albumRaw,
-      isAlbum: /^(?:y|yes)$/i.test(albumRaw),
+      isAlbum,
     });
   });
 
