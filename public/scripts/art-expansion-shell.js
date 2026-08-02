@@ -1,4 +1,4 @@
-const EXPANSION_VERSION = '20260801-2302';
+const EXPANSION_VERSION = '20260801-2330';
 
 const esc = (value) => String(value || '').replace(/[&<>'"]/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
@@ -35,6 +35,15 @@ function installButtons() {
   } else {
     toggle.append(calendar, movements);
   }
+}
+
+function updateInfoPanel() {
+  const info = document.querySelector('#art-info');
+  if (!info) return;
+  const heading = Array.from(info.querySelectorAll('h2')).find((candidate) => candidate.textContent?.trim() === 'How to browse');
+  const paragraph = heading?.nextElementSibling;
+  if (!(paragraph instanceof HTMLParagraphElement)) return;
+  paragraph.textContent = 'Gallery provides a stable framed overview without cropping the works. List exposes the metadata. Artists groups the collection by creator. Calendar shows the DailyArt habit day by day. Movements turns artistic traditions into expandable mini-exhibitions. Timeline moves between art history and my viewing journey, with period/century and year/month zoom. World Map uses the recorded country or nationality field when it can be matched confidently.';
 }
 
 function installCalendarView(explorer) {
@@ -123,6 +132,7 @@ function installMapSelection() {
 export function installArtExpansionShell() {
   installStyles();
   installButtons();
+  updateInfoPanel();
   const explorer = document.querySelector('#art-explorer');
   if (!explorer) return;
   installCalendarView(explorer);
@@ -153,7 +163,7 @@ export function renderArtSelectionShelf(host, cards, options, api) {
     <div class="art-selection-grid">
       ${collection.map((card) => `
         <button type="button" class="art-selection-work" data-art-card-index="${esc(card.dataset.originalIndex)}" title="Open ${esc(card.dataset.title || 'artwork')}">
-          <span class="art-selection-image"><img src="${esc(card.dataset.cover || '')}" alt="" loading="lazy" decoding="async"></span>
+          <span class="art-selection-image"><img class="art-derived-cover" src="${esc(card.dataset.cover || '')}" data-cover-fallbacks="${esc(card.dataset.coverFallbacks || '[]')}" alt="" loading="lazy" decoding="async"></span>
           <span class="art-selection-copy"><strong>${esc(card.dataset.title || 'Untitled')}</strong><small>${esc(card.dataset.artist || 'Artist not recorded')}</small></span>
         </button>
       `).join('')}
