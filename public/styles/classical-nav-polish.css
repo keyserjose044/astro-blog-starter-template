@@ -1,0 +1,124 @@
+/* LifeLoggerz Classical Music: primary-view navigation polish.
+   Keeps the seven-view switcher visually consistent with Albums and gives mobile a compact grid. */
+
+main.wrap .page-tabs {
+  display: flex;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0 auto 28px;
+  padding: 4px;
+  gap: 3px;
+  overflow-x: auto;
+  border: 1px solid rgba(229, 232, 239, .98);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, .06);
+  scrollbar-width: none;
+}
+
+main.wrap .page-tabs::-webkit-scrollbar { display: none; }
+
+main.wrap .page-tabs .page-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5e6573;
+  box-shadow: none;
+  font: inherit;
+  font-size: .77rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .15s ease, background .15s ease, box-shadow .15s ease, transform .12s ease;
+  appearance: none;
+}
+
+main.wrap .page-tabs .page-tab::before {
+  display: inline-block;
+  color: currentColor;
+  font-size: .78em;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .9;
+}
+
+main.wrap .page-tabs .page-tab[data-page-tab='overview']::before { content: '▦'; }
+main.wrap .page-tabs .page-tab[data-page-tab='composers']::before { content: '♬'; }
+main.wrap .page-tabs .page-tab[data-page-tab='works']::before { content: '♫'; }
+main.wrap .page-tabs .page-tab[data-page-tab='calendar']::before { content: '▣'; }
+main.wrap .page-tabs .page-tab[data-page-tab='journey']::before { content: '⌁'; }
+main.wrap .page-tabs .page-tab[data-page-tab='records']::before { content: '◆'; }
+main.wrap .page-tabs .page-tab[data-page-tab='favorites']::before { content: '♥'; }
+
+main.wrap .page-tabs .page-tab:hover {
+  background: #f0f2ff;
+  color: #314bd8;
+  transform: translateY(-1px);
+}
+
+main.wrap .page-tabs .page-tab[aria-selected='true'] {
+  background: var(--classical-accent, #405cf5);
+  color: #fff;
+  box-shadow: 0 5px 13px rgba(64, 92, 245, .24);
+}
+
+main.wrap .page-tabs .page-tab[aria-selected='true']:hover {
+  background: #354edb;
+  color: #fff;
+}
+
+main.wrap .page-tabs .page-tab:focus-visible {
+  outline: 3px solid rgba(64, 92, 245, .36);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  main.wrap .page-tabs {
+    display: grid;
+    width: 100%;
+    max-width: 560px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    margin-bottom: 22px;
+    padding: 5px;
+    overflow: visible;
+    border-radius: 15px;
+  }
+
+  main.wrap .page-tabs .page-tab {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 5px;
+    border-radius: 10px;
+    font-size: .7rem;
+    white-space: normal;
+  }
+
+  main.wrap .page-tabs .page-tab[data-page-tab='favorites'] {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 380px) {
+  main.wrap .page-tabs {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  main.wrap .page-tabs .page-tab {
+    gap: 4px;
+    min-height: 38px;
+    padding: 7px 4px;
+    font-size: .66rem;
+  }
+}
