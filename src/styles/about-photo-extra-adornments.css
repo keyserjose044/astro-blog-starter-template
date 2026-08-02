@@ -119,7 +119,7 @@
   .about-photo-wrapper{
     width:100vw;
     max-width:none;
-    flex:0 0 100vw;
+    flex:0 0 auto;
   }
   .about-photo-img{
     width:100%;
