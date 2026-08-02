@@ -15,10 +15,12 @@
 .speech-bubble[data-size='grandmother'] p{padding-right:2.65rem}
 .speech-bubble[data-size='uncle'] p{padding-right:1.65rem}
 .speech-bubble[data-size='older-brother'] p{padding-right:3.1rem}
+.speech-bubble[data-size='dad'] p{white-space:pre-line;overflow-wrap:normal;word-break:keep-all;hyphens:none}
 
 .speech-bubble[data-size='aunt'][data-corner='bottom-left'] .cloud-adornment{left:-27%;bottom:-13%}
 .speech-bubble[data-size='little-brother'][data-corner='top-right'] .cloud-adornment{top:-23%;right:-8%}
 .speech-bubble[data-size='mom'][data-corner='top-right'] .cloud-adornment{top:-21%;right:-8%}
+.speech-bubble[data-size='grandmother'][data-corner='top-right'] .cloud-adornment{right:-16%}
 
 .about-photo-mobile-hint{display:none}
 
@@ -40,8 +42,9 @@
   .speech-bubble[data-size='uncle'] p{padding-right:1rem}
   .speech-bubble[data-size='older-brother'] p{padding-right:1.7rem}
   .speech-bubble[data-size='aunt'][data-corner='bottom-left'] .cloud-adornment{left:-22%;bottom:-10%}
-  .speech-bubble[data-size='dad']{width:min(220px,calc(100vw - 20px));max-width:calc(100vw - 20px)}
-  .speech-bubble[data-size='dad'] p{padding-left:.55rem;padding-right:.3rem;white-space:normal;overflow-wrap:normal;word-break:normal}
+  .speech-bubble[data-size='grandmother'][data-corner='top-right'] .cloud-adornment{right:-14%}
+  .speech-bubble[data-size='dad']{width:min(260px,calc(100vw - 16px));max-width:calc(100vw - 16px)}
+  .speech-bubble[data-size='dad'] p{padding-left:.45rem;padding-right:.2rem;white-space:pre-line;overflow-wrap:normal;word-break:keep-all;hyphens:none}
 }
 
 @media (hover:none) and (pointer:coarse){
@@ -72,6 +75,8 @@
     line-height:1;
   }
   .about-photo-mobile-hint[data-nudge='1']{animation:about-mobile-hint-nudge 540ms ease}
+  .speech-bubble[data-size='dad']{width:min(286px,calc(100vw - 20px));max-width:calc(100vw - 20px)}
+  .speech-bubble[data-size='dad'] p{white-space:pre-line;overflow-wrap:normal;word-break:keep-all;hyphens:none}
 }
 
 @media (hover:none) and (pointer:coarse) and (orientation:landscape){
@@ -80,23 +85,21 @@
     max-width:none;
     margin-left:calc(50% - 50vw);
     padding:0;
+    flex-direction:column;
+    align-items:center;
     justify-content:center;
   }
   .about-photo-wrapper{
-    width:96vw;
+    width:100vw;
     max-width:none;
+    flex:0 0 100vw;
   }
   .about-photo-img{
     width:100%;
     max-width:none;
     height:auto;
   }
-  .about-photo-mobile-hint{
-    max-width:min(70vw,360px);
-    margin:.42rem auto 0;
-    padding:.42rem .72rem;
-    font-size:.74rem;
-  }
+  .about-photo-mobile-hint{display:none}
 }
 
 @keyframes about-mobile-hint-nudge{
