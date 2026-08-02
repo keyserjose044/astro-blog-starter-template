@@ -1,0 +1,24 @@
+/* Small viewport guardrails for Classical Music polish v2. */
+
+@media (min-width: 701px) {
+  .works-toolbar > .classical-mobile-filters-panel[hidden] {
+    display: contents !important;
+  }
+
+  /* Moving the dense controls into the mobile filter container must not change
+     the familiar desktop order when that container becomes display:contents. */
+  .works-toolbar > #works-search { order: 0; }
+  .works-toolbar #works-composer-filter { order: 1; }
+  .works-toolbar #works-period-filter { order: 2; }
+  .works-toolbar #works-form-filter { order: 3; }
+  .works-toolbar #works-rating-filter { order: 4; }
+  .works-toolbar .classical-repeat-select { order: 5; }
+  .works-toolbar > #works-sort { order: 6; }
+}
+
+@media (max-width: 800px) {
+  main.wrap .page-tabs {
+    top: 56px !important;
+    z-index: 45 !important;
+  }
+}
