@@ -75,7 +75,7 @@ function timelineEmptyCopy() {
 }
 
 function renderEmptySelection(host, kind) {
-  if (!host || host.dataset.artPolishState === 'empty') return;
+  if (!host) return;
   const [title, summary] = kind === 'timeline'
     ? timelineEmptyCopy()
     : ['Select a country to view its artworks', 'Choose a highlighted country on the map or in the country ranking above.'];
@@ -102,7 +102,8 @@ function syncSelection(host, kind) {
 
   if (!hasFilledSelection) {
     const desiredCopy = kind === 'timeline' ? timelineEmptyCopy() : null;
-    if (host.dataset.artPolishState !== 'empty') {
+    const missingPlaceholderMarkup = !host.querySelector('.art-selection-heading') || !host.querySelector('.art-selection-placeholder');
+    if (host.dataset.artPolishState !== 'empty' || missingPlaceholderMarkup) {
       renderEmptySelection(host, kind);
       return;
     }
