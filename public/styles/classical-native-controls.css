@@ -1,0 +1,37 @@
+/* LifeLoggerz Classical Music: normalize JS-created native controls to the light UI. */
+
+#works-repeat-filter {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--classical-border, #e5e8ef);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--classical-ink, #10131b);
+  color-scheme: light;
+  font: inherit;
+  font-size: .76rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+}
+
+#works-repeat-filter:hover {
+  border-color: #cfd5e3;
+}
+
+#works-repeat-filter:focus-visible {
+  outline: 3px solid rgba(64, 92, 245, .42);
+  outline-offset: 2px;
+}
+
+#works-repeat-filter option,
+#works-repeat-filter optgroup {
+  background: #fff;
+  color: #10131b;
+  color-scheme: light;
+}
+
+@media (max-width: 620px) {
+  #works-repeat-filter {
+    width: 100%;
+    min-width: 0;
+  }
+}
