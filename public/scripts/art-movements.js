@@ -56,7 +56,7 @@ function renderGroup(group, api) {
     <details class="art-movement-card">
       <summary class="art-movement-summary">
         <span class="art-movement-mosaic" data-count="${Math.min(mosaic.length, 4)}">
-          ${mosaic.map((card) => `<img src="${esc(card.dataset.cover || '')}" alt="" loading="lazy" decoding="async">`).join('')}
+          ${mosaic.map((card) => `<img class="art-derived-cover" src="${esc(card.dataset.cover || '')}" data-cover-fallbacks="${esc(card.dataset.coverFallbacks || '[]')}" alt="" loading="lazy" decoding="async">`).join('')}
         </span>
         <span class="art-movement-summary-copy">
           <span class="art-movement-title-row"><h3>${esc(group.label)}</h3><span class="art-movement-count">${group.cards.length.toLocaleString('en-US')} ${group.cards.length === 1 ? 'work' : 'works'}</span></span>
@@ -74,7 +74,7 @@ function renderGroup(group, api) {
         <div class="art-movement-works">
           ${group.cards.map((card) => `
             <button type="button" class="art-movement-work" data-art-card-index="${esc(card.dataset.originalIndex)}" title="Open ${esc(card.dataset.title || 'artwork')}">
-              <img src="${esc(card.dataset.cover || '')}" alt="" loading="lazy" decoding="async">
+              <img class="art-derived-cover" src="${esc(card.dataset.cover || '')}" data-cover-fallbacks="${esc(card.dataset.coverFallbacks || '[]')}" alt="" loading="lazy" decoding="async">
               <strong>${esc(card.dataset.title || 'Untitled')}</strong><span>${esc(card.dataset.artist || 'Artist not recorded')}</span>
             </button>
           `).join('')}
