@@ -4,6 +4,7 @@ import '../styles/about-photo-name-tag.css';
 import '../styles/about-photo-extra-adornments.css';
 import '../styles/about-photo-round-polish.css';
 import '../styles/about-photo-where.css';
+import '../styles/about-photo-roots.css';
 
 export interface Props {
   src: string;
@@ -88,7 +89,7 @@ const familyMembers = [
       <span class="about-photo-caption">Amarillas de Esparza, Asientos, Aguascalientes, México, c. 2006 - José at work</span>
       <span class="about-photo-actions" role="group" aria-label="Family portrait controls">
         <button class="about-photo-action" type="button" data-where-toggle aria-controls="family-where-panel" aria-expanded="false">
-          Where?
+          Family Roots
         </button>
         <button class="about-photo-action" type="button" data-random-thought aria-controls="family-thought-bubble">
           <span aria-hidden="true">↻</span> Random thought
@@ -113,100 +114,198 @@ const familyMembers = [
   >
     <div class="about-photo-where-head">
       <div>
-        <span class="about-photo-where-kicker">Where was this?</span>
-        <p class="about-photo-where-title" id="family-where-title">From México to Amarillas de Esparza</p>
-        <p class="about-photo-where-subtitle">Country → state → municipality → locality → the family’s corner of town.</p>
+        <span class="about-photo-where-kicker">Family Roots</span>
+        <p class="about-photo-where-title" id="family-where-title">Two branches, two places in México</p>
+        <p class="about-photo-where-subtitle">Dad’s roots in Aguascalientes and Mom’s roots in Tamaulipas, traced from country to the places their families knew.</p>
       </div>
-      <button class="about-photo-where-close" type="button" data-where-close aria-label="Close Where panel">×</button>
+      <button class="about-photo-where-close" type="button" data-where-close aria-label="Close Family Roots panel">×</button>
     </div>
 
-    <ol class="about-photo-where-steps">
-      <li class="about-photo-where-step">
-        <article class="about-photo-where-card">
-          <div class="about-photo-where-card-head">
-            <span class="about-photo-where-number" aria-hidden="true">1</span>
-            <span>
-              <span class="about-photo-where-level">Country</span>
-              <span class="about-photo-where-name">México</span>
-            </span>
-          </div>
-          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México map placeholder" role="img" aria-label="Placeholder for a map of México with the family location marked">
-            <span class="about-photo-map-marker" style="--marker-x:56%;--marker-y:53%" aria-hidden="true"></span>
-          </div>
-          <p class="about-photo-where-note">Start wide: place the village within the country.</p>
-        </article>
-      </li>
+    <div class="about-photo-roots-branch" aria-labelledby="family-roots-dad-title">
+      <div class="about-photo-roots-branch-head">
+        <h3 class="about-photo-roots-branch-title" id="family-roots-dad-title">Dad’s side</h3>
+        <p class="about-photo-roots-branch-route">México → Aguascalientes → Asientos → Amarillas de Esparza</p>
+      </div>
 
-      <li class="about-photo-where-step">
-        <article class="about-photo-where-card">
-          <div class="about-photo-where-card-head">
-            <span class="about-photo-where-number" aria-hidden="true">2</span>
-            <span>
-              <span class="about-photo-where-level">State</span>
-              <span class="about-photo-where-name">Aguascalientes</span>
-            </span>
-          </div>
-          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México + Aguascalientes placeholder" role="img" aria-label="Placeholder for a map showing Aguascalientes within México">
-            <span class="about-photo-map-marker" style="--marker-x:52%;--marker-y:49%" aria-hidden="true"></span>
-          </div>
-          <p class="about-photo-where-note">Zoom from México into the state of Aguascalientes.</p>
-        </article>
-      </li>
+      <ol class="about-photo-where-steps">
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">1</span>
+              <span>
+                <span class="about-photo-where-level">Country</span>
+                <span class="about-photo-where-name">México</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México map placeholder" role="img" aria-label="Placeholder for a map of México with Dad's family roots marked">
+              <span class="about-photo-map-marker" style="--marker-x:56%;--marker-y:53%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Start wide: place Dad’s family roots within the country.</p>
+          </article>
+        </li>
 
-      <li class="about-photo-where-step">
-        <article class="about-photo-where-card">
-          <div class="about-photo-where-card-head">
-            <span class="about-photo-where-number" aria-hidden="true">3</span>
-            <span>
-              <span class="about-photo-where-level">Municipality</span>
-              <span class="about-photo-where-name">Asientos</span>
-            </span>
-          </div>
-          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Aguascalientes + Asientos placeholder" role="img" aria-label="Placeholder for a map showing Asientos within Aguascalientes">
-            <span class="about-photo-map-marker" style="--marker-x:61%;--marker-y:42%" aria-hidden="true"></span>
-          </div>
-          <p class="about-photo-where-note">Then narrow to the municipality of Asientos.</p>
-        </article>
-      </li>
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">2</span>
+              <span>
+                <span class="about-photo-where-level">State</span>
+                <span class="about-photo-where-name">Aguascalientes</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México + Aguascalientes placeholder" role="img" aria-label="Placeholder for a map showing Aguascalientes within México">
+              <span class="about-photo-map-marker" style="--marker-x:52%;--marker-y:49%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Zoom from México into the state of Aguascalientes.</p>
+          </article>
+        </li>
 
-      <li class="about-photo-where-step">
-        <article class="about-photo-where-card">
-          <div class="about-photo-where-card-head">
-            <span class="about-photo-where-number" aria-hidden="true">4</span>
-            <span>
-              <span class="about-photo-where-level">Locality</span>
-              <span class="about-photo-where-name">Amarillas de Esparza</span>
-            </span>
-          </div>
-          <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Asientos + Amarillas placeholder" role="img" aria-label="Placeholder for a local map pinpointing Amarillas de Esparza">
-            <span class="about-photo-map-marker" style="--marker-x:48%;--marker-y:55%" aria-hidden="true"></span>
-          </div>
-          <p class="about-photo-where-note">Arrive at the locality where the family photograph was taken.</p>
-        </article>
-      </li>
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">3</span>
+              <span>
+                <span class="about-photo-where-level">Municipality</span>
+                <span class="about-photo-where-name">Asientos</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Aguascalientes + Asientos placeholder" role="img" aria-label="Placeholder for a map showing Asientos within Aguascalientes">
+              <span class="about-photo-map-marker" style="--marker-x:61%;--marker-y:42%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Then narrow to the municipality of Asientos.</p>
+          </article>
+        </li>
 
-      <li class="about-photo-where-step">
-        <article class="about-photo-where-card">
-          <div class="about-photo-where-card-head">
-            <span class="about-photo-where-number" aria-hidden="true">5</span>
-            <span>
-              <span class="about-photo-where-level">The place itself</span>
-              <span class="about-photo-where-name">Life in Amarillas</span>
-            </span>
-          </div>
-          <div class="about-photo-where-visual about-photo-place-collage" role="group" aria-label="Photo placeholders for a future Amarillas de Esparza collage">
-            <span class="about-photo-placeholder-photo">Charreada</span>
-            <span class="about-photo-placeholder-photo">Chapel</span>
-            <span class="about-photo-placeholder-photo">Grandparents’ store</span>
-          </div>
-          <p class="about-photo-where-note">Future collage: culture, town, and a family place tied directly to the photograph.</p>
-        </article>
-      </li>
-    </ol>
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">4</span>
+              <span>
+                <span class="about-photo-where-level">Locality</span>
+                <span class="about-photo-where-name">Amarillas de Esparza</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Asientos + Amarillas placeholder" role="img" aria-label="Placeholder for a local map pinpointing Amarillas de Esparza">
+              <span class="about-photo-map-marker" style="--marker-x:48%;--marker-y:55%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Arrive at the locality tied to Dad’s family roots.</p>
+          </article>
+        </li>
+
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">5</span>
+              <span>
+                <span class="about-photo-where-level">The place itself</span>
+                <span class="about-photo-where-name">Life in Amarillas</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-place-collage" role="group" aria-label="Photo placeholders for a future Amarillas de Esparza family-roots collage">
+              <span class="about-photo-placeholder-photo">Charreada</span>
+              <span class="about-photo-placeholder-photo">Chapel</span>
+              <span class="about-photo-placeholder-photo">Grandparents’ store</span>
+            </div>
+            <p class="about-photo-where-note">Future collage: culture, town, and a family place connected to Dad’s side.</p>
+          </article>
+        </li>
+      </ol>
+    </div>
+
+    <div class="about-photo-roots-branch" aria-labelledby="family-roots-mom-title">
+      <div class="about-photo-roots-branch-head">
+        <h3 class="about-photo-roots-branch-title" id="family-roots-mom-title">Mom’s side</h3>
+        <p class="about-photo-roots-branch-route">México → Tamaulipas → Matamoros → Colonia Progreso</p>
+      </div>
+
+      <ol class="about-photo-where-steps">
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">1</span>
+              <span>
+                <span class="about-photo-where-level">Country</span>
+                <span class="about-photo-where-name">México</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México map placeholder" role="img" aria-label="Placeholder for a map of México with Mom's family roots marked">
+              <span class="about-photo-map-marker" style="--marker-x:73%;--marker-y:36%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Start wide: place Mom’s family roots within the country.</p>
+          </article>
+        </li>
+
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">2</span>
+              <span>
+                <span class="about-photo-where-level">State</span>
+                <span class="about-photo-where-name">Tamaulipas</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="México + Tamaulipas placeholder" role="img" aria-label="Placeholder for a map showing Tamaulipas within México">
+              <span class="about-photo-map-marker" style="--marker-x:67%;--marker-y:38%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Zoom into Tamaulipas in northeastern México.</p>
+          </article>
+        </li>
+
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">3</span>
+              <span>
+                <span class="about-photo-where-level">City</span>
+                <span class="about-photo-where-name">Matamoros</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Tamaulipas + Matamoros placeholder" role="img" aria-label="Placeholder for a map showing Matamoros within Tamaulipas">
+              <span class="about-photo-map-marker" style="--marker-x:72%;--marker-y:34%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Then narrow to Matamoros, where Mom lived.</p>
+          </article>
+        </li>
+
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">4</span>
+              <span>
+                <span class="about-photo-where-level">Neighborhood</span>
+                <span class="about-photo-where-name">Colonia Progreso</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-map-slot" data-map-label="Matamoros + Colonia Progreso placeholder" role="img" aria-label="Placeholder for a local map pinpointing Colonia Progreso in Matamoros">
+              <span class="about-photo-map-marker" style="--marker-x:52%;--marker-y:52%" aria-hidden="true"></span>
+            </div>
+            <p class="about-photo-where-note">Arrive at Colonia Progreso, the neighborhood Mom knew in Matamoros.</p>
+          </article>
+        </li>
+
+        <li class="about-photo-where-step">
+          <article class="about-photo-where-card">
+            <div class="about-photo-where-card-head">
+              <span class="about-photo-where-number" aria-hidden="true">5</span>
+              <span>
+                <span class="about-photo-where-level">The place itself</span>
+                <span class="about-photo-where-name">Life in Colonia Progreso</span>
+              </span>
+            </div>
+            <div class="about-photo-where-visual about-photo-place-collage" role="group" aria-label="Photo placeholders for a future Colonia Progreso family-roots collage">
+              <span class="about-photo-placeholder-photo">Neighborhood</span>
+              <span class="about-photo-placeholder-photo">Family home</span>
+              <span class="about-photo-placeholder-photo">Family memory</span>
+            </div>
+            <p class="about-photo-where-note">Future collage: the neighborhood, family places, and memories from Mom’s side.</p>
+          </article>
+        </li>
+      </ol>
+    </div>
   </section>
 </div>
 
 <script is:inline src="/js/about-photo-bubble.js?v=20260801-portrait-polish-v1"></script>
 <script is:inline src="/js/about-photo-random-deck.js?v=20260801-random-deck-v4"></script>
 <script is:inline src="/js/about-photo-name-tag.js?v=20260801-labels-v2"></script>
-<script is:inline src="/js/about-photo-where.js?v=20260801-where-prototype-v1"></script>
+<script is:inline src="/js/about-photo-where.js?v=20260802-family-roots-v1"></script>
