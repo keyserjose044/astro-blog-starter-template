@@ -58,6 +58,11 @@
     display: block;
     width: 100%;
     min-width: 0;
+    grid-column: 4 !important;
+    grid-row: 2 !important;
+    align-self: stretch;
+    justify-self: stretch;
+    margin: 0 !important;
   }
 
   body .art-view-toggle #art-surprise-trigger {
