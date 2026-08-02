@@ -1,0 +1,110 @@
+/* LifeLoggerz Classical Music: repeat filter rendered as a site-styled listbox instead of a native select. */
+
+.classical-repeat-select {
+  position: relative;
+  min-width: 0;
+}
+
+.classical-repeat-select__trigger {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--classical-border, #e5e8ef);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--classical-ink, #10131b);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+  font: inherit;
+  font-size: .76rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.classical-repeat-select__trigger:hover {
+  border-color: #cfd5e3;
+}
+
+.classical-repeat-select__trigger:focus-visible,
+.classical-repeat-select__option:focus-visible {
+  outline: 3px solid rgba(64, 92, 245, .34);
+  outline-offset: 2px;
+}
+
+.classical-repeat-select__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classical-repeat-select__chevron {
+  flex: 0 0 auto;
+  color: #626a78;
+  font-size: .85rem;
+  line-height: 1;
+  transform: translateY(-1px);
+  transition: transform .14s ease;
+}
+
+.classical-repeat-select__trigger[aria-expanded='true'] .classical-repeat-select__chevron {
+  transform: rotate(180deg) translateY(1px);
+}
+
+.classical-repeat-select__menu {
+  position: absolute;
+  z-index: 80;
+  left: 0;
+  right: 0;
+  top: calc(100% + 5px);
+  display: grid;
+  gap: 2px;
+  padding: 5px;
+  overflow: hidden;
+  border: 1px solid #dfe3ec;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .16);
+}
+
+.classical-repeat-select__menu[hidden] {
+  display: none !important;
+}
+
+.classical-repeat-select__option {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: #fff;
+  color: #232833;
+  font: inherit;
+  font-size: .75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.classical-repeat-select__option:hover,
+.classical-repeat-select__option:focus {
+  background: #f3f5ff;
+  color: #314bd8;
+}
+
+.classical-repeat-select__option[aria-selected='true'] {
+  background: #eef1ff;
+  color: #314bd8;
+  font-weight: 800;
+}
+
+@media (max-width: 620px) {
+  .classical-repeat-select {
+    width: 100%;
+  }
+
+  .classical-repeat-select__trigger {
+    min-height: 42px;
+  }
+}
