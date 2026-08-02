@@ -1,0 +1,229 @@
+/* LifeLoggerz Albums: final advanced-view polish — August 1, 2026. */
+
+/* World/Timeline selections use a true album quilt rather than horizontal list cards. */
+.albums-selection-shelf {
+  width: 100%;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.albums-selection-shelf[data-polish-mode='world'] {
+  margin-top: 20px;
+}
+
+.albums-selection-heading {
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.albums-selection-eyebrow {
+  margin: 0 0 5px !important;
+}
+
+.albums-selection-heading h3 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+}
+
+.albums-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 15px 11px;
+}
+
+.albums-selection-card {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.albums-selection-main,
+.albums-polish-quilt-button {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--albums-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.albums-selection-main:hover {
+  background: transparent;
+}
+
+.albums-selection-main > img,
+.albums-polish-quilt-button > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid var(--albums-border);
+  border-radius: 11px;
+  background: #eef0f5;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.12);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.albums-selection-main:hover > img,
+.albums-selection-main:focus-visible > img,
+.albums-polish-quilt-button:hover > img,
+.albums-polish-quilt-button:focus-visible > img {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.16);
+}
+
+.albums-selection-main:focus-visible,
+.albums-polish-quilt-button:focus-visible {
+  outline: 2px solid var(--albums-accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.albums-polish-quilt-copy {
+  display: block;
+  min-width: 0;
+  padding: 7px 2px 0;
+}
+
+.albums-polish-quilt-copy strong,
+.albums-polish-quilt-copy small,
+.albums-polish-quilt-copy em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.albums-polish-quilt-copy strong {
+  color: var(--albums-ink);
+  font-size: 0.78rem;
+  line-height: 1.22;
+}
+
+.albums-polish-quilt-copy small {
+  margin-top: 2px;
+  color: var(--albums-muted);
+  font-size: 0.67rem;
+}
+
+.albums-polish-quilt-copy em {
+  margin-top: 3px;
+  color: var(--albums-accent-dark);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.albums-selection-card .albums-selection-source {
+  top: 7px;
+  right: 7px;
+  width: 29px;
+  height: 29px;
+  border-color: rgba(255, 255, 255, 0.78);
+  background: rgba(16, 20, 30, 0.78);
+  color: #fff;
+  box-shadow: 0 5px 13px rgba(0, 0, 0, 0.18);
+}
+
+.albums-selection-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 24px 14px;
+  border: 1px dashed var(--albums-border);
+  border-radius: 14px;
+  color: var(--albums-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.albums-selection-clear[hidden] {
+  display: none !important;
+}
+
+/* Album covers now live only in World Selection, not inside the Listening Atlas panel. */
+.albums-country-albums,
+.albums-country-album-wrap {
+  display: none !important;
+}
+
+/* Desktop Artists: two concise columns; an opened artist gets the full row for its album quilt. */
+@media (min-width: 901px) {
+  .albums-artists-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .albums-artist-card.is-open {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The mobile Random menu is anchored to slot 8; remove the desktop centering transform. */
+@media (max-width: 900px) {
+  .albums-view-toggle .albums-surprise-menu,
+  .albums-view-toggle .albums-surprise-toast {
+    right: 0 !important;
+    left: auto !important;
+    transform: none !important;
+  }
+
+  .albums-selection-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 11px 8px;
+  }
+
+  .albums-artist-card.is-open {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .albums-selection-shelf {
+    padding: 12px;
+  }
+
+  .albums-selection-heading {
+    gap: 9px;
+  }
+
+  .albums-selection-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 7px;
+  }
+
+  .albums-polish-quilt-copy {
+    padding-top: 5px;
+  }
+
+  .albums-polish-quilt-copy strong {
+    font-size: 0.68rem;
+  }
+
+  .albums-polish-quilt-copy small,
+  .albums-polish-quilt-copy em {
+    font-size: 0.58rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .albums-selection-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .albums-selection-main > img,
+  .albums-polish-quilt-button > img {
+    transition: none !important;
+  }
+}
