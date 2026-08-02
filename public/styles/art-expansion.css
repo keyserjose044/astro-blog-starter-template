@@ -117,17 +117,15 @@
 
 .art-calendar-hover {
   position: absolute;
-  z-index: 30;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  width: min(280px, 28vw);
-  padding: 9px 10px;
-  transform: translate(-50%, 5px);
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 10px;
-  background: rgba(15,18,27,.96);
+  z-index: 3;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  padding: 24px 7px 7px;
+  transform: translateY(6px);
+  border-radius: 8px;
+  background: linear-gradient(transparent, rgba(15,18,27,.96) 38%);
   color: #fff;
-  box-shadow: 0 14px 32px rgba(0,0,0,.2);
   opacity: 0;
   pointer-events: none;
   text-align: left;
@@ -135,10 +133,10 @@
 }
 .art-calendar-hover strong,
 .art-calendar-hover span { display: block; }
-.art-calendar-hover strong { font-size: .77rem; line-height: 1.25; }
-.art-calendar-hover span { margin-top: 3px; font-size: .66rem; line-height: 1.35; opacity: .82; }
+.art-calendar-hover strong { font-size: .72rem; line-height: 1.2; }
+.art-calendar-hover span { display: -webkit-box; margin-top: 3px; overflow: hidden; font-size: .61rem; line-height: 1.3; opacity: .84; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .art-calendar-work:hover .art-calendar-hover,
-.art-calendar-work:focus-visible .art-calendar-hover { transform: translate(-50%, 0); opacity: 1; }
+.art-calendar-work:focus-visible .art-calendar-hover { transform: translateY(0); opacity: 1; }
 
 .art-calendar-agenda { display: none; }
 .art-calendar-empty { margin: 18px 0 2px; color: var(--art-muted); text-align: center; }
