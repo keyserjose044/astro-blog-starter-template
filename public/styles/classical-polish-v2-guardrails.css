@@ -1,0 +1,14 @@
+/* Small viewport guardrails for Classical Music polish v2. */
+
+@media (min-width: 701px) {
+  .works-toolbar > .classical-mobile-filters-panel[hidden] {
+    display: contents !important;
+  }
+}
+
+@media (max-width: 800px) {
+  main.wrap .page-tabs {
+    top: 56px !important;
+    z-index: 45 !important;
+  }
+}
