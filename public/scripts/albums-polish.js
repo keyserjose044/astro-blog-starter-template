@@ -48,6 +48,9 @@ function bootAlbumsPolish(attempt = 0) {
     .split(/\s*(?:\/|;|\||\+)\s*|\s*,\s*/)
     .map((item) => item.trim())
     .filter(Boolean);
+  const setText = (node, value) => {
+    if (node && node.textContent !== value) node.textContent = value;
+  };
 
   function parseDate(value) {
     const raw = clean(value).replace(/(\d)(st|nd|rd|th)\b/gi, '$1');
@@ -143,9 +146,9 @@ function bootAlbumsPolish(attempt = 0) {
     const details = preview.querySelector('[data-album-preview-details]');
     const source = preview.querySelector('[data-album-preview-source]');
     if (image) { image.src = info.cover; image.alt = info.title; }
-    if (title) title.textContent = info.title;
-    if (artist) artist.textContent = info.artist;
-    if (date) date.textContent = info.date ? `Listened ${formatDate(info.date)}` : 'Album details';
+    setText(title, info.title);
+    setText(artist, info.artist);
+    setText(date, info.date ? `Listened ${formatDate(info.date)}` : 'Album details');
     if (details) {
       details.replaceChildren();
       detailRows(info).forEach(([labelText, value]) => {
@@ -292,7 +295,7 @@ function bootAlbumsPolish(attempt = 0) {
   function renameWorld() {
     const button = viewToggle.querySelector('[data-album-view="map"]');
     const label = button?.querySelector('span:last-child');
-    if (label && label.textContent !== 'World') label.textContent = 'World';
+    setText(label, 'World');
     document.querySelector('[data-close-explorer][aria-label="Close world map"]')?.setAttribute('aria-label', 'Close world');
   }
 
@@ -311,12 +314,9 @@ function bootAlbumsPolish(attempt = 0) {
     });
     const deepCountries = Array.from(counts.values()).filter((count) => count >= 5).length;
     const target = metrics[3];
-    const label = target.querySelector('.albums-metric-label');
-    const value = target.querySelector('.albums-metric-value');
-    const note = target.querySelector('.albums-metric-note');
-    if (label) label.textContent = 'Countries with 5+ albums';
-    if (value) value.textContent = deepCountries.toLocaleString('en-US');
-    if (note) note.textContent = 'Deeper pockets in this view';
+    setText(target.querySelector('.albums-metric-label'), 'Countries with 5+ albums');
+    setText(target.querySelector('.albums-metric-value'), deepCountries.toLocaleString('en-US'));
+    setText(target.querySelector('.albums-metric-note'), 'Deeper pockets in this view');
   }
 
   function ensureShelfEyebrow() {
@@ -348,12 +348,13 @@ function bootAlbumsPolish(attempt = 0) {
 
       if (mode === 'world') {
         shelf.hidden = false;
-        if (eyebrow) eyebrow.textContent = 'World selection';
+        setText(eyebrow, 'World selection');
         const selected = Boolean(countryPanel.querySelector('.albums-country-clear'));
         if (!selected) {
-          shelfTitle.textContent = 'Select a country to view its albums';
-          shelfSummary.textContent = '';
+          setText(shelfTitle, 'Select a country to view its albums');
+          setText(shelfSummary, '');
           shelfClear.hidden = true;
+          if (shelfGrid.dataset.polishSignature === 'world-empty' && shelfGrid.querySelector('.albums-selection-empty')) return;
           shelfGrid.dataset.polishSignature = 'world-empty';
           shelfGrid.replaceChildren();
           const empty = document.createElement('p');
@@ -364,10 +365,10 @@ function bootAlbumsPolish(attempt = 0) {
         }
         shelfClear.hidden = false;
         const country = clean(countryPanel.querySelector('.albums-country-panel-header h3')?.textContent) || 'Selected country';
-        shelfTitle.textContent = `Albums from ${country}`;
+        setText(shelfTitle, `Albums from ${country}`);
       } else {
         if (shelf.hidden) return;
-        if (eyebrow) eyebrow.textContent = 'Timeline selection';
+        setText(eyebrow, 'Timeline selection');
         shelfClear.hidden = false;
       }
 
@@ -378,7 +379,7 @@ function bootAlbumsPolish(attempt = 0) {
       shelfGrid.replaceChildren();
       visible.forEach((card) => shelfGrid.append(makeSelectionCard(card)));
       const runtime = visible.reduce((sum, card) => sum + (Number(card.dataset.lengthMinutes || 0) || 0), 0);
-      shelfSummary.textContent = `${visible.length.toLocaleString('en-US')} ${visible.length === 1 ? 'album' : 'albums'} · ${formatRuntime(runtime)} of album runtime`;
+      setText(shelfSummary, `${visible.length.toLocaleString('en-US')} ${visible.length === 1 ? 'album' : 'albums'} · ${formatRuntime(runtime)} of album runtime`);
     } finally {
       applyingSelection = false;
     }
@@ -452,8 +453,12 @@ function bootAlbumsPolish(attempt = 0) {
   }
 
   const selectionObserver = new MutationObserver(queueSelectionPolish);
-  selectionObserver.observe(explorer, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'aria-pressed'] });
+  selectionObserver.observe(countryPanel, { childList: true, subtree: true });
+  selectionObserver.observe(mapMetrics, { childList: true, subtree: true });
   selectionObserver.observe(shelf, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  selectionObserver.observe(mapView, { attributes: true, attributeFilter: ['hidden'] });
+  selectionObserver.observe(timelineView, { attributes: true, attributeFilter: ['hidden'] });
+
   const expansionObserver = new MutationObserver(queueExpansionPolish);
   expansionObserver.observe(expansion, { childList: true, subtree: true });
 
