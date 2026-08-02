@@ -57,7 +57,8 @@
   outline-offset: 2px;
 }
 
-.albums-listening-log-badge.is-repeat {
+.albums-listening-log-badge.is-repeat,
+.albums-listening-log-badge.is-repeat-v2 {
   background: rgba(17, 129, 96, 0.09);
   color: #24725d;
 }
