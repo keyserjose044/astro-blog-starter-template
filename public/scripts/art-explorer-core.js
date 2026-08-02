@@ -1,4 +1,6 @@
-const ASSET_VERSION = '20260726-1620';
+import { installArtExpansionShell, renderArtMapSelection, renderArtSelectionShelf } from './art-expansion-shell.js?v=20260801-2302';
+
+const ASSET_VERSION = '20260801-2302';
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
@@ -30,19 +32,23 @@ function bootArtExplorer() {
   const explorer = $('#art-explorer');
   if (!grid || !explorer) return;
 
+  installArtExpansionShell();
+
   const cards = $$('.art-card', grid);
   const viewButtons = $$('.art-view-button');
   const controls = {
     search: $('#art-search'), filtersToggle: $('#art-filters-toggle'), filtersPanel: $('#art-filters-panel'), filtersCount: $('#art-filters-count'),
     artist: $('#art-artist-filter'), movement: $('#art-movement-filter'), medium: $('#art-medium-filter'), country: $('#art-country-filter'), year: $('#art-viewed-year-filter'), period: $('#art-period-filter'),
     sort: $('#art-sort'), results: $('#art-results-summary'), clear: $('#art-clear-filters'), empty: $('#art-filter-empty'),
-    artistsView: $('#art-artists-view'), timelineView: $('#art-timeline-view'), mapView: $('#art-map-view'),
-    artistsMetrics: $('#art-artists-metrics'), artistsContent: $('#art-artists-content'), timelineMetrics: $('#art-timeline-metrics'), timelineContent: $('#art-timeline-content'), timelineHelp: $('#art-timeline-help'),
-    mapMetrics: $('#art-map-metrics'), mapStage: $('#art-map-stage'), mapStatus: $('#art-map-status'), mapTooltip: $('#art-map-tooltip'), countryPanel: $('#art-country-panel'), mapNote: $('#art-map-note'),
+    artistsView: $('#art-artists-view'), timelineView: $('#art-timeline-view'), calendarView: $('#art-calendar-view'), movementsView: $('#art-movements-view'), mapView: $('#art-map-view'),
+    artistsMetrics: $('#art-artists-metrics'), artistsContent: $('#art-artists-content'), timelineMetrics: $('#art-timeline-metrics'), timelineContent: $('#art-timeline-content'), timelineHelp: $('#art-timeline-help'), timelineZoom: $('#art-timeline-zoom'), timelineSelection: $('#art-timeline-selection'),
+    calendarMetrics: $('#art-calendar-metrics'), calendarContent: $('#art-calendar-content'), calendarAgenda: $('#art-calendar-agenda'), calendarMonth: $('[data-art-calendar-month]'), calendarEmpty: $('#art-calendar-empty'),
+    movementsMetrics: $('#art-movements-metrics'), movementsContent: $('#art-movements-content'),
+    mapMetrics: $('#art-map-metrics'), mapStage: $('#art-map-stage'), mapStatus: $('#art-map-status'), mapTooltip: $('#art-map-tooltip'), countryPanel: $('#art-country-panel'), mapNote: $('#art-map-note'), mapSelection: $('#art-map-selection'),
   };
   const state = {
     activeView: 'gallery', collectionView: 'gallery', selectedMapCountryId: '',
-    artistsModule: null, timelineModule: null, mapModule: null, viewerCard: null,
+    artistsModule: null, timelineModule: null, calendarModule: null, movementsModule: null, mapModule: null, viewerCard: null,
     last: { artwork: null, artist: null, movement: null, country: null, period: null, year: null },
   };
   const filterControls = [controls.artist, controls.movement, controls.medium, controls.country, controls.year, controls.period];
@@ -112,7 +118,12 @@ function bootArtExplorer() {
   async function refreshExplorer() {
     if (state.activeView === 'artists' && state.artistsModule) state.artistsModule.renderArtArtists(api);
     if (state.activeView === 'timeline' && state.timelineModule) state.timelineModule.renderArtTimeline(api);
-    if (state.activeView === 'map' && state.mapModule) await state.mapModule.renderArtMap(api);
+    if (state.activeView === 'calendar' && state.calendarModule) state.calendarModule.renderArtCalendar(api);
+    if (state.activeView === 'movements' && state.movementsModule) state.movementsModule.renderArtMovements(api);
+    if (state.activeView === 'map' && state.mapModule) {
+      await state.mapModule.renderArtMap(api);
+      renderArtMapSelection(api);
+    }
   }
 
   function applyFilters() { updateResults(); refreshExplorer(); }
@@ -137,10 +148,13 @@ function bootArtExplorer() {
   }
 
   function pressView(view) { viewButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.artView === view))); }
+  const explorerViews = () => $$('.art-explorer-view', explorer);
+
   function setCollectionView(view, persist = true) {
     const next = view === 'list' ? 'list' : 'gallery';
     state.activeView = next; state.collectionView = next;
-    explorer.hidden = true; controls.artistsView.hidden = true; controls.timelineView.hidden = true; controls.mapView.hidden = true;
+    explorer.hidden = true;
+    explorerViews().forEach((candidate) => { candidate.hidden = true; });
     grid.hidden = false; grid.dataset.artView = next; pressView(next);
     if (persist) {
       try { localStorage.setItem(matchMedia('(max-width:900px)').matches ? 'lifeloggerz-art-mobile-view' : 'lifeloggerz-art-desktop-view', next); } catch (_error) {}
@@ -149,11 +163,36 @@ function bootArtExplorer() {
 
   async function showView(view) {
     if (view === 'gallery' || view === 'list') return setCollectionView(view);
+    const viewMap = {
+      artists: controls.artistsView,
+      timeline: controls.timelineView,
+      calendar: controls.calendarView,
+      movements: controls.movementsView,
+      map: controls.mapView,
+    };
+    if (!viewMap[view]) return setCollectionView(state.collectionView);
+
     state.activeView = view; explorer.hidden = false; grid.hidden = true;
-    controls.artistsView.hidden = view !== 'artists'; controls.timelineView.hidden = view !== 'timeline'; controls.mapView.hidden = view !== 'map'; pressView(view);
-    if (view === 'artists') { state.artistsModule ??= await import(`./art-artists.js?v=${ASSET_VERSION}`); state.artistsModule.renderArtArtists(api); }
-    else if (view === 'timeline') { state.timelineModule ??= await import(`./art-timeline.js?v=${ASSET_VERSION}`); state.timelineModule.renderArtTimeline(api); }
-    else { state.mapModule ??= await import(`./art-map.js?v=${ASSET_VERSION}`); await state.mapModule.renderArtMap(api); }
+    explorerViews().forEach((candidate) => { candidate.hidden = candidate !== viewMap[view]; });
+    pressView(view);
+
+    if (view === 'artists') {
+      state.artistsModule ??= await import(`./art-artists.js?v=${ASSET_VERSION}`);
+      state.artistsModule.renderArtArtists(api);
+    } else if (view === 'timeline') {
+      state.timelineModule ??= await import(`./art-timeline.js?v=${ASSET_VERSION}`);
+      state.timelineModule.renderArtTimeline(api);
+    } else if (view === 'calendar') {
+      state.calendarModule ??= await import(`./art-calendar.js?v=${ASSET_VERSION}`);
+      state.calendarModule.renderArtCalendar(api);
+    } else if (view === 'movements') {
+      state.movementsModule ??= await import(`./art-movements.js?v=${ASSET_VERSION}`);
+      state.movementsModule.renderArtMovements(api);
+    } else {
+      state.mapModule ??= await import(`./art-map.js?v=${ASSET_VERSION}`);
+      await state.mapModule.renderArtMap(api);
+      renderArtMapSelection(api);
+    }
     explorer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -254,6 +293,7 @@ function bootArtExplorer() {
     if (!choice || !control) return say('Not enough metadata is available for that surprise.');
     state.last[action] = choice; state.selectedMapCountryId = ''; control.value = choice; applyFilters();
     if (action === 'artist') await showView('artists');
+    else if (action === 'movement') await showView('movements');
     else if (action === 'country') await showView('map');
     else if (action === 'period' || action === 'year') {
       await showView('timeline');
@@ -272,7 +312,7 @@ function bootArtExplorer() {
     if (event.key === 'Escape') {
       closeSurprise();
       if (viewer?.open) return;
-      if (['artists', 'timeline', 'map'].includes(state.activeView)) setCollectionView(state.collectionView);
+      if (['artists', 'timeline', 'calendar', 'movements', 'map'].includes(state.activeView)) setCollectionView(state.collectionView);
     } else if (event.key === '/' && event.target === document.body) { event.preventDefault(); controls.search?.focus(); }
     else if (viewer?.open && event.key === 'ArrowLeft') moveViewer(-1);
     else if (viewer?.open && event.key === 'ArrowRight') moveViewer(1);
@@ -280,6 +320,7 @@ function bootArtExplorer() {
 
   const api = {
     cards, controls, state, norm, split, getBaseCards, getVisibleCards, applyFilters, updateResults, openViewer,
+    renderSelectionShelf(host, shelfCards, options) { renderArtSelectionShelf(host, shelfCards, options, api); },
     setMapCountryId(id) { state.selectedMapCountryId = state.selectedMapCountryId === id ? '' : id; if (id && controls.country) controls.country.value = ''; applyFilters(); },
     setFilter(name, value) { const control = controls[name]; if (control) { state.selectedMapCountryId = ''; control.value = value; applyFilters(); } },
     showView,
