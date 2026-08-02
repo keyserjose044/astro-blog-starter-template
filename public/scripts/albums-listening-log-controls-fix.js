@@ -90,7 +90,8 @@ function bootAlbumsListeningControlsFix(attempt = 0) {
     ensureRepeatedButton(group);
 
     const ranking = expansion.querySelector('.albums-listening-log-list.is-repeated-ranking');
-    if (ranking && isEntriesMode(expansion)) setRepeatedUiActive(true);
+    const uiLocked = document.body.getAttribute(REPEATED_UI_ATTR) === 'true';
+    if ((uiLocked || ranking) && isEntriesMode(expansion)) setRepeatedUiActive(true);
   }
 
   expansion.addEventListener('click', (event) => {
@@ -132,6 +133,8 @@ function bootAlbumsListeningControlsFix(attempt = 0) {
   observer.observe(expansion, {
     childList: true,
     subtree: true,
+    attributes: true,
+    attributeFilter: ['aria-pressed', 'class'],
   });
 
   syncRepeatedButton();
