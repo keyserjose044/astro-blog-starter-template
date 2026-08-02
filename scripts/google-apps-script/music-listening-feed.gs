@@ -1,9 +1,10 @@
 /**
- * LifeLoggerz complete Music Listen Log JSON feed
+ * LifeLoggerz complete Music Listen Log payload builder
  *
- * Deploy this Apps Script as a web app from the Hobbies spreadsheet.
- * The GitHub Pages deployment downloads this feed into a static JSON snapshot,
- * so visitors never query Google Sheets directly.
+ * Add this file to the SAME Apps Script project as Classical Listening.gs.
+ * Do not define a second doGet() here. Use listening-feed-router.gs as the
+ * project's single doGet(e), so the existing /exec URL stays Classical by
+ * default and /exec?feed=music returns this Listen Log feed.
  */
 
 const LIFELOGGERZ_MUSIC_LISTENING_CONFIG = {
@@ -27,13 +28,6 @@ const LIFELOGGERZ_MUSIC_LISTENING_CONFIG = {
     albumRaw: 22,     // V — Album? (also contains occasional free-text notes)
   },
 };
-
-function doGet() {
-  const payload = buildLifeLoggerzMusicListeningPayload_();
-  return ContentService
-    .createTextOutput(JSON.stringify(payload))
-    .setMimeType(ContentService.MimeType.JSON);
-}
 
 /** Run manually in Apps Script to inspect the public-safe payload. */
 function testLifeLoggerzMusicListeningFeed() {
