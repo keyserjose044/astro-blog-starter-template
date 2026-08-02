@@ -77,6 +77,102 @@
       return spot;
     };
 
+    /*
+      Portrait spotlights are generated from the existing SVG hotspot geometry.
+      No extra image assets are involved, and the lights are always pointer-transparent.
+    */
+    const spotlightLayer = document.createElement('div');
+    spotlightLayer.className = 'portrait-spotlight-layer';
+    spotlightLayer.setAttribute('aria-hidden', 'true');
+    spotlightLayer.dataset.hasActive = '0';
+    wrapper.appendChild(spotlightLayer);
+
+    const spotlightByPerson = new Map();
+    const spotlightTimers = new Map();
+
+    spots.forEach((spot, index) => {
+      const light = document.createElement('span');
+      light.className = 'portrait-spotlight';
+      light.dataset.forPerson = spot.dataset.person || '';
+      light.dataset.visible = '0';
+      light.style.setProperty('--spot-delay', `${index * 50}ms`);
+      spotlightLayer.appendChild(light);
+      spotlightByPerson.set(spot.dataset.person || '', light);
+    });
+
+    const positionSpotlights = () => {
+      const wrapperRect = wrapper.getBoundingClientRect();
+      if (!wrapperRect.width || !wrapperRect.height) return;
+
+      spots.forEach((spot) => {
+        const light = spotlightByPerson.get(spot.dataset.person || '');
+        if (!light) return;
+
+        const rect = spot.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const centerX = rect.left - wrapperRect.left + rect.width / 2;
+        const centerY = rect.top - wrapperRect.top + rect.height * 0.5;
+        const width = Math.min(wrapperRect.width * 0.27, Math.max(74, rect.width * 1.28));
+        const height = Math.min(wrapperRect.height * 0.78, Math.max(92, rect.height * 1.12));
+
+        light.style.left = `${centerX}px`;
+        light.style.top = `${centerY}px`;
+        light.style.width = `${width}px`;
+        light.style.height = `${height}px`;
+      });
+    };
+
+    const syncSpotlights = () => {
+      const whoVisible = wrapper.dataset.whosWho === '1';
+      const activePerson = bubble?.dataset.visible === '1' ? (bubble.dataset.person || '') : '';
+      spotlightLayer.dataset.hasActive = whoVisible && activePerson ? '1' : '0';
+
+      spotlightByPerson.forEach((light, person) => {
+        light.dataset.visible = whoVisible ? '1' : '0';
+        light.classList.toggle('is-active', Boolean(whoVisible && activePerson && person === activePerson));
+      });
+    };
+
+    const pulseSpotlight = (spot) => {
+      const person = spot?.dataset.person || '';
+      const light = spotlightByPerson.get(person);
+      if (!light) return;
+
+      const oldTimer = spotlightTimers.get(person);
+      if (oldTimer) window.clearTimeout(oldTimer);
+
+      light.classList.remove('is-random-pulse');
+      // Force a fresh animation when the same person is chosen in a later round.
+      void light.offsetWidth;
+      light.classList.add('is-random-pulse');
+
+      const timer = window.setTimeout(() => {
+        light.classList.remove('is-random-pulse');
+        spotlightTimers.delete(person);
+      }, 800);
+      spotlightTimers.set(person, timer);
+    };
+
+    positionSpotlights();
+    syncSpotlights();
+
+    const spotlightWrapperObserver = new MutationObserver(syncSpotlights);
+    spotlightWrapperObserver.observe(wrapper, {
+      attributes: true,
+      attributeFilter: ['data-whos-who'],
+    });
+
+    if ('ResizeObserver' in window) {
+      const spotlightResizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(positionSpotlights);
+      });
+      spotlightResizeObserver.observe(wrapper);
+    }
+
+    window.addEventListener('resize', () => requestAnimationFrame(positionSpotlights), { passive: true });
+    window.visualViewport?.addEventListener('resize', () => requestAnimationFrame(positionSpotlights), { passive: true });
+
     updateProgress();
 
     button.addEventListener('click', (event) => {
@@ -88,6 +184,7 @@
       const spot = nextSpot();
       if (!spot) return;
 
+      pulseSpotlight(spot);
       spot.dispatchEvent(new MouseEvent('click', {
         bubbles: true,
         cancelable: true,
@@ -136,6 +233,8 @@
       labels.forEach((label) => {
         label.classList.toggle('is-active', Boolean(activePerson) && label.dataset.forPerson === activePerson);
       });
+
+      syncSpotlights();
     };
 
     const whoObserver = new MutationObserver(() => {

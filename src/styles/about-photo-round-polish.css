@@ -58,6 +58,81 @@
   box-shadow:0 6px 15px rgba(35,25,16,.25),0 0 0 2px rgba(255,246,220,.76),inset 0 1px 0 rgba(255,255,255,.82);
 }
 
+/* Soft portrait illumination. The geometry is created from the existing SVG person hotspots. */
+.about-photo-img{
+  transition:filter 340ms ease;
+}
+
+.about-photo-wrapper[data-whos-who='1'] .about-photo-img{
+  filter:brightness(.88) contrast(1.025);
+}
+
+.portrait-spotlight-layer{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  border-radius:12px;
+  pointer-events:none;
+}
+
+.portrait-spotlight{
+  position:absolute;
+  left:0;
+  top:0;
+  width:120px;
+  height:180px;
+  border-radius:50%;
+  opacity:0;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center,
+    rgba(255,252,226,.52) 0%,
+    rgba(255,242,187,.32) 30%,
+    rgba(255,226,151,.14) 56%,
+    rgba(255,220,140,0) 78%);
+  box-shadow:0 0 24px rgba(255,231,171,.12);
+  filter:blur(7px);
+  mix-blend-mode:screen;
+  transform:translate(-50%,-50%) scale(.88);
+  transform-origin:center;
+  transition:opacity 300ms ease,transform 360ms cubic-bezier(.2,.82,.2,1),filter 220ms ease;
+  transition-delay:0ms;
+  will-change:opacity,transform;
+}
+
+.about-photo-wrapper[data-whos-who='1'] .portrait-spotlight[data-visible='1']{
+  opacity:.62;
+  transform:translate(-50%,-50%) scale(1);
+  transition-delay:var(--spot-delay,0ms);
+}
+
+.portrait-spotlight-layer[data-has-active='1'] .portrait-spotlight[data-visible='1']{
+  opacity:.34;
+  filter:blur(8px);
+}
+
+.portrait-spotlight-layer[data-has-active='1'] .portrait-spotlight[data-visible='1'].is-active{
+  z-index:2;
+  opacity:.94;
+  filter:blur(6px);
+  transform:translate(-50%,-50%) scale(1.07);
+}
+
+.portrait-spotlight.is-random-pulse{
+  z-index:3;
+  animation:about-random-spotlight 760ms cubic-bezier(.2,.82,.2,1) both;
+}
+
+/* If an older cached JS file is still in memory, Who's Who still gets a subtle SVG glow until the new light layer loads. */
+.about-photo-wrapper[data-whos-who='1']:not(:has(.portrait-spotlight-layer)) .person-hotspot{
+  fill:rgba(255,244,194,.075);
+  stroke:rgba(255,245,215,.16);
+  stroke-width:1;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 0 8px rgba(255,231,174,.38));
+  transition:fill 260ms ease,stroke 260ms ease,filter 300ms ease;
+}
+
 @keyframes about-random-round-complete{
   0%,100%{box-shadow:0 3px 9px rgba(35,25,16,.1),inset 0 1px 0 rgba(255,255,255,.7)}
   45%{box-shadow:0 6px 16px rgba(94,69,40,.23),0 0 0 3px rgba(221,194,151,.2),inset 0 1px 0 rgba(255,255,255,.8)}
@@ -66,6 +141,13 @@
 @keyframes about-random-progress-pop{
   0%,100%{transform:scale(1)}
   48%{transform:scale(1.13)}
+}
+
+@keyframes about-random-spotlight{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.78);filter:blur(10px)}
+  30%{opacity:1;transform:translate(-50%,-50%) scale(1.08);filter:blur(5px)}
+  68%{opacity:.78;transform:translate(-50%,-50%) scale(1.03);filter:blur(6px)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1);filter:blur(8px)}
 }
 
 @media(max-width:640px){
@@ -77,6 +159,14 @@
 
   .whos-who-layer[data-visible='1'][data-has-active='1'] .whos-who-label.is-active[data-unfurl='1']{
     transform:translate(-50%,-50%) scale(1.06);
+  }
+
+  .portrait-spotlight{
+    filter:blur(5px);
+  }
+
+  .portrait-spotlight-layer[data-has-active='1'] .portrait-spotlight[data-visible='1']{
+    filter:blur(6px);
   }
 }
 
@@ -105,5 +195,16 @@
   .whos-who-layer[data-visible='1'][data-has-active='1'] .whos-who-label.is-active[data-unfurl='1']{
     opacity:1;
     transform:translate(-50%,-50%) scale(1.04);
+  }
+
+  .about-photo-img,
+  .portrait-spotlight{
+    transition:none!important;
+    transition-delay:0ms!important;
+  }
+
+  .portrait-spotlight.is-random-pulse{
+    animation:none;
+    opacity:.86;
   }
 }
