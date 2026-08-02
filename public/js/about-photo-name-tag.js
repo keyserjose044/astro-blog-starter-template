@@ -55,7 +55,7 @@
 
     spots.forEach((spot) => {
       spot.addEventListener('pointerenter', (event) => {
-        if (!hoverCapable.matches) return;
+        if (!hoverCapable.matches || wrapper.dataset.whosWho === '1') return;
 
         window.clearTimeout(timer);
         activeSpot = spot;
@@ -65,7 +65,7 @@
         placeTag();
 
         timer = window.setTimeout(() => {
-          if (activeSpot !== spot) return;
+          if (activeSpot !== spot || wrapper.dataset.whosWho === '1') return;
           placeTag();
           tag.dataset.visible = '1';
           tag.setAttribute('aria-hidden', 'false');
@@ -73,7 +73,7 @@
       });
 
       spot.addEventListener('pointermove', (event) => {
-        if (activeSpot !== spot || !hoverCapable.matches) return;
+        if (activeSpot !== spot || !hoverCapable.matches || wrapper.dataset.whosWho === '1') return;
         pointerX = event.clientX;
         pointerY = event.clientY;
         if (tag.dataset.visible === '1') placeTag();
@@ -88,5 +88,6 @@
     });
 
     wrapper.addEventListener('mouseleave', hideTag);
+    wrapper.addEventListener('lifeloggerz:whoswho', hideTag);
   });
 })();
