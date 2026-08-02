@@ -1,0 +1,92 @@
+/* LifeLoggerz Albums: thumbnail treatment for repeated-title cards. */
+
+.albums-listening-log-repeated-card.has-youtube-thumbnail {
+  grid-template-columns: 42px 132px minmax(0, 1fr);
+  align-items: start;
+}
+
+.albums-listening-log-repeat-thumbnail {
+  position: relative;
+  display: block;
+  width: 132px;
+  aspect-ratio: 16 / 9;
+  align-self: start;
+  overflow: hidden;
+  border: 1px solid rgba(218, 221, 230, .92);
+  border-radius: 10px;
+  background: #eef0f5;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, .06);
+  text-decoration: none;
+}
+
+.albums-listening-log-repeat-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .2s ease, filter .2s ease;
+}
+
+.albums-listening-log-repeat-thumbnail-play {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  padding-left: 2px;
+  border-radius: 50%;
+  background: rgba(12, 16, 28, .78);
+  color: #fff;
+  font-size: .62rem;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .2);
+  transition: transform .18s ease, background .18s ease;
+}
+
+.albums-listening-log-repeat-thumbnail:hover img,
+.albums-listening-log-repeat-thumbnail:focus-visible img {
+  transform: scale(1.035);
+  filter: brightness(.92);
+}
+
+.albums-listening-log-repeat-thumbnail:hover .albums-listening-log-repeat-thumbnail-play,
+.albums-listening-log-repeat-thumbnail:focus-visible .albums-listening-log-repeat-thumbnail-play {
+  background: var(--albums-accent, #405cf5);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.albums-listening-log-repeat-thumbnail:focus-visible {
+  outline: 3px solid rgba(64, 92, 245, .34);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .albums-listening-log-repeated-card.has-youtube-thumbnail {
+    grid-template-columns: 34px 92px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .albums-listening-log-repeat-thumbnail {
+    width: 92px;
+    border-radius: 8px;
+  }
+
+  .albums-listening-log-repeat-thumbnail-play {
+    width: 25px;
+    height: 25px;
+    font-size: .55rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .albums-listening-log-repeated-card.has-youtube-thumbnail {
+    grid-template-columns: 32px 82px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .albums-listening-log-repeat-thumbnail {
+    width: 82px;
+  }
+}
