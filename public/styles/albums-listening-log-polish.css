@@ -1,0 +1,155 @@
+/* LifeLoggerz Albums: Listening Log naming, repeat, summary, and day-group polish. */
+
+.albums-listening-log-metrics > div[title] {
+  cursor: help;
+}
+
+.albums-listening-log-metrics > div[title] > span::after {
+  content: '  ⓘ';
+  color: rgba(64, 92, 245, 0.72);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.albums-listening-log-switches {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.albums-listening-log-layout-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--albums-border);
+  border-radius: 11px;
+  background: rgba(247, 248, 252, 0.9);
+}
+
+.albums-listening-log-layout-group[hidden] {
+  display: none !important;
+}
+
+.albums-listening-log-layout-group button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--albums-muted);
+  font: inherit;
+  font-size: 0.69rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.albums-listening-log-layout-group button[aria-pressed='true'] {
+  background: rgba(64, 92, 245, 0.11);
+  color: var(--albums-accent-dark);
+  box-shadow: inset 0 0 0 1px rgba(64, 92, 245, 0.08);
+}
+
+.albums-listening-log-layout-group button:focus-visible {
+  outline: 2px solid rgba(64, 92, 245, 0.42);
+  outline-offset: 2px;
+}
+
+.albums-listening-log-badge.is-repeat {
+  background: rgba(17, 129, 96, 0.09);
+  color: #24725d;
+}
+
+.albums-listening-log-badge.is-album {
+  max-width: 170px;
+}
+
+.albums-listening-log-results p {
+  line-height: 1.4;
+}
+
+.albums-listening-log-day-group {
+  display: block;
+  min-width: 0;
+  margin: 4px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.albums-listening-log-day-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 7px;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid rgba(214, 218, 229, 0.92);
+}
+
+.albums-listening-log-day-heading strong {
+  color: var(--albums-ink);
+  font-size: 0.79rem;
+  font-weight: 900;
+}
+
+.albums-listening-log-day-heading span {
+  color: var(--albums-muted);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.albums-listening-log-day-items {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.albums-listening-log-day-items .albums-listening-log-item {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 900px) {
+  .albums-listening-log-switches {
+    width: 100%;
+  }
+
+  .albums-listening-log-layout-group {
+    margin-left: auto;
+  }
+
+  .albums-listening-log-day-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .albums-listening-log-day-heading span {
+    text-align: left;
+  }
+}
+
+@media (max-width: 620px) {
+  .albums-listening-log-switches {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .albums-listening-log-layout-group {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .albums-listening-log-layout-group button {
+    flex: 1 1 50%;
+  }
+
+  .albums-listening-log-day-group {
+    margin-bottom: 14px;
+  }
+}
