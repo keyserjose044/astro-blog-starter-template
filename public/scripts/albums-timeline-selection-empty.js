@@ -1,8 +1,10 @@
 /* Keep Timeline Selection visible before a release/listening period is chosen. */
 
-import('./albums-listening-log.js?v=20260801-2058').catch((error) => {
-  console.warn('[Albums] Listening Log module could not be loaded:', error);
-});
+import('./albums-listening-log.js?v=20260801-2058')
+  .then(() => import('./albums-listening-log-polish.js?v=20260801-2221'))
+  .catch((error) => {
+    console.warn('[Albums] Listening Log modules could not be loaded:', error);
+  });
 
 const ALBUMS_TIMELINE_SELECTION_RETRIES = 160;
 
