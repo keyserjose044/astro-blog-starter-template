@@ -6,7 +6,6 @@
     const copy = bubble?.querySelector('p');
     const img = bubble?.querySelector('.cloud-adornment');
     const spots = wrapper.querySelectorAll('.person-hotspot');
-    const secret = wrapper.querySelector('.secret-bubble');
     if (!bubble || !copy || !img) return;
 
     let pinned = null;
@@ -303,20 +302,5 @@
     window.visualViewport?.addEventListener('resize', refit, { passive: true });
     portraitQuery.addEventListener?.('change', refit);
     touchQuery.addEventListener?.('change', updateHint);
-
-    if (secret) {
-      const messages = [
-        'Even then, I was building systems.',
-        'Future LifeLogger in the making.',
-        'Everything starts with a blank page.',
-        'Tiny José, huge plans.',
-        'Drafting v0.1 of my life-OS.'
-      ];
-      secret.textContent = messages[new Date().getDate() % messages.length];
-      wrapper.addEventListener('dblclick', (event) => {
-        if (event.target.closest?.('.person-hotspot')) return;
-        secret.dataset.visible = secret.dataset.visible === '1' ? '0' : '1';
-      });
-    }
   });
 })();

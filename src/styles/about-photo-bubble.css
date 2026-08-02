@@ -32,8 +32,6 @@
 .speech-bubble[data-size='uncle'] .cloud-adornment{width:38%}
 .speech-bubble[data-size='dad'] p{padding-left:1.55rem}
 .speech-bubble[data-size='older-brother'] p{padding-right:2.2rem}
-.secret-bubble{position:absolute;z-index:5;left:50%;top:18%;transform:translate(-50%,-50%);background:rgba(255,255,255,.95);color:#111827;padding:.5rem .9rem;border-radius:999px;font-size:.9rem;box-shadow:0 8px 20px rgba(0,0,0,.25);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s ease}
-.secret-bubble[data-visible='1']{opacity:1}
 @media(max-width:640px){
 .speech-bubble{width:min(172px,calc(100vw - 28px));min-height:70px;max-width:calc(100vw - 28px);padding:.95rem 1.15rem 1.05rem;font-size:.77rem}
 .speech-bubble::before{inset:-7px -9px}
@@ -48,5 +46,5 @@
 .speech-bubble[data-size='older-brother'] p{padding-right:1.1rem}
 }
 @media(max-width:360px){.speech-bubble{width:min(158px,calc(100vw - 24px));min-height:66px;padding:.85rem 1rem .95rem;font-size:.73rem;line-height:1.24}}
-@media(prefers-reduced-motion:reduce){.speech-bubble,.secret-bubble{transition:none}.speech-bubble[data-visible='1']{animation:none}.speech-bubble[data-has-adornment='1'] .cloud-adornment{animation:adornment-fade 180ms ease 120ms both}}
+@media(prefers-reduced-motion:reduce){.speech-bubble{transition:none}.speech-bubble[data-visible='1']{animation:none}.speech-bubble[data-has-adornment='1'] .cloud-adornment{animation:adornment-fade 180ms ease 120ms both}}
 @keyframes adornment-fade{from{opacity:0;transform:scale(.92) rotate(var(--adornment-tilt))}to{opacity:1;transform:scale(1) rotate(var(--adornment-tilt))}}
