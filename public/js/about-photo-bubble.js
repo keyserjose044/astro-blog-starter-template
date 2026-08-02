@@ -7,14 +7,52 @@
     const img = bubble?.querySelector('.cloud-adornment');
     const spots = wrapper.querySelectorAll('.person-hotspot');
     const secret = wrapper.querySelector('.secret-bubble');
-    if (!bubble || !copy || !img) return;
+    const block = wrapper.closest('.about-photo-block');
+    const photo = wrapper.querySelector('.about-photo-img');
+    if (!bubble || !copy || !img || !block || !photo) return;
 
     let pinned = null;
     let activeSpot = null;
     let frame = 0;
     let settleTimer = 0;
     let resizeFrame = 0;
+    let explorerResizeFrame = 0;
+    let fullscreenOwned = false;
+    let previousBodyOverflow = '';
     const mobileQuery = window.matchMedia('(max-width: 640px)');
+
+    const hint = document.createElement('button');
+    hint.type = 'button';
+    hint.className = 'about-photo-mobile-hint';
+    hint.setAttribute('aria-expanded', 'false');
+    hint.setAttribute('aria-label', "Open the interactive family portrait");
+    hint.innerHTML = '<span aria-hidden="true">💭</span><span>Tap the photo to see what\'s going on in their heads.</span>';
+    wrapper.insertAdjacentElement('afterend', hint);
+
+    const stage = document.createElement('div');
+    stage.className = 'about-photo-explorer-stage';
+    stage.dataset.visible = '0';
+    stage.setAttribute('aria-hidden', 'true');
+    stage.setAttribute('role', 'dialog');
+    stage.setAttribute('aria-modal', 'true');
+    stage.setAttribute('aria-label', 'Interactive family portrait');
+
+    const canvas = document.createElement('div');
+    canvas.className = 'about-photo-explorer-canvas';
+
+    const exitButton = document.createElement('button');
+    exitButton.type = 'button';
+    exitButton.className = 'about-photo-explorer-exit';
+    exitButton.innerHTML = '<span aria-hidden="true">×</span><span>Exit</span>';
+    exitButton.setAttribute('aria-label', 'Exit interactive family portrait');
+
+    stage.append(canvas, exitButton);
+    document.body.append(stage);
+
+    const originParent = wrapper.parentNode;
+    const originNextSibling = hint;
+
+    const isExplorerOpen = () => wrapper.dataset.mobileExplorer === '1';
 
     const parsePercent = (value, fallback) => {
       const parsed = Number.parseFloat(value || '');
@@ -50,14 +88,17 @@
       if (!mobileQuery.matches) return;
 
       const wrapperRect = wrapper.getBoundingClientRect();
+      const explorerOpen = isExplorerOpen();
+      const logicalWidth = explorerOpen ? wrapper.clientWidth : wrapperRect.width;
+      const logicalHeight = explorerOpen ? wrapper.clientHeight : wrapperRect.height;
       const bubbleWidth = bubble.offsetWidth;
       const bubbleHeight = bubble.offsetHeight;
-      if (!wrapperRect.width || !wrapperRect.height || !bubbleWidth || !bubbleHeight) return;
+      if (!logicalWidth || !logicalHeight || !bubbleWidth || !bubbleHeight) return;
 
       const leftRatio = parsePercent(spot.dataset.bubbleLeft, 0.5);
       const topRatio = parsePercent(spot.dataset.bubbleTop, 0.5);
-      const desiredCenter = wrapperRect.width * leftRatio;
-      const desiredAnchorY = wrapperRect.height * topRatio;
+      const desiredCenter = logicalWidth * leftRatio;
+      const desiredAnchorY = logicalHeight * topRatio;
       const corner = spot.dataset.corner || '';
       const hasAdornment = Boolean(spot.dataset.adornment);
       const edgePad = 10;
@@ -83,27 +124,31 @@
         }
       }
 
-      // Horizontal fitting: keep the cloud and any protruding adornment inside the phone width.
-      const viewportMin = edgePad - wrapperRect.left + bubbleWidth / 2 + extraLeft;
-      const viewportMax = window.innerWidth - edgePad - wrapperRect.left - bubbleWidth / 2 - extraRight;
-      const wrapperMin = bubbleWidth / 2 + extraLeft;
-      const wrapperMax = wrapperRect.width - bubbleWidth / 2 - extraRight;
-      const minCenter = Math.max(viewportMin, wrapperMin);
-      const maxCenter = Math.min(viewportMax, wrapperMax);
+      let minCenter;
+      let maxCenter;
+
+      if (explorerOpen) {
+        minCenter = edgePad + bubbleWidth / 2 + extraLeft;
+        maxCenter = logicalWidth - edgePad - bubbleWidth / 2 - extraRight;
+      } else {
+        const viewportMin = edgePad - wrapperRect.left + bubbleWidth / 2 + extraLeft;
+        const viewportMax = window.innerWidth - edgePad - wrapperRect.left - bubbleWidth / 2 - extraRight;
+        const wrapperMin = bubbleWidth / 2 + extraLeft;
+        const wrapperMax = logicalWidth - bubbleWidth / 2 - extraRight;
+        minCenter = Math.max(viewportMin, wrapperMin);
+        maxCenter = Math.min(viewportMax, wrapperMax);
+      }
 
       const fittedCenter = minCenter <= maxCenter
         ? Math.min(maxCenter, Math.max(minCenter, desiredCenter))
-        : wrapperRect.width / 2;
+        : logicalWidth / 2;
 
       const horizontalShift = fittedCenter - desiredCenter;
       bubble.style.left = `${fittedCenter}px`;
       bubble.style.setProperty('--mobile-shift', `${horizontalShift}px`);
 
-      // Vertical fitting: on phones, top-row clouds do not have enough room above the person's head.
-      // Prefer the desktop direction when it fits; otherwise flip the cloud below the person so the
-      // thought dots still point naturally at the same hotspot instead of moving the whole anchor away.
       const safeTop = 8;
-      const safeBottom = wrapperRect.height - 8;
+      const safeBottom = logicalHeight - 8;
       const alternatePlacement = preferredPlacement === 'above' ? 'below' : 'above';
       const preferredBounds = placementBounds(
         preferredPlacement,
@@ -156,6 +201,25 @@
       bubble.style.top = `${fittedAnchorY}px`;
     };
 
+    const bringBubbleIntoExplorerView = () => {
+      if (!isExplorerOpen() || bubble.dataset.visible !== '1') return;
+      requestAnimationFrame(() => {
+        const stageRect = stage.getBoundingClientRect();
+        const bubbleRect = bubble.getBoundingClientRect();
+        const pad = 18;
+        let dx = 0;
+        let dy = 0;
+
+        if (bubbleRect.left < stageRect.left + pad) dx = bubbleRect.left - stageRect.left - pad;
+        else if (bubbleRect.right > stageRect.right - pad) dx = bubbleRect.right - stageRect.right + pad;
+
+        if (bubbleRect.top < stageRect.top + pad) dy = bubbleRect.top - stageRect.top - pad;
+        else if (bubbleRect.bottom > stageRect.bottom - pad) dy = bubbleRect.bottom - stageRect.bottom + pad;
+
+        if (dx || dy) stage.scrollBy({ left: dx, top: dy, behavior: 'smooth' });
+      });
+    };
+
     const hide = () => {
       cancelAnimationFrame(frame);
       clearTimeout(settleTimer);
@@ -200,7 +264,6 @@
         img.alt = '';
       }
 
-      // Pre-fit while hidden so mobile users never see a one-frame desktop placement flash.
       fitMobileBubble(spot);
       bubble.dataset.visible = '1';
       bubble.setAttribute('aria-hidden', 'false');
@@ -208,23 +271,132 @@
       frame = requestAnimationFrame(() => {
         fitMobileBubble(spot);
         if (src) bubble.dataset.hasAdornment = '1';
+        bringBubbleIntoExplorerView();
       });
 
-      settleTimer = window.setTimeout(() => fitMobileBubble(spot), 720);
+      settleTimer = window.setTimeout(() => {
+        fitMobileBubble(spot);
+        bringBubbleIntoExplorerView();
+      }, 720);
+    };
+
+    const layoutExplorer = () => {
+      if (!isExplorerOpen()) return;
+      cancelAnimationFrame(explorerResizeFrame);
+      explorerResizeFrame = requestAnimationFrame(() => {
+        const viewportWidth = window.visualViewport?.width || window.innerWidth;
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const ratio = photo.naturalWidth && photo.naturalHeight
+          ? photo.naturalWidth / photo.naturalHeight
+          : 985 / 551;
+        const landscape = viewportWidth > viewportHeight;
+        const logicalWidth = landscape
+          ? Math.min(viewportWidth - 24, (viewportHeight - 24) * ratio)
+          : Math.min(980, Math.max(viewportWidth - 24, (viewportHeight - 72) * ratio));
+
+        wrapper.style.setProperty('--explorer-width', `${Math.max(300, logicalWidth)}px`);
+
+        requestAnimationFrame(() => {
+          if (activeSpot) fitMobileBubble(activeSpot);
+          bringBubbleIntoExplorerView();
+        });
+      });
+    };
+
+    const openExplorer = async () => {
+      if (!mobileQuery.matches || isExplorerOpen()) return;
+
+      pinned = null;
+      hide();
+      wrapper.dataset.mobileExplorer = '1';
+      hint.setAttribute('aria-expanded', 'true');
+      stage.dataset.visible = '1';
+      stage.setAttribute('aria-hidden', 'false');
+      previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('about-photo-explorer-open');
+      canvas.append(wrapper);
+      layoutExplorer();
+
+      requestAnimationFrame(() => {
+        stage.scrollLeft = Math.max(0, (stage.scrollWidth - stage.clientWidth) / 2);
+        stage.scrollTop = Math.max(0, (stage.scrollHeight - stage.clientHeight) / 2);
+        exitButton.focus({ preventScroll: true });
+      });
+
+      try {
+        if (stage.requestFullscreen && !document.fullscreenElement) {
+          await stage.requestFullscreen({ navigationUI: 'hide' });
+          fullscreenOwned = document.fullscreenElement === stage;
+        }
+      } catch (_error) {
+        fullscreenOwned = false;
+      }
+
+      try {
+        if (fullscreenOwned && screen.orientation?.lock) {
+          await screen.orientation.lock('landscape');
+        }
+      } catch (_error) {
+        // The fixed explorer remains fully usable when orientation locking is unavailable.
+      }
+
+      layoutExplorer();
+    };
+
+    const closeExplorer = () => {
+      if (!isExplorerOpen()) return;
+
+      pinned = null;
+      hide();
+      wrapper.dataset.mobileExplorer = '0';
+      wrapper.style.removeProperty('--explorer-width');
+      hint.setAttribute('aria-expanded', 'false');
+      stage.dataset.visible = '0';
+      stage.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.classList.remove('about-photo-explorer-open');
+      originParent.insertBefore(wrapper, originNextSibling);
+
+      try { screen.orientation?.unlock?.(); } catch (_error) { /* noop */ }
+      if (fullscreenOwned && document.fullscreenElement === stage) {
+        document.exitFullscreen?.().catch(() => {});
+      }
+      fullscreenOwned = false;
+      hint.focus({ preventScroll: true });
     };
 
     img.addEventListener('load', () => {
       if (!activeSpot) return;
-      requestAnimationFrame(() => fitMobileBubble(activeSpot));
+      requestAnimationFrame(() => {
+        fitMobileBubble(activeSpot);
+        bringBubbleIntoExplorerView();
+      });
     });
 
     spots.forEach((spot) => {
-      spot.addEventListener('pointerenter', () => { if (!pinned) show(spot); });
-      spot.addEventListener('pointerleave', () => { if (!pinned && document.activeElement !== spot) hide(); });
-      spot.addEventListener('focus', () => { if (!pinned) show(spot); });
-      spot.addEventListener('blur', () => { if (!pinned) hide(); });
+      spot.addEventListener('pointerenter', () => {
+        if (mobileQuery.matches && !isExplorerOpen()) return;
+        if (!pinned) show(spot);
+      });
+      spot.addEventListener('pointerleave', () => {
+        if (!pinned && document.activeElement !== spot) hide();
+      });
+      spot.addEventListener('focus', () => {
+        if (mobileQuery.matches && !isExplorerOpen()) return;
+        if (!pinned) show(spot);
+      });
+      spot.addEventListener('blur', () => {
+        if (!pinned) hide();
+      });
       spot.addEventListener('click', (event) => {
         event.stopPropagation();
+
+        if (mobileQuery.matches && !isExplorerOpen()) {
+          void openExplorer();
+          return;
+        }
+
         if (pinned === spot) {
           pinned = null;
           hide();
@@ -235,9 +407,13 @@
       });
       spot.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-          pinned = null;
-          hide();
-          spot.blur();
+          if (isExplorerOpen()) {
+            closeExplorer();
+          } else {
+            pinned = null;
+            hide();
+            spot.blur();
+          }
         } else if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           spot.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -246,18 +422,42 @@
     });
 
     wrapper.addEventListener('click', (event) => {
+      if (mobileQuery.matches && !isExplorerOpen()) {
+        void openExplorer();
+        return;
+      }
       if (event.target.closest?.('.person-hotspot')) return;
       pinned = null;
       hide();
     });
 
+    hint.addEventListener('click', () => void openExplorer());
+    exitButton.addEventListener('click', closeExplorer);
+
+    stage.addEventListener('click', (event) => {
+      if (event.target !== stage && event.target !== canvas) return;
+      if (bubble.dataset.visible === '1') {
+        pinned = null;
+        hide();
+      }
+    });
+
     const refit = () => {
+      if (isExplorerOpen()) layoutExplorer();
       if (!activeSpot) return;
       cancelAnimationFrame(resizeFrame);
       resizeFrame = requestAnimationFrame(() => fitMobileBubble(activeSpot));
     };
     window.addEventListener('resize', refit, { passive: true });
     window.visualViewport?.addEventListener('resize', refit, { passive: true });
+
+    mobileQuery.addEventListener?.('change', (event) => {
+      if (!event.matches && isExplorerOpen()) closeExplorer();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isExplorerOpen()) closeExplorer();
+    });
 
     if (secret) {
       const messages = [

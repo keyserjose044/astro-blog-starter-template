@@ -20,7 +20,10 @@
 .speech-bubble[data-size='little-brother'][data-corner='top-right'] .cloud-adornment{top:-23%;right:-8%}
 .speech-bubble[data-size='mom'][data-corner='top-right'] .cloud-adornment{top:-21%;right:-8%}
 
+.about-photo-mobile-hint,.about-photo-explorer-stage{display:none}
+
 @media(max-width:640px){
+  .about-photo-block{flex-direction:column;align-items:center}
   .speech-bubble[data-size='mom'] .cloud-adornment{width:42%}
   .speech-bubble[data-size='little-cousin'] .cloud-adornment{width:46%}
   .speech-bubble[data-size='little-brother'] .cloud-adornment{width:58%}
@@ -37,4 +40,98 @@
   .speech-bubble[data-size='uncle'] p{padding-right:1rem}
   .speech-bubble[data-size='older-brother'] p{padding-right:1.35rem}
   .speech-bubble[data-size='aunt'][data-corner='bottom-left'] .cloud-adornment{left:-14%;bottom:-10%}
+
+  .about-photo-mobile-hint{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.42rem;
+    max-width:min(92vw,360px);
+    margin:.72rem auto 0;
+    padding:.5rem .8rem;
+    border:1px solid rgba(151,128,100,.38);
+    border-radius:999px;
+    background:rgba(255,250,241,.94);
+    color:#4b3d30;
+    box-shadow:0 4px 12px rgba(55,42,27,.1);
+    font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+    font-size:.76rem;
+    font-weight:600;
+    line-height:1.22;
+    text-align:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .about-photo-mobile-hint span:first-child{font-size:.95rem;line-height:1}
+  .about-photo-mobile-hint:active{transform:scale(.985)}
+  .about-photo-mobile-hint:focus-visible{outline:2px solid rgba(139,109,70,.7);outline-offset:3px}
+
+  .about-photo-explorer-stage{
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:block;
+    overflow:auto;
+    overscroll-behavior:contain;
+    background:
+      radial-gradient(circle at 50% 42%,rgba(255,255,255,.08),transparent 44%),
+      rgba(17,17,20,.97);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity 220ms ease,visibility 220ms ease;
+    -webkit-overflow-scrolling:touch;
+  }
+  .about-photo-explorer-stage[data-visible='1']{opacity:1;visibility:visible;pointer-events:auto}
+  .about-photo-explorer-canvas{
+    box-sizing:border-box;
+    display:flex;
+    align-items:center;
+    width:max-content;
+    min-width:100%;
+    min-height:100%;
+    padding:max(64px,calc(env(safe-area-inset-top) + 52px)) 14px max(26px,env(safe-area-inset-bottom));
+  }
+  .about-photo-wrapper[data-mobile-explorer='1']{
+    flex:0 0 auto;
+    width:var(--explorer-width,760px);
+    max-width:none;
+    margin:auto;
+    touch-action:pan-x pan-y;
+    filter:drop-shadow(0 18px 42px rgba(0,0,0,.42));
+  }
+  .about-photo-wrapper[data-mobile-explorer='1'] .about-photo-img{
+    width:100%;
+    max-width:none;
+    height:auto;
+  }
+  .about-photo-wrapper[data-mobile-explorer='1'] .family-hotspot-layer{overflow:visible}
+  .about-photo-wrapper[data-mobile-explorer='1'] .speech-bubble{width:172px;max-width:172px}
+
+  .about-photo-explorer-exit{
+    position:fixed;
+    z-index:10006;
+    top:max(12px,env(safe-area-inset-top));
+    right:max(12px,env(safe-area-inset-right));
+    display:inline-flex;
+    align-items:center;
+    gap:.36rem;
+    min-height:42px;
+    padding:.48rem .78rem .48rem .62rem;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;
+    background:rgba(255,250,241,.96);
+    color:#302820;
+    box-shadow:0 8px 24px rgba(0,0,0,.32);
+    font:700 .78rem/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .about-photo-explorer-exit span:first-child{font-size:1.4rem;font-weight:400;line-height:.72}
+  .about-photo-explorer-exit:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  body.about-photo-explorer-open{overflow:hidden!important;overscroll-behavior:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .about-photo-mobile-hint,.about-photo-explorer-stage{transition:none}
 }
