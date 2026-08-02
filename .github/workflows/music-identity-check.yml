@@ -1,0 +1,29 @@
+name: Music identity regression check
+
+on:
+  pull_request:
+    paths:
+      - 'public/scripts/albums-listening-log-identity.js'
+      - 'public/scripts/albums-listening-log-titles-identity.js'
+      - 'public/scripts/albums-timeline-selection-empty.js'
+      - 'scripts/test-music-identity.mjs'
+      - '.github/workflows/music-identity-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-music-identity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run music identity regression tests
+        run: node scripts/test-music-identity.mjs
