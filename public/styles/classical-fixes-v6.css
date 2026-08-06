@@ -1,0 +1,233 @@
+/* Classical Music v6 — targeted mobile readability and visual polish. */
+
+/* Hard fallback for the JS-created listening-days card. */
+.overall-stat[data-classical-listening-days] {
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 4px !important;
+  text-align: center !important;
+}
+.overall-stat[data-classical-listening-days] strong {
+  display: block !important;
+  margin: 0 !important;
+  color: #10131b !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+}
+.overall-stat[data-classical-listening-days] span {
+  display: block !important;
+  margin: 0 !important;
+  color: #626a78 !important;
+  font-size: .64rem !important;
+  line-height: 1.25 !important;
+}
+
+/* Make the canon explainer intentionally noticeable instead of looking like a utility icon. */
+.classical-canon-help-button--toolbar,
+main.wrap .page-tabs .classical-canon-help-button--nav {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(189, 139, 28, .5) !important;
+  background: linear-gradient(135deg, #fff8d8 0%, #f6d66f 34%, #fff4be 55%, #d9a824 100%) !important;
+  color: #60430a !important;
+  box-shadow: 0 5px 16px rgba(182, 132, 24, .22), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+.classical-canon-help-button--toolbar::after,
+main.wrap .page-tabs .classical-canon-help-button--nav::after {
+  content: '';
+  position: absolute;
+  inset: -45% auto -45% -75%;
+  width: 45%;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.92), transparent);
+  transform: skewX(-18deg);
+  animation: classicalGoldShimmer 2.8s ease-in-out infinite;
+}
+.classical-canon-help-button--toolbar:hover,
+.classical-canon-help-button--toolbar:focus-visible,
+main.wrap .page-tabs .classical-canon-help-button--nav:hover,
+main.wrap .page-tabs .classical-canon-help-button--nav:focus-visible {
+  color: #3f2b04 !important;
+  box-shadow: 0 7px 19px rgba(182, 132, 24, .32), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+@keyframes classicalGoldShimmer {
+  0%, 58% { left: -75%; opacity: 0; }
+  66% { opacity: 1; }
+  86%, 100% { left: 135%; opacity: 0; }
+}
+
+@media (max-width: 700px) {
+  /* Composer card metadata needs to be readable, not miniature dashboard confetti. */
+  .composer-card .card-body { padding: 10px !important; }
+  .composer-card .composer-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin-top: 9px !important;
+  }
+  .composer-card .composer-stats .stat {
+    display: grid !important;
+    min-height: 48px !important;
+    place-items: center !important;
+    align-content: center !important;
+    padding: 7px 4px !important;
+    border-radius: 9px !important;
+  }
+  .composer-card .composer-stats .stat strong {
+    font-size: .78rem !important;
+    line-height: 1.05 !important;
+  }
+  .composer-card .composer-stats .stat span {
+    margin-top: 3px !important;
+    font-size: .58rem !important;
+    line-height: 1.1 !important;
+  }
+  .composer-card .classical-card-quickline {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+    font-size: .61rem !important;
+    line-height: 1.45 !important;
+  }
+  .composer-card .expand-cue {
+    min-height: 34px !important;
+    padding: 7px 10px !important;
+    font-size: .65rem !important;
+  }
+
+  /* Pending-profile status becomes a deliberate little status panel. */
+  .page-panel[data-page-panel='composers'] .results-row {
+    display: flex !important;
+    width: calc(100% - 8px) !important;
+    max-width: calc(100% - 8px) !important;
+    margin: 13px auto 16px !important;
+    padding: 10px !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+    border: 1px solid #e4e7ef !important;
+    border-radius: 12px !important;
+    background: rgba(255,255,255,.88) !important;
+    box-shadow: 0 5px 14px rgba(15,23,42,.05) !important;
+    box-sizing: border-box !important;
+  }
+  #composer-results {
+    width: 100% !important;
+    text-align: center !important;
+    font-size: .7rem !important;
+    line-height: 1.4 !important;
+  }
+  .classical-pending-toggle {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 11px !important;
+    border-radius: 10px !important;
+    font-size: .72rem !important;
+  }
+
+  /* Restore the permanent agenda as readable work cards. V5 compacting is only for the month grid. */
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda {
+    gap: 10px !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda-day {
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 9px !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda-day__works {
+    display: grid !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 56px !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 7px !important;
+    overflow: hidden !important;
+    border: 1px solid #e7eaf1 !important;
+    border-left-width: 3px !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work.has-agenda-thumbnail {
+    grid-template-columns: 74px 30px minmax(0, 1fr) !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work img:not(.classical-agenda-thumbnail__img),
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work > span:first-child:not(.classical-agenda-thumbnail) {
+    display: grid !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    font-size: .48rem !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work > span:nth-last-child(1),
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work > span:nth-child(2),
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work > i {
+    display: block !important;
+    min-width: 0 !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work b {
+    display: block !important;
+    overflow: hidden !important;
+    color: #314bd8 !important;
+    font-size: .61rem !important;
+    line-height: 1.2 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work em {
+    display: -webkit-box !important;
+    margin-top: 2px !important;
+    overflow: hidden !important;
+    color: #141821 !important;
+    font-size: .68rem !important;
+    font-style: normal !important;
+    font-weight: 750 !important;
+    line-height: 1.28 !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+  .classical-agenda-thumbnail {
+    position: relative;
+    display: block !important;
+    width: 74px !important;
+    aspect-ratio: 16 / 9 !important;
+    overflow: hidden !important;
+    border-radius: 7px !important;
+    background: #eef0f5 !important;
+  }
+  .classical-agenda-thumbnail__img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .classical-agenda-thumbnail__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    padding-left: 1px;
+    border-radius: 50%;
+    background: rgba(12,16,28,.76);
+    color: #fff;
+    font-size: .48rem;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classical-canon-help-button--toolbar::after,
+  main.wrap .page-tabs .classical-canon-help-button--nav::after { animation: none; }
+}
