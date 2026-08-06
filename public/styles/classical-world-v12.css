@@ -1,0 +1,385 @@
+/* LifeLoggerz Classical Music — World v12. */
+
+/* Match the other Classical view icons; use the same world-like mark used elsewhere on LifeLoggerz. */
+main.wrap .page-tabs .page-tab[data-page-tab='world']::before { content: '⊙'; }
+
+.page-panel[data-page-panel='world'] .panel-heading {
+  max-width: 980px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.page-panel[data-page-panel='world'] [data-classical-panel-content],
+.classical-world12-shell,
+.classical-world12-shell * { box-sizing: border-box; }
+
+.classical-world12-shell {
+  --world12-blue: #405cf5;
+  --world12-deep: #263fc6;
+  --world12-ink: #10131b;
+  --world12-muted: #626a78;
+  --world12-border: #e4e8f1;
+  display: grid;
+  width: 100%;
+  max-width: 1320px;
+  min-width: 0;
+  margin: 0 auto;
+  gap: 18px;
+}
+
+.classical-world12-intro {
+  max-width: 900px;
+  margin: 2px auto 0;
+  text-align: center;
+}
+
+.classical-world12-intro > span {
+  color: var(--world12-deep);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.classical-world12-intro h3 {
+  margin: 7px 0 9px;
+  color: var(--world12-ink);
+  font-size: clamp(1.65rem, 2.8vw, 2.55rem);
+  line-height: 1.05;
+  letter-spacing: -.025em;
+}
+
+.classical-world12-intro p {
+  margin: 0;
+  color: var(--world12-muted);
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.classical-world12-switch {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--world12-border);
+  border-radius: 999px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 7px 18px rgba(15,23,42,.06);
+}
+
+.classical-world12-switch button {
+  min-width: 92px;
+  min-height: 38px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5e6573;
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.classical-world12-switch button[aria-pressed='true'] {
+  background: var(--world12-blue);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(64,92,245,.24);
+}
+
+.classical-world12-map-frame {
+  width: 100%;
+  min-width: 0;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid var(--world12-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(64,92,245,.07), transparent 39%),
+    linear-gradient(180deg, rgba(249,251,255,.98), rgba(241,245,251,.96));
+  box-shadow: 0 14px 34px rgba(15,23,42,.08);
+}
+
+/* Both map modes use the exact same Robinson canvas. Europe is a true zoom/crop of the
+   same projection, so coastlines and composer pins cannot drift apart. */
+.classical-world12-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2370 / 1200;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 17px;
+}
+
+.classical-world12-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.classical-world12-stage.is-europe .classical-world12-canvas {
+  left: -160%;
+  top: -34%;
+  width: 400%;
+  height: 400%;
+}
+
+.classical-world12-base,
+.classical-world12-pins {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.classical-world12-base {
+  display: block;
+  object-fit: fill;
+  opacity: .22;
+  filter: grayscale(1) contrast(.84) brightness(.82) sepia(.04);
+  pointer-events: none;
+}
+
+.classical-world12-pins { pointer-events: none; }
+
+.classical-world12-pin {
+  position: absolute;
+  left: var(--pin-x);
+  top: var(--pin-y);
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  padding: 0;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #e9ecf8;
+  box-shadow: 0 0 0 2px rgba(64,92,245,.28), 0 7px 17px rgba(15,23,42,.2);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(calc(-50% + var(--pin-dx)), calc(-50% + var(--pin-dy)));
+  transition: transform .15s ease, box-shadow .15s ease;
+  z-index: 2;
+}
+
+.classical-world12-stage.is-europe .classical-world12-pin {
+  width: 15px;
+  height: 15px;
+  border-width: 1px;
+  box-shadow: 0 0 0 .7px rgba(64,92,245,.28), 0 2px 5px rgba(15,23,42,.2);
+  /* The entire canvas is 4×; shrinking the pins here keeps their visible size near 60px. */
+}
+
+.classical-world12-pin:hover,
+.classical-world12-pin:focus-visible {
+  z-index: 20;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(64,92,245,.38), 0 10px 22px rgba(15,23,42,.25);
+}
+
+.classical-world12-pin__portrait,
+.classical-world12-portrait,
+.classical-world12-pin__portrait--fallback,
+.classical-world12-portrait--fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 20%;
+  background: linear-gradient(145deg, #dfe3f7, #f2e8f5);
+  color: #4e5984;
+  font-family: Georgia, serif;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.classical-world12-status {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 9px 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  color: var(--world12-muted);
+  font-size: .69rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.classical-world12-status b { color: var(--world12-ink); }
+.classical-world12-status a { color: #314bd8; font-weight: 800; text-decoration: none; }
+.classical-world12-status a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.classical-world12-directory {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--world12-border);
+  border-radius: 20px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 9px 24px rgba(15,23,42,.055);
+}
+
+.classical-world12-directory > div:first-child { text-align: center; }
+.classical-world12-directory h3 { margin: 0; color: var(--world12-ink); font-size: 1.16rem; }
+.classical-world12-directory p { margin: 4px 0 0; color: var(--world12-muted); font-size: .72rem; }
+
+.classical-world12-directory__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  min-width: 0;
+}
+
+.classical-world12-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  min-width: 0;
+  gap: 10px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid #e8ebf2;
+  border-radius: 13px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.classical-world12-card:hover,
+.classical-world12-card:focus-visible {
+  border-color: rgba(64,92,245,.38);
+  box-shadow: 0 7px 17px rgba(46,62,150,.1);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.classical-world12-card .classical-world12-portrait {
+  width: 54px;
+  height: 54px;
+}
+
+.classical-world12-card > span,
+.classical-world12-card b,
+.classical-world12-card em,
+.classical-world12-card small { display: block; min-width: 0; }
+
+.classical-world12-card b {
+  overflow: hidden;
+  color: var(--world12-ink);
+  font-size: .79rem;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classical-world12-card em {
+  margin-top: 2px;
+  color: #314bd8;
+  font-size: .64rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.classical-world12-card small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--world12-muted);
+  font-size: .61rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classical-world12-unmapped {
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: #f6f7fb;
+  color: var(--world12-muted);
+  font-size: .7rem;
+}
+.classical-world12-unmapped summary { color: #38404f; font-weight: 800; cursor: pointer; }
+.classical-world12-unmapped p { margin-top: 8px; line-height: 1.55; }
+
+@media (max-width: 900px) {
+  .classical-world12-directory__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .page-panel[data-page-panel='world'],
+  .page-panel[data-page-panel='world'] [data-classical-panel-content],
+  .classical-world12-shell,
+  .classical-world12-map-frame,
+  .classical-world12-directory {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  .classical-world12-shell { gap: 14px; }
+  .classical-world12-intro { padding-inline: 8px; }
+  .classical-world12-intro h3 { font-size: 1.75rem; }
+  .classical-world12-intro p { font-size: .8rem; }
+
+  .classical-world12-map-frame {
+    padding: 8px;
+    border-radius: 16px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .classical-world12-stage {
+    width: max(100%, 620px);
+    min-width: 620px;
+  }
+
+  .classical-world12-stage.is-europe .classical-world12-canvas {
+    left: -160%;
+    top: -34%;
+  }
+
+  .classical-world12-pin {
+    width: 38px;
+    height: 38px;
+    border-width: 2px;
+  }
+
+  .classical-world12-stage.is-europe .classical-world12-pin {
+    width: 13px;
+    height: 13px;
+    border-width: 1px;
+  }
+
+  .classical-world12-status { padding-inline: 10px; font-size: .64rem; }
+
+  .classical-world12-directory { padding: 12px; border-radius: 15px; }
+  .classical-world12-directory__grid { gap: 7px; }
+  .classical-world12-card { grid-template-columns: 44px minmax(0, 1fr); gap: 8px; padding: 7px; }
+  .classical-world12-card .classical-world12-portrait { width: 44px; height: 44px; }
+  .classical-world12-card b { font-size: .7rem; white-space: normal; }
+  .classical-world12-card em { font-size: .59rem; }
+  .classical-world12-card small { font-size: .55rem; }
+}
+
+@media (max-width: 430px) {
+  .classical-world12-directory__grid { grid-template-columns: 1fr; }
+  .classical-world12-stage { width: 600px; min-width: 600px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classical-world12-card { transition: none; }
+}

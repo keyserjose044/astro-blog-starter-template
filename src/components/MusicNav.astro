@@ -9,7 +9,7 @@ interface Props {
 
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL || '/';
-const classicalAssetVersion = '20260805-2248';
+const classicalAssetVersion = '20260805-2305';
 
 const sections = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
@@ -54,6 +54,7 @@ const sections = [
         <link rel="stylesheet" href={`${base}styles/classical-fixes-v9.css?v=${classicalAssetVersion}`} />
         <link rel="stylesheet" href={`${base}styles/classical-journey-v10.css?v=${classicalAssetVersion}`} />
         <link rel="stylesheet" href={`${base}styles/classical-world-v11.css?v=${classicalAssetVersion}`} />
+        <link rel="stylesheet" href={`${base}styles/classical-world-v12.css?v=${classicalAssetVersion}`} />
         <script is:inline type="module" src={`${base}scripts/classical-expansion.js?v=${classicalAssetVersion}`}></script>
         <script is:inline type="module" src={`${base}scripts/classical-repeat-dropdown.js?v=${classicalAssetVersion}`}></script>
         <script is:inline type="module" src={`${base}scripts/classical-polish-v2.js?v=${classicalAssetVersion}`}></script>
@@ -65,6 +66,7 @@ const sections = [
         <script is:inline type="module" src={`${base}scripts/classical-fixes-v9.js?v=${classicalAssetVersion}`}></script>
         <script is:inline type="module" src={`${base}scripts/classical-journey-v10.js?v=${classicalAssetVersion}`}></script>
         <script is:inline type="module" src={`${base}scripts/classical-world-v11.js?v=${classicalAssetVersion}`}></script>
+        <script is:inline type="module" src={`${base}scripts/classical-world-v12.js?v=${classicalAssetVersion}`}></script>
       </>
     ) : null}
   </>
