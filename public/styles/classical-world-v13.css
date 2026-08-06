@@ -1,0 +1,98 @@
+/* LifeLoggerz Classical Music — World v13. */
+
+.page-panel[data-page-panel='world'] .classical-world12-shell { display:none !important; }
+
+.world13-shell,
+.world13-shell * { box-sizing:border-box; }
+
+.world13-shell {
+  --w13-blue:#405cf5;
+  --w13-deep:#263fc6;
+  --w13-ink:#10131b;
+  --w13-muted:#626a78;
+  --w13-border:#e4e8f1;
+  display:grid;
+  width:100%;
+  max-width:1360px;
+  min-width:0;
+  margin:0 auto;
+  gap:18px;
+}
+
+.world13-intro { max-width:920px; margin:2px auto 0; text-align:center; }
+.world13-intro > span { color:var(--w13-deep); font-size:.68rem; font-weight:900; letter-spacing:.13em; }
+.world13-intro h3 { margin:7px 0 9px; color:var(--w13-ink); font-size:clamp(1.7rem,2.9vw,2.6rem); line-height:1.05; letter-spacing:-.025em; }
+.world13-intro p { margin:0; color:var(--w13-muted); font-size:.88rem; line-height:1.65; }
+
+.world13-switch { display:flex; width:max-content; max-width:100%; margin:0 auto; padding:4px; gap:4px; border:1px solid var(--w13-border); border-radius:999px; background:rgba(255,255,255,.95); box-shadow:0 7px 18px rgba(15,23,42,.06); }
+.world13-switch button { min-width:92px; min-height:38px; padding:8px 15px; border:0; border-radius:999px; background:transparent; color:#5e6573; font:inherit; font-size:.76rem; font-weight:850; cursor:pointer; }
+.world13-switch button[aria-pressed='true'] { background:var(--w13-blue); color:#fff; box-shadow:0 6px 14px rgba(64,92,245,.24); }
+
+.world13-map-frame { width:100%; min-width:0; padding:18px; overflow:hidden; border:1px solid var(--w13-border); border-radius:24px; background:radial-gradient(circle at 50% 44%,rgba(64,92,245,.08),transparent 40%),linear-gradient(180deg,rgba(249,251,255,.99),rgba(241,245,251,.97)); box-shadow:0 14px 34px rgba(15,23,42,.08); }
+.world13-stage { position:relative; width:100%; aspect-ratio:2370/1200; min-width:0; overflow:hidden; border-radius:18px; background:#f7f9fd; }
+.world13-canvas { position:absolute; left:0; top:0; width:100%; height:100%; }
+.world13-stage.is-europe .world13-canvas { left:-160%; top:-34%; width:400%; height:400%; }
+.world13-base,.world13-pins { position:absolute; inset:0; width:100%; height:100%; }
+.world13-base { display:block; object-fit:fill; opacity:.25; filter:grayscale(1) contrast(.88) brightness(.82); pointer-events:none; }
+.world13-pins { pointer-events:none; }
+
+.world13-pin { position:absolute; left:var(--pin-x); top:var(--pin-y); display:grid; width:46px; height:46px; place-items:center; padding:0; border:3px solid #fff; border-radius:50%; background:#e9ecf8; box-shadow:0 0 0 2px rgba(64,92,245,.28),0 7px 17px rgba(15,23,42,.2); cursor:pointer; pointer-events:auto; transform:translate(calc(-50% + var(--pin-dx)),calc(-50% + var(--pin-dy))); transition:box-shadow .15s ease,transform .15s ease; z-index:4; }
+.world13-stage.is-europe .world13-pin { width:24px; height:24px; border-width:2px; box-shadow:0 0 0 1px rgba(64,92,245,.3),0 4px 9px rgba(15,23,42,.24); }
+.world13-pin:hover,.world13-pin:focus-visible { z-index:30; outline:none; box-shadow:0 0 0 3px rgba(64,92,245,.4),0 12px 26px rgba(15,23,42,.28); transform:translate(calc(-50% + var(--pin-dx)),calc(-50% + var(--pin-dy))) scale(1.16); }
+.world13-pin__portrait,.world13-portrait,.world13-pin__portrait--fallback,.world13-portrait--fallback { display:grid; width:100%; height:100%; place-items:center; overflow:hidden; border-radius:50%; object-fit:cover; object-position:center 20%; background:linear-gradient(145deg,#dfe3f7,#f2e8f5); color:#4e5984; font-family:Georgia,serif; font-size:.82rem; font-weight:800; }
+
+.world13-tooltip { position:absolute; left:50%; bottom:calc(100% + 8px); display:none; width:max-content; max-width:220px; padding:7px 9px; border:1px solid rgba(226,230,239,.96); border-radius:10px; background:rgba(255,255,255,.98); box-shadow:0 9px 24px rgba(15,23,42,.16); color:var(--w13-ink); text-align:left; transform:translateX(-50%); pointer-events:none; }
+.world13-tooltip b,.world13-tooltip small { display:block; }
+.world13-tooltip b { font-size:.7rem; line-height:1.25; }
+.world13-tooltip small { margin-top:2px; color:#314bd8; font-size:.59rem; font-weight:800; }
+.world13-pin:hover .world13-tooltip,.world13-pin:focus-visible .world13-tooltip { display:block; }
+
+.world13-region-label { position:absolute; left:var(--pin-x); top:var(--pin-y); z-index:2; display:block; padding:3px 6px; border:1px solid rgba(255,255,255,.9); border-radius:999px; background:rgba(255,255,255,.82); color:#475063; box-shadow:0 2px 7px rgba(15,23,42,.08); font-size:4px; font-weight:850; line-height:1; white-space:nowrap; pointer-events:none; transform:translate(-50%,34px); }
+
+.world13-status { display:flex; width:100%; min-width:0; gap:9px 18px; align-items:center; justify-content:center; flex-wrap:wrap; padding-top:12px; color:var(--w13-muted); font-size:.69rem; line-height:1.4; text-align:center; }
+.world13-status b { color:var(--w13-ink); }
+.world13-status a { color:#314bd8; font-weight:800; text-decoration:none; }
+.world13-status a:hover { text-decoration:underline; text-underline-offset:3px; }
+
+.world13-directory { display:grid; width:100%; min-width:0; gap:12px; padding:18px; border:1px solid var(--w13-border); border-radius:20px; background:rgba(255,255,255,.91); box-shadow:0 9px 24px rgba(15,23,42,.055); }
+.world13-directory > div:first-child { text-align:center; }
+.world13-directory h3 { margin:0; color:var(--w13-ink); font-size:1.16rem; }
+.world13-directory p { margin:4px 0 0; color:var(--w13-muted); font-size:.72rem; }
+.world13-directory__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; min-width:0; }
+.world13-card { display:grid; grid-template-columns:54px minmax(0,1fr); min-width:0; gap:10px; align-items:center; padding:9px; border:1px solid #e8ebf2; border-radius:13px; background:#fff; color:inherit; font:inherit; text-align:left; cursor:pointer; transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease; }
+.world13-card:hover,.world13-card:focus-visible { border-color:rgba(64,92,245,.38); box-shadow:0 7px 17px rgba(46,62,150,.1); outline:none; transform:translateY(-2px); }
+.world13-card .world13-portrait { width:54px; height:54px; }
+.world13-card > span,.world13-card b,.world13-card em,.world13-card small { display:block; min-width:0; }
+.world13-card b { overflow:hidden; color:var(--w13-ink); font-size:.79rem; font-weight:850; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
+.world13-card em { margin-top:2px; color:#314bd8; font-size:.64rem; font-style:normal; font-weight:800; }
+.world13-card small { margin-top:4px; overflow:hidden; color:var(--w13-muted); font-size:.61rem; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+
+@media (max-width:900px) { .world13-directory__grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+@media (max-width:700px) {
+  .world13-shell,.world13-map-frame,.world13-directory { width:100% !important; max-width:100% !important; min-width:0 !important; margin-inline:auto !important; }
+  .world13-shell { gap:14px; }
+  .world13-intro { padding-inline:8px; }
+  .world13-intro h3 { font-size:1.75rem; }
+  .world13-intro p { font-size:.8rem; }
+  .world13-map-frame { padding:8px; border-radius:16px; overflow-x:auto; overscroll-behavior-inline:contain; }
+  .world13-stage { width:max(100%,620px); min-width:620px; }
+  .world13-stage.is-europe .world13-pin { width:21px; height:21px; }
+  .world13-region-label { display:none; }
+  .world13-tooltip { display:none !important; }
+  .world13-status { padding-inline:10px; font-size:.64rem; }
+  .world13-directory { padding:12px; border-radius:15px; }
+  .world13-directory__grid { gap:7px; }
+  .world13-card { grid-template-columns:44px minmax(0,1fr); gap:8px; padding:7px; }
+  .world13-card .world13-portrait { width:44px; height:44px; }
+  .world13-card b { font-size:.7rem; white-space:normal; }
+  .world13-card em { font-size:.59rem; }
+  .world13-card small { font-size:.55rem; }
+}
+
+@media (max-width:430px) {
+  .world13-directory__grid { grid-template-columns:1fr; }
+  .world13-stage { width:600px; min-width:600px; }
+}
+
+@media (prefers-reduced-motion:reduce) { .world13-pin,.world13-card { transition:none; } }
