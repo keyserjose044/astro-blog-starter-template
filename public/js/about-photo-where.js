@@ -10,78 +10,84 @@
     const dad = panel.querySelector('[aria-labelledby="family-roots-dad-title"]');
     const mom = panel.querySelector('[aria-labelledby="family-roots-mom-title"]');
 
-    const mapLabels = [
+    const googleMaps = [
       [dad, [
-        'Map of México locating Dad’s family roots in Aguascalientes.',
-        'Map showing Aguascalientes within México.',
-        'Map showing the municipality of Asientos within Aguascalientes.',
-        'Local OpenStreetMap view centered on Amarillas de Esparza, Asientos, Aguascalientes.',
+        {
+          title: 'Interactive Google Map showing Dad’s Aguascalientes roots within México',
+          query: 'Aguascalientes, Mexico',
+          zoom: 5,
+        },
+        {
+          title: 'Interactive Google Map of Aguascalientes, México',
+          query: 'Aguascalientes, Mexico',
+          zoom: 8,
+        },
+        {
+          title: 'Interactive Google Map of Asientos, Aguascalientes, México',
+          query: 'Asientos, Aguascalientes, Mexico',
+          zoom: 10,
+        },
+        {
+          title: 'Interactive Google Map centered on Amarillas de Esparza, Asientos, Aguascalientes, México',
+          query: '22.045308,-102.013514',
+          zoom: 14,
+        },
       ]],
       [mom, [
-        'Map of México locating Mom’s family roots in Tamaulipas.',
-        'Map showing Tamaulipas within México.',
-        'Map showing the municipality of Matamoros within Tamaulipas.',
-        'Local OpenStreetMap view centered on Colonia Progreso, Matamoros, Tamaulipas.',
+        {
+          title: 'Interactive Google Map showing Mom’s Tamaulipas roots within México',
+          query: 'Heroica Matamoros, Tamaulipas, Mexico',
+          zoom: 5,
+        },
+        {
+          title: 'Interactive Google Map of Tamaulipas, México',
+          query: 'Tamaulipas, Mexico',
+          zoom: 7,
+        },
+        {
+          title: 'Interactive Google Map of Heroica Matamoros, Tamaulipas, México',
+          query: 'Heroica Matamoros, Tamaulipas, Mexico',
+          zoom: 10,
+        },
+        {
+          title: 'Interactive Google Map centered on Colonia Progreso, Heroica Matamoros, Tamaulipas, México',
+          query: '25.8602,-97.46717',
+          zoom: 14,
+        },
       ]],
     ];
 
-    mapLabels.forEach(([branch, labels]) => {
+    const buildGoogleMapUrl = (query, zoom) =>
+      `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=${zoom}&output=embed`;
+
+    googleMaps.forEach(([branch, maps]) => {
       if (!branch) return;
-      branch.querySelectorAll('.about-photo-map-slot').forEach((slot, index) => {
-        const label = labels[index];
-        if (!label) return;
-        slot.setAttribute('aria-label', label);
+
+      const slots = branch.querySelectorAll('.about-photo-map-slot');
+      slots.forEach((slot, index) => {
+        const map = maps[index];
+        if (!map) return;
+
         slot.removeAttribute('data-map-label');
-        slot.classList.add('about-photo-map-slot--live');
+        slot.removeAttribute('role');
+        slot.removeAttribute('aria-label');
+        slot.classList.add('about-photo-map-slot--live', 'about-photo-map-slot--google');
+
+        slot.querySelectorAll('.about-photo-map-marker').forEach((marker) => marker.remove());
+        slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => frame.remove());
+
+        const frame = document.createElement('iframe');
+        frame.className = 'about-photo-map-frame';
+        frame.src = buildGoogleMapUrl(map.query, map.zoom);
+        frame.title = map.title;
+        frame.loading = 'lazy';
+        frame.referrerPolicy = 'no-referrer-when-downgrade';
+        frame.setAttribute('allowfullscreen', '');
+        slot.appendChild(frame);
       });
     });
 
-    const countryMarkers = [
-      [dad, '50%', '59%'],
-      [mom, '64%', '38%'],
-    ];
-
-    countryMarkers.forEach(([branch, x, y]) => {
-      const marker = branch?.querySelector('.about-photo-where-step:nth-child(1) .about-photo-map-marker');
-      if (!marker) return;
-      marker.style.setProperty('--marker-x', x);
-      marker.style.setProperty('--marker-y', y);
-    });
-
-    const localMaps = [
-      {
-        branch: dad,
-        title: 'Map centered on Amarillas de Esparza, Asientos, Aguascalientes',
-        src: 'https://www.openstreetmap.org/export/embed.html?bbox=-102.032%2C22.034%2C-101.995%2C22.057&layer=mapnik&marker=22.045308%2C-102.013514',
-      },
-      {
-        branch: mom,
-        title: 'Map centered on Colonia Progreso, Matamoros, Tamaulipas',
-        src: 'https://www.openstreetmap.org/export/embed.html?bbox=-97.486%2C25.849%2C-97.448%2C25.872&layer=mapnik&marker=25.8602%2C-97.46717',
-      },
-    ];
-
-    localMaps.forEach(({ branch, title, src }) => {
-      if (!branch) return;
-      const slot = branch.querySelectorAll('.about-photo-map-slot')[3];
-      if (!slot || slot.querySelector('.about-photo-map-frame')) return;
-
-      const frame = document.createElement('iframe');
-      frame.className = 'about-photo-map-frame';
-      frame.src = src;
-      frame.title = title;
-      frame.loading = 'lazy';
-      frame.tabIndex = -1;
-      frame.setAttribute('aria-hidden', 'true');
-      slot.appendChild(frame);
-    });
-
-    if (!panel.querySelector('.about-photo-map-credit')) {
-      const credit = document.createElement('p');
-      credit.className = 'about-photo-map-credit';
-      credit.innerHTML = 'Map sources: <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a> locator maps; local maps © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>. Matamoros locator map by MikSed, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>.';
-      panel.appendChild(credit);
-    }
+    panel.querySelector('.about-photo-map-credit')?.remove();
 
     const setOpen = (open, { returnFocus = false } = {}) => {
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
