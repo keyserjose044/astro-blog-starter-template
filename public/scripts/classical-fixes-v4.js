@@ -28,8 +28,14 @@ function bootClassicalFixesV4(attempt = 0) {
         dates.add(`${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`);
       });
     });
-    const card = document.createElement('div');
+
+    /* Clone a real server-rendered stat card so Astro's scoped attributes come with it.
+       A bare document.createElement('div') looked unstyled because it did not inherit
+       the scoped .overall-stat rules. */
+    const sourceCard = statContainer.querySelector('.overall-stat');
+    const card = sourceCard ? sourceCard.cloneNode(true) : document.createElement('div');
     card.className = 'overall-stat';
+    card.removeAttribute('id');
     card.dataset.classicalListeningDays = 'true';
     card.innerHTML = `<strong>${dates.size.toLocaleString('en-US')}</strong><span>listening days</span>`;
     card.title = 'Distinct calendar days with at least one tracked classical listening entry';
