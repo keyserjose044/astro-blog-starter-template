@@ -77,14 +77,65 @@
         slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => frame.remove());
 
         const frame = document.createElement('iframe');
+        const src = buildGoogleMapUrl(map.query, map.zoom);
         frame.className = 'about-photo-map-frame';
-        frame.src = buildGoogleMapUrl(map.query, map.zoom);
+        frame.src = src;
+        frame.dataset.mapSrc = src;
         frame.title = map.title;
         frame.loading = 'lazy';
         frame.referrerPolicy = 'no-referrer-when-downgrade';
         frame.setAttribute('allowfullscreen', '');
         slot.appendChild(frame);
       });
+    });
+
+    /*
+      Mobile browsers can restore this page from the back/forward cache after the
+      Google Maps link inside an embed opens the Maps app/page. Cross-origin
+      iframes are sometimes restored as blank rectangles. Rebuild the map srcs
+      only after the page itself has actually been hidden, so ordinary panning
+      and zooming inside an embed are left alone.
+    */
+    let mapsNeedRestore = false;
+    let restoreTimer = 0;
+
+    const activeElementIsMap = () =>
+      document.activeElement instanceof HTMLIFrameElement &&
+      document.activeElement.classList.contains('about-photo-map-frame');
+
+    const restoreMapFrames = () => {
+      if (!mapsNeedRestore) return;
+      mapsNeedRestore = false;
+      window.clearTimeout(restoreTimer);
+
+      const frames = panel.querySelectorAll('.about-photo-map-frame[data-map-src]');
+      frames.forEach((frame) => {
+        const src = frame.dataset.mapSrc;
+        if (!src) return;
+        frame.setAttribute('src', 'about:blank');
+        window.requestAnimationFrame(() => frame.setAttribute('src', src));
+      });
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        if (activeElementIsMap()) mapsNeedRestore = true;
+        return;
+      }
+
+      if (mapsNeedRestore) {
+        restoreTimer = window.setTimeout(restoreMapFrames, 120);
+      }
+    });
+
+    window.addEventListener('pagehide', () => {
+      if (activeElementIsMap()) mapsNeedRestore = true;
+    });
+
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted && mapsNeedRestore) {
+        restoreTimer = window.setTimeout(restoreMapFrames, 120);
+      }
     });
 
     panel.querySelector('.about-photo-map-credit')?.remove();
