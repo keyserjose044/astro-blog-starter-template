@@ -75,6 +75,31 @@
   .about-photo-roots-branch .about-photo-where-step:nth-child(-n+4) .about-photo-where-card{
     min-height:0;
   }
+
+  /* Keep the timeline, but stop it from pushing every card far to the right. */
+  .about-photo-where-steps{
+    box-sizing:border-box;
+    width:100%;
+    padding-left:1rem;
+  }
+
+  .about-photo-where-steps::before{
+    left:.16rem;
+  }
+
+  .about-photo-where-step{
+    box-sizing:border-box;
+    width:100%;
+    min-width:0;
+  }
+
+  .about-photo-where-step::before{
+    left:-.88rem;
+  }
+
+  .about-photo-where-card{
+    width:100%;
+  }
 }
 
 @media(max-width:640px){
