@@ -9,7 +9,7 @@ interface Props {
 
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL || '/';
-const classicalAssetVersion = '20260805-2036';
+const classicalAssetVersion = '20260805-2050';
 
 const sections = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
@@ -61,8 +61,8 @@ const sections = [
 )}
 
 <style>
-  .music-nav { width:100%; padding:4px clamp(16px,3vw,48px) 18px; }
-  .music-nav__inner { display:flex; width:max-content; max-width:100%; margin:0 auto; padding:4px; gap:4px; overflow-x:auto; border:1px solid rgba(230,233,239,.96); border-radius:999px; background:rgba(255,255,255,.88); box-shadow:0 8px 22px rgba(15,23,42,.07); scrollbar-width:none; }
+  .music-nav { display:block; width:100%; max-width:100%; margin:0 auto; padding:4px clamp(16px,3vw,48px) 18px; box-sizing:border-box; }
+  .music-nav__inner { display:flex; width:max-content; max-width:100%; margin:0 auto; padding:4px; gap:4px; overflow-x:auto; border:1px solid rgba(230,233,239,.96); border-radius:999px; background:rgba(255,255,255,.88); box-shadow:0 8px 22px rgba(15,23,42,.07); scrollbar-width:none; box-sizing:border-box; }
   .music-nav__inner::-webkit-scrollbar { display:none; }
   .music-nav__item { flex:0 0 auto; min-width:110px; padding:9px 18px; border-radius:999px; color:#5e6573; font-size:.86rem; font-weight:750; line-height:1; text-align:center; text-decoration:none; transition:color .15s ease,background .15s ease,box-shadow .15s ease,transform .12s ease; }
   a.music-nav__item:hover { color:#1f35b7; background:#f0f2ff; transform:translateY(-1px); }
@@ -70,8 +70,8 @@ const sections = [
   .music-nav__item--active { color:#fff; background:#405cf5; box-shadow:0 6px 14px rgba(64,92,245,.24); }
   a.music-nav__item--active:hover { color:#fff; background:#354edb; }
   @media (max-width:560px) {
-    .music-nav { padding:0 10px 13px; }
-    .music-nav__inner { width:100%; }
+    .music-nav { width:100%; max-width:100%; margin:0 auto; padding:0 10px 13px; box-sizing:border-box; }
+    .music-nav__inner { width:100%; max-width:100%; margin:0 auto; box-sizing:border-box; }
     .music-nav__item { flex:1 1 0; min-width:0; padding:8px 9px; font-size:.78rem; }
   }
 </style>
