@@ -1,1 +1,226 @@
-/* placeholder */
+/* Classical Music v7 — composer-card density, overview width safety, and simple agenda rows. */
+
+/* Desktop composer stat cells: let double-digit hour values fit instead of ellipsizing. */
+@media (min-width: 701px) {
+  .composer-card .composer-stats .stat:nth-child(2) {
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+  .composer-card .composer-stats .stat:nth-child(2) strong {
+    overflow: visible !important;
+    font-size: .72rem !important;
+    letter-spacing: -.015em;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  /* Don't force Composer Insights to stretch just because Recently Heard is taller.
+     The extra four analytical rows now use that space naturally. */
+  .overview-layout {
+    align-items: start !important;
+  }
+  .overview-layout > .overview-card:nth-child(-n + 2) {
+    height: auto !important;
+  }
+}
+
+/* Ranks 9–12 are a desktop depth enhancement; phones keep the concise top eight. */
+.classical-v7-insight-extra { display: grid; }
+@media (max-width: 1080px) {
+  .classical-v7-insight-extra { display: none !important; }
+}
+
+/* Fourth mobile composer stat is intentionally mobile-only. */
+.classical-mobile-return-stat { display: none !important; }
+
+/* Daily Listening stays about the composer and composition. */
+.classical-calendar-agenda .classical-agenda-thumbnail {
+  display: none !important;
+}
+.classical-calendar-agenda .classical-calendar-work,
+.classical-calendar-agenda .classical-calendar-work.has-agenda-thumbnail {
+  grid-template-columns: 30px minmax(0, 1fr) auto !important;
+}
+.classical-calendar-agenda .classical-calendar-work img:not(.classical-agenda-thumbnail__img),
+.classical-calendar-agenda .classical-calendar-work > span:first-child:not(.classical-agenda-thumbnail) {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+}
+
+/* Current Obsessions and Favorite Composers are now real composer shortcuts. */
+.classical-composer-shortcut {
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.classical-composer-shortcut:hover,
+.classical-composer-shortcut:focus-visible {
+  border-color: rgba(64, 92, 245, .42) !important;
+  box-shadow: 0 7px 18px rgba(48, 70, 190, .12) !important;
+  transform: translateY(-2px);
+  outline: none;
+}
+
+@media (max-width: 700px) {
+  /* A Books-Quilt-like two-column composer library: portrait first, then a 2x2 dashboard. */
+  .composer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  .composer-card,
+  .composer-button,
+  .composer-button > * {
+    min-width: 0 !important;
+  }
+  .composer-card .portrait-wrap {
+    width: 100% !important;
+    aspect-ratio: 4 / 5 !important;
+  }
+  .composer-card .card-body {
+    padding: 9px !important;
+  }
+  .composer-card .composer-stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+  }
+  .composer-card .composer-stats .stat,
+  .composer-card .composer-stats .classical-mobile-return-stat {
+    display: grid !important;
+    min-width: 0 !important;
+    min-height: 52px !important;
+    align-content: center !important;
+    padding: 7px 5px !important;
+    border-radius: 9px !important;
+  }
+  .composer-card .composer-stats .stat strong {
+    overflow: hidden !important;
+    font-size: .7rem !important;
+    line-height: 1.12 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .composer-card .composer-stats .stat span {
+    margin-top: 3px !important;
+    overflow: hidden !important;
+    font-size: .56rem !important;
+    line-height: 1.2 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .composer-card .classical-card-quickline {
+    display: none !important;
+  }
+
+  /* Strong containment: the generated full-width Overview cards may never exceed the
+     same content column that Recently Heard already respects. */
+  .page-panel[data-page-panel='overview'],
+  .page-panel[data-page-panel='overview'] .overview-layout {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+  }
+  .page-panel[data-page-panel='overview'] .overview-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow: visible !important;
+  }
+  .page-panel[data-page-panel='overview'] .overview-layout > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .page-panel[data-page-panel='overview'] .classical-most-revisited,
+  .page-panel[data-page-panel='overview'] .classical-current-obsessions {
+    grid-column: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .classical-revisited-list,
+  .classical-obsession-grid,
+  .classical-revisited-list li,
+  .classical-obsession-grid > article {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .classical-revisited-list li {
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+  .classical-revisited-list button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .classical-revisit-meta {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+  }
+  .classical-obsession-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .classical-obsession-grid > article {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+  }
+
+  /* The permanent Daily Listening list is compact but readable: portrait + text only. */
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work,
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work.has-agenda-thumbnail {
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    min-height: 58px !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work img:not(.classical-agenda-thumbnail__img),
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work > span:first-child:not(.classical-agenda-thumbnail) {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work b {
+    display: block !important;
+    overflow: hidden !important;
+    color: #314bd8 !important;
+    font-size: .62rem !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work em {
+    display: -webkit-box !important;
+    margin-top: 3px !important;
+    overflow: hidden !important;
+    color: #141821 !important;
+    font-size: .7rem !important;
+    font-style: normal !important;
+    font-weight: 760 !important;
+    line-height: 1.28 !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+  .page-panel[data-page-panel='calendar'] .classical-calendar-agenda .classical-calendar-work > i {
+    display: none !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .composer-grid { gap: 8px !important; }
+  .composer-card .composer-stats { gap: 5px !important; }
+  .composer-card .composer-stats .stat { padding-inline: 4px !important; }
+  .composer-card .composer-stats .stat strong { font-size: .64rem !important; }
+  .composer-card .composer-stats .stat span { font-size: .52rem !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classical-composer-shortcut { transition: none; }
+}
