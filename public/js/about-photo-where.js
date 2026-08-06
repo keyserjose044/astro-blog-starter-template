@@ -35,12 +35,12 @@
       ]],
       [mom, [
         {
-          title: 'Interactive Google Map showing Mom’s Tamaulipas roots within México',
-          query: 'Heroica Matamoros, Tamaulipas, Mexico',
+          title: 'Interactive Google Map showing Tamaulipas within northeastern México',
+          query: 'Tamaulipas, Mexico',
           zoom: 5,
         },
         {
-          title: 'Interactive Google Map of Tamaulipas, México',
+          title: 'Interactive Google Map outlining the State of Tamaulipas, México',
           query: 'Tamaulipas, Mexico',
           zoom: 7,
         },
@@ -50,9 +50,9 @@
           zoom: 10,
         },
         {
-          title: 'Interactive Google Map centered on Colonia Progreso, Heroica Matamoros, Tamaulipas, México',
-          query: '25.8602,-97.46717',
-          zoom: 14,
+          title: 'Interactive Google Map of Progreso, 87440 Matamoros, Tamaulipas, México',
+          query: 'Progreso, 87440 Matamoros, Tamaulipas, Mexico',
+          zoom: 16,
         },
       ]],
     ];
