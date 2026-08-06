@@ -36,6 +36,34 @@
       });
     });
 
+    const localMaps = [
+      {
+        branch: dad,
+        title: 'Map centered on Amarillas de Esparza, Asientos, Aguascalientes',
+        src: 'https://www.openstreetmap.org/export/embed.html?bbox=-102.032%2C22.034%2C-101.995%2C22.057&layer=mapnik&marker=22.045308%2C-102.013514',
+      },
+      {
+        branch: mom,
+        title: 'Map centered on Colonia Progreso, Matamoros, Tamaulipas',
+        src: 'https://www.openstreetmap.org/export/embed.html?bbox=-97.486%2C25.849%2C-97.448%2C25.872&layer=mapnik&marker=25.8602%2C-97.46717',
+      },
+    ];
+
+    localMaps.forEach(({ branch, title, src }) => {
+      if (!branch) return;
+      const slot = branch.querySelectorAll('.about-photo-map-slot')[3];
+      if (!slot || slot.querySelector('.about-photo-map-frame')) return;
+
+      const frame = document.createElement('iframe');
+      frame.className = 'about-photo-map-frame';
+      frame.src = src;
+      frame.title = title;
+      frame.loading = 'lazy';
+      frame.tabIndex = -1;
+      frame.setAttribute('aria-hidden', 'true');
+      slot.appendChild(frame);
+    });
+
     if (!panel.querySelector('.about-photo-map-credit')) {
       const credit = document.createElement('p');
       credit.className = 'about-photo-map-credit';
