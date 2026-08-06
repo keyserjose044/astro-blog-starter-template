@@ -1,0 +1,62 @@
+/* Classical Music v4 follow-up: balanced stats and contextual canon-help placement. */
+
+.overall-stats.classical-stats-six {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+.classical-canon-help-button--toolbar {
+  flex: 0 0 42px;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  align-self: stretch;
+}
+
+.classical-canon-help-button--nav { display: none; }
+
+@media (max-width: 1080px) {
+  .overall-stats.classical-stats-six {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .overall-stats.classical-stats-six {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  main.wrap .page-tabs .page-tab[data-page-tab='favorites'] {
+    grid-column: 1 / span 2 !important;
+  }
+
+  main.wrap .page-tabs .classical-canon-help-button--nav {
+    display: inline-flex;
+    grid-column: 3;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 8px 5px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #5e6573;
+    box-shadow: none;
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  main.wrap .page-tabs .classical-canon-help-button--nav:hover,
+  main.wrap .page-tabs .classical-canon-help-button--nav:focus-visible {
+    background: #f0f2ff;
+    color: #314bd8;
+  }
+}
