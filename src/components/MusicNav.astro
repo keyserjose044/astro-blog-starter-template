@@ -9,7 +9,7 @@ interface Props {
 
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL || '/';
-const classicalAssetVersion = '20260806-0018';
+const classicalAssetVersion = '20260806-0055';
 
 const sections = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
@@ -43,6 +43,7 @@ const sections = [
       <>
         <link rel="stylesheet" href={`${base}styles/classical-runtime.css?v=${classicalAssetVersion}`} />
         <script is:inline type="module" src={`${base}scripts/classical-runtime.js?v=${classicalAssetVersion}`}></script>
+        <script is:inline type="module" src={`${base}scripts/classical-runtime-ui.js?v=${classicalAssetVersion}`}></script>
       </>
     ) : null}
   </>
