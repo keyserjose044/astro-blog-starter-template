@@ -38,6 +38,33 @@ main.wrap .page-tabs .page-tab[data-page-tab='world']::before { content: '◎'; 
   cursor: pointer;
 }
 
+/* V6's gold treatment originally assumed the mobile help button lived inside the
+   tablist. It now lives in its own semantic slot, so explicitly carry the same shimmer. */
+.classical-canon-help-mobile-slot .classical-canon-help-button--nav {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(189, 139, 28, .5) !important;
+  background: linear-gradient(135deg, #fff8d8 0%, #f6d66f 34%, #fff4be 55%, #d9a824 100%) !important;
+  color: #60430a !important;
+  box-shadow: 0 5px 16px rgba(182, 132, 24, .22), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+.classical-canon-help-mobile-slot .classical-canon-help-button--nav::after {
+  content: '';
+  position: absolute;
+  inset: -45% auto -45% -75%;
+  width: 45%;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.92), transparent);
+  transform: skewX(-18deg);
+  animation: classicalGoldShimmer 2.8s ease-in-out infinite;
+}
+.classical-canon-help-mobile-slot .classical-canon-help-button--nav:hover,
+.classical-canon-help-mobile-slot .classical-canon-help-button--nav:focus-visible {
+  color: #3f2b04 !important;
+  box-shadow: 0 7px 19px rgba(182, 132, 24, .32), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
 @media (max-width: 700px) {
   /* Eight views now fit as a clean 4 × 2 switcher; the help button no longer lives
      inside the tablist, so keyboard and screen-reader semantics stay correct. */
@@ -56,4 +83,8 @@ main.wrap .page-tabs .page-tab[data-page-tab='world']::before { content: '◎'; 
   main.wrap .page-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classical-canon-help-mobile-slot .classical-canon-help-button--nav::after { animation: none; }
 }
