@@ -1,0 +1,389 @@
+/* LifeLoggerz Classical Music — Aug 5, 2026 repair pass.
+   This layer deliberately fixes the dynamic views without changing the Works Explorer. */
+
+/* Dynamic elements inserted by classical-expansion.js do not receive Astro's scoped
+   page styles, so restate the important shared card/heading rules here. */
+.classical-most-revisited,
+.classical-current-obsessions {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid rgba(229, 232, 239, .96);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 9px 24px rgba(15, 23, 42, .07);
+}
+
+.classical-most-revisited .overview-card-header,
+.classical-current-obsessions .overview-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 13px;
+}
+
+.classical-most-revisited .overview-card-header h3,
+.classical-current-obsessions .overview-card-header h3 {
+  margin: 0;
+  color: var(--classical-ink, #10131b);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.classical-most-revisited .overview-card-header p,
+.classical-current-obsessions .overview-card-header p {
+  margin: 3px 0 0;
+  color: var(--classical-muted, #626a78);
+  font-size: .72rem;
+  line-height: 1.4;
+}
+
+/* Make the two original Overview cards read as one deliberate desktop row. */
+@media (min-width: 1081px) {
+  .overview-layout { align-items: stretch !important; }
+  .overview-layout > .overview-card:nth-child(-n + 2) { height: 100%; }
+  .overview-layout > .overview-card:first-child .chart-list { gap: 12px; }
+}
+
+/* Five useful top-level stats: unique works, time, profiled composers, favorites, periods. */
+.overall-stats.classical-stats-five {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+/* Canon-journey explainer. */
+.classical-canon-help-row {
+  display: flex;
+  justify-content: center;
+  margin: -3px auto 15px;
+}
+
+.classical-canon-help-button {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(229, 232, 239, .98);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .95);
+  color: #10131b;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, .07);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.classical-canon-help-button:hover { color: #314bd8; background: #f5f6ff; }
+
+.classical-canon-dialog {
+  width: min(660px, calc(100vw - 28px));
+  max-width: none;
+  max-height: min(82dvh, 720px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  color: #10131b;
+  box-shadow: 0 28px 90px rgba(10, 17, 35, .3);
+}
+
+.classical-canon-dialog::backdrop {
+  background: rgba(9, 14, 25, .58);
+  backdrop-filter: blur(4px);
+}
+
+.classical-canon-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px 22px 15px;
+  border-bottom: 1px solid #e5e8ef;
+}
+
+.classical-canon-dialog__header span {
+  display: block;
+  margin-bottom: 4px;
+  color: #314bd8;
+  font-size: .69rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.classical-canon-dialog__header h2 { margin: 0; font-size: 1.35rem; line-height: 1.2; }
+.classical-canon-dialog__close {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #e5e8ef;
+  border-radius: 9px;
+  background: #fff;
+  color: #10131b;
+  font: inherit;
+  font-size: .73rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.classical-canon-dialog__body { overflow: auto; padding: 18px 22px 23px; }
+.classical-canon-dialog__body p { margin: 0 0 12px; color: #505866; font-size: .9rem; line-height: 1.65; }
+.classical-canon-dialog__body p:last-child { margin-bottom: 0; }
+.classical-canon-dialog__body strong { color: #10131b; }
+
+/* Composer library: Profile Pending is optional rather than the default archive view. */
+.classical-pending-toggle {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid #dfe3ee;
+  border-radius: 999px;
+  background: #fff;
+  color: #4f5868;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.classical-pending-toggle[aria-pressed='true'] { border-color: #405cf5; background: #eef1ff; color: #314bd8; }
+
+/* Dynamic page headings must match the centered static Overview/Works headings. */
+.classical-expansion-panel > .panel-heading {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto 14px;
+  padding: 0 12px;
+  text-align: center;
+}
+.classical-expansion-panel > .panel-heading h2 {
+  margin: 0 0 5px;
+  color: var(--classical-ink, #10131b);
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+.classical-expansion-panel > .panel-heading p {
+  max-width: 78ch;
+  margin: 0 auto;
+  color: var(--classical-muted, #626a78);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+/* Keep all generated view shells inside the page instead of drifting to the right. */
+.classical-expansion-panel,
+.classical-expansion-panel > [data-classical-panel-content],
+.classical-calendar-shell,
+.classical-journey-shell,
+.classical-records-shell,
+.classical-favorites-shell,
+.classical-favorite-composers,
+.classical-favorite-works {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Calendar: Month + daily agenda are both permanent views of the same month. */
+.classical-calendar-mode-switch { display: none !important; }
+.classical-calendar-weekdays[hidden],
+.classical-calendar-grid[hidden],
+.classical-calendar-agenda[hidden] { display: none !important; }
+.classical-calendar-agenda--mainstay { display: grid !important; margin-top: 12px; }
+.classical-agenda-heading {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e6e9f0;
+}
+.classical-agenda-heading h3 { margin: 0; color: #10131b; font-size: 1rem; }
+.classical-agenda-heading p { margin: 4px 0 0; color: #626a78; font-size: .72rem; line-height: 1.4; }
+
+/* Richer milestone cards. */
+.classical-milestone-row button.classical-milestone-rich {
+  min-width: 0;
+  padding: 11px 12px;
+  text-align: left;
+}
+.classical-milestone-rich .classical-milestone-number {
+  display: block;
+  color: #314bd8;
+  font-size: 1rem;
+  font-weight: 900;
+}
+.classical-milestone-rich .classical-milestone-date {
+  display: block;
+  margin-top: 2px;
+  color: #626a78;
+  font-size: .62rem;
+  font-weight: 750;
+}
+.classical-milestone-rich strong {
+  display: -webkit-box;
+  margin-top: 8px;
+  overflow: hidden;
+  color: #10131b;
+  font-size: .72rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.classical-milestone-rich em {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #626a78;
+  font-size: .62rem;
+  font-style: normal;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Long-composer-run record can carry more than one line of context. */
+.classical-record-card[data-consecutive-composer-run='true'] > strong { font-size: 1.02rem; }
+.classical-record-card[data-consecutive-composer-run='true'] .classical-record-detail,
+.classical-record-card[data-consecutive-composer-run='true'] > em {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+@media (max-width: 1080px) {
+  .overall-stats.classical-stats-five { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 700px) {
+  /* Prevent one over-wide generated section from shifting the entire Classical page. */
+  body { overflow-x: hidden; }
+  main.wrap { width: 100% !important; max-width: 100vw !important; overflow-x: clip; }
+
+  .music-nav {
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 10px 13px !important;
+    overflow: hidden;
+  }
+  .music-nav__inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box;
+  }
+
+  .classical-most-revisited,
+  .classical-current-obsessions {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 14px;
+    overflow: hidden;
+  }
+  .classical-most-revisited .overview-card-header,
+  .classical-current-obsessions .overview-card-header { display: block; }
+  .classical-mini-stat { display: inline-flex; margin-top: 8px; }
+  .classical-obsession-grid { grid-template-columns: 1fr !important; }
+  .classical-obsession-grid article { min-width: 0; }
+
+  .classical-revisited-list li {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    gap: 8px;
+    min-width: 0;
+  }
+  .classical-revisit-meta {
+    grid-column: 2;
+    justify-content: flex-start;
+    white-space: normal;
+  }
+  .classical-revisited-list button strong,
+  .classical-revisited-list button span { white-space: normal; }
+  .classical-revisited-list button span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Repair the two-column composer cards after the older 520px side-by-side rule. */
+  .composer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    gap: 10px !important;
+  }
+  .composer-card,
+  .composer-button { width: 100% !important; min-width: 0 !important; height: auto !important; }
+  .composer-button {
+    display: block !important;
+    grid-template-columns: none !important;
+    overflow: hidden !important;
+  }
+  .portrait-wrap {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 4 / 5 !important;
+  }
+  .card-body {
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 9px !important;
+    overflow: visible !important;
+  }
+  .composer-name { font-size: .78rem !important; }
+  .composer-meta { min-height: 0 !important; font-size: .6rem !important; }
+  .composer-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+
+  .classical-expansion-panel > .panel-heading {
+    padding-inline: 8px;
+    text-align: center !important;
+  }
+  .classical-expansion-panel > .panel-heading h2 { font-size: 1.45rem; }
+  .classical-expansion-panel > .panel-heading p { font-size: .86rem; }
+
+  .classical-calendar-shell,
+  .classical-journey-shell,
+  .classical-records-shell,
+  .classical-favorite-composers,
+  .classical-favorite-works {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 12px !important;
+  }
+
+  .classical-record-grid,
+  .classical-favorite-composer-grid { grid-template-columns: 1fr !important; }
+  .classical-record-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding-right: 62px;
+  }
+  .classical-record-card > button,
+  .classical-record-detail { white-space: normal !important; }
+
+  .classical-favorite-composers { overflow: hidden; }
+  .classical-favorite-composer-grid article { width: 100%; max-width: 100%; min-width: 0; }
+
+  .classical-calendar-agenda-day {
+    grid-template-columns: 58px minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  .classical-milestone-row { grid-template-columns: 1fr !important; }
+  .classical-milestone-rich em { white-space: normal; }
+
+  .classical-canon-dialog__header { padding: 17px 16px 13px; }
+  .classical-canon-dialog__body { padding: 15px 16px 19px; }
+}
+
+@media (max-width: 620px) {
+  .overall-stats.classical-stats-five { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 370px) {
+  .composer-grid { grid-template-columns: 1fr !important; }
+}
