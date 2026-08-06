@@ -1,0 +1,446 @@
+/* LifeLoggerz Classical Music v8 — composer-dialog list repair.
+   Keeps the generated Works tab/list visually identical to the server-rendered tabs,
+   fixes clipped Favorites/Listening History headings, and makes dialog list layouts
+   consistent across desktop and mobile. */
+
+/* The generated Works tab does not inherit Astro-scoped .detail-tab styles. Restate
+   the complete tab treatment at dialog scope so every tab behaves the same. */
+#composer-dialog .detail-tabs {
+  display: flex !important;
+  gap: 4px !important;
+  padding: 10px 24px !important;
+  overflow-x: auto !important;
+  border-bottom: 1px solid #e5e8ef !important;
+  background: #fff !important;
+  scrollbar-width: thin;
+}
+
+#composer-dialog .detail-tabs .detail-tab {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  min-height: 38px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 13px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: #626a78 !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: .8rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+
+#composer-dialog .detail-tabs .detail-tab:hover,
+#composer-dialog .detail-tabs .detail-tab:focus-visible {
+  background: #f5f6ff !important;
+  color: #314bd8 !important;
+}
+
+#composer-dialog .detail-tabs .detail-tab[aria-selected='true'] {
+  background: #eef1ff !important;
+  color: #314bd8 !important;
+}
+
+/* The two generated repeat cards also miss Astro's scoped child-card styling.
+   Use a balanced 4 × 2 dashboard on desktop so all eight composer stats read as
+   one system instead of six cards followed by two loose pieces of text. */
+#composer-dialog .detail-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 0 0 18px !important;
+}
+
+#composer-dialog .detail-summary > div {
+  display: block !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  padding: 11px !important;
+  border-radius: 11px !important;
+  background: #f4f5f9 !important;
+  box-sizing: border-box !important;
+}
+
+#composer-dialog .detail-summary > div > strong,
+#composer-dialog .detail-summary > div > span {
+  display: block !important;
+  min-width: 0 !important;
+}
+
+#composer-dialog .detail-summary > div > strong {
+  overflow: hidden !important;
+  color: #10131b !important;
+  font-size: .92rem !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#composer-dialog .detail-summary > div > span {
+  margin-top: 3px !important;
+  color: #626a78 !important;
+  font-size: .66rem !important;
+  line-height: 1.25 !important;
+}
+
+/* Let short composer profiles shrink instead of forcing a nearly full-screen blank
+   white modal, while long lists still stop at the viewport and scroll internally. */
+#composer-dialog.composer-dialog {
+  height: auto !important;
+  max-height: 88dvh !important;
+}
+
+#composer-dialog .composer-dialog-content,
+#composer-dialog .composer-detail {
+  height: auto !important;
+  max-height: 88dvh !important;
+}
+
+#composer-dialog .composer-detail {
+  min-height: 0 !important;
+}
+
+#composer-dialog .detail-panel-wrap {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  max-height: calc(88dvh - 142px) !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  padding: 20px 24px 28px !important;
+  box-sizing: border-box !important;
+}
+
+/* Favorites and Listening History inherited a sticky browser-toolbar designed for
+   the full page. Its negative top margin was covering their section headings inside
+   the dialog. Make those dialog toolbars normal in-flow controls. */
+#composer-dialog [data-detail-panel='favorites'] .section-heading,
+#composer-dialog [data-detail-panel='history'] .section-heading,
+#composer-dialog [data-detail-panel='works'] .section-heading {
+  position: relative !important;
+  z-index: 1 !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+}
+
+#composer-dialog [data-detail-panel='favorites'] .browser-toolbar,
+#composer-dialog [data-detail-panel='history'] .browser-toolbar {
+  position: static !important;
+  top: auto !important;
+  z-index: auto !important;
+  width: 100% !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-sizing: border-box !important;
+}
+
+#composer-dialog [data-detail-panel='favorites'] .browser-toolbar.two-controls {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) 180px !important;
+  gap: 8px !important;
+}
+
+#composer-dialog [data-detail-panel='history'] .browser-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 1fr) 180px 180px !important;
+  gap: 8px !important;
+}
+
+#composer-dialog .browser-toolbar input,
+#composer-dialog .browser-toolbar select {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  padding: 8px 10px !important;
+  border: 1px solid #e5e8ef !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #10131b !important;
+  box-sizing: border-box !important;
+  font: inherit !important;
+  font-size: .76rem !important;
+}
+
+/* Give all three list-based tabs the same row geometry. */
+#composer-dialog .entry-list,
+#composer-dialog .classical-composer-work-list {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  box-sizing: border-box !important;
+}
+
+#composer-dialog .entry-item {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(104px, auto) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 10px 11px !important;
+  border: 1px solid #eceef4 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+}
+
+#composer-dialog .entry-item:hover,
+#composer-dialog .classical-composer-work-list li:hover {
+  border-color: #dce1f4 !important;
+  background: #fcfcff !important;
+}
+
+#composer-dialog .entry-item .play-link,
+#composer-dialog .entry-item .play-missing {
+  display: inline-flex !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 34px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  box-sizing: border-box !important;
+}
+
+#composer-dialog .entry-item .entry-main,
+#composer-dialog .entry-item .entry-side {
+  min-width: 0 !important;
+}
+
+#composer-dialog .entry-item .entry-title {
+  display: block !important;
+  overflow: hidden !important;
+  color: #10131b !important;
+  font-size: .82rem !important;
+  font-weight: 800 !important;
+  line-height: 1.34 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#composer-dialog .entry-item .entry-meta {
+  display: block !important;
+  margin-top: 4px !important;
+  overflow: hidden !important;
+  color: #626a78 !important;
+  font-size: .68rem !important;
+  line-height: 1.4 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#composer-dialog .entry-item .entry-side {
+  min-width: 104px !important;
+  text-align: right !important;
+}
+
+#composer-dialog .entry-item .entry-side time,
+#composer-dialog .entry-item .entry-side > span {
+  display: block !important;
+  color: #626a78 !important;
+  font-size: .67rem !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+}
+
+/* Generated Works list: make it feel like the same archive rather than a separate
+   widget pasted into the dialog. */
+#composer-dialog .classical-composer-works-panel .classical-segmented {
+  flex: 0 0 auto !important;
+}
+
+#composer-dialog .classical-composer-work-list li {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 10px 11px !important;
+  border: 1px solid #eceef4 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+}
+
+#composer-dialog .classical-composer-work-list li > button {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+#composer-dialog .classical-composer-work-title {
+  display: block !important;
+  overflow: hidden !important;
+  color: #10131b !important;
+  font-size: .82rem !important;
+  font-weight: 800 !important;
+  line-height: 1.34 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#composer-dialog .classical-composer-work-meta {
+  display: block !important;
+  margin-top: 4px !important;
+  overflow: hidden !important;
+  color: #626a78 !important;
+  font-size: .68rem !important;
+  line-height: 1.4 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#composer-dialog .classical-composer-work-side {
+  display: flex !important;
+  gap: 7px !important;
+  align-items: center !important;
+  color: #626a78 !important;
+  font-size: .67rem !important;
+  white-space: nowrap !important;
+}
+
+#composer-dialog .classical-composer-work-side b {
+  color: #314bd8 !important;
+  font-size: .76rem !important;
+}
+
+#composer-dialog .entry-results {
+  margin: 0 0 9px !important;
+  color: #626a78 !important;
+  font-size: .7rem !important;
+}
+
+@media (max-width: 800px) {
+  #composer-dialog .detail-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #composer-dialog [data-detail-panel='favorites'] .browser-toolbar.two-controls,
+  #composer-dialog [data-detail-panel='history'] .browser-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  #composer-dialog [data-detail-panel='works'] .section-heading {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  #composer-dialog .classical-composer-works-panel .classical-segmented {
+    width: 100% !important;
+  }
+
+  #composer-dialog .classical-composer-works-panel .classical-segmented button {
+    flex: 1 1 0 !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #composer-dialog.composer-dialog {
+    width: 100vw !important;
+    height: auto !important;
+    max-height: 94dvh !important;
+  }
+
+  #composer-dialog .composer-dialog-content,
+  #composer-dialog .composer-detail {
+    max-height: 94dvh !important;
+  }
+
+  #composer-dialog .detail-tabs {
+    padding: 8px 12px !important;
+  }
+
+  #composer-dialog .detail-tabs .detail-tab {
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+    font-size: .72rem !important;
+  }
+
+  #composer-dialog .detail-panel-wrap {
+    max-height: calc(94dvh - 138px) !important;
+    padding: 14px 12px 20px !important;
+  }
+
+  #composer-dialog .detail-summary {
+    gap: 7px !important;
+  }
+
+  #composer-dialog .detail-summary > div {
+    min-height: 54px !important;
+    padding: 9px !important;
+  }
+
+  #composer-dialog .detail-summary > div > strong {
+    font-size: .82rem !important;
+  }
+
+  #composer-dialog .detail-summary > div > span {
+    font-size: .61rem !important;
+  }
+
+  #composer-dialog .section-heading {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+
+  #composer-dialog .entry-item {
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 9px !important;
+  }
+
+  #composer-dialog .entry-item .play-link,
+  #composer-dialog .entry-item .play-missing {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 32px !important;
+  }
+
+  #composer-dialog .entry-item .entry-side {
+    grid-column: 2 !important;
+    display: flex !important;
+    min-width: 0 !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+
+  #composer-dialog .entry-item .entry-title,
+  #composer-dialog .entry-item .entry-meta,
+  #composer-dialog .classical-composer-work-title,
+  #composer-dialog .classical-composer-work-meta {
+    white-space: normal !important;
+    text-overflow: clip !important;
+  }
+
+  #composer-dialog .classical-composer-work-list li {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+    padding: 9px !important;
+  }
+
+  #composer-dialog .classical-composer-work-side {
+    justify-content: flex-start !important;
+  }
+}
