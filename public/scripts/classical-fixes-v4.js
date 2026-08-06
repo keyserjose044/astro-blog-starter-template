@@ -29,15 +29,27 @@ function bootClassicalFixesV4(attempt = 0) {
       });
     });
 
-    /* Clone a real server-rendered stat card so Astro's scoped attributes come with it.
-       A bare document.createElement('div') looked unstyled because it did not inherit
-       the scoped .overall-stat rules. */
+    /* Clone a complete rendered card and edit its existing scoped children instead of
+       replacing them. Astro's scoped attributes live on the <strong>/<span> too. */
     const sourceCard = statContainer.querySelector('.overall-stat');
     const card = sourceCard ? sourceCard.cloneNode(true) : document.createElement('div');
     card.className = 'overall-stat';
     card.removeAttribute('id');
     card.dataset.classicalListeningDays = 'true';
-    card.innerHTML = `<strong>${dates.size.toLocaleString('en-US')}</strong><span>listening days</span>`;
+
+    let value = card.querySelector('strong');
+    let label = card.querySelector('span');
+    if (!value) {
+      value = document.createElement('strong');
+      card.append(value);
+    }
+    if (!label) {
+      label = document.createElement('span');
+      card.append(label);
+    }
+    value.textContent = dates.size.toLocaleString('en-US');
+    label.textContent = 'listening days';
+
     card.title = 'Distinct calendar days with at least one tracked classical listening entry';
     statContainer.append(card);
   }
