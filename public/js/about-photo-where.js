@@ -36,6 +36,18 @@
       });
     });
 
+    const countryMarkers = [
+      [dad, '50%', '59%'],
+      [mom, '64%', '38%'],
+    ];
+
+    countryMarkers.forEach(([branch, x, y]) => {
+      const marker = branch?.querySelector('.about-photo-where-step:nth-child(1) .about-photo-map-marker');
+      if (!marker) return;
+      marker.style.setProperty('--marker-x', x);
+      marker.style.setProperty('--marker-y', y);
+    });
+
     const localMaps = [
       {
         branch: dad,
