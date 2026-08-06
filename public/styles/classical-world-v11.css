@@ -1,0 +1,345 @@
+/* LifeLoggerz Classical Music — World v11. */
+
+.page-panel[data-page-panel='world'] .panel-heading {
+  max-width: 980px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.page-panel[data-page-panel='world'] [data-classical-panel-content],
+.classical-world-shell,
+.classical-world-shell * {
+  box-sizing: border-box;
+}
+
+.classical-world-shell {
+  --world-blue: #405cf5;
+  --world-blue-deep: #263fc6;
+  --world-ink: #10131b;
+  --world-muted: #626a78;
+  --world-border: #e4e8f1;
+  display: grid;
+  width: 100%;
+  max-width: 1320px;
+  min-width: 0;
+  margin: 0 auto;
+  gap: 18px;
+}
+
+.classical-world-intro {
+  max-width: 900px;
+  margin: 2px auto 0;
+  text-align: center;
+}
+
+.classical-world-intro > span {
+  color: var(--world-blue-deep);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.classical-world-intro h3 {
+  margin: 7px 0 9px;
+  color: var(--world-ink);
+  font-size: clamp(1.65rem, 2.8vw, 2.55rem);
+  line-height: 1.05;
+  letter-spacing: -.025em;
+}
+
+.classical-world-intro p {
+  margin: 0;
+  color: var(--world-muted);
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.classical-world-map-frame {
+  width: 100%;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--world-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(64,92,245,.07), transparent 39%),
+    linear-gradient(180deg, rgba(249,251,255,.98), rgba(241,245,251,.96));
+  box-shadow: 0 14px 34px rgba(15,23,42,.08);
+}
+
+/* Match the actual 2370 × 1200 Robinson SVG. Because the pin layer shares this exact
+   aspect ratio, its projected coordinates stay registered to the coastline. */
+.classical-world-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2370 / 1200;
+  min-width: 0;
+  overflow: visible;
+}
+
+.classical-world-stage__base,
+.classical-world-stage__pins {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.classical-world-stage__base {
+  display: block;
+  object-fit: fill;
+  opacity: .2;
+  filter: grayscale(1) contrast(.82) brightness(.82) sepia(.04);
+  pointer-events: none;
+}
+
+.classical-world-stage__pins { pointer-events: none; }
+
+.classical-world-pin {
+  position: absolute;
+  left: var(--pin-x);
+  top: var(--pin-y);
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  padding: 0;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #e9ecf8;
+  box-shadow: 0 0 0 2px rgba(64,92,245,.28), 0 7px 17px rgba(15,23,42,.2);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(calc(-50% + var(--pin-dx)), calc(-50% + var(--pin-dy)));
+  transition: transform .15s ease, box-shadow .15s ease, z-index 0s;
+  z-index: 2;
+}
+
+.classical-world-pin:hover,
+.classical-world-pin:focus-visible {
+  z-index: 10;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(64,92,245,.38), 0 10px 22px rgba(15,23,42,.25);
+  transform: translate(calc(-50% + var(--pin-dx)), calc(-50% + var(--pin-dy))) scale(1.14);
+}
+
+.classical-world-pin__portrait,
+.classical-world-pin__portrait--fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 20%;
+  background: linear-gradient(145deg, #dfe3f7, #f2e8f5);
+  color: #4e5984;
+  font-family: Georgia, serif;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.classical-world-pin__ring {
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(64,92,245,.18);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.classical-world-status {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 9px 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: var(--world-muted);
+  font-size: .69rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.classical-world-status b { color: var(--world-ink); }
+.classical-world-status a { color: #314bd8; font-weight: 800; text-decoration: none; }
+.classical-world-status a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.classical-world-directory {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--world-border);
+  border-radius: 20px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 9px 24px rgba(15,23,42,.055);
+}
+
+.classical-world-directory > div:first-child {
+  text-align: center;
+}
+
+.classical-world-directory h3 {
+  margin: 0;
+  color: var(--world-ink);
+  font-size: 1.16rem;
+}
+
+.classical-world-directory p {
+  margin: 4px 0 0;
+  color: var(--world-muted);
+  font-size: .72rem;
+}
+
+.classical-world-directory__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  min-width: 0;
+}
+
+.classical-world-list-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  min-width: 0;
+  gap: 10px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid #e8ebf2;
+  border-radius: 13px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.classical-world-list-card:hover,
+.classical-world-list-card:focus-visible {
+  border-color: rgba(64,92,245,.38);
+  box-shadow: 0 7px 17px rgba(46,62,150,.1);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.classical-world-list-card .classical-world-pin__portrait,
+.classical-world-list-card .classical-world-pin__portrait--fallback {
+  width: 54px;
+  height: 54px;
+}
+
+.classical-world-list-card > span,
+.classical-world-list-card b,
+.classical-world-list-card em,
+.classical-world-list-card small {
+  display: block;
+  min-width: 0;
+}
+
+.classical-world-list-card b {
+  overflow: hidden;
+  color: var(--world-ink);
+  font-size: .79rem;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classical-world-list-card em {
+  margin-top: 2px;
+  color: #314bd8;
+  font-size: .64rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.classical-world-list-card small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--world-muted);
+  font-size: .61rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .classical-world-directory__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .page-panel[data-page-panel='world'],
+  .page-panel[data-page-panel='world'] [data-classical-panel-content],
+  .classical-world-shell,
+  .classical-world-map-frame,
+  .classical-world-directory {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  .classical-world-shell { gap: 14px; }
+  .classical-world-intro { padding-inline: 8px; }
+  .classical-world-intro h3 { font-size: 1.75rem; }
+  .classical-world-intro p { font-size: .8rem; }
+
+  .classical-world-map-frame {
+    padding: 8px;
+    border-radius: 16px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  /* Preserve map geometry on phones rather than distorting it. A modest minimum canvas
+     makes the portrait pins tappable; the map can be panned horizontally if needed. */
+  .classical-world-stage {
+    width: max(100%, 620px);
+    min-width: 620px;
+  }
+
+  .classical-world-pin {
+    width: 38px;
+    height: 38px;
+    border-width: 2px;
+  }
+
+  .classical-world-status {
+    padding-inline: 10px;
+    font-size: .64rem;
+  }
+
+  .classical-world-directory {
+    padding: 12px;
+    border-radius: 15px;
+  }
+
+  .classical-world-directory__grid { gap: 7px; }
+  .classical-world-list-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 8px;
+    padding: 7px;
+  }
+  .classical-world-list-card .classical-world-pin__portrait,
+  .classical-world-list-card .classical-world-pin__portrait--fallback {
+    width: 44px;
+    height: 44px;
+  }
+  .classical-world-list-card b { font-size: .7rem; white-space: normal; }
+  .classical-world-list-card em { font-size: .59rem; }
+  .classical-world-list-card small { font-size: .55rem; }
+}
+
+@media (max-width: 430px) {
+  .classical-world-directory__grid { grid-template-columns: 1fr; }
+  .classical-world-stage { width: 600px; min-width: 600px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classical-world-pin,
+  .classical-world-list-card { transition: none; }
+}
