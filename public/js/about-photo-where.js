@@ -18,8 +18,8 @@
           zoom: 5,
         },
         {
-          title: 'Interactive Google Map of Aguascalientes, México',
-          query: 'Aguascalientes, Mexico',
+          title: 'Interactive Google Map of the State of Aguascalientes, México',
+          query: 'Estado de Aguascalientes, México',
           zoom: 8,
         },
         {
@@ -88,6 +88,30 @@
     });
 
     panel.querySelector('.about-photo-map-credit')?.remove();
+
+    const head = panel.querySelector('.about-photo-where-head');
+    if (head && !head.querySelector('.about-photo-mexico-mark')) {
+      const mark = document.createElement('div');
+      mark.className = 'about-photo-mexico-mark';
+      mark.setAttribute('aria-label', 'México');
+
+      const outline = document.createElement('img');
+      outline.className = 'about-photo-mexico-outline';
+      outline.src = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mexico_geoloc_blank.svg?width=180';
+      outline.alt = 'Outline map of México';
+      outline.loading = 'lazy';
+      outline.decoding = 'async';
+
+      const flag = document.createElement('img');
+      flag.className = 'about-photo-mexico-flag';
+      flag.src = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Flag_of_Mexico.svg?width=120';
+      flag.alt = 'Flag of México';
+      flag.loading = 'lazy';
+      flag.decoding = 'async';
+
+      mark.append(outline, flag);
+      head.insertBefore(mark, close);
+    }
 
     const setOpen = (open, { returnFocus = false } = {}) => {
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
