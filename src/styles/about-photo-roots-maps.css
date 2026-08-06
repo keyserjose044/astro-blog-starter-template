@@ -1,0 +1,95 @@
+/* Family Roots map artwork: real cartography, no generated imagery. */
+
+.about-photo-map-slot--live::before,
+.about-photo-map-slot--live::after{
+  display:none;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-dad-title"] .about-photo-where-step:nth-child(1) .about-photo-map-slot,
+.about-photo-roots-branch[aria-labelledby="family-roots-mom-title"] .about-photo-where-step:nth-child(1) .about-photo-map-slot{
+  background-image:url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Mexico_geoloc_blank.svg");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:92% auto;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-dad-title"] .about-photo-where-step:nth-child(2) .about-photo-map-slot{
+  background-image:url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Aguascalientes_en_M%C3%A9xico.svg");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:93% auto;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-dad-title"] .about-photo-where-step:nth-child(3) .about-photo-map-slot{
+  background-image:url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Asientos_en_Aguascalientes.svg");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:88% auto;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-dad-title"] .about-photo-where-step:nth-child(4) .about-photo-map-slot{
+  background-image:url("https://staticmap.openstreetmap.de/staticmap.php?center=22.045308,-102.013514&zoom=14&size=640x420&maptype=mapnik&markers=22.045308,-102.013514,red-pushpin");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:cover;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-mom-title"] .about-photo-where-step:nth-child(2) .about-photo-map-slot{
+  background-image:url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Tamaulipas_en_M%C3%A9xico.svg");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:93% auto;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-mom-title"] .about-photo-where-step:nth-child(3) .about-photo-map-slot{
+  background-image:url("https://commons.wikimedia.org/wiki/Special:Redirect/file/Matamoros_en_Tamaulipas.svg");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:auto 92%;
+}
+
+.about-photo-roots-branch[aria-labelledby="family-roots-mom-title"] .about-photo-where-step:nth-child(4) .about-photo-map-slot{
+  background-image:url("https://staticmap.openstreetmap.de/staticmap.php?center=25.8602,-97.46717&zoom=14&size=640x420&maptype=mapnik&markers=25.8602,-97.46717,red-pushpin");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:cover;
+}
+
+/* Locator SVGs already highlight the region; keep the red dot only on the country and local-detail cards. */
+.about-photo-roots-branch .about-photo-where-step:nth-child(2) .about-photo-map-marker,
+.about-photo-roots-branch .about-photo-where-step:nth-child(3) .about-photo-map-marker{
+  display:none;
+}
+
+/* OSM static maps already include their own pin. */
+.about-photo-roots-branch .about-photo-where-step:nth-child(4) .about-photo-map-marker{
+  display:none;
+}
+
+.about-photo-map-credit{
+  position:relative;
+  z-index:1;
+  margin:1rem .2rem .05rem;
+  color:#806f60;
+  font-size:.59rem;
+  line-height:1.35;
+  text-align:right;
+}
+
+.about-photo-map-credit a{
+  color:#765435;
+  text-decoration-color:rgba(118,84,53,.42);
+  text-underline-offset:2px;
+}
+
+.about-photo-map-credit a:hover{
+  color:#5e3f25;
+}
+
+@media (hover:none) and (pointer:coarse){
+  .about-photo-map-credit{
+    margin-top:1.2rem;
+    font-size:.6rem;
+    text-align:left;
+  }
+}
