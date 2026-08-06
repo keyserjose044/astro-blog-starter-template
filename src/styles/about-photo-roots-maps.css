@@ -34,6 +34,39 @@
   min-height:315px;
 }
 
+/* Small shared México identity mark for both family branches. */
+.about-photo-where-head > div:first-child{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.about-photo-mexico-mark{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:.52rem;
+  margin-left:auto;
+  padding:.06rem .5rem .06rem .25rem;
+}
+
+.about-photo-mexico-outline{
+  display:block;
+  width:58px;
+  height:38px;
+  object-fit:contain;
+  opacity:.66;
+  filter:sepia(.38) saturate(.72) contrast(.88);
+}
+
+.about-photo-mexico-flag{
+  display:block;
+  width:45px;
+  height:auto;
+  border:1px solid rgba(91,72,51,.28);
+  border-radius:3px;
+  box-shadow:0 2px 5px rgba(54,39,25,.12);
+}
+
 @media (hover:none) and (pointer:coarse){
   .about-photo-map-slot--google{
     min-height:220px;
@@ -47,5 +80,19 @@
 @media(max-width:640px){
   .about-photo-map-slot--google{
     min-height:230px;
+  }
+
+  .about-photo-mexico-mark{
+    gap:.35rem;
+    padding-right:.2rem;
+  }
+
+  .about-photo-mexico-outline{
+    width:46px;
+    height:31px;
+  }
+
+  .about-photo-mexico-flag{
+    width:38px;
   }
 }
