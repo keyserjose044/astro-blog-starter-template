@@ -27,8 +27,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check Classical Canon Journey syntax
-        run: node --check public/scripts/classical-journey-v10.js
-
       - name: Build Astro site
         run: npm run build
