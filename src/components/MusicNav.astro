@@ -9,7 +9,7 @@ interface Props {
 
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL || '/';
-const classicalAssetVersion = '20260805-2340';
+const classicalAssetVersion = '20260806-0055';
 
 const sections = [
   { id: 'albums', label: 'Albums', href: '/music/albums/' },
@@ -41,32 +41,9 @@ const sections = [
     </nav>
     {active === 'composers' ? (
       <>
-        <link rel="stylesheet" href={`${base}styles/classical-nav-polish.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-repeat-dropdown.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-polish-v2.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-polish-v2-guardrails.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v3.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v4.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v5.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v6.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v7.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v8.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-fixes-v9.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-journey-v10.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-world-v11.css?v=${classicalAssetVersion}`} />
-        <link rel="stylesheet" href={`${base}styles/classical-world-v14.css?v=${classicalAssetVersion}`} />
-        <script is:inline type="module" src={`${base}scripts/classical-expansion.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-repeat-dropdown.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-polish-v2.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-polish-v2-guardrails.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-fixes-v3.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-fixes-v4.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-fixes-v5.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-fixes-v7.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-fixes-v9.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-journey-v10.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-world-v11.js?v=${classicalAssetVersion}`}></script>
-        <script is:inline type="module" src={`${base}scripts/classical-world-v14.js?v=${classicalAssetVersion}`}></script>
+        <link rel="stylesheet" href={`${base}styles/classical-runtime.css?v=${classicalAssetVersion}`} />
+        <script is:inline type="module" src={`${base}scripts/classical-runtime.js?v=${classicalAssetVersion}`}></script>
+        <script is:inline type="module" src={`${base}scripts/classical-runtime-ui.js?v=${classicalAssetVersion}`}></script>
       </>
     ) : null}
   </>
