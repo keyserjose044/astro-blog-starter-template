@@ -1,0 +1,59 @@
+/* LifeLoggerz Classical Music — consolidated runtime stylesheet entrypoint.
+   The active page now loads one stylesheet. Existing style layers remain as rollback-safe
+   compatibility modules while the runtime code is consolidated into one controller. */
+
+@import url('./classical-expansion.css');
+@import url('./classical-nav-polish.css');
+@import url('./classical-repeat-dropdown.css');
+@import url('./classical-polish-v2.css');
+@import url('./classical-polish-v2-guardrails.css');
+@import url('./classical-fixes-v3.css');
+@import url('./classical-fixes-v4.css');
+@import url('./classical-fixes-v5.css');
+@import url('./classical-fixes-v6.css');
+@import url('./classical-fixes-v7.css');
+@import url('./classical-fixes-v8.css');
+@import url('./classical-fixes-v9.css');
+@import url('./classical-journey-v10.css');
+@import url('./classical-world-v11.css');
+@import url('./classical-world-v14.css');
+
+/* Final-state overrides owned by the consolidated runtime. */
+main.wrap .page-tabs .page-tab[data-page-tab='world']::before { content: '◎'; }
+
+.classical-canon-help-mobile-slot {
+  display: none;
+  width: 100%;
+  max-width: 560px;
+  margin: -10px auto 18px;
+  justify-content: center;
+}
+
+.classical-canon-help-mobile-slot .classical-canon-help-button {
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  /* Eight views now fit as a clean 4 × 2 switcher; the help button no longer lives
+     inside the tablist, so keyboard and screen-reader semantics stay correct. */
+  main.wrap .page-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  main.wrap .page-tabs .page-tab[data-page-tab='favorites'] {
+    grid-column: auto !important;
+  }
+  .classical-canon-help-mobile-slot {
+    display: flex;
+  }
+}
+
+@media (max-width: 430px) {
+  main.wrap .page-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
