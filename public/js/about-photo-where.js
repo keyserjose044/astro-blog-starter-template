@@ -164,6 +164,9 @@
       head.insertBefore(mark, close);
     }
 
+    const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
+    let mobileOpen = false;
+
     const setOpen = (open, { returnFocus = false } = {}) => {
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       panel.hidden = !open;
@@ -177,19 +180,45 @@
       }
     };
 
+    const syncResponsiveState = () => {
+      const permanentDesktop = desktopRoots.matches;
+      toggle.hidden = permanentDesktop;
+      if (close) close.hidden = permanentDesktop;
+      panel.dataset.permanent = permanentDesktop ? '1' : '0';
+
+      if (permanentDesktop) {
+        setOpen(true);
+      } else {
+        setOpen(mobileOpen);
+      }
+    };
+
     toggle.addEventListener('click', () => {
-      setOpen(panel.hidden);
+      if (desktopRoots.matches) return;
+      mobileOpen = panel.hidden;
+      setOpen(mobileOpen);
     });
 
     close?.addEventListener('click', () => {
+      if (desktopRoots.matches) return;
+      mobileOpen = false;
       setOpen(false, { returnFocus: true });
     });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || panel.hidden) return;
+      if (desktopRoots.matches || event.key !== 'Escape' || panel.hidden) return;
       event.preventDefault();
       event.stopPropagation();
+      mobileOpen = false;
       setOpen(false, { returnFocus: true });
     }, true);
+
+    if (typeof desktopRoots.addEventListener === 'function') {
+      desktopRoots.addEventListener('change', syncResponsiveState);
+    } else {
+      desktopRoots.addListener(syncResponsiveState);
+    }
+
+    syncResponsiveState();
   });
 })();
