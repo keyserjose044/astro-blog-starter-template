@@ -358,6 +358,52 @@
   .about-photo-placeholder-photo{height:66%;width:62%}
 }
 
+@media(max-width:768px){
+  .about-photo-where-head{
+    display:block;
+    min-height:0;
+    padding:.05rem 0 .15rem;
+  }
+
+  .about-photo-where-head > div:first-child{
+    box-sizing:border-box;
+    width:100%;
+    padding:3.1rem .35rem 0;
+    text-align:center;
+  }
+
+  .about-photo-where-kicker{
+    text-align:center;
+  }
+
+  .about-photo-where-title{
+    max-width:18rem;
+    margin-inline:auto;
+    text-align:center;
+  }
+
+  .about-photo-where-subtitle{
+    max-width:25rem;
+    margin:.38rem auto 0;
+    text-align:center;
+  }
+
+  .about-photo-mexico-mark{
+    position:absolute;
+    top:.05rem;
+    left:50%;
+    transform:translateX(-50%);
+    margin:0;
+    padding:.05rem 0;
+  }
+
+  .about-photo-where-close{
+    position:absolute;
+    top:.05rem;
+    right:0;
+  }
+}
+
 @media(max-width:640px){
   .about-photo-where{
     width:min(100%,440px);
