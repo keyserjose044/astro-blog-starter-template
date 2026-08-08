@@ -9,6 +9,11 @@
 
     const dad = panel.querySelector('[aria-labelledby="family-roots-dad-title"]');
     const mom = panel.querySelector('[aria-labelledby="family-roots-mom-title"]');
+    const dadRoute = dad?.querySelector('.about-photo-roots-branch-route');
+    const momRoute = mom?.querySelector('.about-photo-roots-branch-route');
+
+    if (dadRoute) dadRoute.textContent = 'Amarillas de Esparza, Asientos, Aguascalientes, México';
+    if (momRoute) momRoute.textContent = 'Colonia Progreso, Matamoros, Tamaulipas, México';
 
     const googleMaps = [
       [dad, [
