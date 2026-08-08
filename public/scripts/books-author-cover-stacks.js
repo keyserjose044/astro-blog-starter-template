@@ -47,9 +47,15 @@ function bootBooksAuthorCoverStacks(attempt = 0) {
     return Number(card.dataset.originalIndex || 0);
   }
 
+  function isVisible(card) {
+    return card.style.display !== 'none'
+      && !card.hidden
+      && !card.classList.contains('atlas-country-hidden');
+  }
+
   function groupedCards() {
     const groups = new Map();
-    cards.forEach((card) => {
+    cards.filter(isVisible).forEach((card) => {
       authorKeys(card).forEach((key) => {
         if (!groups.has(key)) groups.set(key, []);
         const group = groups.get(key);
