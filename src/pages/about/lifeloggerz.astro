@@ -1,0 +1,226 @@
+---
+import AboutLayout from '../../layouts/AboutLayout.astro';
+import '../../styles/about-split.css';
+
+const proofStats = [
+  { value: 'Jan. 1, 2023', label: 'Tracking since', note: 'A continuous, evolving structured record' },
+  { value: '150+', label: 'Variables tracked', note: 'From sleep and study to hobbies and blunders' },
+  { value: '≈ 5 min', label: 'Essential daily logging', note: 'Diary writing is separate and takes longer' },
+  { value: '4+', label: 'Core tools', note: 'Sheets, Apps Script, Python, APIs, and whatever earns its place' },
+];
+
+const timeline = [
+  { year: '2023', title: 'Started tracking', text: 'I began with ordinary daily details: sleep, meals, work, study, routines, and the things memory quietly loses.' },
+  { year: '2024', title: 'Connected the system', text: 'The spreadsheets grew into dashboards, formulas, scripts, APIs, and repeatable workflows.' },
+  { year: '2025', title: 'Reached diminishing returns', text: 'Adding more data stopped automatically making the system better. The archive had to serve my life rather than consume it.' },
+  { year: 'Today', title: 'Turned the private system outward', text: 'LifeLoggerz is becoming a public-safe archive, toolkit, set of explorers, and demonstration of what long-term computer logging can become.' },
+];
+
+const systemSteps = [
+  { title: 'Record', text: 'Daily logs, diary writing, collections, project notes, and structured variables capture different kinds of evidence.' },
+  { title: 'Structure', text: 'Spreadsheets, schemas, formulas, and scripts turn scattered entries into consistent long-term data.' },
+  { title: 'Preserve', text: 'The archive keeps context, history, and source material so a chart never becomes the only surviving story.' },
+  { title: 'Explore', text: 'Stats, maps, calendars, timelines, search, and eventually AI make the archive useful after the moment of logging has passed.' },
+];
+
+const projectCards = [
+  { icon: '📊', title: 'Stats & Explore', text: 'Dashboards, records, long-term totals, Day Explorer, and the quantitative side of the archive.', href: '/stats/', cta: 'Explore the data' },
+  { icon: '🧰', title: 'Templates', text: 'The practical route in: reusable tools and systems for people who want to try a smaller version themselves.', href: '/templates/', cta: 'Browse templates' },
+  { icon: '📝', title: 'Writing & lessons', text: 'What worked, what became excessive, how the system changed, and what the experiments taught me.', href: '/blog/', cta: 'Read the blog' },
+  { icon: '🔒', title: 'Privacy & public data', text: 'The structure can be demonstrated publicly without publishing the unrestricted private archive underneath it.', href: '/faq/#privacy-data', cta: 'Read the privacy answers' },
+  { icon: '🗂️', title: 'Culture archive', text: 'Books, albums, classical music, art, and other records that make this a life archive rather than a productivity ledger.', href: '/books/', cta: 'Start with Books' },
+  { icon: '🛠️', title: 'Build', text: 'Tools, systems, experiments, research, and the growing technical layer behind the public site.', href: '/templates/', cta: 'See the tools' },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About LifeLoggerz',
+  description: 'The origin, philosophy, method, privacy approach, and future of LifeLoggerz.',
+  mainEntity: {
+    '@type': 'CreativeWork',
+    name: 'LifeLoggerz',
+    creator: { '@type': 'Person', name: 'José' },
+    description: 'A personal data, diary, archive, visualization, and systems project built from long-term daily logging.',
+  },
+};
+---
+
+<AboutLayout
+  title="About LifeLoggerz"
+  description="What LifeLoggerz is, why I track my life, how the system works, and what I hope other people can take from it."
+  pubDate="2026-08-08"
+  wide={true}
+  showViews={false}
+  heroImage="/images_webp/faq-movie.webp"
+>
+  <main class="about-split">
+    <section class="about-hero-copy" aria-labelledby="lifeloggerz-intro-title">
+      <p class="about-eyebrow">The archive, system, and philosophy</p>
+      <h2 id="lifeloggerz-intro-title">A searchable record of a life in progress</h2>
+      <p class="about-lede">
+        <strong>LifeLoggerz</strong> began as personal logging and grew into something harder to describe with one label:
+        part data system, part diary archive, part memory aid, part experimental laboratory, and now part public toolkit.
+      </p>
+      <p>
+        The purpose is not to turn life into a spreadsheet. It is to preserve more of what happened, make patterns easier to see,
+        reduce repeated work, and create an archive that becomes more useful as the years accumulate.
+      </p>
+      <div class="about-inline-actions">
+        <a class="about-button primary" href="/stats/">Explore the System</a>
+        <a class="about-button" href="/templates/">Use the Templates</a>
+        <a class="about-button" href="/about/me/">Meet the person behind it</a>
+      </div>
+    </section>
+
+    <section class="about-proof-grid" aria-label="LifeLoggerz at a glance">
+      {proofStats.map((stat) => (
+        <article class="about-proof">
+          <strong>{stat.value}</strong>
+          <h3>{stat.label}</h3>
+          <span>{stat.note}</span>
+        </article>
+      ))}
+    </section>
+
+    <section class="about-section" aria-labelledby="origin-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">The origin story</p>
+        <h2 id="origin-title">From one spreadsheet to a personal operating system</h2>
+        <p>
+          I did not begin with a grand architecture. I learned one formula, one dashboard, one script, and one useful automation at a time.
+          The system survived because each layer solved a real problem I was already experiencing.
+        </p>
+      </div>
+
+      <ol class="about-timeline">
+        {timeline.map((item) => (
+          <li>
+            <span class="about-timeline-dot" aria-hidden="true"></span>
+            <article class="about-timeline-card">
+              <p class="about-timeline-year">{item.year}</p>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          </li>
+        ))}
+      </ol>
+
+      <div class="about-link-row">
+        <a class="about-link-chip" href="/blog/rawdatapost2025/">See how the Raw Data systems evolved →</a>
+      </div>
+    </section>
+
+    <section class="about-section" aria-labelledby="system-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">How it works</p>
+        <h2 id="system-title">Logging is only the first step</h2>
+        <p>The value comes from what happens after an entry is recorded: structure, preservation, retrieval, and exploration.</p>
+      </div>
+
+      <div class="about-system-flow">
+        {systemSteps.map((step, index) => (
+          <article class="about-system-step">
+            <span class="about-system-number">Step {index + 1}</span>
+            <h3>{step.title}</h3>
+            <p>{step.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="about-section about-philosophy" aria-labelledby="philosophy-title">
+      <div>
+        <p class="about-eyebrow">The philosophy</p>
+        <h2 id="philosophy-title">Tracking is a tool, not the goal</h2>
+        <p>
+          More data is not automatically better. I track far more than most people should because the system reflects my own curiosity and has accumulated gradually over years.
+        </p>
+        <p>
+          A good system should reduce mental load, preserve useful memories, answer questions, and improve decisions. When a log creates more friction than clarity, it should be simplified, automated, or removed.
+        </p>
+      </div>
+      <aside class="about-principles" aria-label="LifeLoggerz principles">
+        <h3>What I believe now</h3>
+        <ul>
+          <li>You do not need to track everything.</li>
+          <li>Keep only data that earns its place.</li>
+          <li>Missing and approximate data should be labeled honestly.</li>
+          <li>Automation should remove repetition, not hide understanding.</li>
+          <li>The system should make life easier to live, not harder to document.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <aside class="about-statement" aria-label="LifeLoggerz guiding principle">
+      <blockquote>
+        “The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.”
+      </blockquote>
+    </aside>
+
+    <section class="about-section" aria-labelledby="contains-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">What the public project contains</p>
+        <h2 id="contains-title">Several doors into the same archive</h2>
+        <p>
+          Some visitors want numbers. Some want templates. Some want the philosophy. Others want to wander through books, music, maps, diary ideas, or experiments.
+        </p>
+      </div>
+
+      <div class="about-card-grid">
+        {projectCards.map((card) => (
+          <article class="about-card">
+            <span class="about-card-icon" aria-hidden="true">{card.icon}</span>
+            <h3>{card.title}</h3>
+            <p>{card.text}</p>
+            <a class="about-card-link" href={card.href}>{card.cta} →</a>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="about-section" aria-labelledby="computer-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">Why computer logging?</p>
+        <h2 id="computer-title">A paper journal remembers. A digital archive can also answer.</h2>
+        <p>
+          Search, statistics, correlations, filtering, timelines, maps, full-corpus phrase lookup, and AI analysis all become possible once records are digital and structured.
+          That does not make paper inferior; it explains why a computer-based archive fits what I want to do with years of accumulated material.
+        </p>
+      </div>
+
+      <div class="about-card-grid">
+        <article class="about-card">
+          <span class="about-card-icon" aria-hidden="true">🔎</span>
+          <h3>Retrieve</h3>
+          <p>Find a date, phrase, person, habit, place, or period without rereading years of notebooks.</p>
+        </article>
+        <article class="about-card">
+          <span class="about-card-icon" aria-hidden="true">📈</span>
+          <h3>Compare</h3>
+          <p>Turn repeated entries into calendars, distributions, records, trends, and Data Stories.</p>
+        </article>
+        <article class="about-card">
+          <span class="about-card-icon" aria-hidden="true">🤖</span>
+          <h3>Analyze</h3>
+          <p>Eventually let AI question a scrubbed public diary corpus while keeping the unrestricted private archive private.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="about-section about-final-cta" aria-labelledby="start-title">
+      <p class="about-eyebrow">Start much smaller than I did</p>
+      <h2 id="start-title">Build a system that fits your life</h2>
+      <p>
+        Start with one useful thing. Keep what helps. Remove what does not. Let the system grow only when a new layer earns its place.
+      </p>
+      <div class="about-inline-actions">
+        <a class="about-button primary" href="/templates/">Browse Templates</a>
+        <a class="about-button" href="/faq/">Read the FAQ</a>
+        <a class="about-button" href="mailto:lifeloggerz.official@gmail.com">Contact José</a>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+</AboutLayout>
