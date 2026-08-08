@@ -17,7 +17,7 @@
   align-items:flex-end;
   justify-content:space-between;
   gap:.75rem 1rem;
-  margin:0 .12rem .78rem;
+  margin:0 .12rem .72rem;
 }
 .about-photo-roots-gallery-stage-kicker{
   display:block;
@@ -82,6 +82,35 @@
   display:none!important;
 }
 
+/* The shared stage owns the title/subtitle; the viewer keeps only its controls. */
+.about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-head{
+  align-items:center;
+  justify-content:flex-end;
+  margin:0 .08rem .45rem;
+}
+.about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-head > div:first-child{
+  display:none;
+}
+
+/* Four cards only need a light directional cue, not another circular control. */
+@media(min-width:769px){
+  .about-photo-roots-branch .about-photo-where-step:not(:last-child)::after{
+    content:'›';
+    top:50%;
+    right:-.5rem;
+    width:auto;
+    height:auto;
+    display:block;
+    transform:translateY(-50%);
+    border:0;
+    border-radius:0;
+    background:transparent;
+    color:rgba(155,100,56,.58);
+    box-shadow:none;
+    font:700 1.12rem/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+}
+
 /* A branch-changing tap must never become a second tap on a newly revealed Google iframe. */
 .about-photo-where[data-branch-touch-guard='1'] .about-photo-map-frame{
   pointer-events:none!important;
@@ -92,12 +121,13 @@
 
 @media(max-width:768px){
   .about-photo-roots-gallery-stage{
-    margin-top:1.2rem;
+    width:100%;
+    margin-top:1.15rem;
     padding-top:1rem;
   }
   .about-photo-roots-gallery-stage-head{
     display:block;
-    margin-inline:.2rem;
+    margin:0 .2rem .62rem;
     text-align:center;
   }
   .about-photo-roots-gallery-stage-title{
@@ -113,7 +143,16 @@
     display:none;
   }
   .about-photo-roots-gallery-stage > .about-photo-roots-gallery{
-    margin-top:.78rem;
+    width:100%;
+    margin-top:0;
+    padding:.68rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-head{
+    min-height:34px;
+    margin:0 .02rem .4rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-toggle{
+    min-height:34px;
   }
 
   /* CSS fallback: a branch returning from display:none gets a short no-hit window. */

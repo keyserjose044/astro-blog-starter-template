@@ -96,13 +96,15 @@
   Family Roots post-controller.
   The main Family Roots script builds the maps, branch tabs and two gallery
   instances. This layer consolidates those galleries into one shared third
-  section and protects touch branch changes from falling through into a map.
+  section, adds finishing metadata/view treatment, and protects touch branch
+  changes from falling through into a map.
 */
 (() => {
   if (typeof document === 'undefined') return;
 
   const MOBILE_QUERY = '(max-width: 768px)';
   const COARSE_QUERY = '(hover: none), (pointer: coarse)';
+  const MEXICO_POPULATION = 'POP. 126,014,024 · 2020 CENSUS';
 
   const setupFeature = (feature) => {
     if (!(feature instanceof HTMLElement)) return false;
@@ -129,6 +131,54 @@
     const mobileQuery = window.matchMedia(MOBILE_QUERY);
     const coarseQuery = window.matchMedia(COARSE_QUERY);
     const topBranchButtons = Array.from(branchTabs.querySelectorAll('[data-roots-tab]'));
+
+    /* Give the country card the same metadata rhythm as every narrower level. */
+    const ensureMexicoPopulation = (branch) => {
+      const firstStep = branch.querySelector('.about-photo-where-step:first-child');
+      const name = firstStep?.querySelector('.about-photo-where-name');
+      if (!(name instanceof HTMLElement)) return;
+      if (name.parentElement?.querySelector('.about-photo-where-population')) return;
+
+      const population = document.createElement('span');
+      population.className = 'about-photo-where-population';
+      population.textContent = MEXICO_POPULATION;
+      population.title = 'National population, 2020 Census (INEGI).';
+      name.insertAdjacentElement('afterend', population);
+    };
+    ensureMexicoPopulation(dad);
+    ensureMexicoPopulation(mom);
+
+    /*
+      The keyless Google embed URL still accepts the legacy terrain tile flag.
+      Apply it to existing frames and to frames lazily created when mobile opens.
+      Keep data-map-src synchronized so back/forward-cache restoration preserves it.
+    */
+    const terrainizeFrame = (frame) => {
+      if (!(frame instanceof HTMLIFrameElement)) return;
+      const source = frame.dataset.mapSrc || frame.getAttribute('src') || '';
+      if (!source || source === 'about:blank') return;
+
+      let url;
+      try {
+        url = new URL(source, window.location.href);
+      } catch {
+        return;
+      }
+      if (!url.hostname.endsWith('google.com')) return;
+
+      url.searchParams.set('t', 'p');
+      const terrainSrc = url.toString();
+      if (frame.dataset.mapSrc !== terrainSrc) frame.dataset.mapSrc = terrainSrc;
+      if (frame.getAttribute('src') !== terrainSrc) frame.setAttribute('src', terrainSrc);
+    };
+
+    const applyTerrainMaps = () => {
+      panel.querySelectorAll('.about-photo-map-frame').forEach(terrainizeFrame);
+    };
+    applyTerrainMaps();
+
+    const terrainObserver = new MutationObserver(() => applyTerrainMaps());
+    terrainObserver.observe(panel, { childList: true, subtree: true });
 
     let branchGuardTimer = 0;
     const guardBranchMaps = () => {
@@ -168,6 +218,17 @@
     dadGallery.dataset.galleryBranch = 'dad';
     momGallery.dataset.galleryBranch = 'mom';
 
+    const galleryMeta = {
+      dad: {
+        title: dadGallery.querySelector('.about-photo-roots-gallery-title')?.textContent?.trim() || 'Life in Amarillas',
+        subtitle: dadGallery.querySelector('.about-photo-roots-gallery-subtitle')?.textContent?.trim() || 'Family photographs and scenes from Amarillas de Esparza.',
+      },
+      mom: {
+        title: momGallery.querySelector('.about-photo-roots-gallery-title')?.textContent?.trim() || 'Life in Colonia Progreso',
+        subtitle: momGallery.querySelector('.about-photo-roots-gallery-subtitle')?.textContent?.trim() || 'Family photographs and neighborhood scenes from Matamoros.',
+      },
+    };
+
     const stage = document.createElement('section');
     stage.className = 'about-photo-roots-gallery-stage';
     stage.dataset.sharedRootsGallery = '';
@@ -179,16 +240,16 @@
     const stageCopy = document.createElement('div');
     const kicker = document.createElement('span');
     kicker.className = 'about-photo-roots-gallery-stage-kicker';
-    kicker.textContent = 'The places beyond the maps';
+    kicker.textContent = 'The place beyond the maps';
 
     const heading = document.createElement('h3');
     heading.className = 'about-photo-roots-gallery-stage-title';
     heading.id = 'family-roots-gallery-stage-title';
-    heading.textContent = 'Life in these places';
+    heading.textContent = galleryMeta.dad.title;
 
     const lead = document.createElement('p');
     lead.className = 'about-photo-roots-gallery-stage-lead';
-    lead.textContent = 'Family photographs and scenes from the places behind both branches.';
+    lead.textContent = galleryMeta.dad.subtitle;
     stageCopy.append(kicker, heading, lead);
 
     const galleryTabs = document.createElement('div');
@@ -227,6 +288,9 @@
       momGallery.hidden = key !== 'mom';
       dadGallery.setAttribute('aria-hidden', key === 'dad' ? 'false' : 'true');
       momGallery.setAttribute('aria-hidden', key === 'mom' ? 'false' : 'true');
+      stage.dataset.galleryBranch = key;
+      heading.textContent = galleryMeta[key].title;
+      lead.textContent = galleryMeta[key].subtitle;
 
       galleryButtons.forEach((button) => {
         const selected = button.dataset.sharedGalleryTab === key;
