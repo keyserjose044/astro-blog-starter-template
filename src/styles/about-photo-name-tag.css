@@ -3,6 +3,121 @@
 .person-name-tag[data-visible='1']{opacity:.97;transform:translate(calc(-50% + var(--label-shift-x)),calc(12px + var(--label-shift-y))) translateY(0) scale(1)}
 .speech-bubble[data-size='older-brother'] .cloud-adornment{width:53%}
 .speech-bubble[data-size='older-brother'] p{padding-right:2.55rem}
+
+/* Shared Family Roots gallery: one third section for both branches. */
+.about-photo-roots-gallery-stage{
+  position:relative;
+  z-index:1;
+  margin-top:1.45rem;
+  padding-top:1.2rem;
+  border-top:1px solid rgba(128,101,70,.24);
+}
+.about-photo-roots-gallery-stage-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:.75rem 1rem;
+  margin:0 .12rem .78rem;
+}
+.about-photo-roots-gallery-stage-kicker{
+  display:block;
+  margin:0 0 .12rem;
+  color:#9a6a3f;
+  font:800 .52rem/1.1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.about-photo-roots-gallery-stage-title{
+  margin:0;
+  color:#30231a;
+  font-size:1.08rem;
+  line-height:1.15;
+}
+.about-photo-roots-gallery-stage-lead{
+  margin:.22rem 0 0;
+  color:#786653;
+  font-size:.68rem;
+  line-height:1.35;
+}
+.about-photo-roots-gallery-stage-tabs{
+  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:min(100%,260px);
+  flex:0 0 min(260px,44%);
+  padding:4px;
+  gap:4px;
+  border:1px solid rgba(128,101,70,.28);
+  border-radius:999px;
+  background:rgba(237,225,207,.72);
+  box-shadow:inset 0 1px 3px rgba(67,47,28,.08);
+}
+.about-photo-roots-gallery-stage-tab{
+  box-sizing:border-box;
+  appearance:none;
+  min-width:0;
+  padding:.58rem .7rem;
+  border:1px solid transparent;
+  border-radius:999px;
+  background:transparent;
+  color:#715b47;
+  font:800 .72rem/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:background 150ms ease,border-color 150ms ease,color 150ms ease,box-shadow 150ms ease;
+}
+.about-photo-roots-gallery-stage-tab[aria-selected='true']{
+  border-color:rgba(139,94,53,.34);
+  background:#fffaf2;
+  color:#3d2e22;
+  box-shadow:0 2px 7px rgba(61,43,27,.12),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.about-photo-roots-gallery-stage-tab:focus-visible{
+  outline:2px solid rgba(44,91,71,.72);
+  outline-offset:2px;
+}
+.about-photo-roots-gallery-stage > .about-photo-roots-gallery{
+  margin-top:0;
+}
+.about-photo-roots-gallery-stage > .about-photo-roots-gallery[hidden]{
+  display:none!important;
+}
+
+/* A branch-changing tap must never become a second tap on a newly revealed Google iframe. */
+.about-photo-where[data-branch-touch-guard='1'] .about-photo-map-frame{
+  pointer-events:none!important;
+}
+
 @media(max-width:640px){.speech-bubble[data-size='older-brother'] .cloud-adornment{width:53%}.speech-bubble[data-size='older-brother'] p{padding-right:1.35rem}}
 @media(hover:none),(pointer:coarse){.person-name-tag{display:none}}
-@media(prefers-reduced-motion:reduce){.person-name-tag{transition:none}}
+
+@media(max-width:768px){
+  .about-photo-roots-gallery-stage{
+    margin-top:1.2rem;
+    padding-top:1rem;
+  }
+  .about-photo-roots-gallery-stage-head{
+    display:block;
+    margin-inline:.2rem;
+    text-align:center;
+  }
+  .about-photo-roots-gallery-stage-title{
+    font-size:1rem;
+  }
+  .about-photo-roots-gallery-stage-lead{
+    max-width:28rem;
+    margin:.22rem auto 0;
+    font-size:.65rem;
+  }
+  /* The existing Dad/Mom switch above controls both maps and gallery on mobile. */
+  .about-photo-roots-gallery-stage-tabs{
+    display:none;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery{
+    margin-top:.78rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .person-name-tag{transition:none}
+  .about-photo-roots-gallery-stage-tab{transition:none}
+}
