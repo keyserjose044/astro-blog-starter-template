@@ -26,6 +26,7 @@
 
     const directLinks = Array.from(topDirect.querySelectorAll('a'));
     const faqLink = bottomDirect?.querySelector('a') || null;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const list = document.createElement('div');
     list.className = 'mobile-inline-list';
@@ -146,7 +147,10 @@
 
         if (opening) {
           window.setTimeout(() => {
-            section.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            section.scrollIntoView({
+              block: 'nearest',
+              behavior: reducedMotion.matches ? 'auto' : 'smooth',
+            });
           }, 120);
         }
       });
@@ -159,6 +163,9 @@
     footer.classList.add('mobile-inline-footer');
     panel.replaceChildren(list, footer);
     panel.classList.add('mobile-inline-ready');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', 'Site navigation');
     navToggle.dataset.inlineNavReady = '1';
 
     const summary = navToggle.querySelector(':scope > summary');
@@ -169,6 +176,14 @@
       if (!(header instanceof HTMLElement)) return;
       document.documentElement.style.setProperty('--mobile-nav-top', `${Math.max(0, header.getBoundingClientRect().bottom)}px`);
     };
+
+    const visibleFocusable = () => Array.from(navToggle.querySelectorAll(
+      'summary, a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((element) =>
+      element instanceof HTMLElement &&
+      !element.closest('[inert]') &&
+      element.offsetParent !== null,
+    );
 
     navToggle.addEventListener('toggle', () => {
       const open = navToggle.open && window.matchMedia(MOBILE_QUERY).matches;
@@ -192,7 +207,27 @@
     }, { passive: true });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || !navToggle.open || !window.matchMedia(MOBILE_QUERY).matches) return;
+      if (!navToggle.open || !window.matchMedia(MOBILE_QUERY).matches) return;
+
+      if (event.key === 'Tab') {
+        const focusable = visibleFocusable();
+        if (!focusable.length) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+
+        if (event.shiftKey && active === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && active === last) {
+          event.preventDefault();
+          first.focus();
+        }
+        return;
+      }
+
+      if (event.key !== 'Escape') return;
       const openSection = inlineSections.find(({ section }) => section.classList.contains('is-open'));
       if (openSection) {
         event.preventDefault();
@@ -200,6 +235,7 @@
         openSection.button.focus({ preventScroll: true });
       } else {
         navToggle.open = false;
+        summary?.focus({ preventScroll: true });
       }
     });
   };
