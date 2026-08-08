@@ -1,0 +1,118 @@
+/* Books Authors cover stacks — mirror the archive-first visual language used by Albums/Art. */
+
+.books-author-card summary {
+  grid-template-columns: 96px minmax(0, 1fr);
+}
+
+.books-author-cover-stack {
+  position: relative;
+  display: block;
+  width: 92px;
+  height: 108px;
+  justify-self: start;
+  flex: 0 0 auto;
+}
+
+.books-author-cover-stack img {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  width: 58px;
+  height: 87px;
+  margin: 0;
+  object-fit: cover;
+  border: 2px solid #fff;
+  border-radius: 7px;
+  background: #eef0f5;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, .14);
+  transform-origin: 50% 88%;
+  transition: transform .16s ease, left .16s ease, top .16s ease, box-shadow .16s ease;
+}
+
+.books-author-cover-stack[data-cover-count="2"] img:nth-child(1) {
+  left: 8px;
+  top: 10px;
+  z-index: 1;
+  transform: rotate(-4deg);
+}
+.books-author-cover-stack[data-cover-count="2"] img:nth-child(2) {
+  left: 27px;
+  top: 5px;
+  z-index: 2;
+  transform: rotate(3deg);
+}
+
+.books-author-cover-stack[data-cover-count="3"] img:nth-child(1) {
+  left: 1px;
+  top: 11px;
+  z-index: 1;
+  transform: rotate(-5deg);
+}
+.books-author-cover-stack[data-cover-count="3"] img:nth-child(2) {
+  left: 17px;
+  top: 7px;
+  z-index: 2;
+  transform: rotate(-1deg);
+}
+.books-author-cover-stack[data-cover-count="3"] img:nth-child(3) {
+  left: 33px;
+  top: 3px;
+  z-index: 3;
+  transform: rotate(4deg);
+}
+
+.books-author-card summary:hover .books-author-cover-stack[data-cover-count="2"] img:nth-child(1),
+.books-author-card summary:focus-visible .books-author-cover-stack[data-cover-count="2"] img:nth-child(1) {
+  left: 4px;
+  transform: rotate(-6deg) translateY(-1px);
+}
+.books-author-card summary:hover .books-author-cover-stack[data-cover-count="2"] img:nth-child(2),
+.books-author-card summary:focus-visible .books-author-cover-stack[data-cover-count="2"] img:nth-child(2) {
+  left: 31px;
+  transform: rotate(5deg) translateY(-2px);
+}
+
+.books-author-card summary:hover .books-author-cover-stack[data-cover-count="3"] img:nth-child(1),
+.books-author-card summary:focus-visible .books-author-cover-stack[data-cover-count="3"] img:nth-child(1) {
+  left: -2px;
+  transform: rotate(-7deg) translateY(-1px);
+}
+.books-author-card summary:hover .books-author-cover-stack[data-cover-count="3"] img:nth-child(2),
+.books-author-card summary:focus-visible .books-author-cover-stack[data-cover-count="3"] img:nth-child(2) {
+  left: 18px;
+  transform: rotate(-1deg) translateY(-2px);
+}
+.books-author-card summary:hover .books-author-cover-stack[data-cover-count="3"] img:nth-child(3),
+.books-author-card summary:focus-visible .books-author-cover-stack[data-cover-count="3"] img:nth-child(3) {
+  left: 38px;
+  transform: rotate(6deg) translateY(-3px);
+}
+
+.books-author-card[open] .books-author-cover-stack img {
+  box-shadow: 0 7px 18px rgba(15, 23, 42, .16);
+}
+
+@media (max-width: 900px) {
+  .books-author-card summary {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+  .books-author-cover-stack {
+    width: 84px;
+    height: 100px;
+  }
+  .books-author-cover-stack img {
+    width: 54px;
+    height: 81px;
+  }
+  .books-author-cover-stack[data-cover-count="2"] img:nth-child(1) { left: 6px; }
+  .books-author-cover-stack[data-cover-count="2"] img:nth-child(2) { left: 24px; }
+  .books-author-cover-stack[data-cover-count="3"] img:nth-child(1) { left: 0; }
+  .books-author-cover-stack[data-cover-count="3"] img:nth-child(2) { left: 14px; }
+  .books-author-cover-stack[data-cover-count="3"] img:nth-child(3) { left: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .books-author-cover-stack img {
+    transition: none !important;
+  }
+}
