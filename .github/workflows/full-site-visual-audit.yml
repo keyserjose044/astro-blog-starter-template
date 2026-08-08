@@ -1,0 +1,72 @@
+name: Full site visual audit
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/site-visual-audit.mjs'
+      - '.github/workflows/full-site-visual-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      AUDIT_SITE_SHA: 31384dd4eda31b540492793465b3fde6adac9b30
+      AUDIT_BASE_URL: http://127.0.0.1:4321
+    steps:
+      - name: Check out frozen audit branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install site dependencies
+        run: npm ci
+
+      - name: Install Playwright for audit only
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Build exact site snapshot
+        run: npm run build
+
+      - name: Start static audit server
+        run: |
+          python3 -m http.server 4321 --directory dist >/tmp/lifeloggerz-audit-server.log 2>&1 &
+          echo $! > /tmp/lifeloggerz-audit-server.pid
+          for i in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4321/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/lifeloggerz-audit-server.log
+          exit 1
+
+      - name: Scan all routes — desktop first, then mobile
+        run: node scripts/site-visual-audit.mjs
+
+      - name: Print audit summary
+        if: always()
+        run: |
+          if [ -f audit-output/REPORT.md ]; then
+            cat audit-output/REPORT.md
+          fi
+
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifeloggerz-full-site-audit-31384dd
+          path: audit-output
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 6
