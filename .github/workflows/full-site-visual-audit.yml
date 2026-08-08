@@ -15,8 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      AUDIT_SITE_SHA: 31384dd4eda31b540492793465b3fde6adac9b30
+      AUDIT_SITE_SHA: 7455f9da7d90caaaabda19e4e45d7d2222fb7a8a
       AUDIT_BASE_URL: http://127.0.0.1:4321
+      RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
+      RAINDROP_COLLECTION_BOOKS_ID: ${{ secrets.RAINDROP_COLLECTION_BOOKS_ID }}
+      RAINDROP_COLLECTION_ALBUMS_ID: ${{ secrets.RAINDROP_COLLECTION_ALBUMS_ID }}
+      RAINDROP_COLLECTION_ART_ID: ${{ secrets.RAINDROP_COLLECTION_ART_ID }}
+      RAINDROP_COLLECTION_COMPOSERS_ID: ${{ secrets.RAINDROP_COLLECTION_COMPOSERS_ID }}
+      CLASSICAL_LISTENING_DATA_URL: ${{ secrets.CLASSICAL_LISTENING_DATA_URL }}
+      MUSIC_LISTENING_DATA_URL: ${{ secrets.MUSIC_LISTENING_DATA_URL }}
     steps:
       - name: Check out frozen audit branch
         uses: actions/checkout@v4
@@ -35,7 +42,34 @@ jobs:
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Build exact site snapshot
+      - name: Verify production data inputs
+        run: |
+          if [ -z "${RAINDROP_TOKEN}" ]; then echo "RAINDROP_TOKEN missing"; exit 1; fi
+          if [ -z "${RAINDROP_COLLECTION_BOOKS_ID}" ]; then echo "RAINDROP_COLLECTION_BOOKS_ID missing"; exit 1; fi
+          if [ -z "${RAINDROP_COLLECTION_ALBUMS_ID}" ]; then echo "RAINDROP_COLLECTION_ALBUMS_ID missing"; exit 1; fi
+          if [ -z "${RAINDROP_COLLECTION_ART_ID}" ]; then echo "RAINDROP_COLLECTION_ART_ID missing"; exit 1; fi
+          echo "Production Raindrop inputs present."
+
+      - name: Snapshot public music listening feed like production
+        if: env.MUSIC_LISTENING_DATA_URL != ''
+        run: |
+          mkdir -p public/data
+          tmp_file="$(mktemp)"
+          if curl --fail --location --retry 3 --retry-delay 2 \
+            --header "Accept: application/json" \
+            "${MUSIC_LISTENING_DATA_URL}" \
+            --output "${tmp_file}" \
+            && node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(!p||!Array.isArray(p.rows))process.exit(1);console.log('Music listening rows:',p.rows.length);" "${tmp_file}"; then
+            mv "${tmp_file}" public/data/music-listening.json
+          else
+            echo "Music listening feed unavailable; using checked-in snapshot."
+            rm -f "${tmp_file}"
+          fi
+
+      - name: Clean build caches like production
+        run: rm -rf node_modules/.astro dist .astro
+
+      - name: Build exact production-data site snapshot
         run: npm run build
 
       - name: Start static audit server
@@ -65,7 +99,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lifeloggerz-full-site-audit-31384dd
+          name: lifeloggerz-full-site-audit-7455f9d
           path: audit-output
           if-no-files-found: warn
           retention-days: 14
