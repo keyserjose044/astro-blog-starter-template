@@ -115,6 +115,16 @@
   .about-photo-roots-gallery-stage > .about-photo-roots-gallery{
     margin-top:.78rem;
   }
+
+  /* CSS fallback: a branch returning from display:none gets a short no-hit window. */
+  .about-photo-roots-branch:not([hidden]) .about-photo-map-frame{
+    animation:about-roots-mobile-map-arm 900ms steps(1,end) both;
+  }
+}
+
+@keyframes about-roots-mobile-map-arm{
+  0%,99%{pointer-events:none}
+  100%{pointer-events:auto}
 }
 
 @media(prefers-reduced-motion:reduce){
