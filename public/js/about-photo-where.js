@@ -171,6 +171,7 @@
     }
 
     const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)');
+    const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
     let touchGuardTimer = 0;
 
     const releaseTouchGuard = () => {
@@ -228,12 +229,12 @@
       setOpen(false, { returnFocus: true });
     }, true);
 
-    /* Undo any restored DOM state from the previous always-open desktop behavior. */
+    /* Keep both controls available even though desktop opens the section initially. */
     toggle.hidden = false;
     if (close) close.hidden = false;
     delete panel.dataset.permanent;
 
-    /* Family Roots should be discoverable, not dominant, on first arrival. */
-    setOpen(false);
+    /* Desktop starts open but remains collapsible; touch/mobile starts closed. */
+    setOpen(desktopRoots.matches);
   });
 })();

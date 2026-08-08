@@ -308,7 +308,8 @@
   }
 
   .about-photo-where{
-    width:min(94vw,460px);
+    width:min(100%,460px);
+    max-width:100%;
     margin:.76rem auto .1rem;
     padding:.9rem .85rem 1rem;
   }
@@ -358,7 +359,11 @@
 }
 
 @media(max-width:640px){
-  .about-photo-where{width:min(calc(100vw - 24px),440px)}
+  .about-photo-where{
+    width:min(100%,440px);
+    max-width:100%;
+    margin-inline:auto;
+  }
   .about-photo-where-name{font-size:.84rem}
   .about-photo-where-note{font-size:.68rem}
 }
