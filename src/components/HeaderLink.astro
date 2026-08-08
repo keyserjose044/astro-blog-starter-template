@@ -31,8 +31,127 @@ const isActive = exact
     display: inline-block;
     text-decoration: none;
   }
+
   a.active {
     font-weight: bolder;
     text-decoration: underline;
+  }
+
+  /*
+   * Dropdown content is passed into this component through <slot />.
+   * Astro scopes the parent Header styles, so descendant rules there cannot
+   * reliably reach this slotted markup. Keep the link shell here and make the
+   * slot descendants explicitly global.
+   */
+  a.dropdown-link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.65rem minmax(0, 1fr) 1.15rem;
+    gap: .58rem;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    padding: .62rem .65rem;
+    border: 1px solid transparent;
+    border-radius: .65rem;
+    box-sizing: border-box;
+    color: #0f172a;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition:
+      background .14s ease-out,
+      border-color .14s ease-out,
+      color .14s ease-out,
+      transform .14s ease-out,
+      box-shadow .14s ease-out;
+  }
+
+  a.dropdown-link:hover,
+  a.dropdown-link:focus-visible {
+    color: #1d4ed8;
+    background: #f5f8ff;
+    border-color: rgba(37, 99, 235, .12);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .07);
+    transform: translateX(3px);
+    outline: none;
+  }
+
+  a.dropdown-link.active {
+    color: #1d4ed8;
+    background: #edf3ff;
+    border-color: rgba(37, 99, 235, .14);
+    text-decoration: none;
+  }
+
+  a.dropdown-link:active {
+    background: #e6efff;
+    transform: translateX(3px) scale(.985);
+  }
+
+  :global(a.dropdown-link .dropdown-icon) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  :global(a.dropdown-link .dropdown-copy) {
+    display: block;
+    min-width: 0;
+  }
+
+  :global(a.dropdown-link .dropdown-copy strong) {
+    display: block;
+    color: inherit;
+    font-size: .94rem;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  :global(a.dropdown-link .dropdown-copy small) {
+    display: block;
+    max-height: 0;
+    margin-top: 0;
+    overflow: hidden;
+    color: #64748b;
+    font-size: .73rem;
+    line-height: 1.35;
+    font-weight: 400;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition:
+      max-height .18s ease-out,
+      margin-top .18s ease-out,
+      opacity .14s ease-out,
+      transform .18s ease-out;
+  }
+
+  :global(a.dropdown-link:hover .dropdown-copy small),
+  :global(a.dropdown-link:focus-visible .dropdown-copy small) {
+    max-height: 3.2em;
+    margin-top: .28rem;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  :global(a.dropdown-link .dropdown-arrow) {
+    display: block;
+    justify-self: end;
+    color: #94a3b8;
+    font-size: .92rem;
+    line-height: 1;
+    opacity: .25;
+    transform: translateX(-3px);
+    transition: opacity .14s ease-out, transform .14s ease-out, color .14s ease-out;
+  }
+
+  :global(a.dropdown-link:hover .dropdown-arrow),
+  :global(a.dropdown-link:focus-visible .dropdown-arrow),
+  :global(a.dropdown-link.active .dropdown-arrow) {
+    color: #2563eb;
+    opacity: 1;
+    transform: translateX(1px);
   }
 </style>
