@@ -149,25 +149,40 @@
     ensureMexicoPopulation(mom);
 
     /*
-      The keyless Google embed URL still accepts the legacy terrain tile flag.
-      Apply it to existing frames and to frames lazily created when mobile opens.
-      Keep data-map-src synchronized so back/forward-cache restoration preserves it.
+      Terrain is only honored by the legacy keyless Google Maps embed form.
+      Rebuild the modern www.google.com URL onto maps.google.com/maps rather
+      than merely appending t=p, which Google currently ignores on the modern URL.
     */
     const terrainizeFrame = (frame) => {
       if (!(frame instanceof HTMLIFrameElement)) return;
       const source = frame.dataset.mapSrc || frame.getAttribute('src') || '';
       if (!source || source === 'about:blank') return;
 
-      let url;
+      let current;
       try {
-        url = new URL(source, window.location.href);
+        current = new URL(source, window.location.href);
       } catch {
         return;
       }
-      if (!url.hostname.endsWith('google.com')) return;
 
-      url.searchParams.set('t', 'p');
-      const terrainSrc = url.toString();
+      const isGoogleMapsHost =
+        current.hostname === 'google.com' ||
+        current.hostname === 'maps.google.com' ||
+        current.hostname.endsWith('.google.com');
+      if (!isGoogleMapsHost) return;
+
+      const query = current.searchParams.get('q');
+      if (!query) return;
+      const zoom = current.searchParams.get('z');
+
+      const terrain = new URL('https://maps.google.com/maps');
+      terrain.searchParams.set('hl', 'en');
+      terrain.searchParams.set('q', query);
+      if (zoom) terrain.searchParams.set('z', zoom);
+      terrain.searchParams.set('t', 'p');
+      terrain.searchParams.set('output', 'embed');
+
+      const terrainSrc = terrain.toString();
       if (frame.dataset.mapSrc !== terrainSrc) frame.dataset.mapSrc = terrainSrc;
       if (frame.getAttribute('src') !== terrainSrc) frame.setAttribute('src', terrainSrc);
     };
