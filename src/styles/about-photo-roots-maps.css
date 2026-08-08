@@ -24,6 +24,11 @@
   pointer-events:auto;
 }
 
+/* Prevent the opening tap on mobile from falling through into Google Maps. */
+.about-photo-where[data-map-guard='1'] .about-photo-map-frame{
+  pointer-events:none;
+}
+
 /* The embedded map now supplies the pin and all navigation controls. */
 .about-photo-map-slot--google .about-photo-map-marker{
   display:none;
