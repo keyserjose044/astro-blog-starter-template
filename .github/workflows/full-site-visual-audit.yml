@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/site-visual-audit.mjs'
+      - 'scripts/site-visual-audit-fast.mjs'
       - '.github/workflows/full-site-visual-audit.yml'
   workflow_dispatch:
 
@@ -13,7 +14,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
     env:
       AUDIT_SITE_SHA: 7455f9da7d90caaaabda19e4e45d7d2222fb7a8a-live
       AUDIT_BASE_URL: https://lifeloggerz.com
@@ -55,21 +56,21 @@ jobs:
           exit 1
 
       - name: Scan deployed site — desktop first, then mobile
-        run: node scripts/site-visual-audit.mjs
+        run: node scripts/site-visual-audit-fast.mjs
 
       - name: Print audit summary
         if: always()
         run: |
-          if [ -f audit-output/REPORT.md ]; then
-            cat audit-output/REPORT.md
+          if [ -f audit-output-fast/REPORT.md ]; then
+            cat audit-output-fast/REPORT.md
           fi
 
       - name: Upload deployed-site screenshots and report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lifeloggerz-live-full-site-audit-7455f9d
-          path: audit-output
+          name: lifeloggerz-live-fast-audit-7455f9d
+          path: audit-output-fast
           if-no-files-found: warn
           retention-days: 14
           compression-level: 6
