@@ -9,12 +9,19 @@ interface Props {
 
 const { href, exact = false, class: className, ...props } = Astro.props;
 
-const current = Astro.url.pathname;
-const target = new URL(href, Astro.url).pathname;
 const normalize = (s: string) => (s === "/" ? "/" : s.replace(/\/+$/, ""));
-const isActive = exact
-  ? normalize(current) === normalize(target)
-  : normalize(current).startsWith(normalize(target));
+const currentPath = normalize(Astro.url.pathname);
+const targetUrl = new URL(href, Astro.url);
+const targetPath = normalize(targetUrl.pathname);
+
+const pathMatches = exact
+  ? currentPath === targetPath
+  : currentPath === targetPath || (targetPath !== "/" && currentPath.startsWith(`${targetPath}/`));
+
+// Hash destinations are subsections of a page, not a second active page.
+// URL fragments are not sent to Astro during the request, so leave their
+// active treatment to the containing top-level section.
+const isActive = targetUrl.hash ? false : pathMatches;
 ---
 
 <a

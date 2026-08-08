@@ -8,15 +8,18 @@ interface Props {
 }
 
 const { href, tip = '', exact = false } = Astro.props;
+const tooltipId = tip
+  ? `nav-tip-${href.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home'}`
+  : undefined;
 ---
 
 <span class="nav-tooltip-wrapper">
-  <HeaderLink href={href} exact={exact}>
+  <HeaderLink href={href} exact={exact} aria-describedby={tooltipId}>
     <slot />
   </HeaderLink>
 
   {tip && (
-    <span class="nav-tooltip" role="tooltip">
+    <span class="nav-tooltip" id={tooltipId} role="tooltip">
       {tip}
     </span>
   )}
@@ -48,7 +51,8 @@ const { href, tip = '', exact = false } = Astro.props;
     transition: opacity 0.16s ease-out, transform 0.16s ease-out;
   }
 
-  .nav-tooltip-wrapper:hover .nav-tooltip {
+  .nav-tooltip-wrapper:hover .nav-tooltip,
+  .nav-tooltip-wrapper:focus-within .nav-tooltip {
     opacity: 1;
     transform: translate(-50%, 95%);
   }
