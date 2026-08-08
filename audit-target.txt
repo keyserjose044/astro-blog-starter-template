@@ -1,0 +1,6 @@
+LifeLoggerz full-site visual audit target
+
+Frozen main SHA: 31384dd4eda31b540492793465b3fde6adac9b30
+Captured after PR #149 merged on 2026-08-08.
+
+The audit branch adds only audit tooling/workflow files; site behavior is evaluated from this frozen site snapshot.
