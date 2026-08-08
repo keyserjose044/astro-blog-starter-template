@@ -121,6 +121,7 @@
 
 @media(max-width:768px){
   .about-photo-roots-gallery-stage{
+    box-sizing:border-box;
     width:100%;
     margin-top:1.15rem;
     padding-top:1rem;
@@ -138,26 +139,98 @@
     margin:.22rem auto 0;
     font-size:.65rem;
   }
+
   /* The existing Dad/Mom switch above controls both maps and gallery on mobile. */
   .about-photo-roots-gallery-stage-tabs{
     display:none;
   }
+
+  /* Phone-native single-photo viewer instead of a squeezed desktop card. */
   .about-photo-roots-gallery-stage > .about-photo-roots-gallery{
+    box-sizing:border-box;
     width:100%;
     margin-top:0;
-    padding:.68rem;
+    padding:.55rem;
+    border-radius:14px;
   }
   .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-head{
-    min-height:34px;
-    margin:0 .02rem .4rem;
+    min-height:32px;
+    justify-content:center;
+    margin:0 0 .38rem;
   }
   .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-toggle{
-    min-height:34px;
+    min-height:32px;
+    padding:.36rem .62rem;
+    font-size:.6rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-viewport{
+    width:100%;
+    min-height:0;
+    aspect-ratio:4 / 3;
+    border-radius:11px;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-track,
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-slide{
+    height:100%;
+    min-height:0;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-slide{
+    padding:.72rem 2.8rem .72rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-caption{
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    padding:.52rem .6rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-caption strong{
+    font-size:.72rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-caption span{
+    font-size:.59rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-arrow{
+    width:36px;
+    height:36px;
+    font-size:1.05rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-arrow[data-gallery-prev]{
+    left:.42rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-arrow[data-gallery-next]{
+    right:.42rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-foot{
+    flex-direction:column;
+    justify-content:center;
+    gap:.42rem;
+    margin:.52rem 0 .04rem;
+    text-align:center;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-dots{
+    order:-1;
+    justify-content:center;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-status{
+    line-height:1.25;
   }
 
   /* CSS fallback: a branch returning from display:none gets a short no-hit window. */
   .about-photo-roots-branch:not([hidden]) .about-photo-map-frame{
     animation:about-roots-mobile-map-arm 900ms steps(1,end) both;
+  }
+}
+
+@media(max-width:420px){
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery{
+    padding:.48rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-slide{
+    padding:.62rem 2.55rem .62rem;
+  }
+  .about-photo-roots-gallery-stage > .about-photo-roots-gallery .about-photo-roots-gallery-arrow{
+    width:34px;
+    height:34px;
   }
 }
 
