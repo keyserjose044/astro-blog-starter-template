@@ -14,7 +14,7 @@
 
   const setup = () => {
     const navToggle = document.querySelector('.mobile-nav .nav-toggle');
-    if (!(navToggle instanceof HTMLDetailsElement) || navToggle.dataset.drilldownReady === '1') return;
+    if (!(navToggle instanceof HTMLDetailsElement) || navToggle.dataset.inlineNavReady === '1') return;
 
     const panel = navToggle.querySelector('.menu-panel');
     const topDirect = panel?.querySelector('.mobile-direct-links:not(.mobile-direct-links-bottom)');
@@ -27,39 +27,26 @@
     const directLinks = Array.from(topDirect.querySelectorAll('a'));
     const faqLink = bottomDirect?.querySelector('a') || null;
 
-    const views = document.createElement('div');
-    views.className = 'mobile-drill-views';
-
-    const rootView = document.createElement('section');
-    rootView.className = 'mobile-drill-view mobile-drill-root is-active';
-    rootView.dataset.view = 'root';
-    rootView.setAttribute('aria-label', 'Main navigation');
-
-    const rootHeading = document.createElement('div');
-    rootHeading.className = 'mobile-drill-heading';
-    rootHeading.innerHTML = '<span class="mobile-drill-eyebrow">Navigate</span><strong>Explore LifeLoggerz</strong>';
-    rootView.appendChild(rootHeading);
-
-    const rootList = document.createElement('div');
-    rootList.className = 'mobile-drill-list';
-    rootView.appendChild(rootList);
+    const list = document.createElement('div');
+    list.className = 'mobile-inline-list';
+    list.setAttribute('aria-label', 'Main navigation');
 
     const decorateDirectLink = (source, label) => {
       const link = source.cloneNode(true);
-      link.classList.add('mobile-drill-root-link');
+      link.classList.add('mobile-inline-root-row', 'mobile-inline-direct-link');
       link.replaceChildren();
 
       const icon = document.createElement('span');
-      icon.className = 'mobile-drill-root-icon';
+      icon.className = 'mobile-inline-root-icon';
       icon.setAttribute('aria-hidden', 'true');
       icon.textContent = iconFor(label);
 
       const text = document.createElement('span');
-      text.className = 'mobile-drill-root-label';
+      text.className = 'mobile-inline-root-label';
       text.textContent = label;
 
       const arrow = document.createElement('span');
-      arrow.className = 'mobile-drill-root-arrow';
+      arrow.className = 'mobile-inline-root-arrow';
       arrow.setAttribute('aria-hidden', 'true');
       arrow.textContent = '→';
 
@@ -72,102 +59,107 @@
 
     directLinks.forEach((source) => {
       const label = source.textContent?.trim() || '';
-      if (label) rootList.appendChild(decorateDirectLink(source, label));
+      if (label) list.appendChild(decorateDirectLink(source, label));
     });
 
-    const sectionButtons = new Map();
-    const sectionViews = new Map();
+    const inlineSections = [];
+
+    const closeSections = (except = null) => {
+      inlineSections.forEach(({ section, button, submenu }) => {
+        if (section === except) return;
+        section.classList.remove('is-open');
+        button.setAttribute('aria-expanded', 'false');
+        submenu.setAttribute('aria-hidden', 'true');
+        if ('inert' in submenu) submenu.inert = true;
+      });
+    };
 
     groups.forEach((group, index) => {
       const summary = group.querySelector(':scope > summary');
-      const submenu = group.querySelector(':scope > .mobile-submenu');
+      const originalSubmenu = group.querySelector(':scope > .mobile-submenu');
       const label = summary?.querySelector('span')?.textContent?.trim() || `Section ${index + 1}`;
-      const viewId = `mobile-drill-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+      const submenuId = `mobile-inline-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+      const section = document.createElement('section');
+      section.className = 'mobile-inline-section';
+      if (group.classList.contains('section-active')) section.classList.add('is-current');
 
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'mobile-drill-root-link mobile-drill-section-button';
-      if (group.classList.contains('section-active')) button.classList.add('is-current');
-      button.dataset.targetView = viewId;
-      button.setAttribute('aria-controls', viewId);
+      button.className = 'mobile-inline-root-row mobile-inline-section-button';
       button.setAttribute('aria-expanded', 'false');
+      button.setAttribute('aria-controls', submenuId);
 
       const icon = document.createElement('span');
-      icon.className = 'mobile-drill-root-icon';
+      icon.className = 'mobile-inline-root-icon';
       icon.setAttribute('aria-hidden', 'true');
       icon.textContent = iconFor(label);
 
       const text = document.createElement('span');
-      text.className = 'mobile-drill-root-label';
+      text.className = 'mobile-inline-root-label';
       text.textContent = label;
 
       const arrow = document.createElement('span');
-      arrow.className = 'mobile-drill-root-arrow';
+      arrow.className = 'mobile-inline-root-arrow mobile-inline-section-arrow';
       arrow.setAttribute('aria-hidden', 'true');
-      arrow.textContent = '›';
+      arrow.textContent = '⌄';
 
       button.append(icon, text, arrow);
-      rootList.appendChild(button);
-      sectionButtons.set(viewId, button);
 
-      const view = document.createElement('section');
-      view.className = 'mobile-drill-view mobile-drill-section';
-      view.dataset.view = viewId;
-      view.id = viewId;
-      view.setAttribute('aria-label', `${label} navigation`);
-      view.setAttribute('aria-hidden', 'true');
+      const submenu = document.createElement('div');
+      submenu.className = 'mobile-inline-submenu';
+      submenu.id = submenuId;
+      submenu.setAttribute('aria-hidden', 'true');
+      if ('inert' in submenu) submenu.inert = true;
 
-      const viewHead = document.createElement('div');
-      viewHead.className = 'mobile-drill-section-head';
+      const submenuInner = document.createElement('div');
+      submenuInner.className = 'mobile-inline-submenu-inner';
 
-      const back = document.createElement('button');
-      back.type = 'button';
-      back.className = 'mobile-drill-back';
-      back.innerHTML = '<span aria-hidden="true">‹</span><span>All sections</span>';
-
-      const title = document.createElement('h3');
-      title.className = 'mobile-drill-section-title';
-      title.textContent = label;
-
-      viewHead.append(back, title);
-      view.appendChild(viewHead);
-
-      const childList = document.createElement('div');
-      childList.className = 'mobile-drill-child-list';
-
-      submenu?.querySelectorAll('a').forEach((source) => {
+      originalSubmenu?.querySelectorAll('a').forEach((source) => {
         const child = source.cloneNode(true);
-        child.classList.add('mobile-drill-child-link');
+        child.classList.add('mobile-inline-child-link');
 
-        const arrow = document.createElement('span');
-        arrow.className = 'mobile-drill-child-arrow';
-        arrow.setAttribute('aria-hidden', 'true');
-        arrow.textContent = '→';
-        child.appendChild(arrow);
+        const childArrow = document.createElement('span');
+        childArrow.className = 'mobile-inline-child-arrow';
+        childArrow.setAttribute('aria-hidden', 'true');
+        childArrow.textContent = '→';
+        child.appendChild(childArrow);
 
         child.addEventListener('click', () => {
           navToggle.open = false;
         });
-        childList.appendChild(child);
+        submenuInner.appendChild(child);
       });
 
-      view.appendChild(childList);
-      views.appendChild(view);
-      sectionViews.set(viewId, view);
+      submenu.appendChild(submenuInner);
+      section.append(button, submenu);
+      list.appendChild(section);
+      inlineSections.push({ section, button, submenu });
 
-      back.addEventListener('click', () => showRoot(true));
-      button.addEventListener('click', () => showSection(viewId));
+      button.addEventListener('click', () => {
+        const opening = !section.classList.contains('is-open');
+        closeSections(section);
+        section.classList.toggle('is-open', opening);
+        button.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        submenu.setAttribute('aria-hidden', opening ? 'false' : 'true');
+        if ('inert' in submenu) submenu.inert = !opening;
+
+        if (opening) {
+          window.setTimeout(() => {
+            section.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }, 120);
+        }
+      });
     });
 
     if (faqLink) {
-      rootList.appendChild(decorateDirectLink(faqLink, faqLink.textContent?.trim() || 'FAQ'));
+      list.appendChild(decorateDirectLink(faqLink, faqLink.textContent?.trim() || 'FAQ'));
     }
 
-    views.prepend(rootView);
-    footer.classList.add('mobile-drill-footer');
-    panel.replaceChildren(views, footer);
-    panel.classList.add('mobile-drilldown-ready');
-    navToggle.dataset.drilldownReady = '1';
+    footer.classList.add('mobile-inline-footer');
+    panel.replaceChildren(list, footer);
+    panel.classList.add('mobile-inline-ready');
+    navToggle.dataset.inlineNavReady = '1';
 
     const summary = navToggle.querySelector(':scope > summary');
     const summaryIcon = summary?.querySelector('[aria-hidden="true"]');
@@ -177,41 +169,6 @@
       if (!(header instanceof HTMLElement)) return;
       document.documentElement.style.setProperty('--mobile-nav-top', `${Math.max(0, header.getBoundingClientRect().bottom)}px`);
     };
-
-    function showRoot(focusBack = false) {
-      rootView.classList.remove('is-behind');
-      rootView.classList.add('is-active');
-      rootView.setAttribute('aria-hidden', 'false');
-
-      sectionViews.forEach((view, id) => {
-        view.classList.remove('is-active');
-        view.setAttribute('aria-hidden', 'true');
-        sectionButtons.get(id)?.setAttribute('aria-expanded', 'false');
-      });
-
-      panel.dataset.activeView = 'root';
-      if (focusBack) window.setTimeout(() => sectionButtons.values().next().value?.focus({ preventScroll: true }), 180);
-    }
-
-    function showSection(viewId) {
-      const view = sectionViews.get(viewId);
-      const trigger = sectionButtons.get(viewId);
-      if (!view || !trigger) return;
-
-      rootView.classList.remove('is-active');
-      rootView.classList.add('is-behind');
-      rootView.setAttribute('aria-hidden', 'true');
-
-      sectionViews.forEach((section, id) => {
-        const active = id === viewId;
-        section.classList.toggle('is-active', active);
-        section.setAttribute('aria-hidden', active ? 'false' : 'true');
-        sectionButtons.get(id)?.setAttribute('aria-expanded', active ? 'true' : 'false');
-      });
-
-      panel.dataset.activeView = viewId;
-      window.setTimeout(() => view.querySelector('.mobile-drill-back')?.focus({ preventScroll: true }), 180);
-    }
 
     navToggle.addEventListener('toggle', () => {
       const open = navToggle.open && window.matchMedia(MOBILE_QUERY).matches;
@@ -224,7 +181,8 @@
         document.documentElement.classList.remove('mobile-nav-open');
         if (summaryIcon) summaryIcon.textContent = '☰';
         summary?.setAttribute('aria-label', 'Open menu');
-        window.setTimeout(() => showRoot(false), 180);
+        closeSections();
+        list.scrollTop = 0;
       }
     });
 
@@ -235,9 +193,11 @@
 
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || !navToggle.open || !window.matchMedia(MOBILE_QUERY).matches) return;
-      if (panel.dataset.activeView !== 'root') {
+      const openSection = inlineSections.find(({ section }) => section.classList.contains('is-open'));
+      if (openSection) {
         event.preventDefault();
-        showRoot(false);
+        closeSections();
+        openSection.button.focus({ preventScroll: true });
       } else {
         navToggle.open = false;
       }
