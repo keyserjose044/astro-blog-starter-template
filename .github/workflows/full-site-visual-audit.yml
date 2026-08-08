@@ -1,6 +1,11 @@
 name: Full site visual audit
 
 on:
+  push:
+    branches:
+      - agent/full-site-visual-audit-20260808-v2
+    paths:
+      - '.github/workflows/full-site-visual-audit.yml'
   pull_request:
     paths:
       - 'scripts/site-visual-audit.mjs'
