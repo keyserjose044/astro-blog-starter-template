@@ -164,8 +164,20 @@
       head.insertBefore(mark, close);
     }
 
-    const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
-    let mobileOpen = false;
+    const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)');
+    let touchGuardTimer = 0;
+
+    const releaseTouchGuard = () => {
+      window.clearTimeout(touchGuardTimer);
+      delete panel.dataset.touchGuard;
+    };
+
+    const guardMapsFromOpeningTap = () => {
+      if (!coarsePointer.matches) return;
+      window.clearTimeout(touchGuardTimer);
+      panel.dataset.touchGuard = '1';
+      touchGuardTimer = window.setTimeout(releaseTouchGuard, 650);
+    };
 
     const setOpen = (open, { returnFocus = false } = {}) => {
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -174,51 +186,42 @@
 
       if (open) {
         panel.setAttribute('aria-hidden', 'false');
+        guardMapsFromOpeningTap();
       } else {
+        releaseTouchGuard();
         panel.setAttribute('aria-hidden', 'true');
         if (returnFocus) toggle.focus({ preventScroll: true });
       }
     };
 
-    const syncResponsiveState = () => {
-      const permanentDesktop = desktopRoots.matches;
-      toggle.hidden = permanentDesktop;
-      if (close) close.hidden = permanentDesktop;
-      panel.dataset.permanent = permanentDesktop ? '1' : '0';
-
-      if (permanentDesktop) {
-        setOpen(true);
-      } else {
-        setOpen(mobileOpen);
-      }
-    };
-
-    toggle.addEventListener('click', () => {
-      if (desktopRoots.matches) return;
-      mobileOpen = panel.hidden;
-      setOpen(mobileOpen);
+    toggle.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'touch') event.stopPropagation();
     });
 
-    close?.addEventListener('click', () => {
-      if (desktopRoots.matches) return;
-      mobileOpen = false;
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(panel.hidden);
+    });
+
+    close?.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'touch') event.stopPropagation();
+    });
+
+    close?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       setOpen(false, { returnFocus: true });
     });
 
     document.addEventListener('keydown', (event) => {
-      if (desktopRoots.matches || event.key !== 'Escape' || panel.hidden) return;
+      if (event.key !== 'Escape' || panel.hidden) return;
       event.preventDefault();
       event.stopPropagation();
-      mobileOpen = false;
       setOpen(false, { returnFocus: true });
     }, true);
 
-    if (typeof desktopRoots.addEventListener === 'function') {
-      desktopRoots.addEventListener('change', syncResponsiveState);
-    } else {
-      desktopRoots.addListener(syncResponsiveState);
-    }
-
-    syncResponsiveState();
+    /* Family Roots should be discoverable, not dominant, on first arrival. */
+    setOpen(false);
   });
 })();
