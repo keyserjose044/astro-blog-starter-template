@@ -1,0 +1,167 @@
+---
+import AboutLayout from '../../layouts/AboutLayout.astro';
+import AboutPhotoBubble from '../../components/AboutPhotoBubble.astro';
+import '../../styles/about-split.css';
+
+const portraitCards = [
+  {
+    icon: '🌎',
+    status: 'Live now',
+    title: 'Where I come from',
+    text: 'Family Roots traces both sides of my family from México into the specific communities my parents and grandparents knew, then connects the geography to photographs and family stories.',
+    href: '#family-roots',
+    cta: 'Open Family Roots above',
+  },
+  {
+    icon: '📊',
+    status: 'Growing',
+    title: 'The Quantified Me',
+    text: 'Instead of saying I read, practice guitar, study languages, or move through phases, the archive can show the evidence: totals, calendars, records, and long-term patterns.',
+    href: '/stats/',
+    cta: 'Explore the data',
+  },
+  {
+    icon: '✍️',
+    status: 'Planned',
+    title: 'The Written Me',
+    text: 'A public-safe diary corpus will eventually offer the qualitative counterpart: recurring themes, concerns, joys, phrases, values, and changes that statistics alone cannot describe.',
+  },
+  {
+    icon: 'J',
+    status: 'Planned',
+    title: 'The José constellation',
+    text: 'José José, José María Napoleón, Joseph, Yusuf, José Martí, José Rizal, and other namesakes orbiting a central signature—part cultural collage, part playful identity map.',
+  },
+  {
+    icon: '🎯',
+    status: 'Live now',
+    title: 'What I do',
+    text: 'Guitar, dance, running, languages, research, building things, reading, and the pursuits that recur through different periods of my life.',
+    href: '/pursuits/',
+    cta: 'Explore my pursuits',
+  },
+  {
+    icon: '♥',
+    status: 'Growing',
+    title: 'Things I love',
+    text: 'Books I keep thinking about, music that moves me, paintings I stop for, people who shaped my thinking, words I love, and places that matter to me.',
+    href: '/books/',
+    cta: 'Start with Books',
+  },
+];
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  name: 'About José',
+  description: 'A portrait of José assembled from family roots, pursuits, recorded data, writing, and cultural interests.',
+  mainEntity: {
+    '@type': 'Person',
+    name: 'José',
+    jobTitle: 'Civil engineering PhD student and researcher',
+    knowsAbout: ['Personal data tracking', 'Civil engineering research', 'Data visualization', 'Languages', 'Music'],
+  },
+};
+---
+
+<AboutLayout
+  title="About Me"
+  description="Who is José? A portrait assembled from family roots, pursuits, data, writing, and the things I love."
+  pubDate="2026-08-08"
+  wide={true}
+  showViews={false}
+>
+  <AboutPhotoBubble
+    slot="hero"
+    src="/images/about-lifeloggerz.gif"
+    alt="Family gathered while young José draws at the table."
+    bubbleText="Déjenme terminar esto..."
+    hotspotBottom="8%"
+    hotspotLeft="27%"
+    hotspotWidth="24%"
+    hotspotHeight="32%"
+    bubbleBottom="40%"
+    bubbleLeft="45%"
+  />
+
+  <main class="about-split">
+    <section class="about-me-intro" aria-labelledby="about-me-title">
+      <p class="about-eyebrow">The subject of the archive</p>
+      <h2 id="about-me-title">A portrait assembled from evidence</h2>
+      <p class="about-lede">
+        A normal biography can tell you what I claim to be. LifeLoggerz gives me a more interesting option:
+        show the family I come from, the things I repeatedly do, the culture I return to, and eventually what years of data and writing suggest about me.
+      </p>
+      <div class="about-inline-actions">
+        <a class="about-button primary" href="/pursuits/">Explore Pursuits</a>
+        <a class="about-button" href="/timeline/">Life Timeline</a>
+        <a class="about-button" href="/inspirations/">Inspirations</a>
+      </div>
+    </section>
+
+    <section class="about-section" aria-labelledby="portrait-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">Several answers to the same question</p>
+        <h2 id="portrait-title">Who am I?</h2>
+        <p>No single paragraph gets to own the answer. Each part of the archive sees the person from a different angle.</p>
+      </div>
+
+      <div class="about-card-grid about-person-grid">
+        {portraitCards.map((card) => (
+          <article class="about-card">
+            <span class="about-card-icon" aria-hidden="true">{card.icon}</span>
+            <span class:list={['about-card-status', { planned: card.status === 'Planned' }]}>{card.status}</span>
+            <h3>{card.title}</h3>
+            <p>{card.text}</p>
+            {card.href && <a class="about-card-link" href={card.href}>{card.cta} →</a>}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="about-section" aria-labelledby="evidence-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">The archive as a mirror</p>
+        <h2 id="evidence-title">What the record can say that a résumé cannot</h2>
+        <p>
+          The most LifeLoggerz version of an About page is not a list of adjectives. It is a set of doors into the evidence behind them.
+        </p>
+      </div>
+
+      <div class="about-evidence-strip">
+        <a class="about-evidence-link" href="/stats/">
+          <strong>My data says…</strong>
+          <span>See the calendars, records, totals, and periods behind the habits.</span>
+        </a>
+        <a class="about-evidence-link" href="/pursuits/">
+          <strong>My pursuits say…</strong>
+          <span>See what I repeatedly choose to practice, abandon, revive, and learn.</span>
+        </a>
+        <a class="about-evidence-link" href="/timeline/">
+          <strong>My timeline says…</strong>
+          <span>See how projects, education, travel, interests, and milestones accumulated.</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="about-section about-love-panel" aria-labelledby="love-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">Culture as autobiography</p>
+        <h2 id="love-title">Things I love</h2>
+        <p>
+          Favorites are more revealing when they become constellations: music associated with periods of life, books that stayed with me,
+          art that made me stop, and people or ideas I keep returning to.
+        </p>
+      </div>
+      <nav class="about-link-row" aria-label="Explore cultural interests">
+        <a class="about-link-chip" href="/books/">📚 Books</a>
+        <a class="about-link-chip" href="/music/albums/">💿 Albums</a>
+        <a class="about-link-chip" href="/music/composers/">🎼 Classical Music</a>
+        <a class="about-link-chip" href="/art/">🎨 Art</a>
+        <a class="about-link-chip" href="/inspirations/">💡 Inspirations</a>
+      </nav>
+    </section>
+  </main>
+
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+</AboutLayout>
