@@ -60,34 +60,40 @@
     const buildGoogleMapUrl = (query, zoom) =>
       `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=${zoom}&output=embed`;
 
-    googleMaps.forEach(([branch, maps]) => {
-      if (!branch) return;
+    let mapsInitialized = false;
+    const initializeGoogleMaps = () => {
+      if (mapsInitialized) return;
+      mapsInitialized = true;
 
-      const slots = branch.querySelectorAll('.about-photo-map-slot');
-      slots.forEach((slot, index) => {
-        const map = maps[index];
-        if (!map) return;
+      googleMaps.forEach(([branch, maps]) => {
+        if (!branch) return;
 
-        slot.removeAttribute('data-map-label');
-        slot.removeAttribute('role');
-        slot.removeAttribute('aria-label');
-        slot.classList.add('about-photo-map-slot--live', 'about-photo-map-slot--google');
+        const slots = branch.querySelectorAll('.about-photo-map-slot');
+        slots.forEach((slot, index) => {
+          const map = maps[index];
+          if (!map) return;
 
-        slot.querySelectorAll('.about-photo-map-marker').forEach((marker) => marker.remove());
-        slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => frame.remove());
+          slot.removeAttribute('data-map-label');
+          slot.removeAttribute('role');
+          slot.removeAttribute('aria-label');
+          slot.classList.add('about-photo-map-slot--live', 'about-photo-map-slot--google');
 
-        const frame = document.createElement('iframe');
-        const src = buildGoogleMapUrl(map.query, map.zoom);
-        frame.className = 'about-photo-map-frame';
-        frame.src = src;
-        frame.dataset.mapSrc = src;
-        frame.title = map.title;
-        frame.loading = 'lazy';
-        frame.referrerPolicy = 'no-referrer-when-downgrade';
-        frame.setAttribute('allowfullscreen', '');
-        slot.appendChild(frame);
+          slot.querySelectorAll('.about-photo-map-marker').forEach((marker) => marker.remove());
+          slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => frame.remove());
+
+          const frame = document.createElement('iframe');
+          const src = buildGoogleMapUrl(map.query, map.zoom);
+          frame.className = 'about-photo-map-frame';
+          frame.src = src;
+          frame.dataset.mapSrc = src;
+          frame.title = map.title;
+          frame.loading = 'lazy';
+          frame.referrerPolicy = 'no-referrer-when-downgrade';
+          frame.setAttribute('allowfullscreen', '');
+          slot.appendChild(frame);
+        });
       });
-    });
+    };
 
     /*
       Mobile browsers can restore this page from the back/forward cache after the
@@ -187,6 +193,7 @@
       if (open) {
         panel.setAttribute('aria-hidden', 'false');
         guardMapsFromOpeningTap();
+        initializeGoogleMaps();
       } else {
         releaseTouchGuard();
         panel.setAttribute('aria-hidden', 'true');
@@ -220,6 +227,11 @@
       event.stopPropagation();
       setOpen(false, { returnFocus: true });
     }, true);
+
+    /* Undo any restored DOM state from the previous always-open desktop behavior. */
+    toggle.hidden = false;
+    if (close) close.hidden = false;
+    delete panel.dataset.permanent;
 
     /* Family Roots should be discoverable, not dominant, on first arrival. */
     setOpen(false);
