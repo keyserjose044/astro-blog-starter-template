@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      AUDIT_SITE_SHA: 7455f9da7d90caaaabda19e4e45d7d2222fb7a8a-live
+      AUDIT_SITE_SHA: 315ebe3ca4046a786debea99ea6228e913919909-live
       AUDIT_BASE_URL: https://lifeloggerz.com
     steps:
       - name: Check out audit tooling
@@ -41,15 +41,16 @@ jobs:
 
       - name: Wait for and verify the latest deployed UI markers
         run: |
-          for i in {1..36}; do
+          for i in {1..60}; do
             about_html="$(curl --fail --silent --location https://lifeloggerz.com/about/me/ || true)"
             books_html="$(curl --fail --silent --location https://lifeloggerz.com/books/ || true)"
-            if printf '%s' "$about_html" | grep -q '20260808-topo-v1' \
+            if ! printf '%s' "$about_html" | grep -q 'about-family-roots-terrain-override.js' \
+              && printf '%s' "$about_html" | grep -q 'Family Roots' \
               && printf '%s' "$books_html" | grep -q 'books-author-cover-stacks.js?v=20260808-1803'; then
-              echo 'Latest Aug 8 UI markers are live.'
+              echo 'Latest Aug 8 UI markers are live: clean Family Roots maps + Books Authors stacks.'
               exit 0
             fi
-            echo "Deployment not current yet; retry $i/36"
+            echo "Deployment not current yet; retry $i/60"
             sleep 5
           done
           echo 'Expected latest UI markers never appeared on lifeloggerz.com.'
@@ -69,7 +70,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lifeloggerz-live-fast-audit-7455f9d
+          name: lifeloggerz-live-fast-audit-315ebe3
           path: audit-output-fast
           if-no-files-found: warn
           retention-days: 14
