@@ -95,6 +95,7 @@
         section.classList.remove('is-open');
         button.setAttribute('aria-expanded', 'false');
         submenu.setAttribute('aria-hidden', 'true');
+        submenu.style.display = 'none';
         if ('inert' in submenu) submenu.inert = true;
       });
     };
@@ -135,6 +136,7 @@
       submenu.className = 'mobile-inline-submenu';
       submenu.id = submenuId;
       submenu.setAttribute('aria-hidden', 'true');
+      submenu.style.display = 'none';
       if ('inert' in submenu) submenu.inert = true;
 
       const submenuInner = document.createElement('div');
@@ -167,6 +169,7 @@
         section.classList.toggle('is-open', opening);
         button.setAttribute('aria-expanded', opening ? 'true' : 'false');
         submenu.setAttribute('aria-hidden', opening ? 'false' : 'true');
+        submenu.style.display = opening ? 'block' : 'none';
         if ('inert' in submenu) submenu.inert = !opening;
 
         if (opening) {
