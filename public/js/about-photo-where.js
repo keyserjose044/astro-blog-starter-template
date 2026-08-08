@@ -165,7 +165,17 @@
     }
 
     const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
+    let desktopOpen = true;
     let mobileOpen = false;
+    let mapGuardTimer = 0;
+
+    const guardMapsAfterOpen = () => {
+      window.clearTimeout(mapGuardTimer);
+      panel.dataset.mapGuard = '1';
+      mapGuardTimer = window.setTimeout(() => {
+        delete panel.dataset.mapGuard;
+      }, 800);
+    };
 
     const setOpen = (open, { returnFocus = false } = {}) => {
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -176,40 +186,55 @@
         panel.setAttribute('aria-hidden', 'false');
       } else {
         panel.setAttribute('aria-hidden', 'true');
+        delete panel.dataset.mapGuard;
         if (returnFocus) toggle.focus({ preventScroll: true });
       }
     };
 
     const syncResponsiveState = () => {
-      const permanentDesktop = desktopRoots.matches;
-      toggle.hidden = permanentDesktop;
-      if (close) close.hidden = permanentDesktop;
-      panel.dataset.permanent = permanentDesktop ? '1' : '0';
-
-      if (permanentDesktop) {
-        setOpen(true);
+      if (desktopRoots.matches) {
+        setOpen(desktopOpen);
       } else {
         setOpen(mobileOpen);
       }
     };
 
-    toggle.addEventListener('click', () => {
-      if (desktopRoots.matches) return;
-      mobileOpen = panel.hidden;
-      setOpen(mobileOpen);
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const nextOpen = panel.hidden;
+      if (desktopRoots.matches) {
+        desktopOpen = nextOpen;
+      } else {
+        mobileOpen = nextOpen;
+        if (nextOpen) guardMapsAfterOpen();
+      }
+      setOpen(nextOpen);
     });
 
-    close?.addEventListener('click', () => {
-      if (desktopRoots.matches) return;
-      mobileOpen = false;
+    close?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (desktopRoots.matches) {
+        desktopOpen = false;
+      } else {
+        mobileOpen = false;
+      }
       setOpen(false, { returnFocus: true });
     });
 
     document.addEventListener('keydown', (event) => {
-      if (desktopRoots.matches || event.key !== 'Escape' || panel.hidden) return;
+      if (event.key !== 'Escape' || panel.hidden) return;
       event.preventDefault();
       event.stopPropagation();
-      mobileOpen = false;
+
+      if (desktopRoots.matches) {
+        desktopOpen = false;
+      } else {
+        mobileOpen = false;
+      }
       setOpen(false, { returnFocus: true });
     }, true);
 
