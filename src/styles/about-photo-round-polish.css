@@ -170,6 +170,25 @@
   }
 }
 
+/* Touch devices keep the Who's Who labels but skip the expensive glow/blur layer. */
+@media (hover:none),(pointer:coarse){
+  .portrait-spotlight-layer{
+    display:none!important;
+  }
+
+  .about-photo-wrapper[data-whos-who='1'] .about-photo-img{
+    filter:none;
+  }
+
+  .about-photo-wrapper[data-whos-who='1']:not(:has(.portrait-spotlight-layer)) .person-hotspot{
+    fill:rgba(255,255,255,.001);
+    stroke:transparent;
+    stroke-width:0;
+    filter:none;
+    transition:none;
+  }
+}
+
 @media(prefers-reduced-motion:reduce){
   .about-photo-action[data-round-complete='1'],
   .about-photo-action[data-round-complete='1'] .about-photo-random-progress{
