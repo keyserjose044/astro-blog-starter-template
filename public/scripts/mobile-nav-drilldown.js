@@ -12,9 +12,30 @@
     FAQ: '❓',
   }[label] || '•');
 
+  const openFamilyRootsFromHash = () => {
+    if (window.location.hash !== '#family-roots') return;
+
+    const feature = document.querySelector('[data-about-photo-feature]');
+    const toggle = feature?.querySelector('[data-where-toggle]');
+    if (!(feature instanceof HTMLElement)) return;
+
+    if (!document.getElementById('family-roots')) feature.id = 'family-roots';
+    if (toggle instanceof HTMLElement && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.requestAnimationFrame(() => {
+      feature.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
+    });
+  };
+
+  window.addEventListener('hashchange', openFamilyRootsFromHash);
+
   const setup = () => {
     const navToggle = document.querySelector('.mobile-nav .nav-toggle');
-    if (!(navToggle instanceof HTMLDetailsElement) || navToggle.dataset.inlineNavReady === '1') return;
+    if (!(navToggle instanceof HTMLDetailsElement) || navToggle.dataset.inlineNavReady === '1') {
+      openFamilyRootsFromHash();
+      return;
+    }
 
     const panel = navToggle.querySelector('.menu-panel');
     const topDirect = panel?.querySelector('.mobile-direct-links:not(.mobile-direct-links-bottom)');
@@ -22,7 +43,10 @@
     const footer = panel?.querySelector('.mobile-footer');
     const groups = panel ? Array.from(panel.querySelectorAll('.mobile-group')) : [];
 
-    if (!(panel instanceof HTMLElement) || !(topDirect instanceof HTMLElement) || !(footer instanceof HTMLElement) || groups.length === 0) return;
+    if (!(panel instanceof HTMLElement) || !(topDirect instanceof HTMLElement) || !(footer instanceof HTMLElement) || groups.length === 0) {
+      openFamilyRootsFromHash();
+      return;
+    }
 
     const directLinks = Array.from(topDirect.querySelectorAll('a'));
     const faqLink = bottomDirect?.querySelector('a') || null;
@@ -238,6 +262,8 @@
         summary?.focus({ preventScroll: true });
       }
     });
+
+    openFamilyRootsFromHash();
   };
 
   if (document.readyState === 'loading') {
