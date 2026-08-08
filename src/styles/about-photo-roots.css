@@ -47,12 +47,15 @@
 
 @media (max-width:768px){
   .about-photo-roots-tabs{
+    box-sizing:border-box;
     position:relative;
     z-index:2;
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     width:min(100%,330px);
+    max-width:100%;
     margin:.95rem auto .25rem;
+    margin-inline:auto;
     padding:4px;
     gap:4px;
     border:1px solid rgba(128,101,70,.28);
@@ -66,6 +69,7 @@
   }
 
   .about-photo-roots-tab{
+    box-sizing:border-box;
     appearance:none;
     min-width:0;
     padding:.62rem .75rem;
