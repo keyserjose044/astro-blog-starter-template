@@ -7,6 +7,8 @@
     const close = feature.querySelector('[data-where-close]');
     if (!toggle || !panel) return;
 
+    if (!document.getElementById('family-roots')) feature.id = 'family-roots';
+
     const dad = panel.querySelector('[aria-labelledby="family-roots-dad-title"]');
     const mom = panel.querySelector('[aria-labelledby="family-roots-mom-title"]');
     const dadRoute = dad?.querySelector('.about-photo-roots-branch-route');
@@ -178,6 +180,7 @@
     const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)');
     const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
     const mobileBranchView = window.matchMedia('(max-width: 768px)');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let touchGuardTimer = 0;
     let activeBranch = 'dad';
     let branchTabs = null;
@@ -289,6 +292,17 @@
       }
     };
 
+    const openFromFamilyRootsHash = () => {
+      if (window.location.hash !== '#family-roots') return;
+      setOpen(true);
+      window.requestAnimationFrame(() => {
+        feature.scrollIntoView({
+          block: 'start',
+          behavior: reducedMotion.matches ? 'auto' : 'smooth',
+        });
+      });
+    };
+
     toggle.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'touch') event.stopPropagation();
     });
@@ -316,6 +330,8 @@
       setOpen(false, { returnFocus: true });
     }, true);
 
+    window.addEventListener('hashchange', openFromFamilyRootsHash);
+
     /* Keep both controls available even though desktop opens the section initially. */
     toggle.hidden = false;
     if (close) close.hidden = false;
@@ -323,5 +339,6 @@
 
     /* Desktop starts open but remains collapsible; touch/mobile starts closed. */
     setOpen(desktopRoots.matches);
+    openFromFamilyRootsHash();
   });
 })();
