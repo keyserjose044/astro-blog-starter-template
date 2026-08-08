@@ -1,5 +1,9 @@
 @import './about-photo-roots-maps.css';
 
+.about-photo-roots-tabs{
+  display:none;
+}
+
 .about-photo-roots-branch{
   position:relative;
   z-index:1;
@@ -41,32 +45,87 @@
   margin-top:.58rem;
 }
 
-@media (hover:none) and (pointer:coarse){
+@media (max-width:768px){
+  .about-photo-roots-tabs{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:min(100%,330px);
+    margin:.95rem auto .25rem;
+    padding:4px;
+    gap:4px;
+    border:1px solid rgba(128,101,70,.28);
+    border-radius:999px;
+    background:rgba(237,225,207,.72);
+    box-shadow:inset 0 1px 3px rgba(67,47,28,.08);
+  }
+
+  .about-photo-roots-tabs[hidden]{
+    display:none!important;
+  }
+
+  .about-photo-roots-tab{
+    appearance:none;
+    min-width:0;
+    padding:.62rem .75rem;
+    border:1px solid transparent;
+    border-radius:999px;
+    background:transparent;
+    color:#715b47;
+    font:800 .78rem/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    cursor:pointer;
+    transition:background 150ms ease,border-color 150ms ease,color 150ms ease,box-shadow 150ms ease;
+  }
+
+  .about-photo-roots-tab[aria-selected='true']{
+    border-color:rgba(139,94,53,.34);
+    background:#fffaf2;
+    color:#3d2e22;
+    box-shadow:0 2px 7px rgba(61,43,27,.12),inset 0 1px 0 rgba(255,255,255,.9);
+  }
+
+  .about-photo-roots-tab:focus-visible{
+    outline:2px solid rgba(44,91,71,.72);
+    outline-offset:2px;
+  }
+
+  .about-photo-roots-branch[hidden]{
+    display:none!important;
+  }
+
   .about-photo-roots-branch{
     margin-top:1.05rem;
   }
 
   .about-photo-roots-branch + .about-photo-roots-branch{
-    margin-top:1.45rem;
-    padding-top:1.25rem;
+    margin-top:1.05rem;
+    padding-top:0;
+    border-top:0;
   }
 
   .about-photo-roots-branch-head{
     display:block;
-    margin-left:.2rem;
+    margin-inline:.2rem;
+    text-align:center;
   }
 
   .about-photo-roots-branch-title{
-    font-size:.94rem;
+    font-size:.98rem;
   }
 
   .about-photo-roots-branch-route{
-    margin-top:.18rem;
+    max-width:28rem;
+    margin:.2rem auto 0;
     font-size:.67rem;
-    text-align:left;
+    text-align:center;
   }
 
   .about-photo-roots-branch .about-photo-where-steps{
     margin-top:.72rem;
   }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .about-photo-roots-tab{transition:none}
 }

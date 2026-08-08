@@ -172,7 +172,88 @@
 
     const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)');
     const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
+    const mobileBranchView = window.matchMedia('(max-width: 768px)');
     let touchGuardTimer = 0;
+    let activeBranch = 'dad';
+    let branchTabs = null;
+    let branchButtons = [];
+
+    if (dad && mom && head) {
+      dad.id = dad.id || 'family-roots-dad-panel';
+      mom.id = mom.id || 'family-roots-mom-panel';
+
+      branchTabs = document.createElement('div');
+      branchTabs.className = 'about-photo-roots-tabs';
+      branchTabs.dataset.rootsTabs = '';
+      branchTabs.setAttribute('role', 'tablist');
+      branchTabs.setAttribute('aria-label', 'Choose a family branch');
+
+      [
+        ['dad', 'Dad’s side', dad],
+        ['mom', 'Mom’s side', mom],
+      ].forEach(([key, label, branch]) => {
+        const button = document.createElement('button');
+        button.className = 'about-photo-roots-tab';
+        button.type = 'button';
+        button.dataset.rootsTab = key;
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-controls', branch.id);
+        button.textContent = label;
+        branchTabs.appendChild(button);
+        branchButtons.push(button);
+      });
+
+      head.insertAdjacentElement('afterend', branchTabs);
+    }
+
+    const syncBranchView = ({ focus = false } = {}) => {
+      if (!dad || !mom || !branchTabs) return;
+
+      const mobile = mobileBranchView.matches;
+      branchTabs.hidden = !mobile;
+
+      [['dad', dad], ['mom', mom]].forEach(([key, branch]) => {
+        const selected = key === activeBranch;
+        branch.hidden = mobile && !selected;
+        branch.setAttribute('aria-hidden', mobile && !selected ? 'true' : 'false');
+      });
+
+      branchButtons.forEach((button) => {
+        const selected = button.dataset.rootsTab === activeBranch;
+        button.setAttribute('aria-selected', selected ? 'true' : 'false');
+        button.tabIndex = selected ? 0 : -1;
+        if (focus && selected) button.focus({ preventScroll: true });
+      });
+    };
+
+    branchButtons.forEach((button, index) => {
+      button.addEventListener('click', () => {
+        activeBranch = button.dataset.rootsTab || 'dad';
+        syncBranchView();
+      });
+
+      button.addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+
+        let nextIndex = index;
+        if (event.key === 'ArrowLeft') nextIndex = (index - 1 + branchButtons.length) % branchButtons.length;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % branchButtons.length;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = branchButtons.length - 1;
+
+        activeBranch = branchButtons[nextIndex].dataset.rootsTab || 'dad';
+        syncBranchView({ focus: true });
+      });
+    });
+
+    if (typeof mobileBranchView.addEventListener === 'function') {
+      mobileBranchView.addEventListener('change', () => syncBranchView());
+    } else {
+      mobileBranchView.addListener(() => syncBranchView());
+    }
+
+    syncBranchView();
 
     const releaseTouchGuard = () => {
       window.clearTimeout(touchGuardTimer);
@@ -195,6 +276,7 @@
         panel.setAttribute('aria-hidden', 'false');
         guardMapsFromOpeningTap();
         initializeGoogleMaps();
+        syncBranchView();
       } else {
         releaseTouchGuard();
         panel.setAttribute('aria-hidden', 'true');
