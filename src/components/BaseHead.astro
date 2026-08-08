@@ -27,6 +27,7 @@ const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260801-1650';
 const albumsAssetVersion = '20260802-1115';
 const artAssetVersion = '20260802-0005';
+const navAssetVersion = '20260808-1548';
 ---
 
 <!-- Global Metadata -->
@@ -44,6 +45,7 @@ const artAssetVersion = '20260802-0005';
 <!-- Preload the font files that actually exist in /public/fonts -->
 <link rel="preload" href={`${base}fonts/atkinson-regular.woff`} as="font" type="font/woff" crossorigin />
 <link rel="preload" href={`${base}fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
+<link rel="stylesheet" href={`${base}styles/mobile-nav-drilldown.css?v=${navAssetVersion}`} />
 
 {isAboutPage ? <meta name="lifeloggerz-about-assets" content={aboutAssetVersion} /> : null}
 {isAboutPage ? <link rel="stylesheet" href={`${base}styles/about-adornment-personality.css?v=${aboutAssetVersion}`} /> : null}
@@ -111,6 +113,7 @@ const artAssetVersion = '20260802-0005';
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={absoluteImageURL.toString()} />
 
+<script is:inline src={`${base}scripts/mobile-nav-drilldown.js?v=${navAssetVersion}`} defer></script>
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
