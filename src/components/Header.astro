@@ -1,5 +1,6 @@
 ---
 import HeaderLink from './HeaderLink.astro';
+import NavTooltipLink from './NavTooltipLink.astro';
 import DailyDataRuntime from './DailyDataRuntime.astro';
 import StatsSupportRuntime from './StatsSupportRuntime.astro';
 import StatsExplorerV2 from './StatsExplorerV2.astro';
@@ -145,9 +146,9 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
     </h2>
 
     <div class="desktop-links">
-      <HeaderLink href={base} exact={true}>Home</HeaderLink>
-      <HeaderLink href={link('blog/')}>Blog</HeaderLink>
-      <HeaderLink href={link('templates/')}>Templates</HeaderLink>
+      <NavTooltipLink href={base} exact={true} tip="Start here: overview and latest from the blog">Home</NavTooltipLink>
+      <NavTooltipLink href={link('blog/')} tip="Essays on systems, stats, and experiments">Blog</NavTooltipLink>
+      <NavTooltipLink href={link('templates/')} tip="Downloadable tools and Google Sheets systems">Templates</NavTooltipLink>
 
       <details class:list={['desktop-dropdown', { 'section-active': statsExploreActive }]}> 
         <summary>
@@ -155,14 +156,14 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
           <span class="chevron" aria-hidden="true">⌄</span>
         </summary>
         <div class="dropdown-panel">
-          <p class="dropdown-kicker">The recorded life</p>
           {statsExploreItems.map((item) => (
             <HeaderLink href={link(item.href)} class="dropdown-link">
               <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
-              <span>
+              <span class="dropdown-copy">
                 <strong>{item.label}</strong>
                 <small>{item.description}</small>
               </span>
+              <span class="dropdown-arrow" aria-hidden="true">→</span>
             </HeaderLink>
           ))}
         </div>
@@ -174,14 +175,14 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
           <span class="chevron" aria-hidden="true">⌄</span>
         </summary>
         <div class="dropdown-panel culture-panel">
-          <p class="dropdown-kicker">What I read, hear, and see</p>
           {cultureItems.map((item) => (
             <HeaderLink href={link(item.href)} class="dropdown-link">
               <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
-              <span>
+              <span class="dropdown-copy">
                 <strong>{item.label}</strong>
                 <small>{item.description}</small>
               </span>
+              <span class="dropdown-arrow" aria-hidden="true">→</span>
             </HeaderLink>
           ))}
         </div>
@@ -193,17 +194,16 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
           <span class="chevron" aria-hidden="true">⌄</span>
         </summary>
         <div class="dropdown-panel">
-          <p class="dropdown-kicker">Tools, systems, projects &amp; research</p>
           {buildItems.map((item) => (
             <HeaderLink href={link(item.href)} class="dropdown-link">
               <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
-              <span>
+              <span class="dropdown-copy">
                 <strong>{item.label}</strong>
                 <small>{item.description}</small>
               </span>
+              <span class="dropdown-arrow" aria-hidden="true">→</span>
             </HeaderLink>
           ))}
-          <p class="dropdown-footnote">This section can grow as dedicated project and research pages go live.</p>
         </div>
       </details>
 
@@ -213,20 +213,20 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
           <span class="chevron" aria-hidden="true">⌄</span>
         </summary>
         <div class="dropdown-panel about-panel">
-          <p class="dropdown-kicker">The person behind the archive</p>
           {aboutItems.map((item) => (
             <HeaderLink href={link(item.href)} class="dropdown-link">
               <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
-              <span>
+              <span class="dropdown-copy">
                 <strong>{item.label}</strong>
                 <small>{item.description}</small>
               </span>
+              <span class="dropdown-arrow" aria-hidden="true">→</span>
             </HeaderLink>
           ))}
         </div>
       </details>
 
-      <HeaderLink href={link('faq/')}>FAQ</HeaderLink>
+      <NavTooltipLink href={link('faq/')} tip="Questions about the project, privacy, and tracking">FAQ</NavTooltipLink>
     </div>
 
     <div class="right-rail">
@@ -348,6 +348,72 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
 {isDayPage && <DailyDataRuntime />}
 {pursuitSection && <PursuitsLiveRuntime active={pursuitSection} />}
 
+<script>
+  const desktopDropdowns = Array.from(document.querySelectorAll<HTMLDetailsElement>('.desktop-dropdown'));
+
+  const closeDesktopDropdowns = (except?: HTMLDetailsElement) => {
+    desktopDropdowns.forEach((dropdown) => {
+      if (dropdown !== except) dropdown.open = false;
+    });
+  };
+
+  desktopDropdowns.forEach((dropdown) => {
+    let closeTimer: number | undefined;
+    const summary = dropdown.querySelector('summary');
+
+    const openDropdown = () => {
+      if (!window.matchMedia('(min-width: 1001px)').matches) return;
+      window.clearTimeout(closeTimer);
+      closeDesktopDropdowns(dropdown);
+      dropdown.open = true;
+    };
+
+    const scheduleClose = () => {
+      if (!window.matchMedia('(min-width: 1001px)').matches) return;
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(() => {
+        if (!dropdown.matches(':hover') && !dropdown.matches(':focus-within')) dropdown.open = false;
+      }, 120);
+    };
+
+    dropdown.addEventListener('mouseenter', openDropdown);
+    dropdown.addEventListener('mouseleave', scheduleClose);
+    dropdown.addEventListener('focusin', openDropdown);
+    dropdown.addEventListener('focusout', scheduleClose);
+
+    summary?.addEventListener('click', (event) => {
+      if (!window.matchMedia('(min-width: 1001px)').matches) return;
+      event.preventDefault();
+      openDropdown();
+    });
+
+    dropdown.querySelectorAll('a').forEach((anchor) => {
+      anchor.addEventListener('click', () => closeDesktopDropdowns());
+    });
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    const target = event.target as Node | null;
+    if (target && !desktopDropdowns.some((dropdown) => dropdown.contains(target))) {
+      closeDesktopDropdowns();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeDesktopDropdowns();
+  });
+
+  const mobileGroups = Array.from(document.querySelectorAll<HTMLDetailsElement>('.mobile-group'));
+  mobileGroups.forEach((group) => {
+    group.addEventListener('toggle', () => {
+      if (!group.open) return;
+      mobileGroups.forEach((other) => {
+        if (other !== group) other.open = false;
+      });
+    });
+  });
+</script>
+
 <style>
   .site-header {
     margin: 0;
@@ -360,7 +426,7 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   }
 
   .desktop-nav {
-    min-height: 58px;
+    min-height: 62px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -397,32 +463,38 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
     display: flex;
     align-items: stretch;
     justify-content: center;
-    gap: .08rem;
+    gap: .1rem;
     min-width: 0;
   }
 
-  .desktop-links > :global(a),
+  .desktop-links :global(.nav-tooltip-wrapper) {
+    display: inline-flex;
+    align-items: stretch;
+  }
+
+  .desktop-links :global(.nav-tooltip-wrapper > a),
   .desktop-dropdown > summary {
     position: relative;
     display: inline-flex;
     align-items: center;
-    min-height: 58px;
-    padding: 0 .5rem;
+    min-height: 62px;
+    padding: 0 .58rem;
     color: var(--black, #0e121b);
-    font-size: .96rem;
-    font-weight: 500;
+    font-size: 1.04rem;
+    font-weight: 700;
+    line-height: 1;
     text-decoration: none !important;
     white-space: nowrap;
     cursor: pointer;
-    transition: transform .15s ease-out, color .15s ease-out;
+    transition: transform .15s ease-out, color .15s ease-out, background .15s ease-out;
   }
 
-  .desktop-links > :global(a)::after,
+  .desktop-links :global(.nav-tooltip-wrapper > a)::after,
   .desktop-dropdown > summary::after {
     content: '';
     position: absolute;
-    left: .45rem;
-    right: .45rem;
+    left: .5rem;
+    right: .5rem;
     bottom: .42rem;
     height: 3px;
     border-radius: 999px;
@@ -432,17 +504,18 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
     transition: transform .15s ease-out;
   }
 
-  .desktop-links > :global(a:hover),
-  .desktop-links > :global(a:focus-visible),
+  .desktop-links :global(.nav-tooltip-wrapper > a:hover),
+  .desktop-links :global(.nav-tooltip-wrapper > a:focus-visible),
   .desktop-dropdown > summary:hover,
   .desktop-dropdown > summary:focus-visible {
     color: #1d4ed8;
+    background: rgba(37, 99, 235, .035);
     transform: translateY(-1px);
   }
 
-  .desktop-links > :global(a:hover)::after,
-  .desktop-links > :global(a:focus-visible)::after,
-  .desktop-links > :global(a.active)::after,
+  .desktop-links :global(.nav-tooltip-wrapper > a:hover)::after,
+  .desktop-links :global(.nav-tooltip-wrapper > a:focus-visible)::after,
+  .desktop-links :global(.nav-tooltip-wrapper > a.active)::after,
   .desktop-dropdown:hover > summary::after,
   .desktop-dropdown:focus-within > summary::after,
   .desktop-dropdown[open] > summary::after,
@@ -464,37 +537,35 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   }
 
   .chevron {
-    margin-left: .28rem;
+    margin-left: .3rem;
     font-size: .78rem;
     transform: translateY(-1px);
     transition: transform .16s ease-out;
   }
 
   .desktop-dropdown[open] > summary .chevron,
-  .desktop-dropdown:hover > summary .chevron,
   .mobile-group[open] > summary .chevron {
     transform: rotate(180deg) translateY(1px);
   }
 
   .dropdown-panel {
     position: absolute;
-    top: calc(100% - .15rem);
+    top: calc(100% - .12rem);
     left: 50%;
-    width: min(320px, 82vw);
-    padding: .7rem;
+    width: min(300px, 82vw);
+    padding: .45rem;
     border: 1px solid rgba(15, 23, 42, .08);
-    border-radius: .9rem;
-    background: rgba(255, 255, 255, .98);
+    border-radius: .85rem;
+    background: rgba(255, 255, 255, .985);
     box-shadow: 0 18px 45px rgba(15, 23, 42, .14);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translate(-50%, .5rem);
+    transform: translate(-50%, .45rem);
     transition: opacity .14s ease-out, transform .14s ease-out, visibility .14s ease-out;
+    z-index: 70;
   }
 
-  .desktop-dropdown:hover > .dropdown-panel,
-  .desktop-dropdown:focus-within > .dropdown-panel,
   .desktop-dropdown[open] > .dropdown-panel {
     opacity: 1;
     visibility: visible;
@@ -505,42 +576,49 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   .about-panel {
     left: auto;
     right: 0;
-    transform: translate(0, .5rem);
+    transform: translate(0, .45rem);
   }
 
-  .desktop-dropdown:hover > .about-panel,
-  .desktop-dropdown:focus-within > .about-panel,
   .desktop-dropdown[open] > .about-panel {
     transform: translate(0, 0);
   }
 
-  .dropdown-kicker {
-    margin: .15rem .55rem .45rem;
-    color: #64748b;
-    font-size: .68rem;
-    font-weight: 700;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-  }
-
   .dropdown-link:global(a) {
+    position: relative;
     display: grid;
-    grid-template-columns: 1.65rem minmax(0, 1fr);
-    gap: .65rem;
-    align-items: start;
+    grid-template-columns: 1.65rem minmax(0, 1fr) 1.15rem;
+    gap: .58rem;
+    align-items: center;
     width: 100%;
-    padding: .7rem .6rem;
+    min-height: 44px;
+    padding: .62rem .65rem;
+    border: 1px solid transparent;
     border-radius: .65rem;
     color: #0f172a;
     text-decoration: none !important;
-    transition: background .14s ease-out, transform .14s ease-out;
+    cursor: pointer;
+    transition: background .14s ease-out, border-color .14s ease-out, color .14s ease-out, transform .14s ease-out, box-shadow .14s ease-out;
   }
 
   .dropdown-link:global(a:hover),
-  .dropdown-link:global(a:focus-visible),
+  .dropdown-link:global(a:focus-visible) {
+    color: #1d4ed8;
+    background: #f5f8ff;
+    border-color: rgba(37, 99, 235, .12);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .07);
+    transform: translateX(3px);
+    outline: none;
+  }
+
   .dropdown-link:global(a.active) {
-    background: #f1f5ff;
-    transform: translateX(2px);
+    color: #1d4ed8;
+    background: #edf3ff;
+    border-color: rgba(37, 99, 235, .14);
+  }
+
+  .dropdown-link:global(a:active) {
+    background: #e6efff;
+    transform: translateX(3px) scale(.985);
   }
 
   .dropdown-icon {
@@ -552,28 +630,54 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
     line-height: 1.3;
   }
 
+  .dropdown-copy {
+    min-width: 0;
+  }
+
   .dropdown-link:global(a) strong {
     display: block;
-    margin-bottom: .12rem;
-    font-size: .9rem;
+    font-size: .94rem;
     line-height: 1.2;
+    font-weight: 720;
   }
 
   .dropdown-link:global(a) small {
     display: block;
+    max-height: 0;
+    margin-top: 0;
+    overflow: hidden;
     color: #64748b;
-    font-size: .74rem;
+    font-size: .73rem;
     line-height: 1.35;
-    font-weight: 400;
+    font-weight: 450;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: max-height .18s ease-out, margin-top .18s ease-out, opacity .14s ease-out, transform .18s ease-out;
   }
 
-  .dropdown-footnote {
-    margin: .45rem .55rem .2rem;
-    padding-top: .55rem;
-    border-top: 1px solid rgba(15, 23, 42, .07);
-    color: #64748b;
-    font-size: .7rem;
-    line-height: 1.4;
+  .dropdown-link:global(a:hover) small,
+  .dropdown-link:global(a:focus-visible) small {
+    max-height: 3.2em;
+    margin-top: .28rem;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .dropdown-arrow {
+    justify-self: end;
+    color: #94a3b8;
+    font-size: .92rem;
+    opacity: .25;
+    transform: translateX(-3px);
+    transition: opacity .14s ease-out, transform .14s ease-out, color .14s ease-out;
+  }
+
+  .dropdown-link:global(a:hover) .dropdown-arrow,
+  .dropdown-link:global(a:focus-visible) .dropdown-arrow,
+  .dropdown-link:global(a.active) .dropdown-arrow {
+    color: #2563eb;
+    opacity: 1;
+    transform: translateX(1px);
   }
 
   .right-rail {
@@ -703,15 +807,22 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
     font-weight: 650;
     text-align: center;
     text-decoration: none !important;
+    transition: color .14s ease-out, background .14s ease-out, transform .12s ease-out;
   }
 
   .mobile-direct-links :global(a + a) {
     border-left: 1px solid rgba(15, 23, 42, .06);
   }
 
+  .mobile-direct-links :global(a:hover),
+  .mobile-direct-links :global(a:focus-visible),
   .mobile-direct-links :global(a.active) {
     color: #1d4ed8;
     background: #f8faff;
+  }
+
+  .mobile-direct-links :global(a:active) {
+    transform: scale(.98);
   }
 
   .mobile-groups {
@@ -757,6 +868,7 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
     border-radius: .6rem;
     color: #334155;
     text-decoration: none !important;
+    transition: color .14s ease-out, background .14s ease-out, transform .12s ease-out;
   }
 
   .mobile-submenu-link:global(a:hover),
@@ -764,6 +876,10 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   .mobile-submenu-link:global(a.active) {
     color: #1d4ed8;
     background: #f1f5ff;
+  }
+
+  .mobile-submenu-link:global(a:active) {
+    transform: scale(.985);
   }
 
   .mobile-footer {
@@ -801,10 +917,10 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
       gap: .35rem;
     }
 
-    .desktop-links > :global(a),
+    .desktop-links :global(.nav-tooltip-wrapper > a),
     .desktop-dropdown > summary {
-      padding-inline: .34rem;
-      font-size: .9rem;
+      padding-inline: .38rem;
+      font-size: .96rem;
     }
 
     .right-rail {
