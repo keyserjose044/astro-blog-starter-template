@@ -60,34 +60,40 @@
     const buildGoogleMapUrl = (query, zoom) =>
       `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=${zoom}&output=embed`;
 
-    googleMaps.forEach(([branch, maps]) => {
-      if (!branch) return;
+    let mapsInitialized = false;
+    const initializeGoogleMaps = () => {
+      if (mapsInitialized) return;
+      mapsInitialized = true;
 
-      const slots = branch.querySelectorAll('.about-photo-map-slot');
-      slots.forEach((slot, index) => {
-        const map = maps[index];
-        if (!map) return;
+      googleMaps.forEach(([branch, maps]) => {
+        if (!branch) return;
 
-        slot.removeAttribute('data-map-label');
-        slot.removeAttribute('role');
-        slot.removeAttribute('aria-label');
-        slot.classList.add('about-photo-map-slot--live', 'about-photo-map-slot--google');
+        const slots = branch.querySelectorAll('.about-photo-map-slot');
+        slots.forEach((slot, index) => {
+          const map = maps[index];
+          if (!map) return;
 
-        slot.querySelectorAll('.about-photo-map-marker').forEach((marker) => marker.remove());
-        slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => frame.remove());
+          slot.removeAttribute('data-map-label');
+          slot.removeAttribute('role');
+          slot.removeAttribute('aria-label');
+          slot.classList.add('about-photo-map-slot--live', 'about-photo-map-slot--google');
 
-        const frame = document.createElement('iframe');
-        const src = buildGoogleMapUrl(map.query, map.zoom);
-        frame.className = 'about-photo-map-frame';
-        frame.src = src;
-        frame.dataset.mapSrc = src;
-        frame.title = map.title;
-        frame.loading = 'lazy';
-        frame.referrerPolicy = 'no-referrer-when-downgrade';
-        frame.setAttribute('allowfullscreen', '');
-        slot.appendChild(frame);
+          slot.querySelectorAll('.about-photo-map-marker').forEach((marker) => marker.remove());
+          slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => frame.remove());
+
+          const frame = document.createElement('iframe');
+          const src = buildGoogleMapUrl(map.query, map.zoom);
+          frame.className = 'about-photo-map-frame';
+          frame.src = src;
+          frame.dataset.mapSrc = src;
+          frame.title = map.title;
+          frame.loading = 'lazy';
+          frame.referrerPolicy = 'no-referrer-when-downgrade';
+          frame.setAttribute('allowfullscreen', '');
+          slot.appendChild(frame);
+        });
       });
-    });
+    };
 
     /*
       Mobile browsers can restore this page from the back/forward cache after the
@@ -164,8 +170,20 @@
       head.insertBefore(mark, close);
     }
 
-    const desktopRoots = window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)');
-    let mobileOpen = false;
+    const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)');
+    let touchGuardTimer = 0;
+
+    const releaseTouchGuard = () => {
+      window.clearTimeout(touchGuardTimer);
+      delete panel.dataset.touchGuard;
+    };
+
+    const guardMapsFromOpeningTap = () => {
+      if (!coarsePointer.matches) return;
+      window.clearTimeout(touchGuardTimer);
+      panel.dataset.touchGuard = '1';
+      touchGuardTimer = window.setTimeout(releaseTouchGuard, 650);
+    };
 
     const setOpen = (open, { returnFocus = false } = {}) => {
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -174,51 +192,48 @@
 
       if (open) {
         panel.setAttribute('aria-hidden', 'false');
+        guardMapsFromOpeningTap();
+        initializeGoogleMaps();
       } else {
+        releaseTouchGuard();
         panel.setAttribute('aria-hidden', 'true');
         if (returnFocus) toggle.focus({ preventScroll: true });
       }
     };
 
-    const syncResponsiveState = () => {
-      const permanentDesktop = desktopRoots.matches;
-      toggle.hidden = permanentDesktop;
-      if (close) close.hidden = permanentDesktop;
-      panel.dataset.permanent = permanentDesktop ? '1' : '0';
-
-      if (permanentDesktop) {
-        setOpen(true);
-      } else {
-        setOpen(mobileOpen);
-      }
-    };
-
-    toggle.addEventListener('click', () => {
-      if (desktopRoots.matches) return;
-      mobileOpen = panel.hidden;
-      setOpen(mobileOpen);
+    toggle.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'touch') event.stopPropagation();
     });
 
-    close?.addEventListener('click', () => {
-      if (desktopRoots.matches) return;
-      mobileOpen = false;
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(panel.hidden);
+    });
+
+    close?.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'touch') event.stopPropagation();
+    });
+
+    close?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       setOpen(false, { returnFocus: true });
     });
 
     document.addEventListener('keydown', (event) => {
-      if (desktopRoots.matches || event.key !== 'Escape' || panel.hidden) return;
+      if (event.key !== 'Escape' || panel.hidden) return;
       event.preventDefault();
       event.stopPropagation();
-      mobileOpen = false;
       setOpen(false, { returnFocus: true });
     }, true);
 
-    if (typeof desktopRoots.addEventListener === 'function') {
-      desktopRoots.addEventListener('change', syncResponsiveState);
-    } else {
-      desktopRoots.addListener(syncResponsiveState);
-    }
+    /* Undo any restored DOM state from the previous always-open desktop behavior. */
+    toggle.hidden = false;
+    if (close) close.hidden = false;
+    delete panel.dataset.permanent;
 
-    syncResponsiveState();
+    /* Family Roots should be discoverable, not dominant, on first arrival. */
+    setOpen(false);
   });
 })();
