@@ -77,30 +77,35 @@
       return spot;
     };
 
-    /*
-      Portrait spotlights are generated from the existing SVG hotspot geometry.
-      No extra image assets are involved, and the lights are always pointer-transparent.
-    */
-    const spotlightLayer = document.createElement('div');
-    spotlightLayer.className = 'portrait-spotlight-layer';
-    spotlightLayer.setAttribute('aria-hidden', 'true');
-    spotlightLayer.dataset.hasActive = '0';
-    wrapper.appendChild(spotlightLayer);
-
+    const spotlightEnabled = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     const spotlightByPerson = new Map();
     const spotlightTimers = new Map();
+    let spotlightLayer = null;
 
-    spots.forEach((spot, index) => {
-      const light = document.createElement('span');
-      light.className = 'portrait-spotlight';
-      light.dataset.forPerson = spot.dataset.person || '';
-      light.dataset.visible = '0';
-      light.style.setProperty('--spot-delay', `${index * 50}ms`);
-      spotlightLayer.appendChild(light);
-      spotlightByPerson.set(spot.dataset.person || '', light);
-    });
+    /*
+      The blurred portrait-light effect is desktop-only. Touch devices skip the
+      layer and its observers entirely so Who's Who stays lightweight on phones.
+    */
+    if (spotlightEnabled) {
+      spotlightLayer = document.createElement('div');
+      spotlightLayer.className = 'portrait-spotlight-layer';
+      spotlightLayer.setAttribute('aria-hidden', 'true');
+      spotlightLayer.dataset.hasActive = '0';
+      wrapper.appendChild(spotlightLayer);
+
+      spots.forEach((spot, index) => {
+        const light = document.createElement('span');
+        light.className = 'portrait-spotlight';
+        light.dataset.forPerson = spot.dataset.person || '';
+        light.dataset.visible = '0';
+        light.style.setProperty('--spot-delay', `${index * 50}ms`);
+        spotlightLayer.appendChild(light);
+        spotlightByPerson.set(spot.dataset.person || '', light);
+      });
+    }
 
     const positionSpotlights = () => {
+      if (!spotlightEnabled || !spotlightLayer) return;
       const wrapperRect = wrapper.getBoundingClientRect();
       if (!wrapperRect.width || !wrapperRect.height) return;
 
@@ -124,6 +129,7 @@
     };
 
     const syncSpotlights = () => {
+      if (!spotlightEnabled || !spotlightLayer) return;
       const whoVisible = wrapper.dataset.whosWho === '1';
       const activePerson = bubble?.dataset.visible === '1' ? (bubble.dataset.person || '') : '';
       spotlightLayer.dataset.hasActive = whoVisible && activePerson ? '1' : '0';
@@ -135,6 +141,7 @@
     };
 
     const pulseSpotlight = (spot) => {
+      if (!spotlightEnabled) return;
       const person = spot?.dataset.person || '';
       const light = spotlightByPerson.get(person);
       if (!light) return;
@@ -154,24 +161,26 @@
       spotlightTimers.set(person, timer);
     };
 
-    positionSpotlights();
-    syncSpotlights();
+    if (spotlightEnabled && spotlightLayer) {
+      positionSpotlights();
+      syncSpotlights();
 
-    const spotlightWrapperObserver = new MutationObserver(syncSpotlights);
-    spotlightWrapperObserver.observe(wrapper, {
-      attributes: true,
-      attributeFilter: ['data-whos-who'],
-    });
-
-    if ('ResizeObserver' in window) {
-      const spotlightResizeObserver = new ResizeObserver(() => {
-        requestAnimationFrame(positionSpotlights);
+      const spotlightWrapperObserver = new MutationObserver(syncSpotlights);
+      spotlightWrapperObserver.observe(wrapper, {
+        attributes: true,
+        attributeFilter: ['data-whos-who'],
       });
-      spotlightResizeObserver.observe(wrapper);
-    }
 
-    window.addEventListener('resize', () => requestAnimationFrame(positionSpotlights), { passive: true });
-    window.visualViewport?.addEventListener('resize', () => requestAnimationFrame(positionSpotlights), { passive: true });
+      if ('ResizeObserver' in window) {
+        const spotlightResizeObserver = new ResizeObserver(() => {
+          requestAnimationFrame(positionSpotlights);
+        });
+        spotlightResizeObserver.observe(wrapper);
+      }
+
+      window.addEventListener('resize', () => requestAnimationFrame(positionSpotlights), { passive: true });
+      window.visualViewport?.addEventListener('resize', () => requestAnimationFrame(positionSpotlights), { passive: true });
+    }
 
     updateProgress();
 
