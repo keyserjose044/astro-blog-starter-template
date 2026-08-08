@@ -24,6 +24,18 @@
   pointer-events:auto;
 }
 
+/* Keep portrait controls above map browsing contexts if layouts get tight. */
+.about-photo-feature .about-photo-footer,
+.about-photo-feature .about-photo-actions{
+  position:relative;
+  z-index:6;
+}
+
+/* Prevent the tap that opens Family Roots from becoming a ghost tap on a map. */
+.about-photo-where[data-touch-guard='1'] .about-photo-map-frame{
+  pointer-events:none;
+}
+
 /* The embedded map now supplies the pin and all navigation controls. */
 .about-photo-map-slot--google .about-photo-map-marker{
   display:none;
