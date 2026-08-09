@@ -1,9 +1,11 @@
 @media (max-width: 900px) {
   #albums-grid .album-card.mobile-progress-hidden,
-  #grid .card.mobile-progress-hidden { display: none !important; }
+  #grid .card.mobile-progress-hidden,
+  #art-grid[data-art-view="list"] .art-card.mobile-progress-hidden { display: none !important; }
 
   #albums-grid .album-card:not(.mobile-progress-hidden),
-  #grid .card:not(.mobile-progress-hidden) { content-visibility: auto; contain-intrinsic-size: 176px; }
+  #grid .card:not(.mobile-progress-hidden),
+  #art-grid[data-art-view="list"] .art-card:not(.mobile-progress-hidden) { content-visibility: auto; contain-intrinsic-size: 176px; }
 
   .mobile-progress-controls {
     position: relative;
