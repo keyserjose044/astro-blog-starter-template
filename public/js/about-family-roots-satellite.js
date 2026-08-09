@@ -32,15 +32,37 @@
     return satellite.toString();
   };
 
+  const setLoading = (frame, loading) => {
+    const slot = frame.closest('.about-photo-map-slot--google');
+    if (!(slot instanceof HTMLElement)) return;
+    if (loading) {
+      slot.dataset.mapLoading = '1';
+      slot.setAttribute('aria-busy', 'true');
+    } else {
+      delete slot.dataset.mapLoading;
+      slot.removeAttribute('aria-busy');
+    }
+  };
+
+  const bindLoadState = (frame) => {
+    if (!(frame instanceof HTMLIFrameElement) || frame.dataset.mapLoadBound === '1') return;
+    frame.dataset.mapLoadBound = '1';
+    frame.addEventListener('load', () => setLoading(frame, false));
+  };
+
   const satelliteizeFrame = (frame) => {
     if (!(frame instanceof HTMLIFrameElement)) return;
+    bindLoadState(frame);
 
     const source = frame.dataset.mapSrc || frame.getAttribute('src') || '';
     const satelliteSrc = buildSatelliteUrl(source);
     if (!satelliteSrc) return;
 
     if (frame.dataset.mapSrc !== satelliteSrc) frame.dataset.mapSrc = satelliteSrc;
-    if (frame.getAttribute('src') !== satelliteSrc) frame.setAttribute('src', satelliteSrc);
+    if (frame.getAttribute('src') !== satelliteSrc) {
+      setLoading(frame, true);
+      frame.setAttribute('src', satelliteSrc);
+    }
   };
 
   const applySatelliteMaps = (root = document) => {
