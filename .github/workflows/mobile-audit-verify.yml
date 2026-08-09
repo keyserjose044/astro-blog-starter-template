@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/mobile-audit-verify.yml'
+      - 'public/scripts/art-mobile-progressive.js'
       - 'public/scripts/albums-mobile-progressive.js'
       - 'public/scripts/books-mobile-progressive.js'
       - 'public/scripts/runtime-loading-polish.js'
@@ -64,17 +65,36 @@ jobs:
             assert(composerSources.every((src) => src.startsWith('/images_webp/composers/')), 'A composer portrait still uses a remote primary source.');
             assert(composerChecks.every((item) => item.ok), 'At least one local composer portrait URL failed when requested directly.');
 
-            await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'domcontentloaded' });
-            await page.waitForSelector('#art-grid.art-masonry-ready', { timeout: 15000 });
-            const art = await page.evaluate(() => ({
+            await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'networkidle' });
+            await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
+            await page.addScriptTag({ content: script('art-mobile-progressive.js') });
+            await page.waitForFunction(() => Number(document.querySelector('#art-grid')?.dataset.mobileMounted || 0) > 0);
+            const artList = await page.evaluate(() => ({
+              view: document.querySelector('#art-grid')?.dataset.artView || '',
+              mounted: Number(document.querySelector('#art-grid')?.dataset.mobileMounted || 0),
+              eligible: Number(document.querySelector('#art-grid')?.dataset.mobileEligible || 0),
+              rendered: Array.from(document.querySelectorAll('#art-grid .art-card')).filter((card) => getComputedStyle(card).display !== 'none').length,
+              height: document.documentElement.scrollHeight,
+              button: document.querySelector('.mobile-progress-controls--art .mobile-progress-more')?.textContent?.trim() || '',
+            }));
+            console.log('Art default mobile list:', artList);
+            assert(artList.view === 'list', `Expected Art mobile default to be list, got ${artList.view}.`);
+            assert(artList.eligible > artList.mounted, 'Art dataset is too small to exercise progressive rendering.');
+            assert(artList.mounted <= 40 && artList.rendered <= 40, `Art initial mobile list is not bounded: ${JSON.stringify(artList)}.`);
+            assert(artList.height < 18000, `Art default mobile page remains excessively tall at ${artList.height}px.`);
+            assert(/Load more artworks/i.test(artList.button), 'Art lacks an explicit load-more fallback.');
+
+            await page.click('[data-art-view="gallery"]');
+            await page.waitForFunction(() => Number(document.querySelector('#art-grid')?.dataset.galleryMounted || 0) > 0);
+            const artGallery = await page.evaluate(() => ({
               mounted: Number(document.querySelector('#art-grid')?.dataset.galleryMounted || 0),
               cards: document.querySelectorAll('#art-grid .art-card').length,
               height: document.documentElement.scrollHeight,
             }));
-            console.log('Art mobile:', art);
-            assert(art.mounted > 0 && art.mounted <= 80, `Art mounted ${art.mounted} cards on mobile.`);
-            assert(art.cards <= 80, `Art has ${art.cards} cards in the mobile masonry DOM.`);
-            assert(art.height < 25000, `Art mobile page remains excessively tall at ${art.height}px.`);
+            console.log('Art mobile gallery:', artGallery);
+            assert(artGallery.mounted > 0 && artGallery.mounted <= 80, `Art Gallery mounted ${artGallery.mounted} cards on mobile.`);
+            assert(artGallery.cards <= 80, `Art Gallery has ${artGallery.cards} cards in the mobile masonry DOM.`);
+            assert(artGallery.height < 25000, `Art mobile Gallery remains excessively tall at ${artGallery.height}px.`);
 
             await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'networkidle' });
             await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
@@ -85,7 +105,7 @@ jobs:
               eligible: Number(document.querySelector('#albums-grid')?.dataset.mobileEligible || 0),
               rendered: Array.from(document.querySelectorAll('#albums-grid .album-card')).filter((card) => getComputedStyle(card).display !== 'none').length,
               height: document.documentElement.scrollHeight,
-              button: document.querySelector('.mobile-progress-more')?.textContent?.trim() || '',
+              button: document.querySelector('.mobile-progress-controls--albums .mobile-progress-more')?.textContent?.trim() || '',
             }));
             console.log('Albums mobile progressive:', albums);
             assert(albums.eligible > albums.mounted, 'Albums dataset is too small to exercise progressive rendering.');
@@ -102,7 +122,7 @@ jobs:
               eligible: Number(document.querySelector('#grid')?.dataset.mobileEligible || 0),
               rendered: Array.from(document.querySelectorAll('#grid .card')).filter((card) => getComputedStyle(card).display !== 'none').length,
               height: document.documentElement.scrollHeight,
-              button: document.querySelector('.mobile-progress-more')?.textContent?.trim() || '',
+              button: document.querySelector('.mobile-progress-controls--books .mobile-progress-more')?.textContent?.trim() || '',
             }));
             console.log('Books mobile progressive:', books);
             assert(books.eligible > books.mounted, 'Books dataset is too small to exercise progressive rendering.');
