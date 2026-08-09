@@ -1,0 +1,3 @@
+# Legacy LifeLoggerz routes
+/albums /music/albums/ 301
+/albums/ /music/albums/ 301
