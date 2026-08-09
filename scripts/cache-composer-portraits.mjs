@@ -11,7 +11,8 @@ const MANIFEST_PATH = path.join(GENERATED_DIR, 'composerPortraits.ts');
 const TOKEN = process.env.RAINDROP_TOKEN || '';
 const COLLECTION_ID = process.env.RAINDROP_COLLECTION_COMPOSERS_ID || '58399760';
 const PER_PAGE = 50;
-const CONCURRENCY = 6;
+const CONCURRENCY = 2;
+const IMAGE_ATTEMPTS = 4;
 
 const CONTENT_TYPE_EXTENSIONS = new Map([
   ['image/jpeg', 'jpg'],
@@ -34,6 +35,18 @@ function mediaLinks(item) {
     : [];
 }
 
+function wikimediaRedirect(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    if (url.hostname.toLowerCase() !== 'upload.wikimedia.org') return '';
+    const filename = decodeURIComponent(url.pathname.split('/').filter(Boolean).at(-1) || '');
+    if (!filename) return '';
+    return `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(filename)}`;
+  } catch {
+    return '';
+  }
+}
+
 function extensionFromResponse(response, url) {
   const contentType = String(response.headers.get('content-type') || '')
     .split(';', 1)[0]
@@ -53,6 +66,14 @@ function extensionFromResponse(response, url) {
   }
 
   return '';
+}
+
+function retryDelayMs(response, attempt) {
+  const retryAfter = Number(response?.headers?.get?.('retry-after'));
+  if (Number.isFinite(retryAfter) && retryAfter > 0) {
+    return Math.min(Math.max(retryAfter * 1000, 1000), 15_000);
+  }
+  return Math.min(1000 * 2 ** attempt, 8000);
 }
 
 async function writeManifest(manifest) {
@@ -96,35 +117,71 @@ async function fetchRaindrops() {
   return items;
 }
 
+async function downloadCandidate(id, url) {
+  for (let attempt = 0; attempt < IMAGE_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(url, {
+        redirect: 'follow',
+        headers: {
+          Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          'User-Agent': 'LifeLoggerz/1.0 (+https://lifeloggerz.com; contact via site)',
+        },
+      });
+
+      if (response.ok) {
+        const extension = extensionFromResponse(response, response.url || url);
+        if (!extension) {
+          console.warn(`[composer portraits] ${id}: non-image response from ${url}`);
+          return null;
+        }
+
+        const bytes = Buffer.from(await response.arrayBuffer());
+        if (bytes.length < 256) {
+          console.warn(`[composer portraits] ${id}: image response too small from ${url}`);
+          return null;
+        }
+
+        return { bytes, extension };
+      }
+
+      const canRetry = attempt + 1 < IMAGE_ATTEMPTS;
+      console.warn(
+        `[composer portraits] ${id}: ${url} returned ${response.status}${canRetry ? '; retrying' : ''}`,
+      );
+      if (!canRetry) return null;
+      await sleep(retryDelayMs(response, attempt));
+    } catch (error) {
+      const canRetry = attempt + 1 < IMAGE_ATTEMPTS;
+      console.warn(
+        `[composer portraits] ${id}: ${url} failed${canRetry ? '; retrying' : ''}`,
+        error instanceof Error ? error.message : error,
+      );
+      if (!canRetry) return null;
+      await sleep(retryDelayMs(response, attempt));
+    }
+  }
+
+  return null;
+}
+
 async function cachePortrait(item) {
   const id = String(item?._id || '').trim();
   if (!id) return null;
 
-  const candidates = unique([item?.cover, ...mediaLinks(item)]).filter((url) => /^https?:\/\//i.test(url));
+  const primaryCandidates = unique([item?.cover, ...mediaLinks(item)]).filter((url) => /^https?:\/\//i.test(url));
+  const candidates = unique([
+    ...primaryCandidates,
+    ...primaryCandidates.map(wikimediaRedirect),
+  ]);
 
   for (const url of candidates) {
-    try {
-      const response = await fetch(url, {
-        redirect: 'follow',
-        headers: {
-          Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-          'User-Agent': 'LifeLoggerz/1.0 (+https://lifeloggerz.com)',
-        },
-      });
-      if (!response.ok) continue;
+    const downloaded = await downloadCandidate(id, url);
+    if (!downloaded) continue;
 
-      const extension = extensionFromResponse(response, url);
-      if (!extension) continue;
-
-      const bytes = Buffer.from(await response.arrayBuffer());
-      if (bytes.length < 256) continue;
-
-      const filename = `${id}.${extension}`;
-      await writeFile(path.join(OUTPUT_DIR, filename), bytes);
-      return `/images_webp/composers/${filename}`;
-    } catch (error) {
-      console.warn(`[composer portraits] ${id}: ${url} failed`, error instanceof Error ? error.message : error);
-    }
+    const filename = `${id}.${downloaded.extension}`;
+    await writeFile(path.join(OUTPUT_DIR, filename), downloaded.bytes);
+    return `/images_webp/composers/${filename}`;
   }
 
   return null;
@@ -167,6 +224,22 @@ async function main() {
   }
 
   const localPaths = await mapWithConcurrency(items, cachePortrait);
+
+  // A rate-limited CDN often fails near the end of a concurrent pass. Give any misses
+  // one quiet, serial recovery pass before allowing the page to fall back to remote URLs.
+  const missedIndexes = localPaths
+    .map((localPath, index) => (localPath ? -1 : index))
+    .filter((index) => index >= 0);
+
+  if (missedIndexes.length) {
+    console.warn(`[composer portraits] retrying ${missedIndexes.length} missed portrait(s) serially.`);
+    await sleep(2000);
+    for (const index of missedIndexes) {
+      localPaths[index] = await cachePortrait(items[index]);
+      await sleep(350);
+    }
+  }
+
   const manifest = {};
   localPaths.forEach((localPath, index) => {
     if (localPath) manifest[String(items[index]._id)] = localPath;
