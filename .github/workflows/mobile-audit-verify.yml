@@ -50,7 +50,8 @@ jobs:
             const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
             const page = await context.newPage();
 
-            await page.goto('https://lifeloggerz.com/music/composers/', { waitUntil: 'networkidle' });
+            await page.goto('https://lifeloggerz.com/music/composers/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('img.portrait');
             const composerSources = await page.locator('img.portrait').evaluateAll((images) => images.map((img) => img.getAttribute('src') || ''));
             const composerChecks = await Promise.all(composerSources.map(async (src) => {
               const response = await context.request.get(new URL(src, 'https://lifeloggerz.com').href);
@@ -65,7 +66,8 @@ jobs:
             assert(composerSources.every((src) => src.startsWith('/images_webp/composers/')), 'A composer portrait still uses a remote primary source.');
             assert(composerChecks.every((item) => item.ok), 'At least one local composer portrait URL failed when requested directly.');
 
-            await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'networkidle' });
+            await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'domcontentloaded' });
+            await page.waitForFunction(() => document.querySelector('#art-grid')?.dataset.artView === 'list');
             await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
             await page.addScriptTag({ content: script('art-mobile-progressive.js') });
             await page.waitForFunction(() => Number(document.querySelector('#art-grid')?.dataset.mobileMounted || 0) > 0);
@@ -96,7 +98,8 @@ jobs:
             assert(artGallery.cards <= 80, `Art Gallery has ${artGallery.cards} cards in the mobile masonry DOM.`);
             assert(artGallery.height < 25000, `Art mobile Gallery remains excessively tall at ${artGallery.height}px.`);
 
-            await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'networkidle' });
+            await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('#albums-grid .album-card');
             await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
             await page.addScriptTag({ content: script('albums-mobile-progressive.js') });
             await page.waitForFunction(() => Number(document.querySelector('#albums-grid')?.dataset.mobileMounted || 0) > 0);
@@ -113,7 +116,8 @@ jobs:
             assert(albums.height < 18000, `Albums mobile page remains excessively tall at ${albums.height}px.`);
             assert(/Load more albums/i.test(albums.button), 'Albums lacks an explicit load-more fallback.');
 
-            await page.goto('https://lifeloggerz.com/books/', { waitUntil: 'networkidle' });
+            await page.goto('https://lifeloggerz.com/books/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('#grid .card');
             await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
             await page.addScriptTag({ content: script('books-mobile-progressive.js') });
             await page.waitForFunction(() => Number(document.querySelector('#grid')?.dataset.mobileMounted || 0) > 0);
