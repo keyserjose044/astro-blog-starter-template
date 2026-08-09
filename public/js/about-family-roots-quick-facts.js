@@ -1,12 +1,22 @@
 (() => {
   if (typeof document === 'undefined') return;
 
-  const VERSION = '20260808-quick-facts-v1';
+  const VERSION = '20260808-quick-facts-v2';
   const PROGRESO_SOURCE = 'https://mexico.pueblosamerica.com/ii/progreso-54';
+  const MEXICO_SILHOUETTE = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mexico_template.svg?width=180';
+
+  const mexicoFacts = {
+    label: 'México quick facts',
+    facts: [
+      ['Area', '1,964,375 km²'],
+      ['Federal entities', '32'],
+      ['Capital', 'Ciudad de México'],
+    ],
+  };
 
   const factsByBranch = {
     dad: [
-      null,
+      mexicoFacts,
       {
         label: 'Aguascalientes quick facts',
         facts: [
@@ -33,7 +43,7 @@
       },
     ],
     mom: [
-      null,
+      mexicoFacts,
       {
         label: 'Tamaulipas quick facts',
         facts: [
@@ -68,34 +78,35 @@
     style.dataset.familyRootsFacts = VERSION;
     style.textContent = `
       .about-photo-where-population{
-        font-size:.64rem!important;
-        letter-spacing:.055em!important;
+        font-size:.68rem!important;
+        letter-spacing:.04em!important;
         line-height:1.15!important;
-        padding:.22rem .5rem!important;
+        padding:.23rem .5rem!important;
       }
 
-      .about-photo-where-fact-row{
-        display:flex;
+      .about-photo-where-name{
+        display:flex!important;
         align-items:center;
-        flex-wrap:wrap;
         gap:.28rem;
-        margin-top:.18rem;
+        min-width:0;
       }
 
-      .about-photo-where-fact-row > .about-photo-where-population{
-        margin:0!important;
+      .about-photo-where-name > .about-photo-where-place-link{
+        min-width:0;
       }
 
       .about-photo-where-facts-toggle{
         appearance:none;
+        flex:0 0 auto;
+        margin-left:auto;
         border:1px solid rgba(151,113,70,.28);
         border-radius:999px;
         background:rgba(255,252,246,.9);
         color:#72502f;
         box-shadow:0 1px 2px rgba(71,48,27,.05);
-        padding:.2rem .43rem;
-        font:700 .61rem/1.15 Georgia,serif;
-        letter-spacing:.02em;
+        padding:.17rem .4rem;
+        font:700 .59rem/1.15 Georgia,serif;
+        letter-spacing:.015em;
         cursor:pointer;
         white-space:nowrap;
         transition:background .16s ease,border-color .16s ease,transform .16s ease;
@@ -106,6 +117,11 @@
       .about-photo-where-facts-toggle[aria-expanded='true']{
         background:#fffaf1;
         border-color:rgba(151,113,70,.55);
+      }
+
+      .about-photo-where-facts-toggle:focus-visible{
+        outline:2px solid rgba(44,91,71,.55);
+        outline-offset:2px;
       }
 
       .about-photo-where-facts-toggle:active{
@@ -119,7 +135,7 @@
       .about-photo-where-facts-popover{
         position:absolute;
         z-index:12;
-        top:4.65rem;
+        top:4.1rem;
         left:.72rem;
         right:.72rem;
         padding:.68rem .72rem .62rem;
@@ -173,20 +189,27 @@
         text-align:right;
       }
 
+      .about-photo-mexico-outline{
+        width:64px!important;
+        height:40px!important;
+        opacity:.92!important;
+        filter:brightness(0)!important;
+      }
+
       @media(max-width:768px){
         .about-photo-where-population{
-          font-size:.68rem!important;
+          font-size:.71rem!important;
           padding:.24rem .52rem!important;
         }
 
         .about-photo-where-facts-toggle{
-          min-height:28px;
-          padding:.25rem .5rem;
-          font-size:.65rem;
+          min-height:26px;
+          padding:.2rem .44rem;
+          font-size:.63rem;
         }
 
         .about-photo-where-facts-popover{
-          top:4.85rem;
+          top:4.2rem;
           left:.62rem;
           right:.62rem;
           padding:.76rem;
@@ -198,6 +221,11 @@
 
         .about-photo-where-facts-item dd{
           font-size:.76rem;
+        }
+
+        .about-photo-mexico-outline{
+          width:54px!important;
+          height:36px!important;
         }
       }
     `;
@@ -220,15 +248,10 @@
   const buildFacts = (card, details, key, index) => {
     if (!(card instanceof HTMLElement) || !details || card.dataset.quickFactsReady === '1') return;
 
-    const population = card.querySelector('.about-photo-where-population');
-    if (!(population instanceof HTMLElement)) return;
+    const name = card.querySelector('.about-photo-where-name');
+    if (!(name instanceof HTMLElement)) return;
 
     card.dataset.quickFactsReady = '1';
-
-    const row = document.createElement('span');
-    row.className = 'about-photo-where-fact-row';
-    population.replaceWith(row);
-    row.appendChild(population);
 
     const panelId = `family-roots-${key}-facts-${index}`;
     const button = document.createElement('button');
@@ -238,7 +261,7 @@
     button.setAttribute('aria-controls', panelId);
     button.setAttribute('aria-label', `Show ${details.label}`);
     button.textContent = 'ⓘ Facts';
-    row.appendChild(button);
+    name.appendChild(button);
 
     const panel = document.createElement('div');
     panel.className = 'about-photo-where-facts-popover';
@@ -282,11 +305,24 @@
     panel.addEventListener('click', (event) => event.stopPropagation());
   };
 
+  const enhanceMexicoMark = (rootsPanel) => {
+    const outline = rootsPanel.querySelector('.about-photo-mexico-outline');
+    if (!(outline instanceof HTMLImageElement)) return;
+    if (outline.dataset.silhouetteReady === '1') return;
+
+    outline.dataset.silhouetteReady = '1';
+    outline.src = MEXICO_SILHOUETTE;
+    outline.alt = 'Map silhouette of México';
+    outline.title = 'México';
+  };
+
   const setup = () => {
     ensureStyles();
 
     document.querySelectorAll('[data-where-panel]').forEach((rootsPanel) => {
       if (!(rootsPanel instanceof HTMLElement)) return;
+
+      enhanceMexicoMark(rootsPanel);
 
       [
         ['dad', rootsPanel.querySelector('[aria-labelledby="family-roots-dad-title"]')],
