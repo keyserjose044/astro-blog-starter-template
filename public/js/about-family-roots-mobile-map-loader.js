@@ -1,8 +1,9 @@
 (() => {
   if (typeof document === 'undefined') return;
 
-  const VERSION = '20260809-mobile-map-loader-v1';
+  const VERSION = '20260809-mobile-map-loader-v2';
   const mobileQuery = window.matchMedia('(max-width: 768px)');
+  const loadTimers = new WeakMap();
 
   const ensureStyles = () => {
     if (document.querySelector(`style[data-family-roots-mobile-map-loader="${VERSION}"]`)) return;
@@ -35,6 +36,10 @@
           touch-action:manipulation;
         }
 
+        .about-photo-map-mobile-loader[disabled]{
+          cursor:progress;
+        }
+
         .about-photo-map-mobile-loader > span{
           display:inline-flex;
           align-items:center;
@@ -55,6 +60,14 @@
       }
     `;
     document.head.appendChild(style);
+  };
+
+  const cancelPendingLoad = (slot) => {
+    if (!(slot instanceof HTMLElement)) return;
+    const timer = loadTimers.get(slot);
+    if (timer) window.clearTimeout(timer);
+    loadTimers.delete(slot);
+    delete slot.dataset.mobileMapArming;
   };
 
   const rememberFrame = (slot, frame) => {
@@ -99,12 +112,19 @@
 
   const deactivateSlot = (slot) => {
     if (!(slot instanceof HTMLElement)) return;
+    cancelPendingLoad(slot);
     slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => {
       if (frame instanceof HTMLIFrameElement) rememberFrame(slot, frame);
       frame.remove();
     });
     slot.dataset.mobileMapActive = '0';
     ensureLoader(slot);
+
+    const loader = slot.querySelector(':scope > .about-photo-map-mobile-loader');
+    if (loader instanceof HTMLButtonElement) {
+      loader.disabled = false;
+      loader.querySelector('span')?.replaceChildren('Load interactive map');
+    }
   };
 
   const deactivatePanelMaps = (panel) => {
@@ -117,6 +137,7 @@
     const source = slot.dataset.mobileMapSrc;
     if (!source) return;
 
+    cancelPendingLoad(slot);
     slot.dataset.mobileMapActive = '1';
     slot.querySelector(':scope > .about-photo-map-mobile-loader')?.remove();
 
@@ -131,6 +152,31 @@
     slot.appendChild(frame);
   };
 
+  const armInteractiveFrame = (slot, button) => {
+    if (!(slot instanceof HTMLElement) || !(button instanceof HTMLButtonElement)) return;
+    if (slot.dataset.mobileMapArming === '1') return;
+
+    slot.dataset.mobileMapArming = '1';
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.querySelector('span')?.replaceChildren('Loading map…');
+
+    /*
+      Critical mobile safeguard: do NOT insert the cross-origin iframe during the
+      gesture that pressed this button. Some mobile browsers can retarget the tail
+      end of that same tap into a newly created Google Maps iframe. Wait until the
+      entire pointer/touch/click sequence is unquestionably over, then create it.
+    */
+    const timer = window.setTimeout(() => {
+      if (!slot.isConnected || !mobileQuery.matches) {
+        cancelPendingLoad(slot);
+        return;
+      }
+      createInteractiveFrame(slot);
+    }, 850);
+    loadTimers.set(slot, timer);
+  };
+
   const handleLoaderClick = (event) => {
     if (!mobileQuery.matches) return;
     const target = event.target;
@@ -143,7 +189,8 @@
 
     event.preventDefault();
     event.stopPropagation();
-    createInteractiveFrame(slot);
+    event.stopImmediatePropagation();
+    armInteractiveFrame(slot, button);
   };
 
   const handleNavigationGesture = (event) => {
