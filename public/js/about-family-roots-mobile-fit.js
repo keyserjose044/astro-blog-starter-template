@@ -1,7 +1,7 @@
 (() => {
   if (typeof document === 'undefined') return;
 
-  const VERSION = '20260808-mobile-fit-v1';
+  const VERSION = '20260808-mobile-fit-v2';
   const mobileQuery = window.matchMedia('(max-width: 768px)');
   const guardTimers = new WeakMap();
 
@@ -56,7 +56,17 @@
           white-space:nowrap;
         }
 
-        /* Stop a branch-tab tap from being retargeted into the iframe revealed underneath it. */
+        .about-photo-roots-tab{
+          touch-action:manipulation;
+        }
+
+        /*
+          A branch switch replaces one tall stack of embedded maps with another.
+          On some mobile browsers the release/synthetic click can be retargeted into
+          the newly revealed Google iframe. Disable the whole map slot briefly—not
+          just the iframe—so the branch tap can never become a map tap.
+        */
+        .about-photo-where[data-branch-touch-guard='1'] .about-photo-map-slot--google,
         .about-photo-where[data-branch-touch-guard='1'] .about-photo-map-frame{
           pointer-events:none!important;
         }
@@ -74,7 +84,7 @@
     const timer = window.setTimeout(() => {
       delete panel.dataset.branchTouchGuard;
       guardTimers.delete(panel);
-    }, 1000);
+    }, 1250);
     guardTimers.set(panel, timer);
   };
 
@@ -90,9 +100,11 @@
 
   ensureStyles();
 
-  /* Capture phase starts the guard before the branch-switch click reveals another iframe. */
+  /* Start the guard before the branch switch can reveal the other iframe stack. */
   document.addEventListener('pointerdown', guardFromEvent, true);
+  document.addEventListener('pointerup', guardFromEvent, true);
   document.addEventListener('touchstart', guardFromEvent, { capture: true, passive: true });
+  document.addEventListener('touchend', guardFromEvent, { capture: true, passive: true });
   document.addEventListener('click', guardFromEvent, true);
 
   document.addEventListener('astro:page-load', ensureStyles);
