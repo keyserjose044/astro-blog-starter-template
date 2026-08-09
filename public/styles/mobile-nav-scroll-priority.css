@@ -1,0 +1,25 @@
+@media (max-width: 1000px) {
+  /*
+   * Long navigation groups must be allowed to expand to their full content
+   * height. The whole drawer scrolls instead of reserving viewport space for
+   * FAQ/footer content at the expense of submenu links.
+   */
+  .mobile-nav .menu-panel.mobile-inline-ready {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .mobile-inline-list {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    overscroll-behavior: auto;
+  }
+
+  .mobile-inline-footer {
+    flex: 0 0 auto;
+  }
+}
