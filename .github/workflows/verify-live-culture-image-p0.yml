@@ -1,0 +1,86 @@
+name: Verify deployed Culture image P0 fixes
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-live-culture-image-p0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for merged image fixes to reach LifeLoggerz
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for i in {1..48}; do
+            art_code="$(curl --silent --location --output /tmp/art-placeholder.webp --write-out '%{http_code}' https://lifeloggerz.com/images_webp/art-placeholder.webp || true)"
+            curl --fail --silent --location https://lifeloggerz.com/music/composers/ --output /tmp/composers.html || true
+
+            if [ "$art_code" = "200" ] \
+              && [ -s /tmp/art-placeholder.webp ] \
+              && grep -q '/images_webp/composers/' /tmp/composers.html; then
+              echo "Merged Art fallback and local composer portrait paths are live."
+              ready=1
+              break
+            fi
+
+            echo "Deployment not current yet; retry $i/48"
+            sleep 5
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "Expected image fixes never appeared on the deployed site."
+            exit 1
+          fi
+
+      - name: Verify Art fallback is a real WebP
+        shell: bash
+        run: |
+          set -euo pipefail
+          file /tmp/art-placeholder.webp
+          file /tmp/art-placeholder.webp | grep -qi 'Web/P image\|WebP'
+
+      - name: Verify every profiled composer portrait is local and reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('/tmp/composers.html', 'utf8');
+          const tags = [...html.matchAll(/<img\b[^>]*class="portrait"[^>]*>/gi)].map((match) => match[0]);
+          const sources = tags
+            .map((tag) => tag.match(/\bsrc="([^"]+)"/i)?.[1] || '')
+            .filter(Boolean);
+          const local = sources.filter((src) => src.startsWith('/images_webp/composers/'));
+          const remote = sources.filter((src) => /^https?:\/\//i.test(src));
+
+          console.log(`Profiled composer portrait tags: ${sources.length}`);
+          console.log(`Local composer portrait sources: ${local.length}`);
+          console.log(`Remote composer portrait sources: ${remote.length}`);
+
+          if (sources.length < 39) {
+            console.error(`Expected at least 39 profiled composer portraits; found ${sources.length}.`);
+            process.exit(1);
+          }
+          if (local.length !== sources.length) {
+            console.error('At least one profiled composer portrait is still using a remote primary src.');
+            console.error(remote.join('\n'));
+            process.exit(1);
+          }
+
+          fs.writeFileSync('/tmp/composer-portrait-paths.txt', [...new Set(local)].join('\n') + '\n');
+          NODE
+
+          while IFS= read -r portrait; do
+            [ -z "$portrait" ] && continue
+            echo "Checking $portrait"
+            curl --fail --silent --show-error --location --output /dev/null "https://lifeloggerz.com${portrait}"
+          done < /tmp/composer-portrait-paths.txt
+
+          echo "All deployed local composer portraits returned successfully."
