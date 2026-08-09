@@ -1,0 +1,134 @@
+name: Verify Aug 8 audit fixes
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-audit-fixes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Wait for deployed markers
+        run: |
+          set -euo pipefail
+          ready=0
+          for i in {1..60}; do
+            albums="$(curl --fail --silent --location https://lifeloggerz.com/music/albums/ || true)"
+            art="$(curl --fail --silent --location https://lifeloggerz.com/art/ || true)"
+            about="$(curl --fail --silent --location https://lifeloggerz.com/about/me/ || true)"
+            notfound="$(curl --fail --silent --location https://lifeloggerz.com/404.html || true)"
+            if printf '%s' "$albums" | grep -q 'albums-image-fallback.js?v=20260808-2235' \
+              && printf '%s' "$art" | grep -q 'art-gallery-masonry.js?v=20260808-2235' \
+              && printf '%s' "$about" | grep -q 'about-family-roots-satellite.js?v=20260808-satellite-v2' \
+              && printf '%s' "$notfound" | grep -q 'The site has grown'; then
+              echo 'All merged audit-fix markers are live.'
+              ready=1
+              break
+            fi
+            echo "Deployment not current yet; retry $i/60"
+            sleep 5
+          done
+          test "$ready" -eq 1
+
+      - name: Verify generated album placeholder
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location https://lifeloggerz.com/images_webp/album-placeholder.webp --output /tmp/album-placeholder.webp
+          file /tmp/album-placeholder.webp
+          file /tmp/album-placeholder.webp | grep -qi 'Web/P image\|WebP'
+
+      - name: Verify deployed pages in Chromium
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = (condition, message) => { if (!condition) throw new Error(message); };
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+            const page = await context.newPage();
+
+            await page.goto('https://lifeloggerz.com/blog/2026interactivegstemplate/', { waitUntil: 'networkidle' });
+            const template = await page.locator('figure img[alt="2026 Raw Data Template"]').evaluate((img) => ({
+              src: img.getAttribute('src'),
+              width: img.naturalWidth,
+            }));
+            console.log('Template image:', template);
+            assert(template.src?.includes('/images_webp/2026cleanrawdatatemplate.webp'), 'Inside the Template still points at the old broken image.');
+            assert(template.width > 0, 'Inside the Template image did not load.');
+
+            await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('#art-grid.art-masonry-ready', { timeout: 15000 });
+            const art = await page.evaluate(() => ({
+              mounted: Number(document.querySelector('#art-grid')?.dataset.galleryMounted || 0),
+              cardsInDocument: document.querySelectorAll('#art-grid .art-card').length,
+              height: document.documentElement.scrollHeight,
+              totalText: document.querySelector('#art-results-summary')?.textContent || '',
+            }));
+            console.log('Art progressive render:', art);
+            assert(art.mounted > 0 && art.mounted <= 150, `Expected a bounded initial Art mount; got ${art.mounted}.`);
+            assert(art.cardsInDocument <= 150, `Too many Art cards are mounted initially: ${art.cardsInDocument}.`);
+            assert(art.height < 25000, `Art initial page is still too tall: ${art.height}px.`);
+            assert(/798|artworks/i.test(art.totalText), 'Art results summary did not retain the complete collection count.');
+
+            await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'networkidle' });
+            await page.waitForSelector('[data-albums-expansion-view="artists"]', { timeout: 15000 });
+            await page.click('[data-albums-expansion-view="artists"]');
+            await page.waitForSelector('.albums-artist-covers img', { timeout: 15000 });
+            const artistFallback = await page.locator('.albums-artist-covers img').first().evaluate(async (img) => {
+              img.src = '/images_webp/definitely-missing-audit-image.webp';
+              await new Promise((resolve) => setTimeout(resolve, 800));
+              return { src: img.getAttribute('src'), width: img.naturalWidth };
+            });
+            console.log('Albums Artists forced fallback:', artistFallback);
+            assert(artistFallback.src?.includes('/images_webp/album-placeholder.webp'), 'Dynamic Artists image did not switch to the local album placeholder.');
+            assert(artistFallback.width > 0, 'Local album placeholder did not load after fallback.');
+
+            for (const route of ['/inspirations/', '/faq/', '/about/lifeloggerz/']) {
+              await page.goto(`https://lifeloggerz.com${route}`, { waitUntil: 'domcontentloaded' });
+              await page.waitForTimeout(250);
+              const jump = await page.locator('.long-page-jump').count();
+              const headings = await page.locator('main h2').count();
+              const height = await page.evaluate(() => document.documentElement.scrollHeight);
+              console.log('Long page:', route, { jump, headings, height });
+              if (headings >= 3 && height >= 2200) assert(jump === 1, `${route} qualifies as long-form but has no section-jump control.`);
+            }
+
+            await page.goto('https://lifeloggerz.com/404.html', { waitUntil: 'domcontentloaded' });
+            const links = await page.locator('.route-groups a').allTextContents();
+            console.log('404 shortcuts:', links);
+            for (const expected of ['Stats', 'Day Explorer', 'Books', 'Albums', 'Classical Music', 'Art', 'Tools & Systems', 'About Me', 'FAQ']) {
+              assert(links.includes(expected), `404 is missing ${expected}.`);
+            }
+
+            await page.goto('https://lifeloggerz.com/about/me/', { waitUntil: 'domcontentloaded' });
+            const satelliteV2 = await page.locator('script[src*="about-family-roots-satellite.js?v=20260808-satellite-v2"]').count();
+            assert(satelliteV2 === 1, 'Family Roots satellite-v2 loading controller is not deployed.');
+
+            await browser.close();
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
