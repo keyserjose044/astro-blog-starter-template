@@ -2,6 +2,7 @@
   if (typeof document === 'undefined') return;
 
   const VERSION = '20260808-quick-facts-v1';
+  const PROGRESO_SOURCE = 'https://mexico.pueblosamerica.com/ii/progreso-54';
 
   const factsByBranch = {
     dad: [
@@ -9,7 +10,7 @@
       {
         label: 'Aguascalientes quick facts',
         facts: [
-          ['Area', '5,617.8 km²'],
+          ['Area', '5,680.33 km²'],
           ['Municipalities', '11'],
           ['Region', 'North-central México'],
         ],
@@ -17,17 +18,17 @@
       {
         label: 'Asientos quick facts',
         facts: [
-          ['Area', '547.74 km²'],
+          ['Area', '≈645.2 km²'],
           ['Elevation', '1,800–2,700 m'],
-          ['Municipal seat', 'Real de Asientos'],
+          ['Localities', '172'],
         ],
       },
       {
         label: 'Amarillas de Esparza quick facts',
         facts: [
-          ['Elevation', '≈2,000 m'],
+          ['Elevation', '≈2,006 m'],
           ['Municipality', 'Asientos'],
-          ['Setting', 'Aguascalientes highlands'],
+          ['From Real de Asientos', '≈39 km'],
         ],
       },
     ],
@@ -36,15 +37,15 @@
       {
         label: 'Tamaulipas quick facts',
         facts: [
-          ['Area', '80,249 km²'],
+          ['Area', '80,249.3 km²'],
           ['Municipalities', '43'],
-          ['Region', 'Northeastern México'],
+          ['Borders', 'Texas + Gulf of Mexico'],
         ],
       },
       {
         label: 'Matamoros quick facts',
         facts: [
-          ['Border', 'Across the Río Bravo from Brownsville, Texas'],
+          ['Border', 'Across the Río Bravo from Brownsville'],
           ['Municipality area', '4,045.62 km²'],
           ['Setting', 'Río Bravo + Gulf of Mexico'],
         ],
@@ -52,9 +53,9 @@
       {
         label: 'Colonia Progreso quick facts',
         facts: [
-          ['Elevation', '≈5 m'],
-          ['Municipality', 'Matamoros'],
-          ['Region', 'Northern Tamaulipas'],
+          ['Postal code', '87440'],
+          ['Within', 'Heroica Matamoros'],
+          ['From city center', '≈4.44 km west'],
         ],
       },
     ],
@@ -293,6 +294,15 @@
       ].forEach(([key, branch]) => {
         if (!(branch instanceof HTMLElement)) return;
         const cards = Array.from(branch.querySelectorAll('.about-photo-where-card')).slice(0, 4);
+
+        if (key === 'mom') {
+          const progresoLink = cards[3]?.querySelector('.about-photo-where-place-link');
+          if (progresoLink instanceof HTMLAnchorElement) {
+            progresoLink.href = PROGRESO_SOURCE;
+            progresoLink.title = 'Learn more about Colonia Progreso on PueblosAmerica';
+          }
+        }
+
         cards.forEach((card, index) => {
           const details = factsByBranch[key]?.[index];
           if (details) buildFacts(card, details, key, index);
