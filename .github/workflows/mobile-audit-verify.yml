@@ -1,0 +1,166 @@
+name: Verify mobile audit fixes
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mobile-audit-verify.yml'
+      - 'public/scripts/albums-mobile-progressive.js'
+      - 'public/scripts/books-mobile-progressive.js'
+      - 'public/scripts/runtime-loading-polish.js'
+      - 'public/styles/mobile-progressive-lists.css'
+      - 'public/styles/mobile-touch-targets.css'
+      - 'public/styles/runtime-loading-polish.css'
+      - 'src/components/BaseHead.astro'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install browser test dependency
+        run: |
+          npm ci
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify mobile behavior against live data
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { chromium } = require('playwright');
+          const assert = (condition, message) => { if (!condition) throw new Error(message); };
+          const script = (name) => fs.readFileSync(`public/scripts/${name}`, 'utf8');
+          const style = (name) => fs.readFileSync(`public/styles/${name}`, 'utf8');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+            const page = await context.newPage();
+
+            // P0 Classical: all profiled portraits must remain local and load on mobile.
+            await page.goto('https://lifeloggerz.com/music/composers/', { waitUntil: 'networkidle' });
+            const composers = await page.locator('img.portrait').evaluateAll((images) => images.map((img) => ({ src: img.getAttribute('src') || '', width: img.naturalWidth })));
+            console.log('Classical portraits:', { total: composers.length, local: composers.filter((item) => item.src.startsWith('/images_webp/composers/')).length, broken: composers.filter((item) => !item.width).length });
+            assert(composers.length >= 39, `Expected at least 39 composer portraits, got ${composers.length}.`);
+            assert(composers.every((item) => item.src.startsWith('/images_webp/composers/')), 'A composer portrait still uses a remote primary source.');
+            assert(composers.every((item) => item.width > 0), 'At least one local composer portrait failed to load.');
+
+            // P0 Art: existing progressive renderer should be bounded on a 390px viewport.
+            await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('#art-grid.art-masonry-ready', { timeout: 15000 });
+            const art = await page.evaluate(() => ({
+              mounted: Number(document.querySelector('#art-grid')?.dataset.galleryMounted || 0),
+              cards: document.querySelectorAll('#art-grid .art-card').length,
+              height: document.documentElement.scrollHeight,
+            }));
+            console.log('Art mobile:', art);
+            assert(art.mounted > 0 && art.mounted <= 80, `Art mounted ${art.mounted} cards on mobile.`);
+            assert(art.cards <= 80, `Art has ${art.cards} cards in the mobile masonry DOM.`);
+            assert(art.height < 25000, `Art mobile page remains excessively tall at ${art.height}px.`);
+
+            // P1 Albums: inject the branch progressive layer into production data.
+            await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'networkidle' });
+            await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
+            await page.addScriptTag({ content: script('albums-mobile-progressive.js') });
+            await page.waitForFunction(() => Number(document.querySelector('#albums-grid')?.dataset.mobileMounted || 0) > 0);
+            const albums = await page.evaluate(() => ({
+              mounted: Number(document.querySelector('#albums-grid')?.dataset.mobileMounted || 0),
+              eligible: Number(document.querySelector('#albums-grid')?.dataset.mobileEligible || 0),
+              rendered: Array.from(document.querySelectorAll('#albums-grid .album-card')).filter((card) => getComputedStyle(card).display !== 'none').length,
+              height: document.documentElement.scrollHeight,
+              button: document.querySelector('.mobile-progress-more')?.textContent?.trim() || '',
+            }));
+            console.log('Albums mobile progressive:', albums);
+            assert(albums.eligible > albums.mounted, 'Albums dataset is too small to exercise progressive rendering.');
+            assert(albums.mounted <= 42 && albums.rendered <= 42, `Albums initial mobile mount is not bounded: ${JSON.stringify(albums)}.`);
+            assert(albums.height < 18000, `Albums mobile page remains excessively tall at ${albums.height}px.`);
+            assert(/Load more albums/i.test(albums.button), 'Albums lacks an explicit load-more fallback.');
+
+            // P1 Books: same strategy with a smaller first batch.
+            await page.goto('https://lifeloggerz.com/books/', { waitUntil: 'networkidle' });
+            await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
+            await page.addScriptTag({ content: script('books-mobile-progressive.js') });
+            await page.waitForFunction(() => Number(document.querySelector('#grid')?.dataset.mobileMounted || 0) > 0);
+            const books = await page.evaluate(() => ({
+              mounted: Number(document.querySelector('#grid')?.dataset.mobileMounted || 0),
+              eligible: Number(document.querySelector('#grid')?.dataset.mobileEligible || 0),
+              rendered: Array.from(document.querySelectorAll('#grid .card')).filter((card) => getComputedStyle(card).display !== 'none').length,
+              height: document.documentElement.scrollHeight,
+              button: document.querySelector('.mobile-progress-more')?.textContent?.trim() || '',
+            }));
+            console.log('Books mobile progressive:', books);
+            assert(books.eligible > books.mounted, 'Books dataset is too small to exercise progressive rendering.');
+            assert(books.mounted <= 36 && books.rendered <= 36, `Books initial mobile mount is not bounded: ${JSON.stringify(books)}.`);
+            assert(books.height < 15000, `Books mobile page remains excessively tall at ${books.height}px.`);
+            assert(/Load more books/i.test(books.button), 'Books lacks an explicit load-more fallback.');
+
+            // P1 Touch targets: representative controls should reach the 44px coarse-pointer floor.
+            await page.addStyleTag({ content: style('mobile-touch-targets.css') });
+            const targetSelectors = ['#filters-toggle', '#sort-books', '#info-toggle', '.view-button', 'header .nav-toggle > summary'];
+            for (const selector of targetSelectors) {
+              const locator = page.locator(selector).first();
+              assert(await locator.count(), `Missing representative touch target ${selector}.`);
+              const box = await locator.boundingBox();
+              console.log('Touch target:', selector, box?.height);
+              assert(box && box.height >= 43.5, `${selector} is only ${box?.height}px tall.`);
+            }
+
+            // P2 Long pages: current helper should be present on the worst mobile routes.
+            for (const route of ['/inspirations/', '/about/lifeloggerz/', '/pursuits/guitar/']) {
+              await page.goto(`https://lifeloggerz.com${route}`, { waitUntil: 'domcontentloaded' });
+              await page.waitForTimeout(300);
+              const state = await page.evaluate(() => ({
+                jump: document.querySelectorAll('.long-page-jump').length,
+                headings: document.querySelectorAll('main h2').length,
+                height: document.documentElement.scrollHeight,
+              }));
+              console.log('Long mobile page:', route, state);
+              if (state.headings >= 3 && state.height >= 2200) assert(state.jump === 1, `${route} has no mobile section-jump control.`);
+            }
+
+            // P2 Runtime loading: fixed-height shells and text skeletons should be deliberate.
+            await page.goto('https://lifeloggerz.com/day/', { waitUntil: 'domcontentloaded' });
+            await page.addStyleTag({ content: style('runtime-loading-polish.css') });
+            await page.addScriptTag({ content: script('runtime-loading-polish.js') });
+            const daySkeleton = await page.evaluate(() => {
+              const root = document.querySelector('[data-day-explorer]');
+              const host = document.querySelector('[data-day-metrics]');
+              root?.setAttribute('aria-busy', 'true');
+              root?.classList.add('ll-runtime-loading');
+              host?.replaceChildren();
+              return host?.getBoundingClientRect().height || 0;
+            });
+            console.log('Day skeleton height:', daySkeleton);
+            assert(daySkeleton >= 350, `Day metrics loading shell is only ${daySkeleton}px tall.`);
+
+            await page.goto('https://lifeloggerz.com/stats/', { waitUntil: 'domcontentloaded' });
+            await page.evaluate(() => { const node = document.querySelector('[data-card-year]'); if (node) node.textContent = 'Loading…'; });
+            await page.addStyleTag({ content: style('runtime-loading-polish.css') });
+            await page.addScriptTag({ content: script('runtime-loading-polish.js') });
+            assert(await page.locator('[data-card-year].ll-runtime-skeleton-text').count(), 'Stats loading value did not receive skeleton treatment.');
+
+            await page.goto('https://lifeloggerz.com/pursuits/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('[data-live-lifetime]', { timeout: 15000 });
+            await page.evaluate(() => { const node = document.querySelector('[data-live-lifetime]'); if (node) node.textContent = '—'; });
+            await page.addStyleTag({ content: style('runtime-loading-polish.css') });
+            await page.addScriptTag({ content: script('runtime-loading-polish.js') });
+            assert(await page.locator('[data-live-lifetime].ll-runtime-skeleton-text').count(), 'Pursuits loading value did not receive skeleton treatment.');
+
+            await browser.close();
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
