@@ -5,6 +5,43 @@ import Footer from '../components/Footer.astro';
 import { SITE_TITLE } from '../consts';
 const title = `Page not found — ${SITE_TITLE}`;
 const description = "The page you're looking for doesn't exist.";
+
+const groups = [
+  {
+    title: 'Stats & Explore',
+    links: [
+      { href: '/stats/', label: 'Stats' },
+      { href: '/day/', label: 'Day Explorer' },
+    ],
+  },
+  {
+    title: 'Culture',
+    links: [
+      { href: '/books/', label: 'Books' },
+      { href: '/music/albums/', label: 'Albums' },
+      { href: '/music/composers/', label: 'Classical Music' },
+      { href: '/art/', label: 'Art' },
+    ],
+  },
+  {
+    title: 'Build',
+    links: [
+      { href: '/templates/', label: 'Tools & Systems' },
+      { href: '/blog/', label: 'Projects & Experiments' },
+    ],
+  },
+  {
+    title: 'About',
+    links: [
+      { href: '/about/me/', label: 'About Me' },
+      { href: '/about/lifeloggerz/', label: 'About LifeLoggerz' },
+      { href: '/pursuits/', label: 'Pursuits' },
+      { href: '/timeline/', label: 'Timeline' },
+      { href: '/inspirations/', label: 'Inspirations' },
+      { href: '/faq/', label: 'FAQ' },
+    ],
+  },
+];
 ---
 
 <!doctype html>
@@ -13,15 +50,29 @@ const description = "The page you're looking for doesn't exist.";
     <BaseHead title={title} description={description} />
     <meta name="robots" content="noindex" />
     <style>
-      main { min-height: 70vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
-      .wrap { text-align:center; max-width: 720px; }
-      .code { font-size: 4rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: .5rem; }
-      .headline { font-size: 1.5rem; margin: 0 0 1rem 0; }
-      .links { display:flex; gap:.75rem; flex-wrap:wrap; justify-content:center; margin-top: 1rem; }
-      .btn { padding:.6rem 1rem; border-radius:.6rem; border:1px solid #ddd; text-decoration:none; }
-      .btn:hover { border-color: var(--accent, #6b5cff); }
-      form { margin-top:1rem; }
-      input[type="text"] { padding:.6rem .8rem; border-radius:.5rem; border:1px solid #ddd; width:min(420px, 90vw); }
+      main {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1rem 4rem;
+      }
+      .wrap { width: min(920px, 100%); text-align: center; }
+      .code { font-size: clamp(3.2rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: .05em; line-height: 1; margin-bottom: .6rem; }
+      .headline { font-size: clamp(1.2rem, 4vw, 1.6rem); margin: 0 0 .5rem; }
+      .lede { margin: 0 auto 1.25rem; max-width: 580px; color: rgb(var(--gray)); }
+      .primary-links { display: flex; gap: .65rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.25rem; }
+      .btn { padding: .6rem 1rem; border-radius: 999px; border: 1px solid rgba(100, 100, 110, .22); background: rgba(255,255,255,.78); color: inherit; text-decoration: none; font-weight: 700; }
+      .btn:hover, .btn:focus-visible { border-color: var(--accent, #6b5cff); outline: none; }
+      .route-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; text-align: left; }
+      .route-group { padding: .9rem; border: 1px solid rgba(100, 100, 110, .14); border-radius: 14px; background: rgba(255,255,255,.68); }
+      .route-group h2 { margin: 0 0 .45rem; font-size: .9rem; }
+      .route-group a { display: block; padding: .34rem .4rem; border-radius: 7px; color: inherit; text-decoration: none; font-size: .88rem; }
+      .route-group a:hover, .route-group a:focus-visible { background: rgba(107,92,255,.08); color: var(--accent, #6b5cff); outline: none; }
+      form { margin-top: 1.35rem; }
+      input[type="text"] { box-sizing: border-box; padding: .65rem .85rem; border-radius: 999px; border: 1px solid rgba(100,100,110,.22); width: min(440px, 92vw); background: rgba(255,255,255,.85); color: inherit; }
+      @media (max-width: 760px) { .route-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 440px) { .route-groups { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
@@ -29,18 +80,26 @@ const description = "The page you're looking for doesn't exist.";
     <main>
       <div class="wrap">
         <div class="code">404</div>
-        <p class="headline"><strong>Oops.</strong> We couldn't find that page.</p>
-        <p>Try one of these instead:</p>
-        <div class="links">
+        <p class="headline"><strong>That page isn't here.</strong></p>
+        <p class="lede">The site has grown and a few old paths have moved. Jump back into the current LifeLoggerz structure:</p>
+
+        <div class="primary-links" aria-label="Primary destinations">
           <a class="btn" href="/">Home</a>
-          <a class="btn" href="/blog">Blog</a>
-          <a class="btn" href="/templates">Templates</a>
-          <a class="btn" href="/about">About</a>
+          <a class="btn" href="/blog/">Blog</a>
+          <a class="btn" href="/templates/">Templates</a>
         </div>
 
-        <!-- Optional: simple client-side search query link to your blog page -->
-        <form action="/blog">
-          <input type="text" name="q" placeholder="Search posts (type and press Enter)" />
+        <div class="route-groups">
+          {groups.map((group) => (
+            <section class="route-group">
+              <h2>{group.title}</h2>
+              {group.links.map((item) => <a href={item.href}>{item.label}</a>)}
+            </section>
+          ))}
+        </div>
+
+        <form action="/blog/">
+          <input type="text" name="q" placeholder="Search blog posts" aria-label="Search blog posts" />
         </form>
       </div>
     </main>

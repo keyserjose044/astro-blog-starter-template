@@ -6,11 +6,27 @@
 }
 
 .about-photo-map-slot--google{
+  position:relative;
   min-height:205px;
   overflow:hidden;
   border-style:solid;
   border-color:rgba(127,103,76,.34);
   background:#eee8df;
+}
+
+.about-photo-map-slot--google[data-map-loading='1']::after{
+  content:'Loading map…';
+  position:absolute;
+  z-index:3;
+  inset:0;
+  display:grid !important;
+  place-items:center;
+  background:linear-gradient(135deg,rgba(238,232,223,.96),rgba(244,240,234,.92));
+  color:rgba(75,61,46,.72);
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.02em;
+  pointer-events:none;
 }
 
 .about-photo-map-frame{
