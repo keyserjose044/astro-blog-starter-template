@@ -1,3 +1,5 @@
+import composerPortraits from '../generated/composerPortraits';
+
 export interface RaindropGalleryItem {
   id: number | string;
   title: string;
@@ -299,13 +301,22 @@ export async function fetchAllRaindrops({
     const note =
       (typeof item.note === 'string' ? item.note : '') ||
       (typeof item.excerpt === 'string' ? item.excerpt : '');
-    const coverCandidates = chooseCoverCandidates(
+    let coverCandidates = chooseCoverCandidates(
       item,
       placeholder,
       cleanVideoCovers && (!cleanVideoCoversAfter || cleanVideoCoversAfterTimestamp !== null),
       cleanVideoCoversAfterTimestamp,
       note
     );
+
+    // Composer portraits are cached during the build and served from LifeLoggerz itself.
+    // Keep the original Raindrop/Wikimedia URLs behind the local copy as a graceful fallback.
+    if (label === 'composers') {
+      const localPortrait = composerPortraits[String(item._id)] || '';
+      if (localPortrait) {
+        coverCandidates = uniqueUrls([localPortrait, ...coverCandidates]);
+      }
+    }
 
     return {
       id: item._id,
