@@ -4,6 +4,10 @@ const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selec
 const PLACEHOLDER_RATIOS = ['4 / 5', '1 / 1', '3 / 2', '2 / 3', '5 / 4', '3 / 4'];
 const PLACEHOLDER_RATIO_VALUES = [0.8, 1, 1.5, 2 / 3, 1.25, 0.75];
 const RECENCY_BAND_SIZE = 36;
+const DESKTOP_INITIAL_RENDER = 120;
+const DESKTOP_RENDER_BATCH = 96;
+const MOBILE_INITIAL_RENDER = 72;
+const MOBILE_RENDER_BATCH = 48;
 
 const getColumnCount = (width) => {
   if (width >= 1540) return 6;
@@ -12,6 +16,10 @@ const getColumnCount = (width) => {
   if (width >= 660) return 3;
   return 2;
 };
+
+const getRenderSizing = () => window.matchMedia('(max-width: 659px)').matches
+  ? { initial: MOBILE_INITIAL_RENDER, batch: MOBILE_RENDER_BATCH }
+  : { initial: DESKTOP_INITIAL_RENDER, batch: DESKTOP_RENDER_BATCH };
 
 const parseViewedDate = (value) => {
   const raw = String(value || '').trim();
@@ -67,6 +75,19 @@ function bootArtGalleryMasonry() {
   let currentColumnCount = 0;
   let resizeTimer = 0;
   let filterTimer = 0;
+  let renderLimit = getRenderSizing().initial;
+  let currentVisibleCount = cards.length;
+
+  const progress = document.createElement('div');
+  progress.className = 'art-progressive-render';
+  progress.hidden = true;
+  progress.innerHTML = `
+    <p class="art-progressive-status" aria-live="polite"></p>
+    <button type="button" class="art-progressive-more">Load more artworks</button>
+  `;
+  grid.after(progress);
+  const progressStatus = progress.querySelector('.art-progressive-status');
+  const progressButton = progress.querySelector('.art-progressive-more');
 
   const preloadObserver = 'IntersectionObserver' in window
     ? new IntersectionObserver((entries, observer) => {
@@ -77,7 +98,7 @@ function bootArtGalleryMasonry() {
           image.fetchPriority = 'low';
           observer.unobserve(image);
         });
-      }, { rootMargin: '2200px 0px' })
+      }, { rootMargin: '1800px 0px' })
     : null;
 
   const visibleCards = () => cards.filter((card) => card.style.display !== 'none');
@@ -166,7 +187,7 @@ function bootArtGalleryMasonry() {
         }
         if (image.complete) settleImage(image);
 
-        if (index < 4) {
+        if (index < 3) {
           image.loading = 'eager';
           image.fetchPriority = index === 0 ? 'high' : 'auto';
         } else {
@@ -178,6 +199,19 @@ function bootArtGalleryMasonry() {
     });
   }
 
+  function syncProgress(rendered, total) {
+    currentVisibleCount = total;
+    const isGallery = grid.dataset.artView === 'gallery' && !grid.hidden;
+    const hasMore = rendered < total;
+    progress.hidden = !isGallery || !hasMore;
+    if (progressStatus) {
+      progressStatus.textContent = hasMore
+        ? `${rendered.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} gallery cards mounted`
+        : '';
+    }
+    if (progressButton) progressButton.hidden = !hasMore;
+  }
+
   function buildColumns() {
     if (grid.dataset.artView !== 'gallery') return;
 
@@ -186,7 +220,7 @@ function bootArtGalleryMasonry() {
     currentColumnCount = columnCount;
 
     const shown = rankGalleryCards(visibleCards());
-    const hidden = cards.filter((card) => card.style.display === 'none');
+    const mounted = shown.slice(0, Math.min(renderLimit, shown.length));
     const columns = Array.from({ length: columnCount }, () => {
       const column = document.createElement('div');
       column.className = 'art-masonry-column';
@@ -195,11 +229,7 @@ function bootArtGalleryMasonry() {
     });
     const columnHeights = Array(columnCount).fill(0);
 
-    // The first screen is drawn from a recent band of image-ready works, but the
-    // band is deterministically mixed so Gallery never reads like a date-sorted list.
-    // Each card is then assigned once to the shortest estimated column and never
-    // moves to another column merely because its image finished loading.
-    shown.forEach((card, index) => {
+    mounted.forEach((card, index) => {
       const targetColumn = index < columnCount
         ? index
         : columnHeights.indexOf(Math.min(...columnHeights));
@@ -207,13 +237,11 @@ function bootArtGalleryMasonry() {
       columnHeights[targetColumn] += estimatedHeight(card) + 0.07;
     });
 
-    // Hidden cards remain available to the main filter controller. A later
-    // search/filter interaction rebuilds the columns using the new visible set.
-    hidden.forEach((card, index) => columns[index % columnCount].append(card));
-
     grid.replaceChildren(...columns);
     grid.classList.add('art-masonry-ready');
+    grid.dataset.galleryMounted = String(mounted.length);
     primeImages(columns);
+    syncProgress(mounted.length, shown.length);
   }
 
   function flattenForList() {
@@ -222,16 +250,37 @@ function bootArtGalleryMasonry() {
     cards.forEach((card) => fragment.append(card));
     grid.replaceChildren(fragment);
     grid.classList.remove('art-masonry-ready');
+    progress.hidden = true;
   }
 
-  function scheduleGalleryBuild(delay = 0) {
+  function resetProgressLimit() {
+    renderLimit = getRenderSizing().initial;
+  }
+
+  function loadMore() {
+    if (grid.dataset.artView !== 'gallery') return;
+    const { batch } = getRenderSizing();
+    renderLimit = Math.min(currentVisibleCount, renderLimit + batch);
+    buildColumns();
+  }
+
+  const progressiveObserver = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) loadMore();
+      }, { rootMargin: '1400px 0px' })
+    : null;
+  if (progressButton) progressiveObserver?.observe(progressButton);
+  progressButton?.addEventListener('click', loadMore);
+
+  function scheduleGalleryBuild(delay = 0, reset = false) {
     window.clearTimeout(filterTimer);
     filterTimer = window.setTimeout(() => {
+      if (reset) resetProgressLimit();
       if (grid.dataset.artView === 'gallery') buildColumns();
     }, delay);
   }
 
-  galleryButton?.addEventListener('click', () => scheduleGalleryBuild(0));
+  galleryButton?.addEventListener('click', () => scheduleGalleryBuild(0, true));
 
   listButton?.addEventListener('click', () => {
     window.setTimeout(() => {
@@ -242,9 +291,9 @@ function bootArtGalleryMasonry() {
 
   filterInputs.forEach((control) => {
     const eventName = control.matches('input[type="search"]') ? 'input' : 'change';
-    control.addEventListener(eventName, () => scheduleGalleryBuild(eventName === 'input' ? 90 : 0));
+    control.addEventListener(eventName, () => scheduleGalleryBuild(eventName === 'input' ? 90 : 0, true));
     if (control.id === 'art-clear-filters') {
-      control.addEventListener('click', () => scheduleGalleryBuild(0));
+      control.addEventListener('click', () => scheduleGalleryBuild(0, true));
     }
   });
 
@@ -258,14 +307,14 @@ function bootArtGalleryMasonry() {
   }, { passive: true });
 
   if (galleryButton) {
-    galleryButton.title = 'Natural-proportion gallery prioritizing recent works with available images. Switch to List for complete sorting.';
+    galleryButton.title = 'Progressively rendered natural-proportion gallery. Switch to List for the complete sortable archive at once.';
   }
 
   const browsingCopy = Array.from(document.querySelectorAll('#art-info p')).find((paragraph) =>
     paragraph.textContent?.trim().startsWith('Gallery')
   );
   if (browsingCopy) {
-    browsingCopy.textContent = 'Gallery preserves each work\'s natural proportions and prioritizes recent entries with available images. Its order is intentionally mixed for discovery rather than strictly chronological. List remains the complete sortable archive. Artists groups the collection by creator. Timeline moves between art history and my viewing journey. World Map uses the recorded country or nationality field when it can be matched confidently.';
+    browsingCopy.textContent = 'Gallery preserves each work\'s natural proportions and mounts the collection progressively as you browse, avoiding an enormous initial page. Its order is intentionally mixed for discovery rather than strictly chronological. List remains the complete sortable archive. Artists groups the collection by creator. Timeline moves between art history and my viewing journey. World Map uses the recorded country or nationality field when it can be matched confidently.';
   }
 
   if (grid.dataset.artView === 'gallery') buildColumns();
