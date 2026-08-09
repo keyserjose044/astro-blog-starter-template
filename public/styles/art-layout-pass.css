@@ -317,3 +317,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Keep the sticky viewer close control out of float layout so it cannot
+ * steal width from the artwork/details grid on narrow screens. */
+.art-viewer-close {
+  float: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 10px -48px auto;
+}
+
+@media (max-width: 900px) {
+  .art-viewer {
+    margin-inline: auto;
+  }
+
+  .art-viewer-layout {
+    width: 100%;
+  }
+}
