@@ -1,6 +1,25 @@
 (() => {
   if (typeof document === 'undefined') return;
 
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const enabledPaths = new Set([
+    '/inspirations',
+    '/about/lifeloggerz',
+    '/faq',
+    '/guitar',
+    '/music/guitar',
+    '/pursuits/guitar',
+  ]);
+  if (!enabledPaths.has(path)) return;
+
+  if (!document.querySelector('link[data-long-page-jump-style]')) {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = '/styles/long-page-jump.css?v=20260808-2245';
+    style.dataset.longPageJumpStyle = 'true';
+    document.head.append(style);
+  }
+
   const slugify = (value) => String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
