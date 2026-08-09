@@ -27,12 +27,12 @@
   },
   "scripts": {
     "astro": "astro",
-    "build": "node scripts/cache-composer-portraits.mjs && astro build",
+    "build": "node scripts/ensure-static-placeholders.mjs && node scripts/cache-composer-portraits.mjs && astro build",
     "cf-typegen": "wrangler types",
-    "check": "node scripts/cache-composer-portraits.mjs && astro build && tsc && wrangler deploy --dry-run",
+    "check": "node scripts/ensure-static-placeholders.mjs && node scripts/cache-composer-portraits.mjs && astro build && tsc && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
-    "dev": "node scripts/cache-composer-portraits.mjs && astro dev",
-    "preview": "node scripts/cache-composer-portraits.mjs && astro build && wrangler dev"
+    "dev": "node scripts/ensure-static-placeholders.mjs && node scripts/cache-composer-portraits.mjs && astro dev",
+    "preview": "node scripts/ensure-static-placeholders.mjs && node scripts/cache-composer-portraits.mjs && astro build && wrangler dev"
   },
   "type": "module"
 }
