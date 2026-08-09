@@ -25,8 +25,8 @@ const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/a
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260808-2052';
-const albumsAssetVersion = '20260802-1115';
-const artAssetVersion = '20260802-0005';
+const albumsAssetVersion = '20260808-2235';
+const artAssetVersion = '20260808-2235';
 const navAssetVersion = '20260808-1655';
 ---
 
@@ -134,6 +134,7 @@ const navAssetVersion = '20260808-1655';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-desktop-calendar-fit.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-url-state.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-timeline-desktop-zoom.js?v=${booksAssetVersion}`}></script> : null}
+{isAlbumsPage ? <script is:inline src={`${base}scripts/albums-image-fallback.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-expansion.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-polish.js?v=${albumsAssetVersion}`}></script> : null}

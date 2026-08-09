@@ -442,17 +442,17 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   .desktop-dropdown[open] > .dropdown-panel { opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,0); }
   .about-panel { left:auto; right:0; transform:translate(0,.45rem); }
   .desktop-dropdown[open] > .about-panel { transform:translate(0,0); }
-  .dropdown-link:global(a) { position:relative; display:grid; grid-template-columns:1.65rem minmax(0,1fr) 1.15rem; gap:.58rem; align-items:center; width:100%; min-height:44px; padding:.62rem .65rem; border:1px solid transparent; border-radius:.65rem; color:#0f172a; text-decoration:none!important; cursor:pointer; transition:background .14s ease-out,border-color .14s ease-out,color .14s ease-out,transform .14s ease-out,box-shadow .14s ease-out; }
-  .dropdown-link:global(a:hover),.dropdown-link:global(a:focus-visible) { color:#1d4ed8; background:#f5f8ff; border-color:rgba(37,99,235,.12); box-shadow:0 4px 12px rgba(37,99,235,.07); transform:translateX(3px); outline:none; }
-  .dropdown-link:global(a.active) { color:#1d4ed8; background:#edf3ff; border-color:rgba(37,99,235,.14); }
-  .dropdown-link:global(a:active) { background:#e6efff; transform:translateX(3px) scale(.985); }
+  :global(a.dropdown-link) { position:relative; display:grid; grid-template-columns:1.65rem minmax(0,1fr) 1.15rem; gap:.58rem; align-items:center; width:100%; min-height:44px; padding:.62rem .65rem; border:1px solid transparent; border-radius:.65rem; color:#0f172a; text-decoration:none!important; cursor:pointer; transition:background .14s ease-out,border-color .14s ease-out,color .14s ease-out,transform .14s ease-out,box-shadow .14s ease-out; }
+  :global(a.dropdown-link:hover),:global(a.dropdown-link:focus-visible) { color:#1d4ed8; background:#f5f8ff; border-color:rgba(37,99,235,.12); box-shadow:0 4px 12px rgba(37,99,235,.07); transform:translateX(3px); outline:none; }
+  :global(a.dropdown-link.active) { color:#1d4ed8; background:#edf3ff; border-color:rgba(37,99,235,.14); }
+  :global(a.dropdown-link:active) { background:#e6efff; transform:translateX(3px) scale(.985); }
   .dropdown-icon { display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; font-size:1rem; line-height:1.3; }
   .dropdown-copy { min-width:0; }
-  .dropdown-link:global(a) strong { display:block; font-size:.94rem; line-height:1.2; font-weight:720; }
-  .dropdown-link:global(a) small { display:block; max-height:0; margin-top:0; overflow:hidden; color:#64748b; font-size:.73rem; line-height:1.35; font-weight:450; opacity:0; transform:translateY(-3px); transition:max-height .18s ease-out,margin-top .18s ease-out,opacity .14s ease-out,transform .18s ease-out; }
-  .dropdown-link:global(a:hover) small,.dropdown-link:global(a:focus-visible) small { max-height:3.2em; margin-top:.28rem; opacity:1; transform:translateY(0); }
+  :global(a.dropdown-link) strong { display:block; font-size:.94rem; line-height:1.2; font-weight:720; }
+  :global(a.dropdown-link) small { display:block; max-height:0; margin-top:0; overflow:hidden; color:#64748b; font-size:.73rem; line-height:1.35; font-weight:450; opacity:0; transform:translateY(-3px); transition:max-height .18s ease-out,margin-top .18s ease-out,opacity .14s ease-out,transform .18s ease-out; }
+  :global(a.dropdown-link:hover) small,:global(a.dropdown-link:focus-visible) small { max-height:3.2em; margin-top:.28rem; opacity:1; transform:translateY(0); }
   .dropdown-arrow { justify-self:end; color:#94a3b8; font-size:.92rem; opacity:.25; transform:translateX(-3px); transition:opacity .14s ease-out,transform .14s ease-out,color .14s ease-out; }
-  .dropdown-link:global(a:hover) .dropdown-arrow,.dropdown-link:global(a:focus-visible) .dropdown-arrow,.dropdown-link:global(a.active) .dropdown-arrow { color:#2563eb; opacity:1; transform:translateX(1px); }
+  :global(a.dropdown-link:hover) .dropdown-arrow,:global(a.dropdown-link:focus-visible) .dropdown-arrow,:global(a.dropdown-link.active) .dropdown-arrow { color:#2563eb; opacity:1; transform:translateX(1px); }
   .right-rail { display:flex; align-items:center; gap:.45rem; flex:0 0 auto; }
   .contact-button a,.contact-btn { background:transparent; color:#2563eb; border:2px solid #2563eb; padding:.48rem .85rem; border-radius:9999px; font-weight:600; transition:all .25s; text-decoration:none; white-space:nowrap; }
   .contact-button a:hover,.contact-btn:hover { background:#2563eb; color:#fff; }
@@ -478,9 +478,9 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   .mobile-group > summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem .35rem; color:#0f172a; font-weight:650; list-style:none; cursor:pointer; }
   .mobile-group.section-active > summary { color:#1d4ed8; }
   .mobile-submenu { display:grid; gap:.12rem; padding:0 0 .65rem; }
-  .mobile-submenu-link:global(a) { display:grid; grid-template-columns:1.7rem minmax(0,1fr); gap:.55rem; align-items:center; padding:.68rem .7rem; border-radius:.6rem; color:#334155; text-decoration:none!important; transition:color .14s ease-out,background .14s ease-out,transform .12s ease-out; }
-  .mobile-submenu-link:global(a:hover),.mobile-submenu-link:global(a:focus-visible),.mobile-submenu-link:global(a.active) { color:#1d4ed8; background:#f1f5ff; }
-  .mobile-submenu-link:global(a:active) { transform:scale(.985); }
+  :global(a.mobile-submenu-link) { display:grid; grid-template-columns:1.7rem minmax(0,1fr); gap:.55rem; align-items:center; padding:.68rem .7rem; border-radius:.6rem; color:#334155; text-decoration:none!important; transition:color .14s ease-out,background .14s ease-out,transform .12s ease-out; }
+  :global(a.mobile-submenu-link:hover),:global(a.mobile-submenu-link:focus-visible),:global(a.mobile-submenu-link.active) { color:#1d4ed8; background:#f1f5ff; }
+  :global(a.mobile-submenu-link:active) { transform:scale(.985); }
   .mobile-footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem 1rem 1rem; border-top:1px solid rgba(15,23,42,.06); }
   .mobile-nav .social-row { display:flex; gap:.6rem; }
   .mobile-nav .contact-btn { padding:.42rem .9rem; text-align:center; }

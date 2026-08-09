@@ -39,6 +39,8 @@
   min-width: 0;
   margin: 0 !important;
   break-inside: auto;
+  content-visibility: auto;
+  contain-intrinsic-size: 340px 430px;
 }
 
 .art-grid[data-art-view='gallery'] .art-card-figure {
@@ -121,6 +123,47 @@
   color: #70798a;
 }
 
+.art-progressive-render {
+  display: grid;
+  justify-items: center;
+  gap: .55rem;
+  margin: 1.25rem auto 2.5rem;
+  padding: .9rem 1rem;
+  max-width: 520px;
+}
+
+.art-progressive-render[hidden] {
+  display: none;
+}
+
+.art-progressive-status {
+  margin: 0;
+  color: #687386;
+  font-size: .78rem;
+  text-align: center;
+}
+
+.art-progressive-more {
+  appearance: none;
+  border: 1px solid rgba(53, 72, 112, .2);
+  border-radius: 999px;
+  padding: .58rem .95rem;
+  background: rgba(255, 255, 255, .9);
+  color: #273044;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(22, 32, 56, .07);
+}
+
+.art-progressive-more:hover,
+.art-progressive-more:focus-visible {
+  border-color: rgba(53, 72, 112, .42);
+  outline: none;
+  box-shadow: 0 7px 22px rgba(22, 32, 56, .11);
+}
+
 /* Column wrappers do not interfere with the existing sortable List layout. */
 .art-grid[data-art-view='list'] > .art-masonry-column {
   display: contents;
@@ -160,6 +203,10 @@
   .art-grid[data-art-view='gallery'].art-masonry-ready,
   .art-masonry-column {
     gap: 10px;
+  }
+
+  .art-grid[data-art-view='gallery'] .art-card {
+    contain-intrinsic-size: 240px 330px;
   }
 }
 
