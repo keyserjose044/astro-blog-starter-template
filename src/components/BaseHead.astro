@@ -24,10 +24,11 @@ const isBooksPage = normalizedPath === '/books' || normalizedPath.endsWith('/boo
 const isAlbumsPage = normalizedPath === '/albums' || normalizedPath.endsWith('/albums');
 const isArtPage = normalizedPath === '/art' || normalizedPath.endsWith('/art');
 const aboutAssetVersion = '20260801-1426';
-const booksAssetVersion = '20260808-2052';
-const albumsAssetVersion = '20260808-2235';
-const artAssetVersion = '20260808-2235';
+const booksAssetVersion = '20260808-2315';
+const albumsAssetVersion = '20260808-2315';
+const artAssetVersion = '20260808-2315';
 const navAssetVersion = '20260808-1655';
+const mobileUxAssetVersion = '20260808-2315';
 ---
 
 <!-- Global Metadata -->
@@ -46,6 +47,9 @@ const navAssetVersion = '20260808-1655';
 <link rel="preload" href={`${base}fonts/atkinson-regular.woff`} as="font" type="font/woff" crossorigin />
 <link rel="preload" href={`${base}fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
 <link rel="stylesheet" href={`${base}styles/mobile-nav-drilldown.css?v=${navAssetVersion}`} />
+<link rel="stylesheet" href={`${base}styles/mobile-touch-targets.css?v=${mobileUxAssetVersion}`} />
+<link rel="stylesheet" href={`${base}styles/runtime-loading-polish.css?v=${mobileUxAssetVersion}`} />
+{isBooksPage || isAlbumsPage || isArtPage ? <link rel="stylesheet" href={`${base}styles/mobile-progressive-lists.css?v=${mobileUxAssetVersion}`} /> : null}
 
 {isAboutPage ? <meta name="lifeloggerz-about-assets" content={aboutAssetVersion} /> : null}
 {isAboutPage ? <link rel="stylesheet" href={`${base}styles/about-adornment-personality.css?v=${aboutAssetVersion}`} /> : null}
@@ -115,6 +119,7 @@ const navAssetVersion = '20260808-1655';
 <meta name="twitter:image" content={absoluteImageURL.toString()} />
 
 <script is:inline src={`${base}scripts/mobile-nav-drilldown.js?v=${navAssetVersion}`} defer></script>
+<script is:inline src={`${base}scripts/runtime-loading-polish.js?v=${mobileUxAssetVersion}`} defer></script>
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
@@ -134,13 +139,16 @@ const navAssetVersion = '20260808-1655';
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-desktop-calendar-fit.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-url-state.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-timeline-desktop-zoom.js?v=${booksAssetVersion}`}></script> : null}
+{isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-mobile-progressive.js?v=${booksAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline src={`${base}scripts/albums-image-fallback.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-explorer-core.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-expansion.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-polish.js?v=${albumsAssetVersion}`}></script> : null}
 {isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-timeline-selection-empty.js?v=${albumsAssetVersion}`}></script> : null}
+{isAlbumsPage ? <script is:inline type="module" src={`${base}scripts/albums-mobile-progressive.js?v=${albumsAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline src={`${base}scripts/art-image-fallback.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-explorer-core.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-gallery-masonry.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-view-polish.js?v=${artAssetVersion}`}></script> : null}
 {isArtPage ? <script is:inline type="module" src={`${base}scripts/art-layout-pass.js?v=${artAssetVersion}`}></script> : null}
+{isArtPage ? <script is:inline type="module" src={`${base}scripts/art-mobile-progressive.js?v=${artAssetVersion}`}></script> : null}

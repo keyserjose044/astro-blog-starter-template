@@ -1,0 +1,52 @@
+@media (pointer: coarse), (max-width: 760px) {
+  button,
+  select,
+  input[type="search"],
+  input[type="date"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  summary,
+  [role="button"] {
+    min-height: 44px;
+    box-sizing: border-box;
+    touch-action: manipulation;
+  }
+
+  header nav a,
+  .button,
+  .info-toggle,
+  .view-button,
+  .albums-view-button,
+  .albums-control-button,
+  .albums-round-button,
+  .filters-toggle,
+  .clear-filters,
+  .day-nav-button,
+  .day-action-button,
+  .pursuits-live-actions a,
+  .pursuits-live-card > a,
+  .long-page-jump a,
+  .long-page-back-top,
+  .contact-btn,
+  .contact-button a {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .albums-round-button,
+  .info-toggle,
+  .day-nav-button,
+  .long-page-back-top {
+    min-width: 44px;
+  }
+
+  .pursuits-live-button-row button,
+  .pursuits-live-chart-controls select {
+    min-height: 44px;
+  }
+
+  details.faq-item > summary {
+    min-height: 44px;
+  }
+}
