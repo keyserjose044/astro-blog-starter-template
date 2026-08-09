@@ -38,10 +38,10 @@ jobs:
             art="$(curl --fail --silent --location https://lifeloggerz.com/art/ || true)"
             about="$(curl --fail --silent --location https://lifeloggerz.com/about/me/ || true)"
             notfound="$(curl --fail --silent --location https://lifeloggerz.com/404.html || true)"
-            if printf '%s' "$albums" | grep -q 'albums-image-fallback.js?v=20260808-2235' \
-              && printf '%s' "$art" | grep -q 'art-gallery-masonry.js?v=20260808-2235' \
-              && printf '%s' "$about" | grep -q 'about-family-roots-satellite.js?v=20260808-satellite-v2' \
-              && printf '%s' "$notfound" | grep -q 'The site has grown'; then
+            if [[ "$albums" == *'albums-image-fallback.js?v=20260808-2235'* ]] \
+              && [[ "$art" == *'art-gallery-masonry.js?v=20260808-2235'* ]] \
+              && [[ "$about" == *'about-family-roots-satellite.js?v=20260808-satellite-v2'* ]] \
+              && [[ "$notfound" == *'The site has grown'* ]]; then
               echo 'All merged audit-fix markers are live.'
               ready=1
               break
@@ -55,8 +55,9 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location https://lifeloggerz.com/images_webp/album-placeholder.webp --output /tmp/album-placeholder.webp
-          file /tmp/album-placeholder.webp
-          file /tmp/album-placeholder.webp | grep -qi 'Web/P image\|WebP'
+          description="$(file /tmp/album-placeholder.webp)"
+          echo "$description"
+          [[ "$description" == *'Web/P image'* || "$description" == *'WebP'* ]]
 
       - name: Verify deployed pages in Chromium
         run: |
@@ -90,7 +91,7 @@ jobs:
             assert(art.mounted > 0 && art.mounted <= 150, `Expected a bounded initial Art mount; got ${art.mounted}.`);
             assert(art.cardsInDocument <= 150, `Too many Art cards are mounted initially: ${art.cardsInDocument}.`);
             assert(art.height < 25000, `Art initial page is still too tall: ${art.height}px.`);
-            assert(/798|artworks/i.test(art.totalText), 'Art results summary did not retain the complete collection count.');
+            assert(/artworks/i.test(art.totalText), 'Art results summary did not retain the complete collection count.');
 
             await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'networkidle' });
             await page.waitForSelector('[data-albums-expansion-view="artists"]', { timeout: 15000 });
