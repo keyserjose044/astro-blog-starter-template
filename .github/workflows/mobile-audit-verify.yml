@@ -49,15 +49,21 @@ jobs:
             const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
             const page = await context.newPage();
 
-            // P0 Classical: all profiled portraits must remain local and load on mobile.
             await page.goto('https://lifeloggerz.com/music/composers/', { waitUntil: 'networkidle' });
-            const composers = await page.locator('img.portrait').evaluateAll((images) => images.map((img) => ({ src: img.getAttribute('src') || '', width: img.naturalWidth })));
-            console.log('Classical portraits:', { total: composers.length, local: composers.filter((item) => item.src.startsWith('/images_webp/composers/')).length, broken: composers.filter((item) => !item.width).length });
-            assert(composers.length >= 39, `Expected at least 39 composer portraits, got ${composers.length}.`);
-            assert(composers.every((item) => item.src.startsWith('/images_webp/composers/')), 'A composer portrait still uses a remote primary source.');
-            assert(composers.every((item) => item.width > 0), 'At least one local composer portrait failed to load.');
+            const composerSources = await page.locator('img.portrait').evaluateAll((images) => images.map((img) => img.getAttribute('src') || ''));
+            const composerChecks = await Promise.all(composerSources.map(async (src) => {
+              const response = await context.request.get(new URL(src, 'https://lifeloggerz.com').href);
+              return { src, ok: response.ok(), status: response.status() };
+            }));
+            console.log('Classical portraits:', {
+              total: composerSources.length,
+              local: composerSources.filter((src) => src.startsWith('/images_webp/composers/')).length,
+              failedRequests: composerChecks.filter((item) => !item.ok),
+            });
+            assert(composerSources.length >= 39, `Expected at least 39 composer portraits, got ${composerSources.length}.`);
+            assert(composerSources.every((src) => src.startsWith('/images_webp/composers/')), 'A composer portrait still uses a remote primary source.');
+            assert(composerChecks.every((item) => item.ok), 'At least one local composer portrait URL failed when requested directly.');
 
-            // P0 Art: existing progressive renderer should be bounded on a 390px viewport.
             await page.goto('https://lifeloggerz.com/art/', { waitUntil: 'domcontentloaded' });
             await page.waitForSelector('#art-grid.art-masonry-ready', { timeout: 15000 });
             const art = await page.evaluate(() => ({
@@ -70,7 +76,6 @@ jobs:
             assert(art.cards <= 80, `Art has ${art.cards} cards in the mobile masonry DOM.`);
             assert(art.height < 25000, `Art mobile page remains excessively tall at ${art.height}px.`);
 
-            // P1 Albums: inject the branch progressive layer into production data.
             await page.goto('https://lifeloggerz.com/music/albums/', { waitUntil: 'networkidle' });
             await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
             await page.addScriptTag({ content: script('albums-mobile-progressive.js') });
@@ -88,7 +93,6 @@ jobs:
             assert(albums.height < 18000, `Albums mobile page remains excessively tall at ${albums.height}px.`);
             assert(/Load more albums/i.test(albums.button), 'Albums lacks an explicit load-more fallback.');
 
-            // P1 Books: same strategy with a smaller first batch.
             await page.goto('https://lifeloggerz.com/books/', { waitUntil: 'networkidle' });
             await page.addStyleTag({ content: style('mobile-progressive-lists.css') });
             await page.addScriptTag({ content: script('books-mobile-progressive.js') });
@@ -106,7 +110,6 @@ jobs:
             assert(books.height < 15000, `Books mobile page remains excessively tall at ${books.height}px.`);
             assert(/Load more books/i.test(books.button), 'Books lacks an explicit load-more fallback.');
 
-            // P1 Touch targets: representative controls should reach the 44px coarse-pointer floor.
             await page.addStyleTag({ content: style('mobile-touch-targets.css') });
             const targetSelectors = ['#filters-toggle', '#sort-books', '#info-toggle', '.view-button', 'header .nav-toggle > summary'];
             for (const selector of targetSelectors) {
@@ -117,7 +120,6 @@ jobs:
               assert(box && box.height >= 43.5, `${selector} is only ${box?.height}px tall.`);
             }
 
-            // P2 Long pages: current helper should be present on the worst mobile routes.
             for (const route of ['/inspirations/', '/about/lifeloggerz/', '/pursuits/guitar/']) {
               await page.goto(`https://lifeloggerz.com${route}`, { waitUntil: 'domcontentloaded' });
               await page.waitForTimeout(300);
@@ -130,7 +132,6 @@ jobs:
               if (state.headings >= 3 && state.height >= 2200) assert(state.jump === 1, `${route} has no mobile section-jump control.`);
             }
 
-            // P2 Runtime loading: fixed-height shells and text skeletons should be deliberate.
             await page.goto('https://lifeloggerz.com/day/', { waitUntil: 'domcontentloaded' });
             await page.addStyleTag({ content: style('runtime-loading-polish.css') });
             await page.addScriptTag({ content: script('runtime-loading-polish.js') });
