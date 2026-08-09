@@ -1,0 +1,38 @@
+name: Culture view audit
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/culture-view-audit.mjs'
+      - '.github/workflows/culture-view-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify final live UI state
+        run: |
+          about_html="$(curl --fail --silent --location https://lifeloggerz.com/about/me/)"
+          books_html="$(curl --fail --silent --location https://lifeloggerz.com/books/)"
+          ! printf '%s' "$about_html" | grep -q 'about-family-roots-terrain-override.js'
+          printf '%s' "$books_html" | grep -q 'books-author-cover-stacks.js?v=20260808-1803'
+      - run: node scripts/culture-view-audit.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifeloggerz-culture-view-audit
+          path: culture-view-audit
+          retention-days: 7
