@@ -2,7 +2,7 @@
  * Keeps Authors tied to the books in the LifeLoggerz archive instead of
  * introducing a separate portrait-maintenance layer. The existing Authors
  * renderers remain the source of truth; this module only upgrades their
- * representative image into a small stack of up to three recorded covers.
+ * representative image into a small stack of up to two recorded covers.
  */
 
 const BOOKS_AUTHOR_STACK_RETRIES = 160;
@@ -75,7 +75,7 @@ function bootBooksAuthorCoverStacks(attempt = 0) {
       seen.add(src);
       covers.push(src);
     });
-    return covers.slice(0, 3);
+    return covers.slice(0, 2);
   }
 
   function upgrade() {
