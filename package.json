@@ -27,12 +27,12 @@
   },
   "scripts": {
     "astro": "astro",
-    "build": "astro build",
+    "build": "node scripts/cache-composer-portraits.mjs && astro build",
     "cf-typegen": "wrangler types",
-    "check": "astro build && tsc && wrangler deploy --dry-run",
+    "check": "node scripts/cache-composer-portraits.mjs && astro build && tsc && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
-    "dev": "astro dev",
-    "preview": "astro build && wrangler dev"
+    "dev": "node scripts/cache-composer-portraits.mjs && astro dev",
+    "preview": "node scripts/cache-composer-portraits.mjs && astro build && wrangler dev"
   },
   "type": "module"
 }
