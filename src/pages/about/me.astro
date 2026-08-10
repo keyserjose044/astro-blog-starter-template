@@ -2,6 +2,7 @@
 import AboutLayout from '../../layouts/AboutLayout.astro';
 import AboutPhotoBubble from '../../components/AboutPhotoBubble.astro';
 import JoseConstellation from '../../components/JoseConstellation.astro';
+import AboutCultureFavorites from '../../components/AboutCultureFavorites.astro';
 import '../../styles/about-split.css';
 import '../../styles/about-capability-map.css';
 
@@ -49,8 +50,8 @@ const portraitCards = [
     status: 'Growing',
     title: 'Things I love',
     text: 'Books I keep thinking about, music that moves me, paintings I stop for, people who shaped my thinking, words I love, and places that matter to me.',
-    href: '/books/',
-    cta: 'Start with Books',
+    href: '#cultural-favorites',
+    cta: 'See what stayed with me',
   },
 ];
 
@@ -271,23 +272,9 @@ const structuredData = {
       </div>
     </section>
 
-    <section class="about-section about-love-panel" aria-labelledby="love-title">
-      <div class="about-section-head">
-        <p class="about-eyebrow">Culture as autobiography</p>
-        <h2 id="love-title">Things I love</h2>
-        <p>
-          Favorites are more revealing when they become constellations: music associated with periods of life, books that stayed with me,
-          art that made me stop, and people or ideas I keep returning to.
-        </p>
-      </div>
-      <nav class="about-link-row" aria-label="Explore cultural interests">
-        <a class="about-link-chip" href="/books/">📚 Books</a>
-        <a class="about-link-chip" href="/music/albums/">💿 Albums</a>
-        <a class="about-link-chip" href="/music/composers/">🎼 Classical Music</a>
-        <a class="about-link-chip" href="/art/">🎨 Art</a>
-        <a class="about-link-chip" href="/inspirations/">💡 Inspirations</a>
-      </nav>
-    </section>
+    <div id="cultural-favorites">
+      <AboutCultureFavorites />
+    </div>
   </main>
 
   <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
