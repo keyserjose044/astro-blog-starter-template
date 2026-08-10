@@ -1,0 +1,93 @@
+---
+const principles = [
+  {
+    number: '01',
+    title: 'Consistency beats perfection',
+    text: 'A small practice kept alive is usually worth more than an ideal routine repeatedly abandoned. Simplify when necessary; do not confuse imperfect progress with failure.',
+  },
+  {
+    number: '02',
+    title: 'Systems should serve the life',
+    text: 'Tracking, templates, shortcuts, and automation are useful when they return attention to living. The system is infrastructure—not the destination.',
+  },
+  {
+    number: '03',
+    title: 'Measure to understand',
+    text: 'Numbers can reveal patterns memory misses, but a human life is not a scoreboard. Use measurement for perspective, curiosity, and better decisions—not as a substitute for meaning.',
+  },
+  {
+    number: '04',
+    title: 'Show the evidence',
+    text: 'Prefer traceable records to flattering adjectives. Explain definitions, estimates, missing data, and uncertainty. A claim becomes more useful when someone can see what supports it.',
+  },
+  {
+    number: '05',
+    title: 'Stay willing to be a beginner',
+    text: 'Curiosity requires periods of clumsiness. Learn slowly, one tool or idea at a time, and keep room in life for things you are not yet good at.',
+  },
+  {
+    number: '06',
+    title: 'Make more than you merely consume',
+    text: 'Ideas become more valuable when they leave the notebook and become a page, tool, experiment, song, analysis, or other concrete thing that can be used and revisited.',
+  },
+  {
+    number: '07',
+    title: 'Optimize in service of living',
+    text: 'Efficiency matters, but diminishing returns are real. Save time so it can be spent on people, practice, movement, reading, creating, wandering, and the parts of life that resist optimization.',
+  },
+  {
+    number: '08',
+    title: 'Preserve the ordinary',
+    text: 'Milestones are easy to remember; ordinary Tuesdays disappear. The mundane texture of a life is worth recording because, given enough time, it becomes history too.',
+  },
+];
+---
+
+<section class="about-section about-personal-principles" id="principles" aria-labelledby="principles-title">
+  <div class="principles-intro">
+    <div>
+      <p class="about-eyebrow">Working convictions, not commandments</p>
+      <h2 id="principles-title">Principles I try to live by</h2>
+    </div>
+    <p>
+      These are not universal laws or a finished philosophy. They are recurring rules of thumb that have survived contact with my actual life—
+      ideas I try to practice, test, and revise rather than merely agree with.
+    </p>
+  </div>
+
+  <ol class="principles-grid">
+    {principles.map((principle) => (
+      <li class="principle-card">
+        <span class="principle-number" aria-hidden="true">{principle.number}</span>
+        <div>
+          <h3>{principle.title}</h3>
+          <p>{principle.text}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="principles-footer">
+    <span aria-hidden="true">↻</span>
+    <p>
+      <strong>A living section.</strong> If experience changes one of these, the page should change too. A principle that cannot survive revision becomes decoration.
+    </p>
+  </div>
+</section>
+
+<style>
+  .about-personal-principles{padding:clamp(1.35rem,4vw,2.3rem);border:1px solid #cddfd5;border-radius:26px;background:linear-gradient(145deg,var(--as-green-soft),#fff 58%,var(--as-gold-soft));box-shadow:0 12px 34px rgba(25,33,44,.055)}
+  .principles-intro{display:grid;grid-template-columns:minmax(0,.78fr) minmax(300px,1.22fr);gap:clamp(1rem,4vw,3rem);align-items:end;margin-bottom:1.35rem}
+  .principles-intro h2{max-width:520px}
+  .principles-intro>p{max-width:650px;color:var(--as-muted)!important;font-size:.95rem;line-height:1.58}
+  .principles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:0;padding:0;list-style:none;counter-reset:none}
+  .principle-card{display:grid;grid-template-columns:46px minmax(0,1fr);gap:.8rem;min-width:0;padding:1rem;border:1px solid rgba(195,211,202,.92);border-radius:17px;background:rgba(255,255,255,.86);box-shadow:0 5px 18px rgba(25,33,44,.035)}
+  .principle-number{display:grid;width:42px;height:42px;place-items:center;border-radius:12px;background:var(--as-green-soft);color:var(--as-green-dark);font-family:Georgia,'Times New Roman',serif;font-size:.76rem;font-weight:800}
+  .principle-card h3{margin:.08rem 0 .35rem;font-size:1rem}
+  .principle-card p{color:var(--as-muted)!important;font-size:.81rem;line-height:1.48}
+  .principles-footer{display:flex;gap:.7rem;align-items:flex-start;margin-top:.8rem;padding:.85rem 1rem;border:1px solid rgba(211,190,139,.62);border-radius:15px;background:rgba(255,249,232,.85)}
+  .principles-footer>span{color:#8a653a;font-size:1.05rem;font-weight:900}
+  .principles-footer p{color:#5e5140!important;font-size:.8rem;line-height:1.45}
+  @media(max-width:780px){.principles-intro,.principles-grid{grid-template-columns:1fr}.principles-intro{align-items:start}.about-personal-principles{padding:1.1rem;border-radius:20px}}
+  @media(max-width:430px){.principle-card{grid-template-columns:38px minmax(0,1fr);gap:.65rem;padding:.85rem}.principle-number{width:36px;height:36px;border-radius:10px;font-size:.68rem}}
+</style>
