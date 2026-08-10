@@ -1,9 +1,15 @@
 (() => {
   if (typeof document === 'undefined') return;
 
-  const VERSION = '20260809-mobile-map-loader-v2';
+  const VERSION = '20260809-mobile-map-loader-v3';
   const mobileQuery = window.matchMedia('(max-width: 768px)');
   const loadTimers = new WeakMap();
+
+  const STATE = {
+    UNLOADED: 'unloaded',
+    LOADING: 'loading',
+    INTERACTIVE: 'interactive',
+  };
 
   const ensureStyles = () => {
     if (document.querySelector(`style[data-family-roots-mobile-map-loader="${VERSION}"]`)) return;
@@ -62,12 +68,16 @@
     document.head.appendChild(style);
   };
 
+  const getState = (slot) => slot.dataset.mobileMapState || '';
+  const setState = (slot, state) => {
+    slot.dataset.mobileMapState = state;
+  };
+
   const cancelPendingLoad = (slot) => {
     if (!(slot instanceof HTMLElement)) return;
     const timer = loadTimers.get(slot);
     if (timer) window.clearTimeout(timer);
     loadTimers.delete(slot);
-    delete slot.dataset.mobileMapArming;
   };
 
   const rememberFrame = (slot, frame) => {
@@ -78,6 +88,7 @@
 
   const ensureLoader = (slot) => {
     if (!(slot instanceof HTMLElement) || !mobileQuery.matches) return;
+    if (getState(slot) !== STATE.UNLOADED) return;
     if (slot.querySelector(':scope > .about-photo-map-mobile-loader')) return;
 
     const button = document.createElement('button');
@@ -93,52 +104,75 @@
     slot.appendChild(button);
   };
 
-  const neutralizeFrame = (frame) => {
+  /*
+    The legacy Family Roots script eagerly inserts Google iframes when the panel
+    opens. On mobile, intercept only those externally-created frames while the
+    slot has not entered our lifecycle yet. Once loading/interactive, this
+    observer is not allowed to reset the slot or recreate its loader.
+  */
+  const interceptExternalFrame = (frame) => {
     if (!(frame instanceof HTMLIFrameElement) || !mobileQuery.matches) return;
     const slot = frame.closest('.about-photo-map-slot--google');
     if (!(slot instanceof HTMLElement)) return;
-    if (slot.dataset.mobileMapActive === '1') return;
+
+    const state = getState(slot);
+    if (state === STATE.LOADING || state === STATE.INTERACTIVE) return;
 
     rememberFrame(slot, frame);
     frame.remove();
+    setState(slot, STATE.UNLOADED);
     ensureLoader(slot);
   };
 
-  const neutralizeMaps = (root = document) => {
+  const reconcileSlots = (root = document) => {
     if (!mobileQuery.matches) return;
-    root.querySelectorAll?.('.about-photo-map-frame').forEach(neutralizeFrame);
-    root.querySelectorAll?.('.about-photo-map-slot--google').forEach(ensureLoader);
+
+    root.querySelectorAll?.('.about-photo-map-frame').forEach(interceptExternalFrame);
+    root.querySelectorAll?.('.about-photo-map-slot--google').forEach((slot) => {
+      if (!(slot instanceof HTMLElement)) return;
+      if (!getState(slot)) setState(slot, STATE.UNLOADED);
+      ensureLoader(slot);
+    });
   };
 
-  const deactivateSlot = (slot) => {
+  const unloadSlot = (slot) => {
     if (!(slot instanceof HTMLElement)) return;
+
     cancelPendingLoad(slot);
     slot.querySelectorAll('.about-photo-map-frame').forEach((frame) => {
       if (frame instanceof HTMLIFrameElement) rememberFrame(slot, frame);
       frame.remove();
     });
-    slot.dataset.mobileMapActive = '0';
-    ensureLoader(slot);
 
-    const loader = slot.querySelector(':scope > .about-photo-map-mobile-loader');
-    if (loader instanceof HTMLButtonElement) {
-      loader.disabled = false;
-      loader.querySelector('span')?.replaceChildren('Load interactive map');
-    }
+    slot.querySelector(':scope > .about-photo-map-mobile-loader')?.remove();
+    setState(slot, STATE.UNLOADED);
+    ensureLoader(slot);
   };
 
-  const deactivatePanelMaps = (panel) => {
+  const unloadPanelMaps = (panel) => {
     if (!(panel instanceof HTMLElement) || !mobileQuery.matches) return;
-    panel.querySelectorAll('.about-photo-map-slot--google').forEach(deactivateSlot);
+    panel.querySelectorAll('.about-photo-map-slot--google').forEach(unloadSlot);
   };
 
   const createInteractiveFrame = (slot) => {
     if (!(slot instanceof HTMLElement) || !mobileQuery.matches) return;
+    if (getState(slot) !== STATE.LOADING) return;
+
     const source = slot.dataset.mobileMapSrc;
-    if (!source) return;
+    if (!source) {
+      setState(slot, STATE.UNLOADED);
+      const loader = slot.querySelector(':scope > .about-photo-map-mobile-loader');
+      if (loader instanceof HTMLButtonElement) {
+        loader.disabled = false;
+        loader.removeAttribute('aria-busy');
+        loader.querySelector('span')?.replaceChildren('Load interactive map');
+      }
+      ensureLoader(slot);
+      return;
+    }
 
     cancelPendingLoad(slot);
-    slot.dataset.mobileMapActive = '1';
+    setState(slot, STATE.INTERACTIVE);
     slot.querySelector(':scope > .about-photo-map-mobile-loader')?.remove();
 
     const frame = document.createElement('iframe');
@@ -152,28 +186,26 @@
     slot.appendChild(frame);
   };
 
-  const armInteractiveFrame = (slot, button) => {
+  const startLoading = (slot, button) => {
     if (!(slot instanceof HTMLElement) || !(button instanceof HTMLButtonElement)) return;
-    if (slot.dataset.mobileMapArming === '1') return;
+    if (getState(slot) !== STATE.UNLOADED) return;
 
-    slot.dataset.mobileMapArming = '1';
+    setState(slot, STATE.LOADING);
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
     button.querySelector('span')?.replaceChildren('Loading map…');
 
     /*
-      Critical mobile safeguard: do NOT insert the cross-origin iframe during the
-      gesture that pressed this button. Some mobile browsers can retarget the tail
-      end of that same tap into a newly created Google Maps iframe. Wait until the
-      entire pointer/touch/click sequence is unquestionably over, then create it.
+      Let the loader tap finish before the cross-origin iframe exists. The timer
+      is only a gesture boundary; state, not elapsed time, controls the lifecycle.
     */
     const timer = window.setTimeout(() => {
-      if (!slot.isConnected || !mobileQuery.matches) {
+      if (!slot.isConnected || !mobileQuery.matches || getState(slot) !== STATE.LOADING) {
         cancelPendingLoad(slot);
         return;
       }
       createInteractiveFrame(slot);
-    }, 850);
+    }, 500);
     loadTimers.set(slot, timer);
   };
 
@@ -181,16 +213,16 @@
     if (!mobileQuery.matches) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
+
     const button = target.closest('.about-photo-map-mobile-loader');
     if (!(button instanceof HTMLButtonElement)) return;
-
     const slot = button.closest('.about-photo-map-slot--google');
     if (!(slot instanceof HTMLElement)) return;
 
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
-    armInteractiveFrame(slot, button);
+    startLoading(slot, button);
   };
 
   const handleNavigationGesture = (event) => {
@@ -198,30 +230,38 @@
     const target = event.target;
     if (!(target instanceof Element)) return;
 
-    const branchButton = target.closest('[data-roots-tab]');
-    const panelToggle = target.closest('[data-where-toggle]');
-    const panelClose = target.closest('[data-where-close]');
-    const control = branchButton || panelToggle || panelClose;
+    const control =
+      target.closest('[data-roots-tab]') ||
+      target.closest('[data-where-toggle]') ||
+      target.closest('[data-where-close]');
     if (!(control instanceof Element)) return;
 
     const feature = control.closest('[data-about-photo-feature]');
     const panel = feature?.querySelector('[data-where-panel]');
-    deactivatePanelMaps(panel);
+    unloadPanelMaps(panel);
   };
 
   const observePanel = (panel) => {
     if (!(panel instanceof HTMLElement) || panel.dataset.mobileMapLoaderReady === VERSION) return;
     panel.dataset.mobileMapLoaderReady = VERSION;
 
-    const observer = new MutationObserver(() => neutralizeMaps(panel));
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof Element)) return;
+          if (node.matches('.about-photo-map-frame')) interceptExternalFrame(node);
+          node.querySelectorAll?.('.about-photo-map-frame').forEach(interceptExternalFrame);
+        });
+      });
+    });
     observer.observe(panel, { childList: true, subtree: true });
-    neutralizeMaps(panel);
+    reconcileSlots(panel);
   };
 
   const setup = () => {
     ensureStyles();
     document.querySelectorAll('[data-where-panel]').forEach(observePanel);
-    neutralizeMaps();
+    reconcileSlots();
   };
 
   setup();
@@ -234,14 +274,14 @@
   if (typeof mobileQuery.addEventListener === 'function') {
     mobileQuery.addEventListener('change', () => {
       if (!mobileQuery.matches) return;
-      document.querySelectorAll('[data-where-panel]').forEach(deactivatePanelMaps);
+      document.querySelectorAll('[data-where-panel]').forEach(unloadPanelMaps);
       setup();
     });
   }
 
   document.addEventListener('astro:page-load', () => {
     if (mobileQuery.matches) {
-      document.querySelectorAll('[data-where-panel]').forEach(deactivatePanelMaps);
+      document.querySelectorAll('[data-where-panel]').forEach(unloadPanelMaps);
     }
     setup();
   });
