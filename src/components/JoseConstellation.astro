@@ -1,67 +1,147 @@
 ---
-const innerNodes = [
-  { id: 'jose-jose', label: 'José José', icon: '🎙️', category: 'Music · Mexico', info: 'Mexican singer whose stage name doubled the name itself: José José.', x: 50, y: 21, reveal: 12, floatDelay: -0.6 },
-  { id: 'napoleon', label: 'José María Napoleón', icon: '🎵', category: 'Music · Mexico', info: 'Mexican singer-songwriter known simply as Napoleón, with José María at the front of the name.', x: 64, y: 23, reveal: 16, floatDelay: -2.2 },
-  { id: 'carreras', label: 'José Carreras', icon: '🎼', category: 'Opera · Spain', info: 'Spanish operatic tenor and one of the famous Three Tenors.', x: 75, y: 31, reveal: 20, floatDelay: -1.4 },
-  { id: 'marti', label: 'José Martí', icon: '✒️', category: 'Writing · Cuba', info: 'Cuban writer, poet, essayist, and independence figure whose work became central to Cuban intellectual history.', x: 81, y: 43, reveal: 24, floatDelay: -1.1 },
-  { id: 'rizal', label: 'José Rizal', icon: '📚', category: 'Writing · Philippines', info: 'Filipino writer and reformer whose novels and execution made him a national symbol in the Philippines.', x: 81, y: 57, reveal: 28, floatDelay: -3.5 },
-  { id: 'mourinho', label: 'José Mourinho', icon: '⚽', category: 'Football · Portugal', info: 'Portuguese football manager known for a long career at major European clubs and for the nickname “The Special One.”', x: 74, y: 69, reveal: 32, floatDelay: -2.7 },
-  { id: 'feliciano', label: 'José Feliciano', icon: '🎸', category: 'Music · Puerto Rico', info: 'Puerto Rican musician and guitarist with a career spanning Latin music, pop, and acoustic interpretations.', x: 62, y: 77, reveal: 36, floatDelay: -1.8 },
-  { id: 'perales', label: 'José Luis Perales', icon: '🎶', category: 'Music · Spain', info: 'Spanish singer-songwriter whose romantic songs became widely known across the Spanish-speaking world.', x: 47, y: 79, reveal: 40, floatDelay: -2.4 },
-  { id: 'saramago', label: 'José Saramago', icon: '📖', category: 'Literature · Portugal', info: 'Portuguese novelist and Nobel laureate known for distinctive, philosophical fiction.', x: 34, y: 75, reveal: 44, floatDelay: -4.1 },
-  { id: 'san-martin', label: 'José de San Martín', icon: '⚔️', category: 'History · Argentina', info: 'Military leader central to the independence of Argentina, Chile, and Peru.', x: 23, y: 67, reveal: 48, floatDelay: -3.1 },
-  { id: 'posada', label: 'José G. Posada', icon: '🖋️', category: 'Art · Mexico', info: 'Mexican printmaker and illustrator especially associated with satirical calaveras and popular graphic art.', x: 19, y: 54, reveal: 52, floatDelay: -2.8 },
-  { id: 'orozco', label: 'José C. Orozco', icon: '🎨', category: 'Art · Mexico', info: 'Mexican painter and muralist, one of the major figures of Mexican muralism.', x: 20, y: 40, reveal: 56, floatDelay: -1.9 },
-  { id: 'cuervo', label: 'José Cuervo', icon: '◆', category: 'Popular culture · Mexico', info: 'A José that escaped biography entirely: the name became globally recognizable through the historic tequila brand.', x: 28, y: 29, reveal: 60, floatDelay: -3.8 },
-  { id: 'jimenez', label: 'José Alfredo Jiménez', icon: '♬', category: 'Music · Mexico', info: 'Mexican singer-songwriter whose ranchera compositions became standards of Mexican popular music.', x: 39, y: 23, reveal: 64, floatDelay: -2.1 },
+const josePool = [
+  { id: 'jose-jose', label: 'José José', icon: '🎙️', type: 'Music', country: 'Mexico', info: 'Mexican singer whose stage name doubled the name itself: José José.' },
+  { id: 'napoleon', label: 'José María Napoleón', icon: '🎵', type: 'Music', country: 'Mexico', info: 'Mexican singer-songwriter known simply as Napoleón, with José María at the front of the name.' },
+  { id: 'carreras', label: 'José Carreras', icon: '🎼', type: 'Music', country: 'Spain', info: 'Spanish operatic tenor and one of the famous Three Tenors.' },
+  { id: 'marti', label: 'José Martí', icon: '✒️', type: 'Literature', country: 'Cuba', info: 'Cuban writer, poet, essayist, and independence figure whose work became central to Cuban intellectual history.' },
+  { id: 'rizal', label: 'José Rizal', icon: '📚', type: 'Literature', country: 'Philippines', info: 'Filipino writer and reformer whose novels and execution made him a national symbol in the Philippines.' },
+  { id: 'mourinho', label: 'José Mourinho', icon: '⚽', type: 'Sports', country: 'Portugal', info: 'Portuguese football manager known for a long career at major European clubs and the nickname “The Special One.”' },
+  { id: 'feliciano', label: 'José Feliciano', icon: '🎸', type: 'Music', country: 'Puerto Rico', info: 'Puerto Rican musician and guitarist with a career spanning Latin music, pop, and acoustic interpretations.' },
+  { id: 'perales', label: 'José Luis Perales', icon: '🎶', type: 'Music', country: 'Spain', info: 'Spanish singer-songwriter whose romantic songs became widely known across the Spanish-speaking world.' },
+  { id: 'saramago', label: 'José Saramago', icon: '📖', type: 'Literature', country: 'Portugal', info: 'Portuguese novelist and Nobel laureate known for distinctive, philosophical fiction.' },
+  { id: 'san-martin', label: 'José de San Martín', icon: '⚔️', type: 'History & politics', country: 'Argentina', info: 'Military leader central to the independence of Argentina, Chile, and Peru.' },
+  { id: 'posada', label: 'José Guadalupe Posada', icon: '🖋️', type: 'Art & film', country: 'Mexico', info: 'Mexican printmaker and illustrator especially associated with satirical calaveras and popular graphic art.' },
+  { id: 'orozco', label: 'José Clemente Orozco', icon: '🎨', type: 'Art & film', country: 'Mexico', info: 'Mexican painter and muralist, one of the major figures of Mexican muralism.' },
+  { id: 'cuervo', label: 'José Cuervo', icon: '◆', type: 'Popular culture', country: 'Mexico', info: 'A José that escaped biography entirely: the name became globally recognizable through the historic tequila brand.' },
+  { id: 'jimenez', label: 'José Alfredo Jiménez', icon: '♬', type: 'Music', country: 'Mexico', info: 'Mexican singer-songwriter whose ranchera compositions became standards of Mexican popular music.' },
+  { id: 'ortega', label: 'José Ortega y Gasset', icon: '◐', type: 'Ideas & science', country: 'Spain', info: 'Spanish philosopher and essayist associated with influential writing on society, culture, and mass politics.' },
+  { id: 'jose-andres', label: 'José Andrés', icon: '🍲', type: 'Food & culture', country: 'Spain / U.S.', info: 'Spanish-American chef and humanitarian who founded World Central Kitchen.' },
+  { id: 'altuve', label: 'José Altuve', icon: '⚾', type: 'Sports', country: 'Venezuela', info: 'Venezuelan baseball player known for a long major-league career.' },
+  { id: 'ferrer', label: 'José Ferrer', icon: '🎭', type: 'Art & film', country: 'Puerto Rico', info: 'Puerto Rican actor and director with a major twentieth-century stage and film career.' },
+  { id: 'capablanca', label: 'José Raúl Capablanca', icon: '♟️', type: 'Sports', country: 'Cuba', info: 'Cuban chess grandmaster and world champion celebrated for exceptionally clear positional play.' },
+  { id: 'hernandez', label: 'José Hernández', icon: '🪶', type: 'Literature', country: 'Argentina', info: 'Argentine writer and poet best known for the gaucho epic Martín Fierro.' },
+  { id: 'morelos', label: 'José María Morelos', icon: '🔔', type: 'History & politics', country: 'Mexico', info: 'Priest and military leader who became one of the central figures of Mexican independence.' },
+  { id: 'vasconcelos', label: 'José Vasconcelos', icon: '🏛️', type: 'Ideas & science', country: 'Mexico', info: 'Mexican writer, philosopher, and education figure whose ideas shaped twentieth-century cultural debates.' },
+  { id: 'revueltas', label: 'José Revueltas', icon: '📝', type: 'Literature', country: 'Mexico', info: 'Mexican novelist, essayist, screenwriter, and political activist.' },
+  { id: 'moncayo', label: 'José Pablo Moncayo', icon: '🎻', type: 'Music', country: 'Mexico', info: 'Mexican composer and conductor, especially remembered for the orchestral work Huapango.' },
+  { id: 'cuevas', label: 'José Luis Cuevas', icon: '🖼️', type: 'Art & film', country: 'Mexico', info: 'Mexican artist associated with the Generación de la Ruptura and a highly recognizable graphic style.' },
+  { id: 'el-puma', label: 'José Luis Rodríguez', icon: '🎤', type: 'Music', country: 'Venezuela', info: 'Venezuelan singer and actor widely known by the nickname “El Puma.”' },
+  { id: 'mujica', label: 'José Mujica', icon: '🌿', type: 'History & politics', country: 'Uruguay', info: 'Uruguayan political figure and former president widely associated with an unusually austere public image.' },
+  { id: 'abreu', label: 'José Antonio Abreu', icon: '🎺', type: 'Music', country: 'Venezuela', info: 'Venezuelan musician and educator who founded the music-education program El Sistema.' },
+  { id: 'bautista', label: 'José Bautista', icon: '⚾', type: 'Sports', country: 'Dominican Republic', info: 'Dominican baseball player known for his power hitting and a long major-league career.' },
+  { id: 'joseph', label: 'Joseph', icon: '📜', type: 'Name family', country: 'English', info: 'The English form of the same ancient name family, showing how José extends far beyond Spanish.' },
+  { id: 'yusuf', label: 'Yusuf', icon: '◈', type: 'Name family', country: 'Arabic', info: 'The Arabic form of the Joseph/José name family, connecting the constellation across languages and traditions.' },
+  { id: 'giuseppe', label: 'Giuseppe', icon: 'G', type: 'Name family', country: 'Italian', info: 'The Italian form of Joseph/José, another branch of the same name traveling through language.' },
+  { id: 'canseco', label: 'José Canseco', icon: '⚾', type: 'Sports', country: 'Cuba / U.S.', info: 'Cuban-American baseball player remembered as one of the prominent power hitters of his era.' },
+  { id: 'jose-abreu', label: 'José Abreu', icon: '⚾', type: 'Sports', country: 'Cuba', info: 'Cuban baseball player known for a successful career in Cuba and Major League Baseball.' },
+  { id: 'ramirez', label: 'José Ramírez', icon: '⚾', type: 'Sports', country: 'Dominican Republic', info: 'Dominican baseball player known for combining power, speed, and infield play.' },
+  { id: 'aldo', label: 'José Aldo', icon: '🥊', type: 'Sports', country: 'Brazil', info: 'Brazilian mixed martial artist widely regarded among the leading featherweights of his generation.' },
+  { id: 'lezama', label: 'José Lezama Lima', icon: '📚', type: 'Literature', country: 'Cuba', info: 'Cuban poet, novelist, and essayist associated with dense, baroque literary experimentation.' },
+  { id: 'donoso', label: 'José Donoso', icon: '📖', type: 'Literature', country: 'Chile', info: 'Chilean novelist and short-story writer associated with the Latin American Boom.' },
+  { id: 'pacheco', label: 'José Emilio Pacheco', icon: '✒️', type: 'Literature', country: 'Mexico', info: 'Mexican poet, essayist, novelist, and translator with a major place in modern Mexican letters.' },
+  { id: 'agustin', label: 'José Agustín', icon: '📝', type: 'Literature', country: 'Mexico', info: 'Mexican novelist and essayist strongly associated with the Literatura de la Onda movement.' },
+  { id: 'gorostiza', label: 'José Gorostiza', icon: '📜', type: 'Literature', country: 'Mexico', info: 'Mexican poet and diplomat best remembered for the long poem Muerte sin fin.' },
+  { id: 'silva', label: 'José Asunción Silva', icon: '🌙', type: 'Literature', country: 'Colombia', info: 'Colombian poet whose work became an important part of Spanish-language modernismo.' },
+  { id: 'rivera', label: 'José Eustasio Rivera', icon: '🌿', type: 'Literature', country: 'Colombia', info: 'Colombian writer best known for the novel La vorágine.' },
+  { id: 'arguedas', label: 'José María Arguedas', icon: '🏔️', type: 'Literature', country: 'Peru', info: 'Peruvian novelist and anthropologist whose work explored Indigenous and mestizo life in the Andes.' },
+  { id: 'zorrilla', label: 'José Zorrilla', icon: '🎭', type: 'Literature', country: 'Spain', info: 'Spanish poet and dramatist best known for Don Juan Tenorio.' },
+  { id: 'espronceda', label: 'José de Espronceda', icon: '🕯️', type: 'Literature', country: 'Spain', info: 'Spanish Romantic poet known for dramatic, rebellious verse.' },
+  { id: 'iturbi', label: 'José Iturbi', icon: '🎹', type: 'Music', country: 'Spain', info: 'Spanish pianist, conductor, and actor whose career crossed classical performance and Hollywood.' },
+  { id: 'white-lafitte', label: 'José White Lafitte', icon: '🎻', type: 'Music', country: 'Cuba', info: 'Cuban-French violinist and composer remembered for virtuosic nineteenth-century concert music.' },
+  { id: 'nunes-garcia', label: 'José Maurício Nunes Garcia', icon: '🎼', type: 'Music', country: 'Brazil', info: 'Brazilian priest and composer whose sacred music is central to the colonial and early imperial repertory.' },
+  { id: 'padilha', label: 'José Padilha', icon: '🎬', type: 'Art & film', country: 'Brazil', info: 'Brazilian film director, producer, and screenwriter known for crime dramas and documentaries.' },
+  { id: 'mojica-marins', label: 'José Mojica Marins', icon: '🎞️', type: 'Art & film', country: 'Brazil', info: 'Brazilian filmmaker and actor famous for creating the horror character Coffin Joe.' },
+  { id: 'sert', label: 'José Luis Sert', icon: '🏗️', type: 'Art & film', country: 'Spain', info: 'Spanish architect and urban designer associated with modernist architecture and planning.' },
+  { id: 'mutis', label: 'José Celestino Mutis', icon: '🌱', type: 'Ideas & science', country: 'Spain / Colombia', info: 'Physician, botanist, and naturalist who led major scientific work in New Granada.' },
+  { id: 'mocino', label: 'José Mariano Mociño', icon: '🌿', type: 'Ideas & science', country: 'Mexico', info: 'Mexican naturalist and physician involved in the Royal Botanical Expedition to New Spain.' },
+  { id: 'bonifacio', label: 'José Bonifácio de Andrada e Silva', icon: '📜', type: 'History & politics', country: 'Brazil', info: 'Brazilian statesman and naturalist closely associated with the country’s independence era.' },
+  { id: 'artigas', label: 'José Gervasio Artigas', icon: '☀️', type: 'History & politics', country: 'Uruguay', info: 'Political and military leader remembered as a foundational figure in Uruguayan history.' },
+  { id: 'olmedo', label: 'José Joaquín de Olmedo', icon: '🪶', type: 'Literature', country: 'Ecuador', info: 'Ecuadorian poet and political figure active during the Spanish American independence period.' },
+  { id: 'laurel', label: 'José P. Laurel', icon: '🏛️', type: 'History & politics', country: 'Philippines', info: 'Filipino jurist and political figure prominent in twentieth-century Philippine history.' },
+  { id: 'abad-santos', label: 'José Abad Santos', icon: '⚖️', type: 'History & politics', country: 'Philippines', info: 'Filipino jurist remembered for public service and his death during the Second World War.' },
+  { id: 'burgos', label: 'José Burgos', icon: '⛪', type: 'History & politics', country: 'Philippines', info: 'Filipino Catholic priest and reform figure remembered as one of the Gomburza martyrs.' },
+  { id: 'palma', label: 'José Palma', icon: '🎼', type: 'Literature', country: 'Philippines', info: 'Filipino poet and soldier whose Spanish poem Filipinas supplied the lyrics later associated with the national anthem.' },
+  { id: 'maceda', label: 'José Maceda', icon: '🥁', type: 'Music', country: 'Philippines', info: 'Filipino composer and ethnomusicologist known for experimental music and research into Asian musical traditions.' },
+  { id: 'garcia-villa', label: 'José García Villa', icon: '✒️', type: 'Literature', country: 'Philippines', info: 'Filipino poet and writer known for formally inventive English-language poetry.' },
+  { id: 'heredia', label: 'José María Heredia', icon: '🌊', type: 'Literature', country: 'Cuba', info: 'Cuban poet often associated with early Romanticism in Spanish America.' },
 ];
 
-const outerNodes = [
-  { id: 'ortega', label: 'José Ortega y Gasset', icon: '◐', category: 'Philosophy · Spain', info: 'Spanish philosopher and essayist associated with works on society, culture, and mass politics.', x: 50, y: 5, reveal: 48, floatDelay: -1.3 },
-  { id: 'jose-andres', label: 'José Andrés', icon: '🍲', category: 'Food & humanitarian work', info: 'Spanish-American chef and humanitarian who founded World Central Kitchen.', x: 65, y: 7, reveal: 51, floatDelay: -3.3 },
-  { id: 'altuve', label: 'José Altuve', icon: '⚾', category: 'Baseball · Venezuela', info: 'Venezuelan professional baseball player known for a long major-league career.', x: 80, y: 12, reveal: 54, floatDelay: -2.5 },
-  { id: 'ferrer', label: 'José Ferrer', icon: '🎭', category: 'Stage & film · Puerto Rico', info: 'Puerto Rican actor and director with a major twentieth-century stage and film career.', x: 91, y: 23, reveal: 57, floatDelay: -1.7 },
-  { id: 'capablanca', label: 'José Raúl Capablanca', icon: '♟️', category: 'Chess · Cuba', info: 'Cuban chess grandmaster and world champion celebrated for exceptionally clear positional play.', x: 96, y: 38, reveal: 60, floatDelay: -4.0 },
-  { id: 'hernandez', label: 'José Hernández', icon: '🪶', category: 'Literature · Argentina', info: 'Argentine writer and poet best known for the gaucho epic Martín Fierro.', x: 96, y: 55, reveal: 63, floatDelay: -2.9 },
-  { id: 'morelos', label: 'José María Morelos', icon: '🔔', category: 'History · Mexico', info: 'Priest and military leader who became one of the central figures of Mexican independence.', x: 91, y: 71, reveal: 66, floatDelay: -1.0 },
-  { id: 'vasconcelos', label: 'José Vasconcelos', icon: '🏛️', category: 'Ideas & education · Mexico', info: 'Mexican writer, philosopher, and education figure whose ideas shaped twentieth-century cultural debates.', x: 80, y: 84, reveal: 69, floatDelay: -3.7 },
-  { id: 'revueltas', label: 'José Revueltas', icon: '📝', category: 'Literature · Mexico', info: 'Mexican novelist, essayist, screenwriter, and political activist.', x: 65, y: 91, reveal: 72, floatDelay: -2.0 },
-  { id: 'moncayo', label: 'José Pablo Moncayo', icon: '🎻', category: 'Classical music · Mexico', info: 'Mexican composer and conductor, especially remembered for the orchestral work Huapango.', x: 50, y: 94, reveal: 75, floatDelay: -4.4 },
-  { id: 'cuevas', label: 'José Luis Cuevas', icon: '🖼️', category: 'Art · Mexico', info: 'Mexican artist associated with the Generación de la Ruptura and a highly recognizable graphic style.', x: 35, y: 91, reveal: 78, floatDelay: -1.6 },
-  { id: 'el-puma', label: 'José Luis Rodríguez', icon: '🎤', category: 'Music · Venezuela', info: 'Venezuelan singer and actor widely known by the nickname “El Puma.”', x: 20, y: 84, reveal: 81, floatDelay: -3.0 },
-  { id: 'mujica', label: 'José Mujica', icon: '🌿', category: 'Politics · Uruguay', info: 'Uruguayan politician and former president widely associated with an unusually austere public image.', x: 9, y: 71, reveal: 84, floatDelay: -2.3 },
-  { id: 'abreu', label: 'José Antonio Abreu', icon: '🎺', category: 'Music education · Venezuela', info: 'Venezuelan musician and educator who founded the music-education program El Sistema.', x: 4, y: 55, reveal: 87, floatDelay: -4.2 },
-  { id: 'bautista', label: 'José Bautista', icon: '⚾', category: 'Baseball · Dominican Republic', info: 'Dominican professional baseball player known for his power hitting and a long major-league career.', x: 4, y: 38, reveal: 89, floatDelay: -1.2 },
-  { id: 'joseph', label: 'Joseph', icon: '📜', category: 'Name cousin · English', info: 'The English form of the same ancient name family—a reminder that José extends far beyond Spanish.', x: 9, y: 23, reveal: 91, floatDelay: -3.5 },
-  { id: 'yusuf', label: 'Yusuf', icon: '◈', category: 'Name cousin · Arabic', info: 'The Arabic form of the Joseph/José name family, connecting the constellation across languages and traditions.', x: 20, y: 12, reveal: 93, floatDelay: -2.6 },
-  { id: 'giuseppe', label: 'Giuseppe', icon: 'G', category: 'Name cousin · Italian', info: 'The Italian form of Joseph/José, another branch of the same name traveling through language.', x: 35, y: 7, reveal: 95, floatDelay: -1.8 },
+const innerSlots = [
+  { id: 'inner-0', x: 50, y: 21, reveal: 12, floatDelay: -0.6 },
+  { id: 'inner-1', x: 64, y: 23, reveal: 16, floatDelay: -2.2 },
+  { id: 'inner-2', x: 75, y: 31, reveal: 20, floatDelay: -1.4 },
+  { id: 'inner-3', x: 81, y: 43, reveal: 24, floatDelay: -1.1 },
+  { id: 'inner-4', x: 81, y: 57, reveal: 28, floatDelay: -3.5 },
+  { id: 'inner-5', x: 74, y: 69, reveal: 32, floatDelay: -2.7 },
+  { id: 'inner-6', x: 62, y: 77, reveal: 36, floatDelay: -1.8 },
+  { id: 'inner-7', x: 47, y: 79, reveal: 40, floatDelay: -2.4 },
+  { id: 'inner-8', x: 34, y: 75, reveal: 44, floatDelay: -4.1 },
+  { id: 'inner-9', x: 23, y: 67, reveal: 48, floatDelay: -3.1 },
+  { id: 'inner-10', x: 19, y: 54, reveal: 52, floatDelay: -2.8 },
+  { id: 'inner-11', x: 20, y: 40, reveal: 56, floatDelay: -1.9 },
+  { id: 'inner-12', x: 28, y: 29, reveal: 60, floatDelay: -3.8 },
+  { id: 'inner-13', x: 39, y: 23, reveal: 64, floatDelay: -2.1 },
 ];
 
-const nodes = [
-  ...innerNodes.map((node) => ({ ...node, ring: 'inner' })),
-  ...outerNodes.map((node) => ({ ...node, ring: 'outer' })),
+const outerSlots = [
+  { id: 'outer-0', x: 50, y: 5, reveal: 48, floatDelay: -1.3 },
+  { id: 'outer-1', x: 65, y: 7, reveal: 51, floatDelay: -3.3 },
+  { id: 'outer-2', x: 80, y: 12, reveal: 54, floatDelay: -2.5 },
+  { id: 'outer-3', x: 91, y: 23, reveal: 57, floatDelay: -1.7 },
+  { id: 'outer-4', x: 96, y: 38, reveal: 60, floatDelay: -4.0 },
+  { id: 'outer-5', x: 96, y: 55, reveal: 63, floatDelay: -2.9 },
+  { id: 'outer-6', x: 91, y: 71, reveal: 66, floatDelay: -1.0 },
+  { id: 'outer-7', x: 80, y: 84, reveal: 69, floatDelay: -3.7 },
+  { id: 'outer-8', x: 65, y: 91, reveal: 72, floatDelay: -2.0 },
+  { id: 'outer-9', x: 50, y: 94, reveal: 75, floatDelay: -4.4 },
+  { id: 'outer-10', x: 35, y: 91, reveal: 78, floatDelay: -1.6 },
+  { id: 'outer-11', x: 20, y: 84, reveal: 81, floatDelay: -3.0 },
+  { id: 'outer-12', x: 9, y: 71, reveal: 84, floatDelay: -2.3 },
+  { id: 'outer-13', x: 4, y: 55, reveal: 87, floatDelay: -4.2 },
+  { id: 'outer-14', x: 4, y: 38, reveal: 89, floatDelay: -1.2 },
+  { id: 'outer-15', x: 9, y: 23, reveal: 91, floatDelay: -3.5 },
+  { id: 'outer-16', x: 20, y: 12, reveal: 93, floatDelay: -2.6 },
+  { id: 'outer-17', x: 35, y: 7, reveal: 95, floatDelay: -1.8 },
 ];
 
-const nodeReveal = Object.fromEntries(nodes.map((node) => [node.id, node.reveal]));
-const innerIds = innerNodes.map((node) => node.id);
-const outerIds = outerNodes.map((node) => node.id);
+const slots = [
+  ...innerSlots.map((slot) => ({ ...slot, ring: 'inner' })),
+  ...outerSlots.map((slot) => ({ ...slot, ring: 'outer' })),
+];
+
+const initialIds = [
+  'jose-jose', 'napoleon', 'carreras', 'marti', 'rizal', 'mourinho', 'feliciano', 'perales', 'saramago', 'san-martin', 'posada', 'orozco', 'cuervo', 'jimenez',
+  'ortega', 'jose-andres', 'altuve', 'ferrer', 'capablanca', 'hernandez', 'morelos', 'vasconcelos', 'revueltas', 'moncayo', 'cuevas', 'el-puma', 'mujica', 'abreu', 'bautista', 'joseph', 'yusuf', 'giuseppe',
+];
+
+const poolById = new Map(josePool.map((person) => [person.id, person]));
+const initialNodes = slots.map((slot, index) => {
+  const person = poolById.get(initialIds[index]);
+  if (!person) throw new Error(`Missing José entry: ${initialIds[index]}`);
+  return { ...slot, person };
+});
+
+const nodeReveal = Object.fromEntries(slots.map((slot) => [slot.id, slot.reveal]));
+const innerIds = innerSlots.map((slot) => slot.id);
+const outerIds = outerSlots.map((slot) => slot.id);
 const edges = [];
 
 innerIds.forEach((id, index) => {
   edges.push({ from: id, to: innerIds[(index + 1) % innerIds.length], kind: 'inner' });
   if (index % 3 === 0) edges.push({ from: id, to: innerIds[(index + 2) % innerIds.length], kind: 'inner-secondary' });
 });
-
 outerIds.forEach((id, index) => {
   edges.push({ from: id, to: outerIds[(index + 1) % outerIds.length], kind: 'outer' });
 });
-
 innerIds.forEach((id, index) => {
   if (index % 2 === 0) {
     const outerIndex = Math.round((index / innerIds.length) * outerIds.length) % outerIds.length;
     edges.push({ from: id, to: outerIds[outerIndex], kind: 'spoke' });
   }
 });
+
+const types = [...new Set(josePool.map((person) => person.type))].sort((a, b) => a.localeCompare(b));
+const countries = [...new Set(josePool.map((person) => person.country))].sort((a, b) => a.localeCompare(b));
 ---
 
 <section class="about-section jose-constellation" id="jose-constellation" aria-labelledby="jose-constellation-title" data-jose-constellation>
@@ -69,12 +149,12 @@ innerIds.forEach((id, index) => {
     <p class="about-eyebrow">A name becomes a map</p>
     <h2 id="jose-constellation-title">The José constellation</h2>
     <p>
-      My name is hardly mine alone. This is a playful orbit of other Josés and close name cousins around the signature that makes this one mine.
+      My name is hardly mine alone. Two rings show a rotating sample of people, name cousins, and cultural references connected to José; the archive below holds the larger collection.
     </p>
   </div>
 
-  <div class="jose-prototype-badge" aria-label="Prototype using placeholder portraits">
-    <span aria-hidden="true">✦</span> {nodes.length} names · 2 rings · prototype portraits
+  <div class="jose-prototype-badge" aria-label="José constellation archive status">
+    <span aria-hidden="true">✦</span> {josePool.length} archived · {slots.length} visible · 2 rings
   </div>
 
   <div class="jose-stage" data-jose-stage>
@@ -103,22 +183,24 @@ innerIds.forEach((id, index) => {
       <span class="jose-center-caption">the José at the center</span>
     </div>
 
-    {nodes.map((node) => (
+    {initialNodes.map((node) => (
       <button
         class="jose-node"
         type="button"
         data-jose-node={node.id}
         data-ring={node.ring}
         data-reveal={node.reveal}
-        data-jose-title={node.label}
-        data-jose-category={node.category}
-        data-jose-info={node.info}
+        data-person-id={node.person.id}
+        data-jose-title={node.person.label}
+        data-jose-type={node.person.type}
+        data-jose-country={node.person.country}
+        data-jose-info={node.person.info}
         style={`--x:${node.x}%;--y:${node.y}%;--float-delay:${node.floatDelay}s;`}
-        aria-label={`Learn about ${node.label}`}
+        aria-label={`Learn about ${node.person.label}`}
       >
         <span class="jose-node-float">
-          <span class="jose-node-orb" aria-hidden="true">{node.icon}</span>
-          <span class="jose-node-label">{node.label}</span>
+          <span class="jose-node-orb" aria-hidden="true">{node.person.icon}</span>
+          <span class="jose-node-label">{node.person.label}</span>
         </span>
       </button>
     ))}
@@ -134,7 +216,7 @@ innerIds.forEach((id, index) => {
     <button class="jose-inspector-close" type="button" data-jose-card-close hidden aria-label="Close pinned José information">×</button>
   </div>
 
-  <div class="jose-controls" aria-label="José constellation animation controls">
+  <div class="jose-controls" aria-label="José constellation controls">
     <div class="jose-slider-control">
       <div class="jose-slider-meta">
         <label for="jose-constellation-slider">Build the constellation</label>
@@ -142,12 +224,80 @@ innerIds.forEach((id, index) => {
       </div>
       <input id="jose-constellation-slider" type="range" min="0" max="100" value="0" step="1" data-jose-slider />
     </div>
-    <button class="jose-replay" type="button" data-jose-replay aria-label="Replay the José constellation animation">↻ Replay</button>
+    <div class="jose-action-buttons">
+      <button class="jose-control-button" type="button" data-jose-replay aria-label="Replay the José constellation animation">↻ Replay</button>
+      <button class="jose-control-button jose-shuffle" type="button" data-jose-shuffle aria-label="Shuffle the visible José constellation">⤨ Shuffle cast</button>
+    </div>
   </div>
 
+  <details class="jose-directory" data-jose-directory>
+    <summary>
+      <span>
+        <strong>Explore all {josePool.length} Josés</strong>
+        <small>Search the starter archive, filter it, or put any entry into the constellation.</small>
+      </span>
+      <span class="jose-directory-summary-mark" aria-hidden="true">＋</span>
+    </summary>
+
+    <div class="jose-directory-body">
+      <div class="jose-directory-tools">
+        <label class="jose-directory-search">
+          <span>Search</span>
+          <input type="search" placeholder="José, country, field…" autocomplete="off" data-jose-search />
+        </label>
+        <label>
+          <span>Field</span>
+          <select data-jose-type-filter>
+            <option value="">All fields</option>
+            {types.map((type) => <option value={type}>{type}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>Place / language</span>
+          <select data-jose-country-filter>
+            <option value="">All places</option>
+            {countries.map((country) => <option value={country}>{country}</option>)}
+          </select>
+        </label>
+        <button class="jose-directory-clear" type="button" data-jose-clear>Clear</button>
+      </div>
+
+      <div class="jose-directory-status">
+        <strong data-jose-result-count>Showing {josePool.length} of {josePool.length}</strong>
+        <span>Shuffle changes the 32 visible names; this archive remains the source pool.</span>
+      </div>
+
+      <div class="jose-directory-grid" data-jose-directory-grid>
+        {josePool.map((person) => (
+          <article
+            class="jose-directory-card"
+            data-jose-directory-item
+            data-person-id={person.id}
+            data-type={person.type}
+            data-country={person.country}
+            data-search={`${person.label} ${person.type} ${person.country} ${person.info}`}
+          >
+            <div class="jose-directory-card-head">
+              <span class="jose-directory-icon" aria-hidden="true">{person.icon}</span>
+              <div>
+                <h3>{person.label}</h3>
+                <span>{person.type} · {person.country}</span>
+              </div>
+            </div>
+            <p>{person.info}</p>
+            <button class="jose-directory-feature" type="button" data-feature-person={person.id}>Put in ring ↑</button>
+          </article>
+        ))}
+      </div>
+      <p class="jose-directory-empty" data-jose-no-results hidden>No Josés match those filters yet.</p>
+    </div>
+  </details>
+
   <p class="jose-prototype-note">
-    This is a featured constellation, not an exhaustive list. With hundreds or thousands of possible Josés, the larger collection can eventually become searchable and filterable while these rings stay curated.
+    Sixty-four is only a seed. The constellation can stay selective even if the archive eventually grows into hundreds or thousands of names.
   </p>
+
+  <script is:inline type="application/json" data-jose-pool set:html={JSON.stringify(josePool)}></script>
 </section>
 
 <style>
@@ -172,13 +322,15 @@ innerIds.forEach((id, index) => {
   .jose-node[data-ring="outer"]{z-index:4;width:78px}
   .jose-node-float{display:flex;flex-direction:column;align-items:center;animation:jose-node-float 5.8s ease-in-out infinite;animation-delay:var(--float-delay)}
   .jose-node[data-ring="outer"] .jose-node-float{opacity:.82;animation-duration:7.2s}
-  .jose-node-orb{display:grid;width:53px;height:53px;place-items:center;border:1px solid rgba(36,92,70,.22);border-radius:50%;background:rgba(255,255,255,.97);box-shadow:0 7px 18px rgba(25,33,44,.085),0 0 0 4px rgba(234,243,238,.6);color:var(--as-green-dark,#174433);font-family:Georgia,"Times New Roman",serif;font-size:1.08rem;font-weight:800;transition:transform 180ms ease,box-shadow 180ms ease,border-color 180ms ease,background 180ms ease}
+  .jose-node-orb{display:grid;width:53px;height:53px;place-items:center;border:1px solid rgba(36,92,70,.22);border-radius:50%;background:rgba(255,255,255,.97);box-shadow:0 7px 18px rgba(25,33,44,.085),0 0 0 4px rgba(234,243,238,.6);color:var(--as-green-dark,#174433);font-family:Georgia,"Times New Roman",serif;font-size:1.08rem;font-weight:800;transition:transform 180ms ease,box-shadow 180ms ease,border-color 180ms ease,background 180ms ease,opacity 180ms ease}
   .jose-node[data-ring="outer"] .jose-node-orb{width:42px;height:42px;font-size:.9rem;box-shadow:0 6px 14px rgba(25,33,44,.07),0 0 0 3px rgba(234,243,238,.5)}
   .jose-node:hover .jose-node-orb,.jose-node:focus-visible .jose-node-orb,.jose-node.is-active .jose-node-orb{transform:scale(1.1);border-color:rgba(36,92,70,.54);background:#fff;box-shadow:0 10px 24px rgba(25,33,44,.13),0 0 0 6px rgba(234,243,238,.85)}
   .jose-node.is-pinned .jose-node-orb{box-shadow:0 10px 24px rgba(25,33,44,.13),0 0 0 6px rgba(154,106,63,.19);border-color:rgba(154,106,63,.55)}
   .jose-node:focus-visible{outline:3px solid #f0b84b;outline-offset:5px;border-radius:50%}
-  .jose-node-label{display:block;max-width:90px;margin-top:.38rem;color:var(--as-ink,#17191d);font-size:.63rem;font-weight:850;line-height:1.06;text-wrap:balance}
+  .jose-node-label{display:block;max-width:90px;margin-top:.38rem;color:var(--as-ink,#17191d);font-size:.63rem;font-weight:850;line-height:1.06;text-wrap:balance;transition:opacity 160ms ease}
   .jose-node[data-ring="outer"] .jose-node-label{max-width:78px;margin-top:.3rem;font-size:.55rem;font-weight:800;color:#48514c}
+  .jose-stage.is-shuffling .jose-node-orb{opacity:.28;transform:scale(.82)}
+  .jose-stage.is-shuffling .jose-node-label{opacity:.18}
   .jose-inspector{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.75rem;max-width:820px;min-height:88px;align-items:center;margin:.9rem auto 0;padding:.8rem .95rem;border:1px solid #dbe2de;border-radius:15px;background:#fff;box-shadow:0 7px 20px rgba(25,33,44,.045)}
   .jose-inspector-icon{display:grid;width:42px;height:42px;place-items:center;border-radius:12px;background:var(--as-green-soft,#eaf3ee);color:var(--as-green-dark,#174433);font-size:1.05rem;font-weight:900}
   .jose-inspector-copy{min-width:0}
@@ -187,18 +339,54 @@ innerIds.forEach((id, index) => {
   .jose-inspector p{margin:.2rem 0 0!important;color:var(--as-muted,#5c626c)!important;font-size:.74rem;line-height:1.38}
   .jose-inspector-close{display:grid;width:32px;height:32px;place-items:center;padding:0;border:1px solid #d5dadd;border-radius:9px;background:#fff;color:var(--as-muted,#5c626c);font:inherit;font-size:1.1rem;cursor:pointer}
   .jose-inspector-close[hidden]{display:none}
-  .jose-controls{position:relative;z-index:10;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem 1rem;max-width:800px;margin:.9rem auto 0;align-items:end;isolation:isolate;pointer-events:auto}
+  .jose-controls{position:relative;z-index:10;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem 1rem;max-width:860px;margin:.9rem auto 0;align-items:end;isolation:isolate;pointer-events:auto}
   .jose-slider-control{min-width:0;pointer-events:auto}
   .jose-slider-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.3rem}
   .jose-slider-meta label{color:var(--as-ink,#17191d);font-size:.76rem;font-weight:850}
   .jose-slider-meta output{color:var(--as-green-dark,#174433);font-size:.7rem;font-weight:850;font-variant-numeric:tabular-nums}
   .jose-slider-control input[type="range"]{position:relative;z-index:11;width:100%;height:28px;margin:0;padding:0;accent-color:var(--as-green,#245c46);cursor:ew-resize;pointer-events:auto;touch-action:pan-y}
-  .jose-replay{position:relative;z-index:11;min-height:40px;padding:.58rem .78rem;border:1px solid #ccd3d8;border-radius:10px;background:#fff;color:var(--as-green-dark,#174433);font:inherit;font-size:.74rem;font-weight:850;cursor:pointer;pointer-events:auto;touch-action:manipulation}
-  .jose-replay:hover{border-color:#aebcb4;background:var(--as-green-soft,#eaf3ee)}
-  .jose-replay:active{transform:translateY(1px)}
-  .jose-replay:focus-visible,.jose-slider-control input:focus-visible,.jose-inspector-close:focus-visible{outline:3px solid #f0b84b;outline-offset:3px}
+  .jose-action-buttons{display:flex;gap:.45rem;align-items:center}
+  .jose-control-button{position:relative;z-index:11;min-height:40px;padding:.58rem .78rem;border:1px solid #ccd3d8;border-radius:10px;background:#fff;color:var(--as-green-dark,#174433);font:inherit;font-size:.74rem;font-weight:850;white-space:nowrap;cursor:pointer;pointer-events:auto;touch-action:manipulation}
+  .jose-control-button:hover{border-color:#aebcb4;background:var(--as-green-soft,#eaf3ee)}
+  .jose-control-button:active{transform:translateY(1px)}
+  .jose-shuffle{border-color:#bfcfc6;background:var(--as-green-soft,#eaf3ee)}
+  .jose-directory{max-width:980px;margin:1.2rem auto 0;border:1px solid #d9e0dc;border-radius:18px;background:rgba(255,255,255,.82);overflow:hidden}
+  .jose-directory>summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.1rem;cursor:pointer;list-style:none;user-select:none}
+  .jose-directory>summary::-webkit-details-marker{display:none}
+  .jose-directory>summary strong{display:block;color:var(--as-ink,#17191d);font-size:.92rem}
+  .jose-directory>summary small{display:block;margin-top:.18rem;color:var(--as-muted,#5c626c);font-size:.7rem;line-height:1.35}
+  .jose-directory-summary-mark{display:grid;width:31px;height:31px;place-items:center;flex:0 0 auto;border-radius:9px;background:var(--as-green-soft,#eaf3ee);color:var(--as-green-dark,#174433);font-size:1.1rem;transition:transform 180ms ease}
+  .jose-directory[open] .jose-directory-summary-mark{transform:rotate(45deg)}
+  .jose-directory-body{padding:0 1rem 1rem;border-top:1px solid #e3e7e4}
+  .jose-directory-tools{display:grid;grid-template-columns:minmax(220px,1.45fr) repeat(2,minmax(150px,.8fr)) auto;gap:.65rem;align-items:end;padding:1rem 0 .75rem}
+  .jose-directory-tools label{display:block;min-width:0;color:var(--as-ink,#17191d);font-size:.67rem;font-weight:850}
+  .jose-directory-tools label>span{display:block;margin-bottom:.28rem}
+  .jose-directory-tools input,.jose-directory-tools select{width:100%;min-height:40px;padding:.52rem .6rem;border:1px solid #ccd4cf;border-radius:10px;background:#fff;color:var(--as-ink,#17191d);font:inherit;font-size:.78rem}
+  .jose-directory-clear{min-height:40px;padding:.5rem .7rem;border:1px solid #ccd4cf;border-radius:10px;background:#fff;color:var(--as-green-dark,#174433);font:inherit;font-size:.72rem;font-weight:850;cursor:pointer}
+  .jose-directory-status{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem;padding:.6rem .7rem;border-radius:10px;background:#f5f7f5}
+  .jose-directory-status strong{color:var(--as-green-dark,#174433);font-size:.68rem}
+  .jose-directory-status span{color:var(--as-muted,#5c626c);font-size:.65rem;text-align:right}
+  .jose-directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+  .jose-directory-card{display:flex;min-width:0;flex-direction:column;padding:.78rem;border:1px solid #e0e4e2;border-radius:13px;background:#fff}
+  .jose-directory-card[hidden]{display:none}
+  .jose-directory-card-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.55rem;align-items:center}
+  .jose-directory-icon{display:grid;width:34px;height:34px;place-items:center;border-radius:10px;background:var(--as-green-soft,#eaf3ee);font-size:.9rem}
+  .jose-directory-card h3{margin:0!important;color:var(--as-ink,#17191d);font-size:.78rem;line-height:1.12}
+  .jose-directory-card-head span:last-child{display:block;margin-top:.12rem;color:var(--as-green-dark,#174433);font-size:.54rem;font-weight:800;line-height:1.25}
+  .jose-directory-card p{margin:.5rem 0 .6rem!important;color:var(--as-muted,#5c626c)!important;font-size:.66rem;line-height:1.38}
+  .jose-directory-feature{width:max-content;margin-top:auto;padding:.36rem .5rem;border:1px solid #cfd8d3;border-radius:8px;background:#fff;color:var(--as-green-dark,#174433);font:inherit;font-size:.61rem;font-weight:850;cursor:pointer}
+  .jose-directory-feature:hover{background:var(--as-green-soft,#eaf3ee)}
+  .jose-directory-feature[data-visible="true"]{border-color:#c2d4ca;background:var(--as-green-soft,#eaf3ee)}
+  .jose-directory-empty{padding:1.2rem!important;color:var(--as-muted,#5c626c)!important;text-align:center}
+  .jose-directory-empty[hidden]{display:none}
   .jose-prototype-note{max-width:760px;margin:.72rem auto 0!important;color:var(--as-muted,#5c626c)!important;font-size:.72rem;line-height:1.45;text-align:center}
+  .jose-control-button:focus-visible,.jose-slider-control input:focus-visible,.jose-inspector-close:focus-visible,.jose-directory input:focus-visible,.jose-directory select:focus-visible,.jose-directory button:focus-visible,.jose-directory>summary:focus-visible{outline:3px solid #f0b84b;outline-offset:3px}
   @keyframes jose-node-float{0%,100%{transform:translate3d(0,-2px,0) rotate(-.7deg)}50%{transform:translate3d(2px,3px,0) rotate(.7deg)}}
+  @media(max-width:900px){
+    .jose-directory-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .jose-directory-search{grid-column:1/-1}
+    .jose-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
   @media(max-width:760px){
     .jose-stage{min-height:1180px;border-radius:22px}
     .jose-stage::before{background-size:32px 32px}
@@ -214,16 +402,20 @@ innerIds.forEach((id, index) => {
     .jose-inspector{grid-template-columns:auto minmax(0,1fr);margin-top:.75rem;padding:.72rem .8rem}
     .jose-inspector-close{position:absolute;top:.45rem;right:.45rem}
     .jose-inspector-copy{padding-right:1.7rem}
+    .jose-controls{grid-template-columns:1fr}
+    .jose-action-buttons{justify-content:flex-start}
   }
   @media(max-width:560px){
     .jose-constellation-head{text-align:left}
     .jose-prototype-badge{margin-left:0}
     .jose-stage{min-height:1120px}
-    .jose-controls{grid-template-columns:1fr}
-    .jose-replay{width:max-content}
+    .jose-directory-tools,.jose-directory-grid{grid-template-columns:1fr}
+    .jose-directory-search{grid-column:auto}
+    .jose-directory-status{align-items:flex-start;flex-direction:column}
+    .jose-directory-status span{text-align:left}
     .jose-prototype-note{text-align:left}
   }
-  @media(prefers-reduced-motion:reduce){.jose-node-float{animation:none}.jose-node-orb,.jose-lines line{transition:none}}
+  @media(prefers-reduced-motion:reduce){.jose-node-float{animation:none}.jose-node-orb,.jose-lines line,.jose-directory-summary-mark{transition:none}}
 </style>
 
 <script is:inline data-astro-rerun>
@@ -239,26 +431,49 @@ innerIds.forEach((id, index) => {
     const slider = section.querySelector('[data-jose-slider]');
     const progressOutput = section.querySelector('[data-jose-progress]');
     const replay = section.querySelector('[data-jose-replay]');
+    const shuffleButton = section.querySelector('[data-jose-shuffle]');
+    const poolScript = section.querySelector('[data-jose-pool]');
     const cardIcon = section.querySelector('[data-jose-card-icon]');
     const cardCategory = section.querySelector('[data-jose-card-category]');
     const cardTitle = section.querySelector('[data-jose-card-title]');
     const cardInfo = section.querySelector('[data-jose-card-info]');
     const cardClose = section.querySelector('[data-jose-card-close]');
+    const searchInput = section.querySelector('[data-jose-search]');
+    const typeFilter = section.querySelector('[data-jose-type-filter]');
+    const countryFilter = section.querySelector('[data-jose-country-filter]');
+    const clearFilters = section.querySelector('[data-jose-clear]');
+    const resultCount = section.querySelector('[data-jose-result-count]');
+    const noResults = section.querySelector('[data-jose-no-results]');
     const nodes = Array.from(section.querySelectorAll('[data-jose-node]'));
+    const outerNodes = nodes.filter((node) => node.dataset.ring === 'outer');
     const lines = Array.from(section.querySelectorAll('[data-from][data-to]'));
+    const directoryItems = Array.from(section.querySelectorAll('[data-jose-directory-item]'));
+    const featureButtons = Array.from(section.querySelectorAll('[data-feature-person]'));
 
-    if (!stage || !svg || !signature || !flourish || !slider || !progressOutput || !replay || !cardIcon || !cardCategory || !cardTitle || !cardInfo || !cardClose) return;
+    if (!stage || !svg || !signature || !flourish || !slider || !progressOutput || !replay || !shuffleButton || !poolScript || !cardIcon || !cardCategory || !cardTitle || !cardInfo || !cardClose || !searchInput || !typeFilter || !countryFilter || !clearFilters || !resultCount || !noResults) return;
 
-    const nodeById = new Map(nodes.map((node) => [node.dataset.joseNode, node]));
+    let josePool = [];
+    try {
+      josePool = JSON.parse(poolScript.textContent || '[]');
+    } catch {
+      josePool = [];
+    }
+    if (!josePool.length) return;
+
+    const poolById = new Map(josePool.map((person) => [person.id, person]));
+    const nodeBySlotId = new Map(nodes.map((node) => [node.dataset.joseNode, node]));
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
     const easeOut = (value) => 1 - Math.pow(1 - value, 3);
+    const normalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
     let progress = reduceMotion ? 100 : 0;
     let animationFrame = 0;
     let connectorFrame = 0;
+    let shuffleTimer = 0;
     let hasAutoPlayed = false;
-    let pinnedId = null;
+    let pinnedSlotId = null;
+    let featureCursor = 0;
 
     const defaultCard = () => {
       cardIcon.textContent = '✦';
@@ -272,10 +487,10 @@ innerIds.forEach((id, index) => {
 
     const showCard = (node, pinned = false) => {
       if (!node) return;
-      const id = node.dataset.joseNode;
+      const slotId = node.dataset.joseNode;
       const orb = node.querySelector('.jose-node-orb');
       cardIcon.textContent = orb ? orb.textContent.trim() : 'J';
-      cardCategory.textContent = node.dataset.joseCategory || 'José constellation';
+      cardCategory.textContent = `${node.dataset.joseType || 'José'} · ${node.dataset.joseCountry || 'Constellation'}`;
       cardTitle.textContent = node.dataset.joseTitle || 'José';
       cardInfo.textContent = node.dataset.joseInfo || '';
       cardClose.hidden = !pinned;
@@ -285,26 +500,20 @@ innerIds.forEach((id, index) => {
         candidate.classList.toggle('is-pinned', pinned && candidate === node);
       });
       lines.forEach((line) => {
-        line.classList.toggle('is-active-edge', line.dataset.from === id || line.dataset.to === id);
+        line.classList.toggle('is-active-edge', line.dataset.from === slotId || line.dataset.to === slotId);
       });
-    };
-
-    const restorePinnedOrDefault = () => {
-      if (pinnedId && nodeById.has(pinnedId)) showCard(nodeById.get(pinnedId), true);
-      else defaultCard();
     };
 
     const setLineGeometry = () => {
       const stageRect = stage.getBoundingClientRect();
       const viewBox = svg.viewBox.baseVal;
       if (!stageRect.width || !stageRect.height || !viewBox.width || !viewBox.height) return;
-
       const scaleX = viewBox.width / stageRect.width;
       const scaleY = viewBox.height / stageRect.height;
 
       lines.forEach((line) => {
-        const fromNode = nodeById.get(line.dataset.from);
-        const toNode = nodeById.get(line.dataset.to);
+        const fromNode = nodeBySlotId.get(line.dataset.from);
+        const toNode = nodeBySlotId.get(line.dataset.to);
         if (!fromNode || !toNode) return;
         const fromOrb = fromNode.querySelector('.jose-node-orb') || fromNode;
         const toOrb = toNode.querySelector('.jose-node-orb') || toNode;
@@ -317,6 +526,32 @@ innerIds.forEach((id, index) => {
       });
     };
 
+    const populateNode = (node, person) => {
+      if (!node || !person) return;
+      const orb = node.querySelector('.jose-node-orb');
+      const label = node.querySelector('.jose-node-label');
+      node.dataset.personId = person.id;
+      node.dataset.joseTitle = person.label;
+      node.dataset.joseType = person.type;
+      node.dataset.joseCountry = person.country;
+      node.dataset.joseInfo = person.info;
+      node.setAttribute('aria-label', `Learn about ${person.label}`);
+      if (orb) orb.textContent = person.icon;
+      if (label) label.textContent = person.label;
+    };
+
+    const visibleNodeForPerson = (personId) => nodes.find((node) => node.dataset.personId === personId);
+
+    const updateDirectoryStates = () => {
+      const visibleIds = new Set(nodes.map((node) => node.dataset.personId));
+      featureButtons.forEach((button) => {
+        const personId = button.dataset.featurePerson;
+        const visible = visibleIds.has(personId);
+        button.dataset.visible = String(visible);
+        button.textContent = visible ? 'View above ↑' : 'Put in ring ↑';
+      });
+    };
+
     const applyProgress = (rawValue, syncSlider = true) => {
       progress = clamp(Number(rawValue) || 0, 0, 100);
       if (syncSlider) slider.value = String(Math.round(progress));
@@ -325,7 +560,6 @@ innerIds.forEach((id, index) => {
       const signatureProgress = easeOut(clamp(progress / 30));
       signature.style.opacity = signatureProgress > .01 ? '1' : '0';
       signature.style.clipPath = `inset(0 ${100 - signatureProgress * 100}% 0 0)`;
-
       const flourishProgress = easeOut(clamp((progress - 18) / 22));
       flourish.style.strokeDashoffset = String(1 - flourishProgress);
 
@@ -343,7 +577,6 @@ innerIds.forEach((id, index) => {
         const baseOpacity = line.dataset.kind === 'outer' ? .48 : line.dataset.kind === 'spoke' ? .42 : .68;
         line.style.opacity = String(local * baseOpacity);
       });
-
       requestAnimationFrame(setLineGeometry);
     };
 
@@ -370,6 +603,58 @@ innerIds.forEach((id, index) => {
       animationFrame = requestAnimationFrame(tick);
     };
 
+    const shuffled = (array) => {
+      const copy = [...array];
+      for (let index = copy.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+      }
+      return copy;
+    };
+
+    const diversifiedSample = (count) => {
+      const groups = new Map();
+      josePool.forEach((person) => {
+        if (!groups.has(person.type)) groups.set(person.type, []);
+        groups.get(person.type).push(person);
+      });
+      groups.forEach((group, key) => groups.set(key, shuffled(group)));
+      const selected = [];
+      let typeOrder = shuffled([...groups.keys()]);
+      while (selected.length < count) {
+        let advanced = false;
+        typeOrder.forEach((type) => {
+          if (selected.length >= count) return;
+          const group = groups.get(type);
+          if (group && group.length) {
+            selected.push(group.pop());
+            advanced = true;
+          }
+        });
+        if (!advanced) break;
+        typeOrder = shuffled(typeOrder);
+      }
+      return selected;
+    };
+
+    const shuffleCast = () => {
+      stopAnimation();
+      hasAutoPlayed = true;
+      pinnedSlotId = null;
+      defaultCard();
+      if (shuffleTimer) window.clearTimeout(shuffleTimer);
+      stage.classList.add('is-shuffling');
+      shuffleButton.disabled = true;
+      shuffleTimer = window.setTimeout(() => {
+        const selection = diversifiedSample(nodes.length);
+        selection.forEach((person, index) => populateNode(nodes[index], person));
+        applyProgress(100);
+        updateDirectoryStates();
+        stage.classList.remove('is-shuffling');
+        shuffleButton.disabled = false;
+      }, reduceMotion ? 0 : 180);
+    };
+
     const startConnectorLoop = () => {
       if (reduceMotion || connectorFrame) return;
       const tick = () => {
@@ -389,29 +674,68 @@ innerIds.forEach((id, index) => {
       hasAutoPlayed = true;
     };
 
+    const focusPerson = (personId) => {
+      const person = poolById.get(personId);
+      if (!person) return;
+      let node = visibleNodeForPerson(personId);
+      if (!node) {
+        node = outerNodes[featureCursor % outerNodes.length];
+        featureCursor += 1;
+        pinnedSlotId = null;
+        populateNode(node, person);
+        applyProgress(100);
+        updateDirectoryStates();
+      }
+      pinnedSlotId = node.dataset.joseNode;
+      showCard(node, true);
+      node.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+      window.setTimeout(() => node.focus({ preventScroll: true }), reduceMotion ? 0 : 320);
+    };
+
+    const applyDirectoryFilters = () => {
+      const query = normalize(searchInput.value);
+      const selectedType = typeFilter.value;
+      const selectedCountry = countryFilter.value;
+      let visible = 0;
+      directoryItems.forEach((item) => {
+        const matchesQuery = !query || normalize(item.dataset.search).includes(query);
+        const matchesType = !selectedType || item.dataset.type === selectedType;
+        const matchesCountry = !selectedCountry || item.dataset.country === selectedCountry;
+        const matches = matchesQuery && matchesType && matchesCountry;
+        item.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      resultCount.textContent = `Showing ${visible} of ${directoryItems.length}`;
+      noResults.hidden = visible !== 0;
+    };
+
     nodes.forEach((node) => {
       node.addEventListener('mouseenter', () => {
-        if (!pinnedId) showCard(node, false);
+        if (!pinnedSlotId) showCard(node, false);
       });
       node.addEventListener('mouseleave', () => {
-        if (!pinnedId) defaultCard();
+        if (!pinnedSlotId) defaultCard();
       });
       node.addEventListener('focus', () => {
-        if (!pinnedId) showCard(node, false);
+        if (!pinnedSlotId) showCard(node, false);
       });
       node.addEventListener('blur', () => {
-        if (!pinnedId) defaultCard();
+        if (!pinnedSlotId) defaultCard();
       });
       node.addEventListener('click', () => {
-        const id = node.dataset.joseNode;
-        pinnedId = pinnedId === id ? null : id;
-        if (pinnedId) showCard(node, true);
+        const slotId = node.dataset.joseNode;
+        pinnedSlotId = pinnedSlotId === slotId ? null : slotId;
+        if (pinnedSlotId) showCard(node, true);
         else defaultCard();
       });
     });
 
+    featureButtons.forEach((button) => {
+      button.addEventListener('click', () => focusPerson(button.dataset.featurePerson));
+    });
+
     cardClose.addEventListener('click', () => {
-      pinnedId = null;
+      pinnedSlotId = null;
       defaultCard();
     });
 
@@ -424,10 +748,22 @@ innerIds.forEach((id, index) => {
     slider.addEventListener('change', () => applyProgress(slider.value, false));
 
     replay.addEventListener('click', () => {
-      pinnedId = null;
+      pinnedSlotId = null;
       defaultCard();
       hasAutoPlayed = true;
       animateToFull();
+    });
+    shuffleButton.addEventListener('click', shuffleCast);
+
+    searchInput.addEventListener('input', applyDirectoryFilters);
+    typeFilter.addEventListener('change', applyDirectoryFilters);
+    countryFilter.addEventListener('change', applyDirectoryFilters);
+    clearFilters.addEventListener('click', () => {
+      searchInput.value = '';
+      typeFilter.value = '';
+      countryFilter.value = '';
+      applyDirectoryFilters();
+      searchInput.focus();
     });
 
     if ('ResizeObserver' in window) {
@@ -438,6 +774,8 @@ innerIds.forEach((id, index) => {
     }
 
     defaultCard();
+    updateDirectoryStates();
+    applyDirectoryFilters();
     applyProgress(progress);
     requestAnimationFrame(setLineGeometry);
 
