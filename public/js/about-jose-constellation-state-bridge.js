@@ -1,4 +1,12 @@
 (() => {
+  const capabilityMap = document.querySelector('.about-capability-map');
+  if (capabilityMap && !document.querySelector('script[data-about-capability-loader]')) {
+    const script = document.createElement('script');
+    script.src = '/js/about-capability-map.js?v=20260809-tabs-v1';
+    script.dataset.aboutCapabilityLoader = 'true';
+    document.body.appendChild(script);
+  }
+
   const section = document.querySelector('[data-jose-constellation]');
   if (!section || section.dataset.joseStateBridgeInitialized === 'true') return;
   section.dataset.joseStateBridgeInitialized = 'true';
