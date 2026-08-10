@@ -1,93 +1,188 @@
 ---
-const principles = [
+const worldviewGroups = [
   {
-    number: '01',
-    title: 'Consistency beats perfection',
-    text: 'A small practice kept alive is usually worth more than an ideal routine repeatedly abandoned. Simplify when necessary; do not confuse imperfect progress with failure.',
+    eyebrow: 'What grounds me',
+    title: 'Foundations',
+    intro: 'The convictions underneath the habits—the things that shape how I interpret achievement, time, other people, and my place in the world.',
+    items: [
+      {
+        number: '01',
+        title: 'Faith comes before self-importance',
+        text: 'I believe the abilities, opportunities, people, and good fortune in my life are gifts from God, not evidence that I am somehow above other people. Achievement should deepen gratitude, not inflate the ego.',
+      },
+      {
+        number: '02',
+        title: 'Remember how small you are',
+        text: 'There is freedom in remembering that I am one person in an enormous world and a brief stretch of history. My work can matter without requiring me to imagine that I am the center of anything.',
+      },
+      {
+        number: '03',
+        title: 'Be grateful for the ordinary fact of being alive',
+        text: 'Health, family, another morning, useful work, music, movement, a conversation, a meal—none of these are owed to me. I want gratitude to remain available before life has to take something away to teach it.',
+      },
+      {
+        number: '04',
+        title: 'Time is finite; that makes it precious, not merely scarce',
+        text: 'Mortality gives urgency to life, but I do not want that urgency to become a demand that every minute be optimized. A day can be worthwhile because it was lived well, not because every hour produced something measurable.',
+      },
+      {
+        number: '05',
+        title: 'Family and roots are part of the self',
+        text: 'I did not appear from nowhere. Family, place, language, sacrifice, migration, memory, and the lives before mine are part of the explanation for who I am. Remembering them is a form of gratitude.',
+      },
+    ],
   },
   {
-    number: '02',
-    title: 'Systems should serve the life',
-    text: 'Tracking, templates, shortcuts, and automation are useful when they return attention to living. The system is infrastructure—not the destination.',
+    eyebrow: 'How I try to conduct myself',
+    title: 'Character & practice',
+    intro: 'These are less about what I believe in the abstract and more about the kind of person I am trying—imperfectly—to become.',
+    items: [
+      {
+        number: '06',
+        title: 'Practice self-mastery, not self-denial',
+        text: 'Anger, sadness, desire, affection, pride, fear, and excitement are human signals, not commands. I want to acknowledge them honestly without automatically letting them govern what I do.',
+      },
+      {
+        number: '07',
+        title: 'Ambition is good when it remains a servant',
+        text: 'I like striving, building, learning, competing, and seeing how far I can go. But accomplishment is a poor master. The point of ambition should be to enlarge a life and increase what I can contribute—not to make rest, relationships, or ordinary happiness feel illegitimate.',
+      },
+      {
+        number: '08',
+        title: 'Consistency beats perfection',
+        text: 'A small practice kept alive is usually worth more than an ideal routine repeatedly abandoned. Simplify when necessary; do not confuse imperfect progress with failure.',
+      },
+      {
+        number: '09',
+        title: 'Stay willing to be a beginner',
+        text: 'Curiosity requires periods of clumsiness. I want to keep entering rooms where I do not yet know what I am doing and resist the temptation to protect competence by avoiding new things.',
+      },
+      {
+        number: '10',
+        title: 'Make more than you merely consume',
+        text: 'Ideas become more valuable to me when they leave the notebook and become a page, tool, experiment, song, analysis, system, or other concrete thing. Creation is one of the ways I understand the world.',
+      },
+      {
+        number: '11',
+        title: 'Show the evidence—and admit uncertainty',
+        text: 'I prefer traceable records to flattering adjectives. Definitions, missing data, estimates, doubts, and changing conclusions belong beside the result. Being precise about what I do not know is part of being truthful about what I do know.',
+      },
+      {
+        number: '12',
+        title: 'Measure to understand, not to rank existence',
+        text: 'Numbers can reveal patterns memory misses, which is why I love tracking. But a human life is not a scoreboard. Measurement should create perspective and better questions, not reduce meaning to whatever happens to fit in a cell.',
+      },
+    ],
   },
   {
-    number: '03',
-    title: 'Measure to understand',
-    text: 'Numbers can reveal patterns memory misses, but a human life is not a scoreboard. Use measurement for perspective, curiosity, and better decisions—not as a substitute for meaning.',
-  },
-  {
-    number: '04',
-    title: 'Show the evidence',
-    text: 'Prefer traceable records to flattering adjectives. Explain definitions, estimates, missing data, and uncertainty. A claim becomes more useful when someone can see what supports it.',
-  },
-  {
-    number: '05',
-    title: 'Stay willing to be a beginner',
-    text: 'Curiosity requires periods of clumsiness. Learn slowly, one tool or idea at a time, and keep room in life for things you are not yet good at.',
-  },
-  {
-    number: '06',
-    title: 'Make more than you merely consume',
-    text: 'Ideas become more valuable when they leave the notebook and become a page, tool, experiment, song, analysis, or other concrete thing that can be used and revisited.',
-  },
-  {
-    number: '07',
-    title: 'Optimize in service of living',
-    text: 'Efficiency matters, but diminishing returns are real. Save time so it can be spent on people, practice, movement, reading, creating, wandering, and the parts of life that resist optimization.',
-  },
-  {
-    number: '08',
-    title: 'Preserve the ordinary',
-    text: 'Milestones are easy to remember; ordinary Tuesdays disappear. The mundane texture of a life is worth recording because, given enough time, it becomes history too.',
+    eyebrow: 'What makes a life worth living',
+    title: 'Living fully',
+    intro: 'The corrective to turning life into one endless improvement project: some things are valuable precisely because they are human, inefficient, uncertain, or enjoyed for their own sake.',
+    items: [
+      {
+        number: '13',
+        title: 'Systems should serve the life',
+        text: 'Tracking, templates, shortcuts, and automation are useful when they return attention to living. The system is infrastructure—not the destination. If maintaining the machinery consumes the thing it was built to support, the machinery needs to change.',
+      },
+      {
+        number: '14',
+        title: 'Optimize in service of living',
+        text: 'Efficiency matters, but diminishing returns are real. I want to save time so it can be spent on people, practice, movement, reading, creating, wandering, conversation, and the parts of life that resist optimization.',
+      },
+      {
+        number: '15',
+        title: 'People are not optimization problems',
+        text: 'Friendship, family, affection, and love involve uncertainty, compromise, vulnerability, and time that cannot be justified by maximum efficiency. Choosing particular people means accepting that life is lived through commitments, not through endlessly comparing every possible alternative.',
+      },
+      {
+        number: '16',
+        title: 'Enjoyment does not need to earn its keep',
+        text: 'Music, dancing, a book, a joke, a walk, a beautiful object, a good meal, or an afternoon spent making something can be worthwhile without becoming productive. Pleasure and play are not defects in an otherwise serious life.',
+      },
+      {
+        number: '17',
+        title: 'Preserve the ordinary',
+        text: 'Milestones are easy to remember; ordinary Tuesdays disappear. The mundane texture of a life is worth recording because, given enough time, it becomes history too—and because the ordinary days are where most of life actually happens.',
+      },
+      {
+        number: '18',
+        title: 'Try to be able to say: today I lived',
+        text: 'A good day does not require greatness. I want enough work to respect my abilities, enough discipline to respect my goals, enough gratitude to notice what I have, and enough life left unoptimized that the day feels inhabited rather than merely completed.',
+      },
+    ],
   },
 ];
 ---
 
 <section class="about-section about-personal-principles" id="principles" aria-labelledby="principles-title">
-  <div class="principles-intro">
-    <div>
-      <p class="about-eyebrow">Working convictions, not commandments</p>
-      <h2 id="principles-title">Principles I try to live by</h2>
-    </div>
-    <p>
-      These are not universal laws or a finished philosophy. They are recurring rules of thumb that have survived contact with my actual life—
-      ideas I try to practice, test, and revise rather than merely agree with.
+  <div class="principles-hero">
+    <p class="about-eyebrow">Principles, beliefs & recurring convictions</p>
+    <h2 id="principles-title">A little of how I see the world</h2>
+    <p class="principles-lede">
+      Habits describe what I do. These get closer to <em>why</em>. This is not a creed, a claim to perfect consistency, or advice for everyone else.
+      It is a working map of the ideas I keep returning to as I try to decide what deserves my time, attention, ambition, gratitude, and care.
     </p>
   </div>
 
-  <ol class="principles-grid">
-    {principles.map((principle) => (
-      <li class="principle-card">
-        <span class="principle-number" aria-hidden="true">{principle.number}</span>
-        <div>
-          <h3>{principle.title}</h3>
-          <p>{principle.text}</p>
-        </div>
-      </li>
+  <div class="worldview-groups">
+    {worldviewGroups.map((group) => (
+      <section class="worldview-group" aria-labelledby={`worldview-${group.title.toLowerCase().replace(/[^a-z]+/g, '-')}`}>
+        <header class="worldview-group-head">
+          <div>
+            <span class="worldview-kicker">{group.eyebrow}</span>
+            <h3 id={`worldview-${group.title.toLowerCase().replace(/[^a-z]+/g, '-')}`}>{group.title}</h3>
+          </div>
+          <p>{group.intro}</p>
+        </header>
+
+        <ol class="principles-grid">
+          {group.items.map((principle) => (
+            <li class="principle-card">
+              <span class="principle-number" aria-hidden="true">{principle.number}</span>
+              <div>
+                <h4>{principle.title}</h4>
+                <p>{principle.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
     ))}
-  </ol>
+  </div>
 
   <div class="principles-footer">
     <span aria-hidden="true">↻</span>
     <p>
-      <strong>A living section.</strong> If experience changes one of these, the page should change too. A principle that cannot survive revision becomes decoration.
+      <strong>A living worldview.</strong> I expect some wording—and perhaps some conclusions—to change as I get older. That is a feature, not an embarrassment.
+      LifeLoggerz can preserve not only what I believe now, but how those beliefs evolve.
     </p>
   </div>
 </section>
 
 <style>
-  .about-personal-principles{padding:clamp(1.35rem,4vw,2.3rem);border:1px solid #cddfd5;border-radius:26px;background:linear-gradient(145deg,var(--as-green-soft),#fff 58%,var(--as-gold-soft));box-shadow:0 12px 34px rgba(25,33,44,.055)}
-  .principles-intro{display:grid;grid-template-columns:minmax(0,.78fr) minmax(300px,1.22fr);gap:clamp(1rem,4vw,3rem);align-items:end;margin-bottom:1.35rem}
-  .principles-intro h2{max-width:520px}
-  .principles-intro>p{max-width:650px;color:var(--as-muted)!important;font-size:.95rem;line-height:1.58}
-  .principles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:0;padding:0;list-style:none;counter-reset:none}
-  .principle-card{display:grid;grid-template-columns:46px minmax(0,1fr);gap:.8rem;min-width:0;padding:1rem;border:1px solid rgba(195,211,202,.92);border-radius:17px;background:rgba(255,255,255,.86);box-shadow:0 5px 18px rgba(25,33,44,.035)}
-  .principle-number{display:grid;width:42px;height:42px;place-items:center;border-radius:12px;background:var(--as-green-soft);color:var(--as-green-dark);font-family:Georgia,'Times New Roman',serif;font-size:.76rem;font-weight:800}
-  .principle-card h3{margin:.08rem 0 .35rem;font-size:1rem}
-  .principle-card p{color:var(--as-muted)!important;font-size:.81rem;line-height:1.48}
-  .principles-footer{display:flex;gap:.7rem;align-items:flex-start;margin-top:.8rem;padding:.85rem 1rem;border:1px solid rgba(211,190,139,.62);border-radius:15px;background:rgba(255,249,232,.85)}
+  .about-personal-principles{padding:clamp(1.35rem,4vw,2.5rem);border:1px solid #cddfd5;border-radius:28px;background:linear-gradient(145deg,var(--as-green-soft),#fff 43%,#fffaf0 100%);box-shadow:0 12px 34px rgba(25,33,44,.055)}
+  .principles-hero{max-width:850px;margin:0 auto 2rem;text-align:center}
+  .principles-hero h2{margin-bottom:.85rem}
+  .principles-lede{color:var(--as-muted)!important;font-size:clamp(.98rem,1.7vw,1.1rem);line-height:1.65}
+  .principles-lede em{color:var(--as-ink);font-family:Georgia,'Times New Roman',serif}
+  .worldview-groups{display:grid;gap:1rem}
+  .worldview-group{padding:1.15rem;border:1px solid rgba(195,211,202,.92);border-radius:21px;background:rgba(255,255,255,.78)}
+  .worldview-group:nth-child(2){border-color:#ddd7c7;background:rgba(255,252,244,.82)}
+  .worldview-group:nth-child(3){border-color:#d5dce4;background:rgba(249,251,253,.84)}
+  .worldview-group-head{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(300px,1.32fr);gap:1.2rem;align-items:end;margin-bottom:1rem;padding:.15rem .15rem .95rem;border-bottom:1px solid rgba(199,208,203,.72)}
+  .worldview-kicker{display:block;margin-bottom:.28rem;color:var(--as-green-dark);font-size:.61rem;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+  .worldview-group-head h3{font-family:Georgia,'Times New Roman',serif;font-size:clamp(1.35rem,2.3vw,1.85rem);letter-spacing:-.02em}
+  .worldview-group-head>p{color:var(--as-muted)!important;font-size:.84rem;line-height:1.5}
+  .principles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.68rem;margin:0;padding:0;list-style:none}
+  .principle-card{display:grid;grid-template-columns:45px minmax(0,1fr);gap:.76rem;min-width:0;padding:.95rem;border:1px solid rgba(204,214,209,.8);border-radius:16px;background:rgba(255,255,255,.9);box-shadow:0 4px 15px rgba(25,33,44,.03)}
+  .principle-number{display:grid;width:40px;height:40px;place-items:center;border-radius:11px;background:var(--as-green-soft);color:var(--as-green-dark);font-family:Georgia,'Times New Roman',serif;font-size:.72rem;font-weight:800}
+  .worldview-group:nth-child(2) .principle-number{background:#fff3d9;color:#785324}
+  .worldview-group:nth-child(3) .principle-number{background:#eef3f8;color:#40576c}
+  .principle-card h4{margin:.04rem 0 .34rem;color:var(--as-ink);font-size:.95rem;line-height:1.25;letter-spacing:-.01em}
+  .principle-card p{color:var(--as-muted)!important;font-size:.79rem;line-height:1.5}
+  .principles-footer{display:flex;gap:.7rem;align-items:flex-start;margin-top:1rem;padding:.92rem 1rem;border:1px solid rgba(211,190,139,.62);border-radius:15px;background:rgba(255,249,232,.88)}
   .principles-footer>span{color:#8a653a;font-size:1.05rem;font-weight:900}
-  .principles-footer p{color:#5e5140!important;font-size:.8rem;line-height:1.45}
-  @media(max-width:780px){.principles-intro,.principles-grid{grid-template-columns:1fr}.principles-intro{align-items:start}.about-personal-principles{padding:1.1rem;border-radius:20px}}
-  @media(max-width:430px){.principle-card{grid-template-columns:38px minmax(0,1fr);gap:.65rem;padding:.85rem}.principle-number{width:36px;height:36px;border-radius:10px;font-size:.68rem}}
+  .principles-footer p{color:#5e5140!important;font-size:.8rem;line-height:1.48}
+  @media(max-width:780px){.principles-hero{text-align:left}.worldview-group-head,.principles-grid{grid-template-columns:1fr}.worldview-group-head{align-items:start}.about-personal-principles{padding:1.05rem;border-radius:20px}.worldview-group{padding:.9rem;border-radius:17px}}
+  @media(max-width:430px){.principle-card{grid-template-columns:36px minmax(0,1fr);gap:.62rem;padding:.8rem}.principle-number{width:34px;height:34px;border-radius:9px;font-size:.65rem}}
 </style>
