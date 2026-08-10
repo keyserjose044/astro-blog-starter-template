@@ -1,0 +1,264 @@
+---
+const dailyAnchors = [
+  {
+    icon: '✍️',
+    title: 'Diary & daily log',
+    text: 'I keep a detailed chronological record of the day—not only highlights, but the ordinary sequence that would otherwise disappear.',
+  },
+  {
+    icon: '📖',
+    title: 'Scripture',
+    text: 'Bible reading is a daily anchor: slow, chapter by chapter, with questions and reflections preserved along the way.',
+  },
+  {
+    icon: '🎸',
+    title: 'Guitar',
+    text: 'Even on crowded days, I try to put my hands on the instrument. A small session keeps the thread from breaking.',
+  },
+  {
+    icon: '🌍',
+    title: 'Languages & words',
+    text: 'Language study and a daily dictionary habit keep vocabulary, curiosity, and long-term learning in motion.',
+  },
+  {
+    icon: '📊',
+    title: 'Track the day',
+    text: 'The numbers behind LifeLoggerz are maintained as life happens: pursuits, time, reading, movement, and other records I care about.',
+  },
+];
+
+const weeklyRhythms = [
+  {
+    icon: '🧪',
+    title: 'Research',
+    text: 'PhD work gives the week its largest block of structure: lab work, analysis, reading, writing, meetings, and problem-solving.',
+  },
+  {
+    icon: '💃',
+    title: 'Dance',
+    text: 'Classes and practice bring movement, music, social time, and a very different kind of learning into the week.',
+  },
+  {
+    icon: '🏃',
+    title: 'Move',
+    text: 'Walking, the treadmill desk, running when it is in season, and other exercise keep long desk-heavy days from becoming entirely sedentary.',
+  },
+  {
+    icon: '🎧',
+    title: 'Audiobooks',
+    text: 'Reading often rides alongside chores, walks, drives, repetitive work, and other parts of life that can carry a second layer of attention.',
+  },
+  {
+    icon: '🛠️',
+    title: 'Build things',
+    text: 'LifeLoggerz and other personal projects give me somewhere to turn curiosity into something concrete instead of leaving every idea as a note.',
+  },
+];
+
+const operatingRules = [
+  {
+    title: 'Keep the minimum alive',
+    text: 'A short session counts. Continuity is often more valuable than waiting for the perfect uninterrupted hour.',
+  },
+  {
+    title: 'Let interests rotate',
+    text: 'Not every pursuit can be maximal at once. Some move to the foreground for a season while others stay on maintenance.',
+  },
+  {
+    title: 'Build systems once',
+    text: 'Templates, shortcuts, automation, and reusable workflows are worth the upfront effort when they reduce friction for years.',
+  },
+  {
+    title: 'Record, then live',
+    text: 'The tracking is meant to preserve and illuminate the life—not become the life. The system should serve the experience.',
+  },
+];
+
+const boundaries = [
+  {
+    icon: '🍷',
+    title: 'Alcohol & recreational drugs',
+    text: 'I do not use them. It is a simple personal boundary rather than a recurring decision.',
+  },
+  {
+    icon: '☕',
+    title: 'Caffeine',
+    text: 'I do not rely on caffeine as part of my normal routine.',
+  },
+  {
+    icon: '📵',
+    title: 'Most social media',
+    text: 'I have largely kept social media out of daily life and protect that attention for people, projects, reading, and practice.',
+  },
+];
+
+const dayRhythm = [
+  { label: 'Record', icon: '✍️', text: 'Log the day as it unfolds.' },
+  { label: 'Work', icon: '🧪', text: 'Research, study, write, solve.' },
+  { label: 'Move', icon: '🚶', text: 'Walk, train, run, or dance.' },
+  { label: 'Practice', icon: '🎸', text: 'Keep skills and streaks alive.' },
+  { label: 'Build & read', icon: '🛠️', text: 'Projects, books, and ideas.' },
+  { label: 'Close the loop', icon: '✓', text: 'Finish the record; preserve the day.' },
+];
+---
+
+<section class="about-section how-i-live" aria-labelledby="how-i-live-title">
+  <div class="about-section-head">
+    <p class="about-eyebrow">Habits, rhythms & deliberate boundaries</p>
+    <h2 id="how-i-live-title">How I live</h2>
+    <p>
+      This is less a rigid routine than a personal operating system: a handful of daily anchors, recurring weekly rhythms,
+      rules that keep the whole thing sustainable, and a few things I have deliberately chosen not to make part of my life.
+    </p>
+  </div>
+
+  <div class="how-i-live-grid">
+    <article class="life-column daily">
+      <div class="life-column-head">
+        <span class="life-kicker">Every day</span>
+        <h3>Daily anchors</h3>
+        <p>The small threads I try not to let break.</p>
+      </div>
+      <div class="life-list">
+        {dailyAnchors.map((item) => (
+          <div class="life-item">
+            <span class="life-item-icon" aria-hidden="true">{item.icon}</span>
+            <div>
+              <strong>{item.title}</strong>
+              <p>{item.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+
+    <article class="life-column weekly">
+      <div class="life-column-head">
+        <span class="life-kicker">Across the week</span>
+        <h3>Recurring rhythms</h3>
+        <p>Not necessarily daily, but unmistakably part of the life.</p>
+      </div>
+      <div class="life-list">
+        {weeklyRhythms.map((item) => (
+          <div class="life-item">
+            <span class="life-item-icon" aria-hidden="true">{item.icon}</span>
+            <div>
+              <strong>{item.title}</strong>
+              <p>{item.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  </div>
+
+  <div class="life-rules-row">
+    <article class="life-rules-card">
+      <div class="life-column-head compact">
+        <span class="life-kicker">How I keep it sustainable</span>
+        <h3>Rules of the system</h3>
+      </div>
+      <div class="rule-grid">
+        {operatingRules.map((rule, index) => (
+          <div class="rule-item">
+            <span class="rule-number">0{index + 1}</span>
+            <div>
+              <strong>{rule.title}</strong>
+              <p>{rule.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+
+    <article class="life-boundaries-card">
+      <div class="life-column-head compact">
+        <span class="life-kicker">Deliberate exclusions</span>
+        <h3>What I don’t do</h3>
+        <p>Absence shapes a life too.</p>
+      </div>
+      <div class="boundary-list">
+        {boundaries.map((item) => (
+          <div class="boundary-item">
+            <span aria-hidden="true">{item.icon}</span>
+            <div>
+              <strong>{item.title}</strong>
+              <p>{item.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  </div>
+
+  <div class="day-rhythm" aria-labelledby="day-rhythm-title">
+    <div class="day-rhythm-intro">
+      <p class="about-eyebrow">A rhythm, not a timetable</p>
+      <h3 id="day-rhythm-title">What a day tends to contain</h3>
+      <p>
+        The order changes with classes, lab work, family, errands, and whatever project has caught fire. The ingredients recur more reliably than the clock times do.
+      </p>
+    </div>
+    <ol class="day-rhythm-track">
+      {dayRhythm.map((step, index) => (
+        <li>
+          <span class="day-rhythm-dot" aria-hidden="true">{step.icon}</span>
+          <span class="day-rhythm-index">{index + 1}</span>
+          <strong>{step.label}</strong>
+          <span>{step.text}</span>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <div class="life-distinction">
+    <span aria-hidden="true">↔</span>
+    <p>
+      <strong>How I live is not the same as what I track.</strong> This section describes the behavior. LifeLoggerz records the evidence left behind by it.
+    </p>
+  </div>
+</section>
+
+<style>
+  .how-i-live{--life-blue:#edf4f8;--life-blue-border:#cfdfe7;--life-warm:#fff8e9;--life-warm-border:#ead9af;--life-red:#fff2ee;--life-red-border:#eccfc6}
+  .how-i-live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+  .life-column{padding:1.35rem;border:1px solid var(--as-border);border-radius:22px;background:#fff;box-shadow:0 9px 28px rgba(25,33,44,.05)}
+  .life-column.daily{background:linear-gradient(145deg,#fff,var(--as-green-soft))}
+  .life-column.weekly{background:linear-gradient(145deg,#fff,var(--life-blue))}
+  .life-column-head{margin-bottom:1rem}
+  .life-column-head.compact{margin-bottom:.85rem}
+  .life-column-head h3{margin:.22rem 0 .4rem;font-size:clamp(1.2rem,2vw,1.55rem)}
+  .life-column-head p{color:var(--as-muted)!important;font-size:.86rem;line-height:1.45}
+  .life-kicker{display:block;color:var(--as-green-dark);font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+  .life-list{display:grid;gap:.58rem}
+  .life-item{display:grid;grid-template-columns:40px minmax(0,1fr);gap:.72rem;padding:.72rem;border:1px solid rgba(204,214,210,.85);border-radius:14px;background:rgba(255,255,255,.84)}
+  .life-item-icon{display:grid;width:38px;height:38px;place-items:center;border-radius:11px;background:var(--as-soft);font-size:1rem}
+  .life-item strong,.rule-item strong,.boundary-item strong{display:block;margin-bottom:.16rem;color:var(--as-ink);font-size:.88rem;line-height:1.3}
+  .life-item p,.rule-item p,.boundary-item p{color:var(--as-muted)!important;font-size:.77rem;line-height:1.42}
+  .life-rules-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:1rem;margin-top:1rem}
+  .life-rules-card,.life-boundaries-card{padding:1.35rem;border-radius:22px}
+  .life-rules-card{border:1px solid var(--life-warm-border);background:var(--life-warm)}
+  .life-boundaries-card{border:1px solid var(--life-red-border);background:var(--life-red)}
+  .rule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.62rem}
+  .rule-item{display:grid;grid-template-columns:30px minmax(0,1fr);gap:.65rem;padding:.72rem;border:1px solid rgba(210,187,132,.44);border-radius:13px;background:rgba(255,255,255,.72)}
+  .rule-number{color:#8a653a;font-family:Georgia,serif;font-size:.72rem;font-weight:800}
+  .boundary-list{display:grid;gap:.58rem}
+  .boundary-item{display:grid;grid-template-columns:30px minmax(0,1fr);gap:.58rem;padding:.69rem;border:1px solid rgba(218,180,168,.55);border-radius:13px;background:rgba(255,255,255,.73)}
+  .boundary-item>span{font-size:1rem}
+  .day-rhythm{display:grid;grid-template-columns:minmax(220px,.32fr) minmax(0,.68fr);gap:1.3rem;margin-top:1rem;padding:1.35rem;border:1px solid var(--as-border);border-radius:22px;background:#fff}
+  .day-rhythm-intro h3{margin-bottom:.5rem;font-size:clamp(1.18rem,2vw,1.48rem)}
+  .day-rhythm-intro>p:last-child{color:var(--as-muted)!important;font-size:.82rem;line-height:1.48}
+  .day-rhythm-track{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.38rem;margin:0;padding:0;list-style:none}
+  .day-rhythm-track::before{position:absolute;top:24px;right:7%;left:7%;height:2px;background:#d7e2dc;content:''}
+  .day-rhythm-track li{position:relative;z-index:1;display:flex;min-width:0;flex-direction:column;align-items:center;text-align:center}
+  .day-rhythm-dot{display:grid;width:48px;height:48px;place-items:center;margin-bottom:.38rem;border:1px solid #c9d9d0;border-radius:50%;background:var(--as-green-soft);font-size:1rem;box-shadow:0 0 0 5px #fff}
+  .day-rhythm-index{color:#8b948f;font-size:.55rem;font-weight:900;letter-spacing:.08em}
+  .day-rhythm-track strong{margin:.05rem 0 .16rem;font-size:.75rem;line-height:1.2}
+  .day-rhythm-track li>span:last-child{color:var(--as-muted);font-size:.66rem;line-height:1.3}
+  .life-distinction{display:flex;gap:.7rem;align-items:flex-start;margin-top:1rem;padding:.9rem 1rem;border:1px solid #cbded4;border-radius:15px;background:var(--as-green-soft)}
+  .life-distinction>span{color:var(--as-green-dark);font-size:1.15rem;font-weight:900}
+  .life-distinction p{color:#405047!important;font-size:.81rem;line-height:1.45}
+  @media(max-width:900px){.life-rules-row,.day-rhythm{grid-template-columns:1fr}.day-rhythm-track{margin-top:.25rem}}
+  @media(max-width:720px){.how-i-live-grid,.rule-grid{grid-template-columns:1fr}.life-column,.life-rules-card,.life-boundaries-card,.day-rhythm{padding:1.05rem;border-radius:18px}.day-rhythm-track{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:1rem}.day-rhythm-track::before{display:none}}
+  @media(max-width:430px){.day-rhythm-track{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
