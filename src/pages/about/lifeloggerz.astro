@@ -23,6 +23,15 @@ const systemSteps = [
   { title: 'Explore', text: 'Stats, maps, calendars, timelines, search, and eventually AI make the archive useful after the moment of logging has passed.' },
 ];
 
+const trackedAreas = [
+  { icon: '⏱️', title: 'Time & effort', text: 'Work, study, projects, practical tasks, and other blocks of time that show where effort actually went.' },
+  { icon: '🌙', title: 'Sleep & routines', text: 'Sleep, wake and bed timing, recurring routines, and the ordinary structure that shapes a day.' },
+  { icon: '🎯', title: 'Habits & pursuits', text: 'Exercise, guitar, languages, dance, reading, personal practices, and other skills or habits I return to over time.' },
+  { icon: '📚', title: 'Culture & collections', text: 'Books, audiobooks, albums, classical music, art, and the dates, notes, favorites, and context attached to them.' },
+  { icon: '🗺️', title: 'Places & experiences', text: 'Travel, outings, social time, notable events, milestones, and experiences that are better remembered with context.' },
+  { icon: '📝', title: 'Diary & qualitative context', text: 'Daily events, reflections, questions, mistakes, ideas, and small moments that would lose meaning if reduced to a number.' },
+];
+
 const projectCards = [
   { icon: '📊', title: 'Stats & Explore', text: 'Dashboards, records, long-term totals, Day Explorer, and the quantitative side of the archive.', href: '/stats/', cta: 'Explore the data' },
   { icon: '🧰', title: 'Templates', text: 'The practical route in: reusable tools and systems for people who want to try a smaller version themselves.', href: '/templates/', cta: 'Browse templates' },
@@ -148,6 +157,57 @@ const structuredData = {
           <li>Missing and approximate data should be labeled honestly.</li>
           <li>Automation should remove repetition, not hide understanding.</li>
           <li>The system should make life easier to live, not harder to document.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="about-section" id="what-i-track" aria-labelledby="track-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">What I track</p>
+        <h2 id="track-title">A life is more than a dashboard</h2>
+        <p>
+          This is a representative map rather than an exhaustive inventory. LifeLoggerz mixes structured variables with collections, dates, places, and written context so that the archive can preserve both patterns and stories.
+        </p>
+      </div>
+
+      <div class="about-card-grid">
+        {trackedAreas.map((area) => (
+          <article class="about-card">
+            <span class="about-card-icon" aria-hidden="true">{area.icon}</span>
+            <h3>{area.title}</h3>
+            <p>{area.text}</p>
+          </article>
+        ))}
+      </div>
+
+      <div class="about-love-panel" style="margin-top: 1rem;">
+        <p class="about-eyebrow">Not everything becomes a number</p>
+        <h3>Different parts of life deserve different kinds of records.</h3>
+        <p style="margin-top: .55rem; color: var(--as-muted);">
+          Some things become numbers. Some become dates, maps, timelines, photographs, collections, or written memories. Not everything meaningful needs to become a metric.
+        </p>
+      </div>
+    </section>
+
+    <section class="about-section about-philosophy" id="what-i-dont-track" aria-labelledby="dont-track-title">
+      <div>
+        <p class="about-eyebrow">What I don’t track</p>
+        <h2 id="dont-track-title">The archive has edges</h2>
+        <p>
+          I do not collect a metric simply because it can be measured. Some obvious quantified-self categories are absent, occasional, or deliberately secondary because they do not currently earn enough value for the attention they require.
+        </p>
+        <p>
+          That boundary can change. The point is not to swear off a category forever; it is to avoid turning LifeLoggerz into a contest for maximum data density.
+        </p>
+      </div>
+      <aside class="about-principles" aria-label="What LifeLoggerz deliberately does not prioritize">
+        <h3>Not core to the system</h3>
+        <ul>
+          <li>Continuous biometric streams or wearables for their own sake.</li>
+          <li>Calories, heart rate, and screen time as default daily targets.</li>
+          <li>Perfect minute-by-minute reconstruction of every day.</li>
+          <li>Data whose maintenance costs more attention than it returns.</li>
+          <li>Private information simply because it would make an interesting chart.</li>
         </ul>
       </aside>
     </section>
