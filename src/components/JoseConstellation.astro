@@ -1,33 +1,66 @@
 ---
+const innerNodes = [
+  { id: 'jose-jose', label: 'José José', icon: '🎙️', category: 'Music · Mexico', info: 'Mexican singer whose stage name doubled the name itself: José José.', x: 50, y: 21, reveal: 12, floatDelay: -0.6 },
+  { id: 'napoleon', label: 'José María Napoleón', icon: '🎵', category: 'Music · Mexico', info: 'Mexican singer-songwriter known simply as Napoleón, with José María at the front of the name.', x: 64, y: 23, reveal: 16, floatDelay: -2.2 },
+  { id: 'carreras', label: 'José Carreras', icon: '🎼', category: 'Opera · Spain', info: 'Spanish operatic tenor and one of the famous Three Tenors.', x: 75, y: 31, reveal: 20, floatDelay: -1.4 },
+  { id: 'marti', label: 'José Martí', icon: '✒️', category: 'Writing · Cuba', info: 'Cuban writer, poet, essayist, and independence figure whose work became central to Cuban intellectual history.', x: 81, y: 43, reveal: 24, floatDelay: -1.1 },
+  { id: 'rizal', label: 'José Rizal', icon: '📚', category: 'Writing · Philippines', info: 'Filipino writer and reformer whose novels and execution made him a national symbol in the Philippines.', x: 81, y: 57, reveal: 28, floatDelay: -3.5 },
+  { id: 'mourinho', label: 'José Mourinho', icon: '⚽', category: 'Football · Portugal', info: 'Portuguese football manager known for a long career at major European clubs and for the nickname “The Special One.”', x: 74, y: 69, reveal: 32, floatDelay: -2.7 },
+  { id: 'feliciano', label: 'José Feliciano', icon: '🎸', category: 'Music · Puerto Rico', info: 'Puerto Rican musician and guitarist with a career spanning Latin music, pop, and acoustic interpretations.', x: 62, y: 77, reveal: 36, floatDelay: -1.8 },
+  { id: 'perales', label: 'José Luis Perales', icon: '🎶', category: 'Music · Spain', info: 'Spanish singer-songwriter whose romantic songs became widely known across the Spanish-speaking world.', x: 47, y: 79, reveal: 40, floatDelay: -2.4 },
+  { id: 'saramago', label: 'José Saramago', icon: '📖', category: 'Literature · Portugal', info: 'Portuguese novelist and Nobel laureate known for distinctive, philosophical fiction.', x: 34, y: 75, reveal: 44, floatDelay: -4.1 },
+  { id: 'san-martin', label: 'José de San Martín', icon: '⚔️', category: 'History · Argentina', info: 'Military leader central to the independence of Argentina, Chile, and Peru.', x: 23, y: 67, reveal: 48, floatDelay: -3.1 },
+  { id: 'posada', label: 'José G. Posada', icon: '🖋️', category: 'Art · Mexico', info: 'Mexican printmaker and illustrator especially associated with satirical calaveras and popular graphic art.', x: 19, y: 54, reveal: 52, floatDelay: -2.8 },
+  { id: 'orozco', label: 'José C. Orozco', icon: '🎨', category: 'Art · Mexico', info: 'Mexican painter and muralist, one of the major figures of Mexican muralism.', x: 20, y: 40, reveal: 56, floatDelay: -1.9 },
+  { id: 'cuervo', label: 'José Cuervo', icon: '◆', category: 'Popular culture · Mexico', info: 'A José that escaped biography entirely: the name became globally recognizable through the historic tequila brand.', x: 28, y: 29, reveal: 60, floatDelay: -3.8 },
+  { id: 'jimenez', label: 'José Alfredo Jiménez', icon: '♬', category: 'Music · Mexico', info: 'Mexican singer-songwriter whose ranchera compositions became standards of Mexican popular music.', x: 39, y: 23, reveal: 64, floatDelay: -2.1 },
+];
+
+const outerNodes = [
+  { id: 'ortega', label: 'José Ortega y Gasset', icon: '◐', category: 'Philosophy · Spain', info: 'Spanish philosopher and essayist associated with works on society, culture, and mass politics.', x: 50, y: 5, reveal: 48, floatDelay: -1.3 },
+  { id: 'jose-andres', label: 'José Andrés', icon: '🍲', category: 'Food & humanitarian work', info: 'Spanish-American chef and humanitarian who founded World Central Kitchen.', x: 65, y: 7, reveal: 51, floatDelay: -3.3 },
+  { id: 'altuve', label: 'José Altuve', icon: '⚾', category: 'Baseball · Venezuela', info: 'Venezuelan professional baseball player known for a long major-league career.', x: 80, y: 12, reveal: 54, floatDelay: -2.5 },
+  { id: 'ferrer', label: 'José Ferrer', icon: '🎭', category: 'Stage & film · Puerto Rico', info: 'Puerto Rican actor and director with a major twentieth-century stage and film career.', x: 91, y: 23, reveal: 57, floatDelay: -1.7 },
+  { id: 'capablanca', label: 'José Raúl Capablanca', icon: '♟️', category: 'Chess · Cuba', info: 'Cuban chess grandmaster and world champion celebrated for exceptionally clear positional play.', x: 96, y: 38, reveal: 60, floatDelay: -4.0 },
+  { id: 'hernandez', label: 'José Hernández', icon: '🪶', category: 'Literature · Argentina', info: 'Argentine writer and poet best known for the gaucho epic Martín Fierro.', x: 96, y: 55, reveal: 63, floatDelay: -2.9 },
+  { id: 'morelos', label: 'José María Morelos', icon: '🔔', category: 'History · Mexico', info: 'Priest and military leader who became one of the central figures of Mexican independence.', x: 91, y: 71, reveal: 66, floatDelay: -1.0 },
+  { id: 'vasconcelos', label: 'José Vasconcelos', icon: '🏛️', category: 'Ideas & education · Mexico', info: 'Mexican writer, philosopher, and education figure whose ideas shaped twentieth-century cultural debates.', x: 80, y: 84, reveal: 69, floatDelay: -3.7 },
+  { id: 'revueltas', label: 'José Revueltas', icon: '📝', category: 'Literature · Mexico', info: 'Mexican novelist, essayist, screenwriter, and political activist.', x: 65, y: 91, reveal: 72, floatDelay: -2.0 },
+  { id: 'moncayo', label: 'José Pablo Moncayo', icon: '🎻', category: 'Classical music · Mexico', info: 'Mexican composer and conductor, especially remembered for the orchestral work Huapango.', x: 50, y: 94, reveal: 75, floatDelay: -4.4 },
+  { id: 'cuevas', label: 'José Luis Cuevas', icon: '🖼️', category: 'Art · Mexico', info: 'Mexican artist associated with the Generación de la Ruptura and a highly recognizable graphic style.', x: 35, y: 91, reveal: 78, floatDelay: -1.6 },
+  { id: 'el-puma', label: 'José Luis Rodríguez', icon: '🎤', category: 'Music · Venezuela', info: 'Venezuelan singer and actor widely known by the nickname “El Puma.”', x: 20, y: 84, reveal: 81, floatDelay: -3.0 },
+  { id: 'mujica', label: 'José Mujica', icon: '🌿', category: 'Politics · Uruguay', info: 'Uruguayan politician and former president widely associated with an unusually austere public image.', x: 9, y: 71, reveal: 84, floatDelay: -2.3 },
+  { id: 'abreu', label: 'José Antonio Abreu', icon: '🎺', category: 'Music education · Venezuela', info: 'Venezuelan musician and educator who founded the music-education program El Sistema.', x: 4, y: 55, reveal: 87, floatDelay: -4.2 },
+  { id: 'bautista', label: 'José Bautista', icon: '⚾', category: 'Baseball · Dominican Republic', info: 'Dominican professional baseball player known for his power hitting and a long major-league career.', x: 4, y: 38, reveal: 89, floatDelay: -1.2 },
+  { id: 'joseph', label: 'Joseph', icon: '📜', category: 'Name cousin · English', info: 'The English form of the same ancient name family—a reminder that José extends far beyond Spanish.', x: 9, y: 23, reveal: 91, floatDelay: -3.5 },
+  { id: 'yusuf', label: 'Yusuf', icon: '◈', category: 'Name cousin · Arabic', info: 'The Arabic form of the Joseph/José name family, connecting the constellation across languages and traditions.', x: 20, y: 12, reveal: 93, floatDelay: -2.6 },
+  { id: 'giuseppe', label: 'Giuseppe', icon: 'G', category: 'Name cousin · Italian', info: 'The Italian form of Joseph/José, another branch of the same name traveling through language.', x: 35, y: 7, reveal: 95, floatDelay: -1.8 },
+];
+
 const nodes = [
-  { id: 'jose-jose', label: 'José José', icon: '🎙️', x: 50, y: 7, mx: 50, my: 8, reveal: 14, floatDelay: -0.6 },
-  { id: 'napoleon', label: 'José María Napoleón', icon: '🎵', x: 68, y: 9, mx: 72, my: 10, reveal: 19, floatDelay: -2.2 },
-  { id: 'carreras', label: 'José Carreras', icon: '🎼', x: 82, y: 18, mx: 86, my: 18, reveal: 24, floatDelay: -1.4 },
-  { id: 'marti', label: 'José Martí', icon: '✒️', x: 91, y: 32, mx: 88, my: 29, reveal: 29, floatDelay: -1.1 },
-  { id: 'rizal', label: 'José Rizal', icon: '📚', x: 93, y: 50, mx: 88, my: 42, reveal: 34, floatDelay: -3.5 },
-  { id: 'mourinho', label: 'José Mourinho', icon: '⚽', x: 90, y: 68, mx: 88, my: 57, reveal: 39, floatDelay: -2.7 },
-  { id: 'feliciano', label: 'José Feliciano', icon: '🎸', x: 80, y: 83, mx: 86, my: 72, reveal: 44, floatDelay: -1.8 },
-  { id: 'perales', label: 'José Luis Perales', icon: '🎶', x: 65, y: 91, mx: 72, my: 88, reveal: 49, floatDelay: -2.4 },
-  { id: 'saramago', label: 'José Saramago', icon: '📖', x: 50, y: 94, mx: 50, my: 92, reveal: 54, floatDelay: -4.1 },
-  { id: 'san-martin', label: 'José de San Martín', icon: '⚔️', x: 35, y: 91, mx: 28, my: 88, reveal: 59, floatDelay: -3.1 },
-  { id: 'posada', label: 'José G. Posada', icon: '🖋️', x: 20, y: 83, mx: 14, my: 72, reveal: 64, floatDelay: -2.8 },
-  { id: 'orozco', label: 'José C. Orozco', icon: '🎨', x: 10, y: 68, mx: 12, my: 57, reveal: 69, floatDelay: -1.9 },
-  { id: 'joseph', label: 'Joseph', icon: '📜', x: 7, y: 50, mx: 12, my: 42, reveal: 74, floatDelay: -0.9 },
-  { id: 'yusuf', label: 'Yusuf', icon: '◈', x: 10, y: 32, mx: 12, my: 29, reveal: 79, floatDelay: -3.2 },
-  { id: 'giuseppe', label: 'Giuseppe', icon: 'G', x: 20, y: 18, mx: 14, my: 18, reveal: 84, floatDelay: -1.5 },
-  { id: 'cuervo', label: 'José Cuervo', icon: '◆', x: 35, y: 9, mx: 28, my: 10, reveal: 89, floatDelay: -3.8 },
+  ...innerNodes.map((node) => ({ ...node, ring: 'inner' })),
+  ...outerNodes.map((node) => ({ ...node, ring: 'outer' })),
 ];
 
 const nodeReveal = Object.fromEntries(nodes.map((node) => [node.id, node.reveal]));
-const ringIds = nodes.map((node) => node.id);
+const innerIds = innerNodes.map((node) => node.id);
+const outerIds = outerNodes.map((node) => node.id);
 const edges = [];
 
-ringIds.forEach((id, index) => {
-  edges.push([id, ringIds[(index + 1) % ringIds.length]]);
+innerIds.forEach((id, index) => {
+  edges.push({ from: id, to: innerIds[(index + 1) % innerIds.length], kind: 'inner' });
+  if (index % 3 === 0) edges.push({ from: id, to: innerIds[(index + 2) % innerIds.length], kind: 'inner-secondary' });
 });
 
-ringIds.forEach((id, index) => {
-  if (index % 2 === 0) edges.push([id, ringIds[(index + 2) % ringIds.length]]);
+outerIds.forEach((id, index) => {
+  edges.push({ from: id, to: outerIds[(index + 1) % outerIds.length], kind: 'outer' });
+});
+
+innerIds.forEach((id, index) => {
+  if (index % 2 === 0) {
+    const outerIndex = Math.round((index / innerIds.length) * outerIds.length) % outerIds.length;
+    edges.push({ from: id, to: outerIds[outerIndex], kind: 'spoke' });
+  }
 });
 ---
 
@@ -41,20 +74,21 @@ ringIds.forEach((id, index) => {
   </div>
 
   <div class="jose-prototype-badge" aria-label="Prototype using placeholder portraits">
-    <span aria-hidden="true">✦</span> Prototype · placeholder portraits
+    <span aria-hidden="true">✦</span> {nodes.length} names · 2 rings · prototype portraits
   </div>
 
   <div class="jose-stage" data-jose-stage>
-    <svg class="jose-lines" viewBox="0 0 1000 650" preserveAspectRatio="none" aria-hidden="true" data-jose-lines>
-      {edges.map(([from, to]) => (
+    <svg class="jose-lines" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true" data-jose-lines>
+      {edges.map((edge) => (
         <line
           x1="0"
           y1="0"
           x2="0"
           y2="0"
-          data-from={from}
-          data-to={to}
-          data-reveal={Math.max(nodeReveal[from], nodeReveal[to]) + 2}
+          data-from={edge.from}
+          data-to={edge.to}
+          data-kind={edge.kind}
+          data-reveal={Math.max(nodeReveal[edge.from], nodeReveal[edge.to]) + 2}
         />
       ))}
     </svg>
@@ -62,27 +96,42 @@ ringIds.forEach((id, index) => {
     <div class="jose-center" aria-label="A stylized José signature at the center of the constellation">
       <div class="jose-signature" aria-hidden="true">
         <span class="jose-signature-word" data-jose-signature>José</span>
-        <svg class="jose-signature-flourish" viewBox="0 0 320 74" aria-hidden="true">
-          <path data-jose-flourish pathLength="1" d="M12 37 C76 55, 169 61, 281 27 C304 20, 312 31, 291 41 C268 52, 232 53, 197 49" />
+        <svg class="jose-signature-flourish" viewBox="0 0 340 80" aria-hidden="true">
+          <path data-jose-flourish pathLength="1" d="M10 40 C72 55, 169 64, 300 28 C326 20, 334 33, 306 45 C274 58, 225 56, 180 51" />
         </svg>
       </div>
       <span class="jose-center-caption">the José at the center</span>
     </div>
 
     {nodes.map((node) => (
-      <div
+      <button
         class="jose-node"
+        type="button"
         data-jose-node={node.id}
+        data-ring={node.ring}
         data-reveal={node.reveal}
-        style={`--x:${node.x}%;--y:${node.y}%;--mx:${node.mx}%;--my:${node.my}%;--float-delay:${node.floatDelay}s;`}
-        title={`Placeholder for ${node.label}`}
+        data-jose-title={node.label}
+        data-jose-category={node.category}
+        data-jose-info={node.info}
+        style={`--x:${node.x}%;--y:${node.y}%;--float-delay:${node.floatDelay}s;`}
+        aria-label={`Learn about ${node.label}`}
       >
-        <div class="jose-node-float">
+        <span class="jose-node-float">
           <span class="jose-node-orb" aria-hidden="true">{node.icon}</span>
           <span class="jose-node-label">{node.label}</span>
-        </div>
-      </div>
+        </span>
+      </button>
     ))}
+  </div>
+
+  <div class="jose-inspector" data-jose-inspector aria-live="polite">
+    <div class="jose-inspector-icon" aria-hidden="true" data-jose-card-icon>✦</div>
+    <div class="jose-inspector-copy">
+      <span class="jose-inspector-kicker" data-jose-card-category>Explore the constellation</span>
+      <strong data-jose-card-title>Hover, focus, or tap a José</strong>
+      <p data-jose-card-info>Hover gives you a quick look. Click or tap pins a José here while you explore the rest of the constellation.</p>
+    </div>
+    <button class="jose-inspector-close" type="button" data-jose-card-close hidden aria-label="Close pinned José information">×</button>
   </div>
 
   <div class="jose-controls" aria-label="José constellation animation controls">
@@ -97,7 +146,7 @@ ringIds.forEach((id, index) => {
   </div>
 
   <p class="jose-prototype-note">
-    The icons are stand-ins for now. Later each node can become a real portrait, cutout, object, or symbol while keeping this same orbiting web.
+    This is a featured constellation, not an exhaustive list. With hundreds or thousands of possible Josés, the larger collection can eventually become searchable and filterable while these rings stay curated.
   </p>
 </section>
 
@@ -105,23 +154,40 @@ ringIds.forEach((id, index) => {
   .jose-constellation{position:relative}
   .jose-constellation-head{margin-bottom:1rem}
   .jose-prototype-badge{display:flex;width:max-content;max-width:100%;align-items:center;gap:.4rem;margin:0 auto .8rem;padding:.32rem .58rem;border:1px solid #d4dfd9;border-radius:999px;background:var(--as-green-soft,#eaf3ee);color:var(--as-green-dark,#174433);font-size:.64rem;font-weight:850;letter-spacing:.055em;line-height:1.2;text-transform:uppercase}
-  .jose-stage{position:relative;min-height:clamp(590px,60vw,670px);overflow:hidden;border:1px solid var(--as-border,#dfe3e7);border-radius:28px;background:radial-gradient(circle at 50% 50%,rgba(36,92,70,.08),transparent 23%),radial-gradient(circle at 78% 20%,rgba(154,106,63,.07),transparent 19%),linear-gradient(145deg,#fbfcfb,#fff 58%,#f7f8f6);box-shadow:0 12px 34px rgba(25,33,44,.06);isolation:isolate}
-  .jose-stage::before{position:absolute;inset:0;z-index:-1;opacity:.24;background-image:radial-gradient(circle,rgba(36,92,70,.28) 1px,transparent 1.5px);background-size:38px 38px;content:'';mask-image:radial-gradient(circle at 50% 50%,#000,transparent 80%)}
+  .jose-stage{position:relative;min-height:clamp(690px,68vw,770px);overflow:hidden;border:1px solid var(--as-border,#dfe3e7);border-radius:28px;background:radial-gradient(circle at 50% 50%,rgba(36,92,70,.075),transparent 22%),radial-gradient(circle at 78% 20%,rgba(154,106,63,.065),transparent 19%),linear-gradient(145deg,#fbfcfb,#fff 58%,#f7f8f6);box-shadow:0 12px 34px rgba(25,33,44,.06);isolation:isolate}
+  .jose-stage::before{position:absolute;inset:0;z-index:-1;opacity:.24;background-image:radial-gradient(circle,rgba(36,92,70,.28) 1px,transparent 1.5px);background-size:38px 38px;content:'';mask-image:radial-gradient(circle at 50% 50%,#000,transparent 82%)}
   .jose-lines{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none}
-  .jose-lines line{opacity:0;stroke:rgba(36,92,70,.42);stroke-width:1.3;stroke-dasharray:7 10;stroke-linecap:round;vector-effect:non-scaling-stroke}
-  .jose-center{position:absolute;top:50%;left:50%;z-index:3;display:flex;width:min(31%,350px);min-width:230px;transform:translate(-50%,-50%);flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
-  .jose-center::before{position:absolute;inset:-28% -24%;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.98) 0 43%,rgba(255,255,255,.78) 61%,rgba(255,255,255,0) 76%);content:''}
-  .jose-signature{position:relative;width:100%;padding:.25rem .5rem 1.15rem;transform:rotate(-5deg)}
-  .jose-signature-word{display:inline-block;opacity:0;clip-path:inset(0 100% 0 0);color:var(--as-green-dark,#174433);font-family:"Snell Roundhand","Segoe Script","Brush Script MT","Lucida Handwriting",cursive;font-size:clamp(4rem,7vw,6.4rem);font-style:italic;font-weight:400;letter-spacing:-.13em;line-height:.9;white-space:nowrap;text-shadow:0 2px 0 rgba(255,255,255,.82)}
-  .jose-signature-flourish{position:absolute;right:-9%;bottom:-.1rem;left:-7%;width:116%;height:3.4rem;overflow:visible}
-  .jose-signature-flourish path{fill:none;stroke:var(--as-green-dark,#174433);stroke-width:1.8;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;vector-effect:non-scaling-stroke}
-  .jose-center-caption{margin-top:.08rem;color:var(--as-muted,#5c626c);font-size:.61rem;font-weight:800;letter-spacing:.105em;text-transform:uppercase}
-  .jose-node{position:absolute;top:var(--y);left:var(--x);z-index:4;width:96px;opacity:0;transform:translate(-50%,-50%) scale(.72);transform-origin:center;text-align:center;will-change:transform,opacity}
+  .jose-lines line{opacity:0;stroke:rgba(36,92,70,.4);stroke-width:1.25;stroke-dasharray:7 10;stroke-linecap:round;vector-effect:non-scaling-stroke;transition:stroke-width 160ms ease,stroke 160ms ease}
+  .jose-lines line[data-kind="outer"]{stroke:rgba(36,92,70,.27);stroke-dasharray:5 11}
+  .jose-lines line[data-kind="spoke"]{stroke:rgba(154,106,63,.28);stroke-dasharray:3 11}
+  .jose-lines line.is-active-edge{stroke:rgba(36,92,70,.72)!important;stroke-width:1.9}
+  .jose-center{position:absolute;top:50%;left:50%;z-index:3;display:flex;width:min(29%,330px);min-width:220px;transform:translate(-50%,-50%);flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+  .jose-center::before{position:absolute;inset:-30% -25%;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.99) 0 44%,rgba(255,255,255,.82) 61%,rgba(255,255,255,0) 76%);content:''}
+  .jose-signature{position:relative;width:100%;padding:.2rem .45rem 1.15rem;transform:rotate(-5deg)}
+  .jose-signature-word{display:inline-block;opacity:0;clip-path:inset(0 100% 0 0);color:var(--as-green-dark,#174433);font-family:"Snell Roundhand","Segoe Script","Brush Script MT","Lucida Handwriting",cursive;font-size:clamp(3.8rem,6.5vw,6rem);font-style:italic;font-weight:400;letter-spacing:-.13em;line-height:.9;white-space:nowrap;text-shadow:0 2px 0 rgba(255,255,255,.82)}
+  .jose-signature-flourish{position:absolute;right:-10%;bottom:-.1rem;left:-8%;width:118%;height:3.5rem;overflow:visible}
+  .jose-signature-flourish path{fill:none;stroke:var(--as-green-dark,#174433);stroke-width:1.75;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;vector-effect:non-scaling-stroke}
+  .jose-center-caption{margin-top:.08rem;color:var(--as-muted,#5c626c);font-size:.6rem;font-weight:800;letter-spacing:.105em;text-transform:uppercase}
+  .jose-node{position:absolute;top:var(--y);left:var(--x);z-index:5;width:90px;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;opacity:0;transform:translate(-50%,-50%) scale(.72);transform-origin:center;text-align:center;cursor:pointer;will-change:transform,opacity}
+  .jose-node[data-ring="outer"]{z-index:4;width:78px}
   .jose-node-float{display:flex;flex-direction:column;align-items:center;animation:jose-node-float 5.8s ease-in-out infinite;animation-delay:var(--float-delay)}
-  .jose-node-orb{display:grid;width:56px;height:56px;place-items:center;border:1px solid rgba(36,92,70,.22);border-radius:50%;background:rgba(255,255,255,.97);box-shadow:0 7px 18px rgba(25,33,44,.085),0 0 0 4px rgba(234,243,238,.6);color:var(--as-green-dark,#174433);font-family:Georgia,"Times New Roman",serif;font-size:1.16rem;font-weight:800;transition:transform 180ms ease,box-shadow 180ms ease,border-color 180ms ease}
-  .jose-node:hover .jose-node-orb{transform:scale(1.09);border-color:rgba(36,92,70,.46);box-shadow:0 10px 24px rgba(25,33,44,.12),0 0 0 6px rgba(234,243,238,.8)}
-  .jose-node-label{display:block;max-width:96px;margin-top:.4rem;color:var(--as-ink,#17191d);font-size:.66rem;font-weight:850;line-height:1.08;text-wrap:balance}
-  .jose-controls{position:relative;z-index:10;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem 1rem;max-width:800px;margin:1rem auto 0;align-items:end;isolation:isolate;pointer-events:auto}
+  .jose-node[data-ring="outer"] .jose-node-float{opacity:.82;animation-duration:7.2s}
+  .jose-node-orb{display:grid;width:53px;height:53px;place-items:center;border:1px solid rgba(36,92,70,.22);border-radius:50%;background:rgba(255,255,255,.97);box-shadow:0 7px 18px rgba(25,33,44,.085),0 0 0 4px rgba(234,243,238,.6);color:var(--as-green-dark,#174433);font-family:Georgia,"Times New Roman",serif;font-size:1.08rem;font-weight:800;transition:transform 180ms ease,box-shadow 180ms ease,border-color 180ms ease,background 180ms ease}
+  .jose-node[data-ring="outer"] .jose-node-orb{width:42px;height:42px;font-size:.9rem;box-shadow:0 6px 14px rgba(25,33,44,.07),0 0 0 3px rgba(234,243,238,.5)}
+  .jose-node:hover .jose-node-orb,.jose-node:focus-visible .jose-node-orb,.jose-node.is-active .jose-node-orb{transform:scale(1.1);border-color:rgba(36,92,70,.54);background:#fff;box-shadow:0 10px 24px rgba(25,33,44,.13),0 0 0 6px rgba(234,243,238,.85)}
+  .jose-node.is-pinned .jose-node-orb{box-shadow:0 10px 24px rgba(25,33,44,.13),0 0 0 6px rgba(154,106,63,.19);border-color:rgba(154,106,63,.55)}
+  .jose-node:focus-visible{outline:3px solid #f0b84b;outline-offset:5px;border-radius:50%}
+  .jose-node-label{display:block;max-width:90px;margin-top:.38rem;color:var(--as-ink,#17191d);font-size:.63rem;font-weight:850;line-height:1.06;text-wrap:balance}
+  .jose-node[data-ring="outer"] .jose-node-label{max-width:78px;margin-top:.3rem;font-size:.55rem;font-weight:800;color:#48514c}
+  .jose-inspector{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.75rem;max-width:820px;min-height:88px;align-items:center;margin:.9rem auto 0;padding:.8rem .95rem;border:1px solid #dbe2de;border-radius:15px;background:#fff;box-shadow:0 7px 20px rgba(25,33,44,.045)}
+  .jose-inspector-icon{display:grid;width:42px;height:42px;place-items:center;border-radius:12px;background:var(--as-green-soft,#eaf3ee);color:var(--as-green-dark,#174433);font-size:1.05rem;font-weight:900}
+  .jose-inspector-copy{min-width:0}
+  .jose-inspector-kicker{display:block;margin-bottom:.15rem;color:var(--as-green-dark,#174433);font-size:.58rem;font-weight:900;letter-spacing:.075em;text-transform:uppercase}
+  .jose-inspector strong{display:block;color:var(--as-ink,#17191d);font-size:.88rem;line-height:1.2}
+  .jose-inspector p{margin:.2rem 0 0!important;color:var(--as-muted,#5c626c)!important;font-size:.74rem;line-height:1.38}
+  .jose-inspector-close{display:grid;width:32px;height:32px;place-items:center;padding:0;border:1px solid #d5dadd;border-radius:9px;background:#fff;color:var(--as-muted,#5c626c);font:inherit;font-size:1.1rem;cursor:pointer}
+  .jose-inspector-close[hidden]{display:none}
+  .jose-controls{position:relative;z-index:10;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem 1rem;max-width:800px;margin:.9rem auto 0;align-items:end;isolation:isolate;pointer-events:auto}
   .jose-slider-control{min-width:0;pointer-events:auto}
   .jose-slider-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.3rem}
   .jose-slider-meta label{color:var(--as-ink,#17191d);font-size:.76rem;font-weight:850}
@@ -130,28 +196,34 @@ ringIds.forEach((id, index) => {
   .jose-replay{position:relative;z-index:11;min-height:40px;padding:.58rem .78rem;border:1px solid #ccd3d8;border-radius:10px;background:#fff;color:var(--as-green-dark,#174433);font:inherit;font-size:.74rem;font-weight:850;cursor:pointer;pointer-events:auto;touch-action:manipulation}
   .jose-replay:hover{border-color:#aebcb4;background:var(--as-green-soft,#eaf3ee)}
   .jose-replay:active{transform:translateY(1px)}
-  .jose-replay:focus-visible,.jose-slider-control input:focus-visible{outline:3px solid #f0b84b;outline-offset:3px}
-  .jose-prototype-note{max-width:720px;margin:.72rem auto 0!important;color:var(--as-muted,#5c626c)!important;font-size:.72rem;line-height:1.45;text-align:center}
+  .jose-replay:focus-visible,.jose-slider-control input:focus-visible,.jose-inspector-close:focus-visible{outline:3px solid #f0b84b;outline-offset:3px}
+  .jose-prototype-note{max-width:760px;margin:.72rem auto 0!important;color:var(--as-muted,#5c626c)!important;font-size:.72rem;line-height:1.45;text-align:center}
   @keyframes jose-node-float{0%,100%{transform:translate3d(0,-2px,0) rotate(-.7deg)}50%{transform:translate3d(2px,3px,0) rotate(.7deg)}}
   @media(max-width:760px){
-    .jose-stage{min-height:820px;border-radius:22px}
+    .jose-stage{min-height:1180px;border-radius:22px}
     .jose-stage::before{background-size:32px 32px}
-    .jose-center{top:50%;left:50%;width:49%;min-width:165px}
-    .jose-center::before{inset:-34% -28%}
-    .jose-signature-word{font-size:clamp(3.1rem,15vw,4.8rem)}
-    .jose-node{top:var(--my);left:var(--mx);width:78px}
-    .jose-node-orb{width:48px;height:48px;font-size:1rem;box-shadow:0 6px 15px rgba(25,33,44,.08),0 0 0 4px rgba(234,243,238,.62)}
-    .jose-node-label{max-width:78px;font-size:.58rem}
+    .jose-center{top:50%;left:50%;width:52%;min-width:160px}
+    .jose-center::before{inset:-38% -30%}
+    .jose-signature-word{font-size:clamp(3rem,14vw,4.6rem)}
+    .jose-node{left:clamp(42px,var(--x),calc(100% - 42px));width:72px}
+    .jose-node[data-ring="outer"]{left:clamp(34px,var(--x),calc(100% - 34px));width:60px}
+    .jose-node-orb{width:44px;height:44px;font-size:.94rem;box-shadow:0 6px 15px rgba(25,33,44,.075),0 0 0 3px rgba(234,243,238,.58)}
+    .jose-node[data-ring="outer"] .jose-node-orb{width:34px;height:34px;font-size:.72rem}
+    .jose-node-label{max-width:72px;font-size:.54rem}
+    .jose-node[data-ring="outer"] .jose-node-label{display:none}
+    .jose-inspector{grid-template-columns:auto minmax(0,1fr);margin-top:.75rem;padding:.72rem .8rem}
+    .jose-inspector-close{position:absolute;top:.45rem;right:.45rem}
+    .jose-inspector-copy{padding-right:1.7rem}
   }
   @media(max-width:560px){
     .jose-constellation-head{text-align:left}
     .jose-prototype-badge{margin-left:0}
-    .jose-stage{min-height:780px}
+    .jose-stage{min-height:1120px}
     .jose-controls{grid-template-columns:1fr}
     .jose-replay{width:max-content}
     .jose-prototype-note{text-align:left}
   }
-  @media(prefers-reduced-motion:reduce){.jose-node-float{animation:none}.jose-node-orb{transition:none}}
+  @media(prefers-reduced-motion:reduce){.jose-node-float{animation:none}.jose-node-orb,.jose-lines line{transition:none}}
 </style>
 
 <script is:inline data-astro-rerun>
@@ -167,10 +239,15 @@ ringIds.forEach((id, index) => {
     const slider = section.querySelector('[data-jose-slider]');
     const progressOutput = section.querySelector('[data-jose-progress]');
     const replay = section.querySelector('[data-jose-replay]');
+    const cardIcon = section.querySelector('[data-jose-card-icon]');
+    const cardCategory = section.querySelector('[data-jose-card-category]');
+    const cardTitle = section.querySelector('[data-jose-card-title]');
+    const cardInfo = section.querySelector('[data-jose-card-info]');
+    const cardClose = section.querySelector('[data-jose-card-close]');
     const nodes = Array.from(section.querySelectorAll('[data-jose-node]'));
     const lines = Array.from(section.querySelectorAll('[data-from][data-to]'));
 
-    if (!stage || !svg || !signature || !flourish || !slider || !progressOutput || !replay) return;
+    if (!stage || !svg || !signature || !flourish || !slider || !progressOutput || !replay || !cardIcon || !cardCategory || !cardTitle || !cardInfo || !cardClose) return;
 
     const nodeById = new Map(nodes.map((node) => [node.dataset.joseNode, node]));
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -181,6 +258,41 @@ ringIds.forEach((id, index) => {
     let animationFrame = 0;
     let connectorFrame = 0;
     let hasAutoPlayed = false;
+    let pinnedId = null;
+
+    const defaultCard = () => {
+      cardIcon.textContent = '✦';
+      cardCategory.textContent = 'Explore the constellation';
+      cardTitle.textContent = 'Hover, focus, or tap a José';
+      cardInfo.textContent = 'Hover gives you a quick look. Click or tap pins a José here while you explore the rest of the constellation.';
+      cardClose.hidden = true;
+      nodes.forEach((node) => node.classList.remove('is-active', 'is-pinned'));
+      lines.forEach((line) => line.classList.remove('is-active-edge'));
+    };
+
+    const showCard = (node, pinned = false) => {
+      if (!node) return;
+      const id = node.dataset.joseNode;
+      const orb = node.querySelector('.jose-node-orb');
+      cardIcon.textContent = orb ? orb.textContent.trim() : 'J';
+      cardCategory.textContent = node.dataset.joseCategory || 'José constellation';
+      cardTitle.textContent = node.dataset.joseTitle || 'José';
+      cardInfo.textContent = node.dataset.joseInfo || '';
+      cardClose.hidden = !pinned;
+
+      nodes.forEach((candidate) => {
+        candidate.classList.toggle('is-active', candidate === node);
+        candidate.classList.toggle('is-pinned', pinned && candidate === node);
+      });
+      lines.forEach((line) => {
+        line.classList.toggle('is-active-edge', line.dataset.from === id || line.dataset.to === id);
+      });
+    };
+
+    const restorePinnedOrDefault = () => {
+      if (pinnedId && nodeById.has(pinnedId)) showCard(nodeById.get(pinnedId), true);
+      else defaultCard();
+    };
 
     const setLineGeometry = () => {
       const stageRect = stage.getBoundingClientRect();
@@ -194,12 +306,10 @@ ringIds.forEach((id, index) => {
         const fromNode = nodeById.get(line.dataset.from);
         const toNode = nodeById.get(line.dataset.to);
         if (!fromNode || !toNode) return;
-
         const fromOrb = fromNode.querySelector('.jose-node-orb') || fromNode;
         const toOrb = toNode.querySelector('.jose-node-orb') || toNode;
         const fromRect = fromOrb.getBoundingClientRect();
         const toRect = toOrb.getBoundingClientRect();
-
         line.setAttribute('x1', String((fromRect.left + fromRect.width / 2 - stageRect.left) * scaleX));
         line.setAttribute('y1', String((fromRect.top + fromRect.height / 2 - stageRect.top) * scaleY));
         line.setAttribute('x2', String((toRect.left + toRect.width / 2 - stageRect.left) * scaleX));
@@ -209,29 +319,29 @@ ringIds.forEach((id, index) => {
 
     const applyProgress = (rawValue, syncSlider = true) => {
       progress = clamp(Number(rawValue) || 0, 0, 100);
-
       if (syncSlider) slider.value = String(Math.round(progress));
       progressOutput.textContent = `${Math.round(progress)}%`;
 
-      const signatureProgress = easeOut(clamp(progress / 34));
+      const signatureProgress = easeOut(clamp(progress / 30));
       signature.style.opacity = signatureProgress > .01 ? '1' : '0';
       signature.style.clipPath = `inset(0 ${100 - signatureProgress * 100}% 0 0)`;
 
-      const flourishProgress = easeOut(clamp((progress - 20) / 24));
+      const flourishProgress = easeOut(clamp((progress - 18) / 22));
       flourish.style.strokeDashoffset = String(1 - flourishProgress);
 
       nodes.forEach((node) => {
         const start = Number(node.dataset.reveal || 0);
-        const local = easeOut(clamp((progress - start) / 8));
+        const local = easeOut(clamp((progress - start) / 7));
         node.style.opacity = String(local);
         node.style.transform = `translate(-50%,-50%) scale(${0.72 + local * 0.28})`;
-        node.style.pointerEvents = local > .9 ? 'auto' : 'none';
+        node.style.pointerEvents = local > .88 ? 'auto' : 'none';
       });
 
       lines.forEach((line) => {
         const start = Number(line.dataset.reveal || 0);
-        const local = easeOut(clamp((progress - start) / 7));
-        line.style.opacity = String(local * .72);
+        const local = easeOut(clamp((progress - start) / 6));
+        const baseOpacity = line.dataset.kind === 'outer' ? .48 : line.dataset.kind === 'spoke' ? .42 : .68;
+        line.style.opacity = String(local * baseOpacity);
       });
 
       requestAnimationFrame(setLineGeometry);
@@ -248,18 +358,15 @@ ringIds.forEach((id, index) => {
         applyProgress(100);
         return;
       }
-
       applyProgress(0);
       const startedAt = performance.now();
-      const duration = 4300;
-
+      const duration = 5200;
       const tick = (now) => {
         const elapsed = clamp((now - startedAt) / duration);
         applyProgress(easeOut(elapsed) * 100);
         if (elapsed < 1) animationFrame = requestAnimationFrame(tick);
         else animationFrame = 0;
       };
-
       animationFrame = requestAnimationFrame(tick);
     };
 
@@ -282,6 +389,32 @@ ringIds.forEach((id, index) => {
       hasAutoPlayed = true;
     };
 
+    nodes.forEach((node) => {
+      node.addEventListener('mouseenter', () => {
+        if (!pinnedId) showCard(node, false);
+      });
+      node.addEventListener('mouseleave', () => {
+        if (!pinnedId) defaultCard();
+      });
+      node.addEventListener('focus', () => {
+        if (!pinnedId) showCard(node, false);
+      });
+      node.addEventListener('blur', () => {
+        if (!pinnedId) defaultCard();
+      });
+      node.addEventListener('click', () => {
+        const id = node.dataset.joseNode;
+        pinnedId = pinnedId === id ? null : id;
+        if (pinnedId) showCard(node, true);
+        else defaultCard();
+      });
+    });
+
+    cardClose.addEventListener('click', () => {
+      pinnedId = null;
+      defaultCard();
+    });
+
     slider.addEventListener('pointerdown', takeManualControl);
     slider.addEventListener('touchstart', takeManualControl, { passive: true });
     slider.addEventListener('input', () => {
@@ -291,6 +424,8 @@ ringIds.forEach((id, index) => {
     slider.addEventListener('change', () => applyProgress(slider.value, false));
 
     replay.addEventListener('click', () => {
+      pinnedId = null;
+      defaultCard();
       hasAutoPlayed = true;
       animateToFull();
     });
@@ -302,6 +437,7 @@ ringIds.forEach((id, index) => {
       window.addEventListener('resize', setLineGeometry, { passive: true });
     }
 
+    defaultCard();
     applyProgress(progress);
     requestAnimationFrame(setLineGeometry);
 
@@ -318,7 +454,7 @@ ringIds.forEach((id, index) => {
             stopConnectorLoop();
           }
         });
-      }, { threshold: .16 });
+      }, { threshold: .13 });
       observer.observe(stage);
     } else {
       hasAutoPlayed = true;
