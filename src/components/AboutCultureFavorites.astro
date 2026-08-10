@@ -1,0 +1,297 @@
+---
+const fragments = [
+  {
+    kind: 'Scene',
+    icon: '📚',
+    source: 'Don Quixote',
+    title: 'Sancho governing Barataria',
+    text: 'A tiny, absurd dispute involving a tailor is one of those comic scenes that survives in memory long after most plot details fade. Small moments can become the part of a book I carry longest.',
+    href: '/books/',
+    className: 'warm',
+  },
+  {
+    kind: 'Line',
+    icon: '✒️',
+    source: 'Cyrano de Bergerac',
+    title: '“Maintenant, je serais frénétique et fulminant !”',
+    text: 'A sentence remembered for its theatrical force as much as its meaning: language turning into motion, bravado, rhythm, and personality.',
+    href: '/books/',
+    className: 'quote',
+  },
+  {
+    kind: 'Scene',
+    icon: '🛩️',
+    source: 'Catch-22',
+    title: 'Milo’s impossible commercial web',
+    text: 'The escalating explanation of where Milo flies for produce and how his syndicate works is the kind of absurd machinery that becomes its own memory of the book.',
+    href: '/books/',
+    className: 'cool',
+  },
+];
+---
+
+<section class="culture-memory" aria-labelledby="culture-memory-title">
+  <div class="culture-memory-head">
+    <p class="culture-memory-eyebrow">Culture as autobiography</p>
+    <h2 id="culture-memory-title">Pieces I carry with me</h2>
+    <p>
+      Not a ranked top ten. These are the scenes, lines, sounds, images, and odd details that stayed in my head.
+      The full Culture pages can hold the larger archive; About Me only needs a few revealing fragments.
+    </p>
+  </div>
+
+  <div class="culture-memory-grid" aria-label="Selected cultural memories">
+    {fragments.map((fragment) => (
+      <a class:list={['culture-memory-card', fragment.className]} href={fragment.href}>
+        <div class="culture-memory-meta">
+          <span aria-hidden="true">{fragment.icon}</span>
+          <span>{fragment.kind}</span>
+        </div>
+        <h3>{fragment.title}</h3>
+        <p>{fragment.text}</p>
+        <span class="culture-memory-source">{fragment.source} <span aria-hidden="true">→</span></span>
+      </a>
+    ))}
+  </div>
+
+  <div class="culture-memory-footer">
+    <div>
+      <strong>A small window, not a duplicate archive.</strong>
+      <p>
+        As Favorites grows, this preview can rotate through a handful of book passages, album moments, classical passages,
+        artworks, and eventually films without turning the About page into another database.
+      </p>
+    </div>
+    <nav class="culture-memory-links" aria-label="Explore cultural interests">
+      <a href="/books/">📚 Books</a>
+      <a href="/music/albums/">💿 Albums</a>
+      <a href="/music/composers/">🎼 Classical</a>
+      <a href="/art/">🎨 Art</a>
+      <a href="/inspirations/">💡 Inspirations</a>
+    </nav>
+  </div>
+</section>
+
+<style>
+  .culture-memory,
+  .culture-memory * { box-sizing: border-box; }
+
+  .culture-memory {
+    --cm-ink: #17191d;
+    --cm-muted: #5c626c;
+    --cm-border: #e3ded1;
+    --cm-green: #174433;
+    margin-top: clamp(3rem, 7vw, 5.5rem);
+    padding: clamp(1.35rem, 4vw, 2.35rem);
+    border: 1px solid #e7ddbd;
+    border-radius: 26px;
+    background:
+      radial-gradient(circle at 9% 8%, rgba(223, 195, 123, .16), transparent 25%),
+      radial-gradient(circle at 92% 88%, rgba(93, 145, 118, .12), transparent 30%),
+      #fffdf8;
+  }
+
+  .culture-memory-head {
+    max-width: 800px;
+    margin: 0 auto 1.55rem;
+    text-align: center;
+  }
+
+  .culture-memory-eyebrow {
+    margin: 0 0 .62rem;
+    color: var(--cm-green);
+    font-size: .72rem;
+    font-weight: 850;
+    letter-spacing: .12em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .culture-memory-head h2 {
+    margin: 0 0 .78rem;
+    color: var(--cm-ink);
+    font-size: clamp(1.75rem, 4vw, 2.7rem);
+    line-height: 1.14;
+    letter-spacing: -.035em;
+    text-wrap: balance;
+  }
+
+  .culture-memory-head > p:last-child {
+    margin: 0;
+    color: var(--cm-muted);
+    line-height: 1.68;
+  }
+
+  .culture-memory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .85rem;
+  }
+
+  .culture-memory-card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 265px;
+    flex-direction: column;
+    padding: 1.15rem;
+    overflow: hidden;
+    border: 1px solid var(--cm-border);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .92);
+    color: var(--cm-ink) !important;
+    box-shadow: 0 7px 22px rgba(34, 39, 44, .045);
+    text-decoration: none !important;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+
+  .culture-memory-card::after {
+    position: absolute;
+    right: -.4rem;
+    bottom: -1.4rem;
+    color: rgba(23, 68, 51, .035);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 7rem;
+    line-height: 1;
+    content: '“';
+    pointer-events: none;
+  }
+
+  .culture-memory-card.warm { background: linear-gradient(145deg, #fffaf0, #fff 72%); }
+  .culture-memory-card.quote { background: linear-gradient(145deg, #f5f1e8, #fff 75%); }
+  .culture-memory-card.cool { background: linear-gradient(145deg, #f1f7f4, #fff 74%); }
+
+  .culture-memory-card:hover {
+    transform: translateY(-3px);
+    border-color: #cfc5aa;
+    box-shadow: 0 13px 30px rgba(34, 39, 44, .09);
+  }
+
+  .culture-memory-meta {
+    display: flex;
+    align-items: center;
+    gap: .42rem;
+    margin-bottom: 1rem;
+    color: var(--cm-green);
+    font-size: .64rem;
+    font-weight: 850;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .culture-memory-meta > span:first-child {
+    display: grid;
+    width: 31px;
+    height: 31px;
+    place-items: center;
+    border: 1px solid rgba(23, 68, 51, .1);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, .72);
+    font-size: .93rem;
+  }
+
+  .culture-memory-card h3 {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 .6rem;
+    color: var(--cm-ink);
+    font-size: clamp(1.04rem, 1.8vw, 1.22rem);
+    line-height: 1.22;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+  }
+
+  .culture-memory-card.quote h3 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1.15rem, 2vw, 1.42rem);
+    font-weight: 600;
+    line-height: 1.34;
+  }
+
+  .culture-memory-card p {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    color: var(--cm-muted);
+    font-size: .88rem;
+    line-height: 1.55;
+  }
+
+  .culture-memory-source {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    padding-top: 1rem;
+    color: var(--cm-green);
+    font-size: .78rem;
+    font-weight: 850;
+  }
+
+  .culture-memory-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1.25rem;
+    align-items: center;
+    margin-top: .95rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(147, 129, 84, .18);
+  }
+
+  .culture-memory-footer strong {
+    display: block;
+    margin-bottom: .18rem;
+    color: var(--cm-ink);
+    font-size: .88rem;
+  }
+
+  .culture-memory-footer p {
+    max-width: 690px;
+    margin: 0;
+    color: var(--cm-muted);
+    font-size: .8rem;
+    line-height: 1.45;
+  }
+
+  .culture-memory-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .42rem;
+  }
+
+  .culture-memory-links a {
+    padding: .45rem .62rem;
+    border: 1px solid #ddd8ca;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .85);
+    color: var(--cm-green) !important;
+    font-size: .74rem;
+    font-weight: 800;
+    text-decoration: none !important;
+  }
+
+  .culture-memory-card:focus-visible,
+  .culture-memory-links a:focus-visible {
+    outline: 3px solid #f0b84b;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 840px) {
+    .culture-memory-grid { grid-template-columns: 1fr; }
+    .culture-memory-card { min-height: 0; }
+    .culture-memory-footer { grid-template-columns: 1fr; }
+    .culture-memory-links { justify-content: flex-start; }
+  }
+
+  @media (max-width: 640px) {
+    .culture-memory {
+      padding: 1.2rem;
+      border-radius: 20px;
+    }
+    .culture-memory-head { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .culture-memory-card { transition: none; }
+  }
+</style>
