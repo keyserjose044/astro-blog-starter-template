@@ -3,6 +3,7 @@ import AboutLayout from '../../layouts/AboutLayout.astro';
 import AboutPhotoBubble from '../../components/AboutPhotoBubble.astro';
 import JoseConstellation from '../../components/JoseConstellation.astro';
 import '../../styles/about-split.css';
+import '../../styles/about-capability-map.css';
 
 const portraitCards = [
   {
@@ -50,6 +51,56 @@ const portraitCards = [
     text: 'Books I keep thinking about, music that moves me, paintings I stop for, people who shaped my thinking, words I love, and places that matter to me.',
     href: '/books/',
     cta: 'Start with Books',
+  },
+];
+
+const capabilityLanes = [
+  {
+    id: 'do',
+    icon: '◆',
+    eyebrow: 'Already part of my life',
+    title: 'Things I do / can do',
+    text: 'Skills and disciplines with real history behind them. Where the archive supports it, these can grow into evidence-backed totals instead of résumé adjectives.',
+    items: [
+      { emoji: '🎸', title: 'Guitar', meta: ['Active', 'Hours · sessions · streaks'], href: '/pursuits/guitar/' },
+      { emoji: '🧪', title: 'Civil engineering research', meta: ['Deep practice', 'Years · projects · lab time'] },
+      { emoji: '🌍', title: 'Languages', meta: ['Ongoing', 'Study time · languages'], href: '/pursuits/languages/' },
+      { emoji: '💃', title: 'Dance', meta: ['Active', 'Classes · hours · styles'], href: '/pursuits/dance/' },
+      { emoji: '🏃', title: 'Running', meta: ['Established', 'Mileage · hours · records'], href: '/pursuits/running/' },
+      { emoji: '📊', title: 'Data & logging systems', meta: ['Core habit', 'Years · logs · build time'], href: '/stats/' },
+    ],
+  },
+  {
+    id: 'more',
+    icon: '↗',
+    eyebrow: 'Known, but underused',
+    title: 'Things I want more of',
+    text: 'Not every aspiration requires mastery. Some things simply deserve a larger share of life than they currently get.',
+    items: [
+      { emoji: '🏊', title: 'Swimming', meta: ['More often', 'Sessions · last done'] },
+      { emoji: '⚽', title: 'Sports', meta: ['More often', 'Games · hours'] },
+      { emoji: '🎬', title: 'Films', meta: ['Make room', 'Films · hours watched'] },
+      { emoji: '🫂', title: 'Social outings', meta: ['More life', 'Outings · frequency'] },
+      { emoji: '🧭', title: 'Travel & day trips', meta: ['Occasional', 'Trips · days'] },
+      { emoji: '🥾', title: 'Outdoors & hiking', meta: ['More often', 'Outings · distance'] },
+    ],
+  },
+  {
+    id: 'learn',
+    icon: '✦',
+    eyebrow: 'The curiosity queue',
+    title: 'Things I want to learn',
+    text: 'Some are serious ambitions; others are gloriously specific curiosities. Either way, they reveal where my attention wants to wander next.',
+    items: [
+      { emoji: '✒️', title: 'Calligraphy', meta: ['Someday', 'Challenge candidate'] },
+      { emoji: '🎙️', title: 'Auctioneer calling', meta: ['Curious', 'Challenge candidate'] },
+      { emoji: '🤹', title: 'Juggling', meta: ['Someday', 'Challenge candidate'] },
+      { emoji: '🚲', title: 'Ride a unicycle', meta: ['Someday', 'Challenge candidate'] },
+      { emoji: '🔌', title: 'Electronics & appliance internals', meta: ['Curious', 'Projects · hours'] },
+      { emoji: '✈️', title: 'Fly a plane', meta: ['Big goal', 'Training · hours'] },
+      { emoji: '🎹', title: 'Piano', meta: ['Someday', 'Practice · repertoire'] },
+      { emoji: '🎵', title: 'Harmonica', meta: ['Someday', 'Practice · repertoire'] },
+    ],
   },
 ];
 
@@ -120,6 +171,76 @@ const structuredData = {
             {card.href && <a class="about-card-link" href={card.href}>{card.cta} →</a>}
           </article>
         ))}
+      </div>
+    </section>
+
+    <section class="about-section about-capability-map" aria-labelledby="capability-title">
+      <div class="about-capability-intro">
+        <div>
+          <p class="about-eyebrow">Abilities, appetite & unfinished curiosity</p>
+          <h2 id="capability-title">What I can do, want more of, and still want to learn</h2>
+          <p>
+            A life is more than completed achievements. This is a moving map of the skills already built, experiences I would like to make more room for,
+            and the odd or ambitious things I hope to learn someday.
+          </p>
+        </div>
+        <div class="about-capability-key" aria-label="Capability map legend">
+          <span>Do<br />built already</span>
+          <span>Do more<br />make room</span>
+          <span>Learn<br />curiosity queue</span>
+        </div>
+      </div>
+
+      <div class="about-capability-lanes">
+        {capabilityLanes.map((lane) => (
+          <article class="about-capability-lane" data-lane={lane.id}>
+            <div class="about-capability-lane-head">
+              <span class="about-capability-lane-icon" aria-hidden="true">{lane.icon}</span>
+              <p class="about-eyebrow">{lane.eyebrow}</p>
+              <h3>{lane.title}</h3>
+              <p>{lane.text}</p>
+            </div>
+            <div class="about-capability-items">
+              {lane.items.map((item) => item.href ? (
+                <a class="about-capability-item" href={item.href}>
+                  <span class="about-capability-item-top">
+                    <span class="about-capability-item-emoji" aria-hidden="true">{item.emoji}</span>
+                    <strong>{item.title}</strong>
+                    <span class="about-capability-item-arrow" aria-hidden="true">→</span>
+                  </span>
+                  <span class="about-capability-meta">
+                    {item.meta.map((meta) => <span>{meta}</span>)}
+                  </span>
+                </a>
+              ) : (
+                <div class="about-capability-item">
+                  <span class="about-capability-item-top">
+                    <span class="about-capability-item-emoji" aria-hidden="true">{item.emoji}</span>
+                    <strong>{item.title}</strong>
+                  </span>
+                  <span class="about-capability-meta">
+                    {item.meta.map((meta) => <span>{meta}</span>)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div class="about-capability-note">
+        <span aria-hidden="true">⏱️</span>
+        <p>
+          <strong>Designed to become data-backed.</strong> The second tag on each card is the metric slot: actual hours, sessions, years active, frequency,
+          last practiced, mileage, classes, or another useful measure can replace the label as the archive gains a clean source of truth. No invented precision.
+        </p>
+      </div>
+      <div class="about-capability-note">
+        <span aria-hidden="true">🎲</span>
+        <p>
+          <strong>Future challenge mode:</strong> items in the learning queue can eventually become one-day, one-week, or longer experiments—pick a curiosity,
+          define what “learned enough” means, track the effort, and preserve the result.
+        </p>
       </div>
     </section>
 
