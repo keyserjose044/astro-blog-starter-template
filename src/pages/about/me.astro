@@ -1,6 +1,7 @@
 ---
 import AboutLayout from '../../layouts/AboutLayout.astro';
 import AboutPhotoBubble from '../../components/AboutPhotoBubble.astro';
+import JoseConstellation from '../../components/JoseConstellation.astro';
 import '../../styles/about-split.css';
 
 const portraitCards = [
@@ -27,10 +28,12 @@ const portraitCards = [
     text: 'A public-safe diary corpus will eventually offer the qualitative counterpart: recurring themes, concerns, joys, phrases, values, and changes that statistics alone cannot describe.',
   },
   {
-    icon: 'J',
-    status: 'Planned',
+    icon: '✦',
+    status: 'Live now',
     title: 'The José constellation',
-    text: 'José José, José María Napoleón, Joseph, Yusuf, José Martí, José Rizal, and other namesakes orbiting a central signature—part cultural collage, part playful identity map.',
+    text: 'José José, José María Napoleón, Joseph, Yusuf, José Martí, José Rizal, and other namesakes orbit a central signature—part cultural collage, part playful identity map.',
+    href: '#jose-constellation',
+    cta: 'Enter the constellation',
   },
   {
     icon: '🎯',
@@ -67,7 +70,7 @@ const structuredData = {
 <AboutLayout
   title="About Me"
   description="Who is José? A portrait assembled from family roots, pursuits, data, writing, and the things I love."
-  pubDate="2026-08-08"
+  pubDate="2026-08-09"
   wide={true}
   showViews={false}
 >
@@ -119,6 +122,8 @@ const structuredData = {
         ))}
       </div>
     </section>
+
+    <JoseConstellation />
 
     <section class="about-section" aria-labelledby="evidence-title">
       <div class="about-section-head">
