@@ -58,6 +58,7 @@ const dayBase = `${base}day/`;
         <span class="filter-actions" aria-label="Filter shortcuts">
           <button type="button" data-filter-all>All</button>
           <button type="button" data-filter-clear>Clear</button>
+          <button type="button" data-calendar-share aria-label="Copy a link to this calendar view">Copy link</button>
         </span>
       </div>
     </div>
@@ -112,6 +113,7 @@ const dayBase = `${base}day/`;
     const soloButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-pursuit-solo]'));
     const filterAll = root.querySelector<HTMLButtonElement>('[data-filter-all]');
     const filterClear = root.querySelector<HTMLButtonElement>('[data-filter-clear]');
+    const shareButton = root.querySelector<HTMLButtonElement>('[data-calendar-share]');
     const breakdown = root.querySelector<HTMLElement>('[data-calendar-breakdown]');
     const breakdownTitle = root.querySelector<HTMLElement>('[data-breakdown-title]');
     const breakdownGrid = root.querySelector<HTMLElement>('[data-breakdown-grid]');
@@ -141,6 +143,50 @@ const dayBase = `${base}day/`;
         .map((button) => button.dataset.pursuitFilter as PursuitName),
     );
     const setFilter = (button: HTMLButtonElement, selected: boolean) => button.setAttribute('aria-pressed', String(selected));
+
+    const applyUrlState = (incoming: DailyMeta, through: Date) => {
+      const params = new URLSearchParams(window.location.search);
+      const requestedView = params.get('view');
+      if (requestedView === 'year' || requestedView === 'month') viewMode = requestedView;
+
+      const requestedYear = Number(params.get('year'));
+      if (Number.isInteger(requestedYear) && incoming.availableYears.includes(requestedYear)) viewYear = requestedYear;
+
+      const requestedMonth = Number(params.get('month'));
+      if (Number.isInteger(requestedMonth) && requestedMonth >= 1 && requestedMonth <= 12) viewMonth = requestedMonth - 1;
+
+      if (params.has('pursuits')) {
+        const requestedPursuits = new Set(
+          (params.get('pursuits') || '')
+            .split(',')
+            .filter((value): value is PursuitName => pursuitOrder.includes(value as PursuitName)),
+        );
+        filterButtons.forEach((button) => setFilter(button, requestedPursuits.has(button.dataset.pursuitFilter as PursuitName)));
+      }
+
+      if (viewYear === through.getFullYear() && viewMonth > through.getMonth()) viewMonth = through.getMonth();
+    };
+
+    const syncUrlState = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('year', String(viewYear));
+      if (viewMode === 'year') {
+        url.searchParams.set('view', 'year');
+        url.searchParams.delete('month');
+      } else {
+        url.searchParams.delete('view');
+        url.searchParams.set('month', String(viewMonth + 1));
+      }
+
+      const selected = selectedPursuits();
+      if (selected.size === pursuitOrder.length) {
+        url.searchParams.delete('pursuits');
+      } else {
+        url.searchParams.set('pursuits', pursuitOrder.filter((pursuit) => selected.has(pursuit)).join(','));
+      }
+
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    };
 
     const eventsFor = (record: DailyRecord): PursuitEvent[] => {
       const events: PursuitEvent[] = [];
@@ -337,6 +383,7 @@ const dayBase = `${base}day/`;
       status.textContent = 'Loading pursuit activity…';
       grid.setAttribute('aria-busy', 'true');
       syncControls();
+      syncUrlState();
       try {
         const records = await loadYear(viewYear);
         if (token !== requestToken) return;
@@ -402,12 +449,24 @@ const dayBase = `${base}day/`;
       filterButtons.forEach((button) => setFilter(button, false));
       void render();
     });
+    shareButton?.addEventListener('click', async () => {
+      syncUrlState();
+      const originalText = shareButton.textContent || 'Copy link';
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        shareButton.textContent = 'Copied!';
+      } catch {
+        shareButton.textContent = 'URL updated';
+      }
+      window.setTimeout(() => { shareButton.textContent = originalText; }, 1400);
+    });
 
     getDailyMeta().then((incoming) => {
       meta = incoming;
       const through = incoming.dataThrough ? parseIso(incoming.dataThrough) : new Date();
       viewYear = through.getFullYear();
       viewMonth = through.getMonth();
+      applyUrlState(incoming, through);
       incoming.availableYears.slice().sort((a, b) => b - a).forEach((year) => {
         const option = document.createElement('option');
         option.value = String(year);
@@ -462,7 +521,7 @@ const dayBase = `${base}day/`;
   .calendar-grid :global(.year-day){position:relative;display:block;aspect-ratio:1;min-width:0;overflow:hidden;border:1px solid #e6e9ef;border-radius:6px;background:#fff;color:#454c5b;text-decoration:none}.calendar-grid :global(a.year-day:hover){z-index:1;border-color:#aeb8ff;box-shadow:0 0 0 2px rgba(64,92,245,.12)}.calendar-grid :global(.year-day--blank){visibility:hidden}.calendar-grid :global(.year-day--future){background:#f5f6f8;color:#b8bec8}.calendar-grid :global(.year-day--active){background:#fafbff}
   .calendar-grid :global(.year-day-number){position:absolute;top:2px;left:3px;font-size:.49rem;font-weight:850;line-height:1}.calendar-grid :global(.year-day-marks){position:absolute;left:3px;right:3px;bottom:3px;display:grid;gap:1px}.calendar-grid :global(.year-mark){--mark-fill:50%;display:block;width:var(--mark-fill);height:2px;border-radius:999px;background:#405cf5}.calendar-grid :global(.year-mark--guitar){background:#b86b24}.calendar-grid :global(.year-mark--dance){background:#bd377f}.calendar-grid :global(.year-mark--running){background:#237957}.calendar-grid :global(.year-mark--languages){background:#405cf5}
   .calendar-breakdown{padding:16px 18px 18px;border-top:1px solid #e7ebf1;background:linear-gradient(180deg,#fbfcfe,#f8fafc)}.calendar-breakdown[hidden]{display:none}.breakdown-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:11px}.breakdown-heading p{margin:0 0 2px;color:#405cf5;font-size:.56rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.breakdown-heading h4{margin:0;color:#1d2430;font-size:.95rem}.breakdown-heading>span{color:#78808e;font-size:.66rem}
-  .breakdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.breakdown-card{--breakdown-color:#405cf5;display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid #e2e6ed;border-radius:13px;background:#fff;box-shadow:0 4px 14px rgba(15,23,42,.035)}.breakdown-card--guitar{--breakdown-color:#b86b24}.breakdown-card--dance{--breakdown-color:#bd377f}.breakdown-card--running{--breakdown-color:#237957}.breakdown-card--languages{--breakdown-color:#405cf5}.breakdown-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--breakdown-color) 11%,white);font-size:1rem}.breakdown-card div{min-width:0}.breakdown-card p{margin:0;color:var(--breakdown-color);font-size:.62rem;font-weight:900}.breakdown-card strong{display:block;margin-top:1px;color:#1f2632;font-size:1.05rem;line-height:1.15}.breakdown-card small{display:block;margin-top:2px;color:#818896;font-size:.59rem}.breakdown-empty{grid-column:1/-1;margin:0;padding:11px 12px;border:1px dashed #d9dee7;border-radius:12px;color:#7a8290;font-size:.72rem;text-align:center}
+  .breakdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.breakdown-grid :global(.breakdown-card){--breakdown-color:#405cf5;display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid #e2e6ed;border-radius:13px;background:#fff;box-shadow:0 4px 14px rgba(15,23,42,.035)}.breakdown-grid :global(.breakdown-card--guitar){--breakdown-color:#b86b24}.breakdown-grid :global(.breakdown-card--dance){--breakdown-color:#bd377f}.breakdown-grid :global(.breakdown-card--running){--breakdown-color:#237957}.breakdown-grid :global(.breakdown-card--languages){--breakdown-color:#405cf5}.breakdown-grid :global(.breakdown-icon){display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--breakdown-color) 11%,white);font-size:1rem}.breakdown-grid :global(.breakdown-card div){min-width:0}.breakdown-grid :global(.breakdown-card p){margin:0;color:var(--breakdown-color);font-size:.62rem;font-weight:900}.breakdown-grid :global(.breakdown-card strong){display:block;margin-top:1px;color:#1f2632;font-size:1.05rem;line-height:1.15}.breakdown-grid :global(.breakdown-card small){display:block;margin-top:2px;color:#818896;font-size:.59rem}.breakdown-grid :global(.breakdown-empty){grid-column:1/-1;margin:0;padding:11px 12px;border:1px dashed #d9dee7;border-radius:12px;color:#7a8290;font-size:.72rem;text-align:center}
   .calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:11px 16px;border-top:1px solid #e7ebf1;background:#f8fafc}.calendar-footer p{margin:0;color:#697180;font-size:.7rem}.calendar-status{font-weight:750}.calendar-error{grid-column:1/-1;display:grid;min-height:280px;place-items:center;margin:0;color:#991b1b;background:#fff1f2}
 
   @media(max-width:1150px){
@@ -472,18 +531,18 @@ const dayBase = `${base}day/`;
     .calendar-heading{align-items:stretch;flex-direction:column}.calendar-summary{width:100%}.toolbar-main{grid-template-columns:1fr auto;grid-template-areas:"period view" "nav nav";gap:10px}.calendar-period{grid-area:period;justify-self:start}.view-toggle{grid-area:view;justify-self:end}.month-controls{grid-area:nav;justify-self:center}.calendar-filters{justify-content:center}.calendar-grid{grid-auto-rows:minmax(96px,1fr)}.calendar-grid :global(.day){min-height:96px}.calendar-grid :global(.year-months){grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}.calendar-footer{align-items:flex-start;flex-direction:column}
   }
   @media(max-width:620px){
-    .calendar-section{padding-inline:10px}.calendar-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.calendar-summary div{padding:10px 6px}.calendar-toolbar{padding:12px 10px}.toolbar-main{grid-template-columns:1fr;grid-template-areas:"period" "view" "nav";justify-items:center}.calendar-period{justify-self:center;flex-wrap:wrap}.calendar-period h3{width:100%;min-width:0}.view-toggle{justify-self:center}.month-controls{justify-self:center}.weekdays span{padding:7px 2px;font-size:.59rem}.calendar-grid{grid-auto-rows:minmax(72px,1fr)}.calendar-grid :global(.day){min-height:72px;padding:5px}.calendar-grid :global(.event){height:6px;padding:0;border-radius:999px;color:transparent;font-size:0;text-shadow:none}.calendar-grid :global(.day-number){margin-bottom:5px}.calendar-filters{gap:5px}.filter-option{padding:5px 6px}.filter-solo{padding:5px}.filter-actions{width:100%;justify-content:center;margin-left:0}.calendar-grid :global(.year-months){grid-template-columns:1fr;padding:10px}.calendar-grid :global(.year-month){padding:10px}.calendar-grid :global(.year-day-number){font-size:.56rem}.calendar-grid :global(.year-mark){height:3px}.calendar-breakdown{padding:13px 10px 14px}.breakdown-heading{align-items:flex-start;flex-direction:column;gap:3px}.breakdown-grid{grid-template-columns:1fr}.breakdown-card{padding:9px 10px}
+    .calendar-section{padding-inline:10px}.calendar-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.calendar-summary div{padding:10px 6px}.calendar-toolbar{padding:12px 10px}.toolbar-main{grid-template-columns:1fr;grid-template-areas:"period" "view" "nav";justify-items:center}.calendar-period{justify-self:center;flex-wrap:wrap}.calendar-period h3{width:100%;min-width:0}.view-toggle{justify-self:center}.month-controls{justify-self:center}.weekdays span{padding:7px 2px;font-size:.59rem}.calendar-grid{grid-auto-rows:minmax(72px,1fr)}.calendar-grid :global(.day){min-height:72px;padding:5px}.calendar-grid :global(.event){height:6px;padding:0;border-radius:999px;color:transparent;font-size:0;text-shadow:none}.calendar-grid :global(.day-number){margin-bottom:5px}.calendar-filters{gap:5px}.filter-option{padding:5px 6px}.filter-solo{padding:5px}.filter-actions{width:100%;justify-content:center;margin-left:0}.calendar-grid :global(.year-months){grid-template-columns:1fr;padding:10px}.calendar-grid :global(.year-month){padding:10px}.calendar-grid :global(.year-day-number){font-size:.56rem}.calendar-grid :global(.year-mark){height:3px}.calendar-breakdown{padding:13px 10px 14px}.breakdown-heading{align-items:flex-start;flex-direction:column;gap:3px}.breakdown-grid{grid-template-columns:1fr}.breakdown-grid :global(.breakdown-card){padding:9px 10px}
   }
 
   :global(html.dark) .calendar-heading h2,:global(body.dark) .calendar-heading h2{color:#f8fafc}
   :global(html.dark) .calendar-shell,:global(body.dark) .calendar-shell,:global(html.dark) .calendar-summary div,:global(body.dark) .calendar-summary div{background:rgba(15,23,42,.92);border-color:rgba(148,163,184,.18)}
-  :global(html.dark) .calendar-summary strong,:global(body.dark) .calendar-summary strong,:global(html.dark) .calendar-period h3,:global(body.dark) .calendar-period h3,:global(html.dark) .breakdown-heading h4,:global(body.dark) .breakdown-heading h4,:global(html.dark) .breakdown-card strong,:global(body.dark) .breakdown-card strong{color:#f8fafc}
+  :global(html.dark) .calendar-summary strong,:global(body.dark) .calendar-summary strong,:global(html.dark) .calendar-period h3,:global(body.dark) .calendar-period h3,:global(html.dark) .breakdown-heading h4,:global(body.dark) .breakdown-heading h4,:global(html.dark) .breakdown-grid :global(.breakdown-card strong),:global(body.dark) .breakdown-grid :global(.breakdown-card strong){color:#f8fafc}
   :global(html.dark) .calendar-toolbar,:global(body.dark) .calendar-toolbar,:global(html.dark) .calendar-footer,:global(body.dark) .calendar-footer,:global(html.dark) .weekdays,:global(body.dark) .weekdays,:global(html.dark) .calendar-breakdown,:global(body.dark) .calendar-breakdown{background:#0f172a;border-color:rgba(148,163,184,.16)}
   :global(html.dark) .calendar-filters,:global(body.dark) .calendar-filters{border-color:rgba(148,163,184,.12)}
-  :global(html.dark) .month-controls button,:global(body.dark) .month-controls button,:global(html.dark) .calendar-period select,:global(body.dark) .calendar-period select,:global(html.dark) .view-toggle,:global(body.dark) .view-toggle,:global(html.dark) .filter-option,:global(body.dark) .filter-option,:global(html.dark) .filter-solo,:global(body.dark) .filter-solo,:global(html.dark) .filter-actions button,:global(body.dark) .filter-actions button,:global(html.dark) .breakdown-card,:global(body.dark) .breakdown-card{background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.2)}
+  :global(html.dark) .month-controls button,:global(body.dark) .month-controls button,:global(html.dark) .calendar-period select,:global(body.dark) .calendar-period select,:global(html.dark) .view-toggle,:global(body.dark) .view-toggle,:global(html.dark) .filter-option,:global(body.dark) .filter-option,:global(html.dark) .filter-solo,:global(body.dark) .filter-solo,:global(html.dark) .filter-actions button,:global(body.dark) .filter-actions button,:global(html.dark) .breakdown-grid :global(.breakdown-card),:global(body.dark) .breakdown-grid :global(.breakdown-card){background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.2)}
   :global(html.dark) .view-toggle button,:global(body.dark) .view-toggle button{color:#aeb7c5;border-color:rgba(148,163,184,.2)}:global(html.dark) .view-toggle button[aria-pressed="true"],:global(body.dark) .view-toggle button[aria-pressed="true"]{background:#20284d;color:#c7d2fe}:global(html.dark) .view-toggle button:hover,:global(body.dark) .view-toggle button:hover{background:#172033}
   :global(html.dark) .filter-option[aria-pressed="true"],:global(body.dark) .filter-option[aria-pressed="true"]{background:color-mix(in srgb,var(--filter-color) 18%,#111827);border-color:color-mix(in srgb,var(--filter-color) 45%,#334155);color:#f8fafc}
   :global(html.dark) .filter-option:hover,:global(body.dark) .filter-option:hover,:global(html.dark) .filter-solo:hover,:global(body.dark) .filter-solo:hover{background:color-mix(in srgb,var(--filter-color) 20%,#111827);border-color:color-mix(in srgb,var(--filter-color) 48%,#334155);color:#f8fafc}
   :global(html.dark) .calendar-grid :global(.day),:global(body.dark) .calendar-grid :global(.day){background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.day--outside),:global(body.dark) .calendar-grid :global(.day--outside),:global(html.dark) .calendar-grid :global(.day--future),:global(body.dark) .calendar-grid :global(.day--future){background:#0f172a;color:#64748b}
-  :global(html.dark) .calendar-grid :global(.year-month),:global(body.dark) .calendar-grid :global(.year-month){background:#0f172a;border-color:rgba(148,163,184,.16)}:global(html.dark) .calendar-grid :global(.year-month h4),:global(body.dark) .calendar-grid :global(.year-month h4){color:#f1f5f9}:global(html.dark) .calendar-grid :global(.year-day),:global(body.dark) .calendar-grid :global(.year-day){background:#111827;color:#dbe3ee;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.year-day--future),:global(body.dark) .calendar-grid :global(.year-day--future){background:#0b1220;color:#596579}:global(html.dark) .breakdown-icon,:global(body.dark) .breakdown-icon{background:color-mix(in srgb,var(--breakdown-color) 20%,#111827)}
+  :global(html.dark) .calendar-grid :global(.year-month),:global(body.dark) .calendar-grid :global(.year-month){background:#0f172a;border-color:rgba(148,163,184,.16)}:global(html.dark) .calendar-grid :global(.year-month h4),:global(body.dark) .calendar-grid :global(.year-month h4){color:#f1f5f9}:global(html.dark) .calendar-grid :global(.year-day),:global(body.dark) .calendar-grid :global(.year-day){background:#111827;color:#dbe3ee;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.year-day--future),:global(body.dark) .calendar-grid :global(.year-day--future){background:#0b1220;color:#596579}:global(html.dark) .breakdown-grid :global(.breakdown-icon),:global(body.dark) .breakdown-grid :global(.breakdown-icon){background:color-mix(in srgb,var(--breakdown-color) 20%,#111827)}
 </style>
