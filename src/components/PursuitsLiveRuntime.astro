@@ -62,11 +62,11 @@ const context: Partial<Record<Exclude<PursuitSection, 'overview' | 'guitar'>, Ar
             <p class="pursuits-live-spark-label">{pursuit.key === 'dance' ? 'Since Jun 2026' : 'Last 12 months'}</p>
             <dl>
               <div><dt data-live-year-label>Year</dt><dd data-live-year>—</dd></div>
-              <div><dt>Days practiced</dt><dd data-live-active>—</dd></div>
+              <div><dt>Practice days</dt><dd data-live-active>—</dd></div>
               <div><dt>Best month</dt><dd data-live-best-month>—</dd></div>
               <div><dt>Last active</dt><dd data-live-last>—</dd></div>
             </dl>
-            <a href={pursuit.href}>Open {pursuit.label} <span aria-hidden="true">→</span></a>
+            <a href={pursuit.href} aria-label={`Explore ${pursuit.label}`}>Explore {pursuit.label} <span aria-hidden="true">→</span></a>
           </article>
         ))}
       </div>
