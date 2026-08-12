@@ -1,0 +1,15 @@
+.pursuits-live-overview .pursuits-live-card-grid{margin-bottom:1rem}
+
+.pursuits-live-overview .pursuits-live-spark{margin-bottom:.18rem}
+
+.pursuits-live-overview .pursuits-live-spark-label{margin:0 0 .55rem!important;color:#8a91a0!important;font-size:.56rem;font-weight:850;letter-spacing:.07em;line-height:1.2;text-transform:uppercase}
+
+.pursuits-live-overview .pursuits-live-status{display:flex;align-items:center;justify-content:center;gap:.42rem;margin:0!important;padding:.78rem .5rem 0;border-top:1px solid rgba(148,163,184,.18);color:#6f7785!important;font-size:.69rem!important;font-weight:720;line-height:1.4;text-align:center}
+
+.pursuits-live-overview .pursuits-live-status::before{content:'';width:.46rem;height:.46rem;flex:0 0 auto;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.10)}
+
+.pursuits-live-overview .pursuits-live-status:not([data-state="live"])::before{background:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.10)}
+
+html.dark .pursuits-live-overview .pursuits-live-spark-label,body.dark .pursuits-live-overview .pursuits-live-spark-label,html[data-theme=dark] .pursuits-live-overview .pursuits-live-spark-label{color:#7f8a9c!important}
+
+html.dark .pursuits-live-overview .pursuits-live-status,body.dark .pursuits-live-overview .pursuits-live-status,html[data-theme=dark] .pursuits-live-overview .pursuits-live-status{border-color:rgba(148,163,184,.16);color:#94a3b8!important}
