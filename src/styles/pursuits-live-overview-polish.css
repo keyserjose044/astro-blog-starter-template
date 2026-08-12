@@ -1,15 +1,49 @@
-.pursuits-live-overview .pursuits-live-card-grid{margin-bottom:1rem}
+/* Pursuits overview consolidation + Live Archive Pulse polish */
 
+/* The persistent Pursuits nav and Live Archive Pulse are now the two navigation systems.
+   Remove the duplicate hero link stack and the duplicate giant development-card gallery. */
+.pursuits-page .hero-map,
+.pursuits-page .pursuit-gallery{display:none!important}
+
+.pursuits-page .hero{grid-template-columns:minmax(0,1fr)!important;min-height:390px!important;padding-top:58px!important;padding-bottom:58px!important}
+.pursuits-page .hero-copy{max-width:930px}
+.pursuits-page .hero-lede{max-width:850px}
+.pursuits-page .hero-note{max-width:790px}
+
+.pursuits-live-overview .pursuits-live-heading--split{grid-template-columns:minmax(0,1.15fr) minmax(260px,.58fr);gap:clamp(1.3rem,3vw,3rem)}
+.pursuits-live-overview .pursuits-live-heading--split>p:last-child{max-width:31rem;justify-self:end;font-size:.9rem;line-height:1.58}
+
+.pursuits-live-overview .pursuits-live-card-grid{margin-bottom:1.8rem}
 .pursuits-live-overview .pursuits-live-spark{margin-bottom:.18rem}
-
 .pursuits-live-overview .pursuits-live-spark-label{margin:0 0 .55rem!important;color:#8a91a0!important;font-size:.56rem;font-weight:850;letter-spacing:.07em;line-height:1.2;text-transform:uppercase}
+.pursuits-live-overview .pursuits-live-spark .pursuits-live-mark{cursor:help;transition:opacity .14s ease,filter .14s ease}
+.pursuits-live-overview .pursuits-live-spark .pursuits-live-mark:hover,
+.pursuits-live-overview .pursuits-live-spark .pursuits-live-mark:focus{opacity:1!important;filter:brightness(.92)}
 
-.pursuits-live-overview .pursuits-live-status{display:flex;align-items:center;justify-content:center;gap:.42rem;margin:0!important;padding:.78rem .5rem 0;border-top:1px solid rgba(148,163,184,.18);color:#6f7785!important;font-size:.69rem!important;font-weight:720;line-height:1.4;text-align:center}
+/* Make each data card the primary discovery gateway rather than another tiny text link. */
+.pursuits-live-overview .pursuits-live-card>a{margin-top:auto;padding:.72rem .82rem;border:1px solid color-mix(in srgb,var(--pursuit-accent) 28%,#e1e6ed);border-radius:.8rem;background:color-mix(in srgb,var(--pursuit-accent) 8%,#fff);color:color-mix(in srgb,var(--pursuit-accent) 92%,#111827);font-size:.79rem;font-weight:900;text-decoration:none;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease}
+.pursuits-live-overview .pursuits-live-card>a:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--pursuit-accent) 55%,#d7dde7);background:color-mix(in srgb,var(--pursuit-accent) 13%,#fff);box-shadow:0 7px 18px color-mix(in srgb,var(--pursuit-accent) 12%,transparent);text-decoration:none}
+.pursuits-live-overview .pursuits-live-card>a:focus-visible{outline:2px solid var(--pursuit-accent);outline-offset:2px}
 
-.pursuits-live-overview .pursuits-live-status::before{content:'';width:.46rem;height:.46rem;flex:0 0 auto;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.10)}
-
+/* A real footer row, visibly separated from the cards. */
+.pursuits-live-overview .pursuits-live-status{display:flex;align-items:center;justify-content:center;gap:.46rem;margin:0!important;padding:.9rem .5rem .1rem;border-top:1px solid rgba(148,163,184,.22);color:#606978!important;font-size:.7rem!important;font-weight:780;line-height:1.4;text-align:center}
+.pursuits-live-overview .pursuits-live-status::before{content:'';width:.48rem;height:.48rem;flex:0 0 auto;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.11)}
 .pursuits-live-overview .pursuits-live-status:not([data-state="live"])::before{background:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.10)}
 
-html.dark .pursuits-live-overview .pursuits-live-spark-label,body.dark .pursuits-live-overview .pursuits-live-spark-label,html[data-theme=dark] .pursuits-live-overview .pursuits-live-spark-label{color:#7f8a9c!important}
+@media(max-width:760px){
+  .pursuits-page .hero{min-height:0!important;padding-top:42px!important;padding-bottom:42px!important}
+  .pursuits-live-overview .pursuits-live-heading--split{grid-template-columns:1fr}
+  .pursuits-live-overview .pursuits-live-heading--split>p:last-child{max-width:42rem;justify-self:start;font-size:.86rem}
+}
 
-html.dark .pursuits-live-overview .pursuits-live-status,body.dark .pursuits-live-overview .pursuits-live-status,html[data-theme=dark] .pursuits-live-overview .pursuits-live-status{border-color:rgba(148,163,184,.16);color:#94a3b8!important}
+html.dark .pursuits-live-overview .pursuits-live-spark-label,
+body.dark .pursuits-live-overview .pursuits-live-spark-label,
+html[data-theme=dark] .pursuits-live-overview .pursuits-live-spark-label{color:#7f8a9c!important}
+
+html.dark .pursuits-live-overview .pursuits-live-status,
+body.dark .pursuits-live-overview .pursuits-live-status,
+html[data-theme=dark] .pursuits-live-overview .pursuits-live-status{border-color:rgba(148,163,184,.2);color:#a4adbb!important}
+
+html.dark .pursuits-live-overview .pursuits-live-card>a,
+body.dark .pursuits-live-overview .pursuits-live-card>a,
+html[data-theme=dark] .pursuits-live-overview .pursuits-live-card>a{border-color:color-mix(in srgb,var(--pursuit-accent) 36%,#334155);background:color-mix(in srgb,var(--pursuit-accent) 12%,#111827);color:color-mix(in srgb,var(--pursuit-accent) 72%,#fff)}
