@@ -16,8 +16,6 @@ import { SITE_TITLE } from '../../consts';
 <VideoBg>
   <Header />
   <main class="pursuits-page">
-    <PursuitsNav active="overview" />
-
     <section class="pursuits-hero" aria-labelledby="pursuits-title">
       <div class="pursuits-hero__copy">
         <p class="pursuits-hero__eyebrow">The practiced side of LifeLoggerz</p>
@@ -39,6 +37,9 @@ import { SITE_TITLE } from '../../consts';
         <button id="hero-audio-toggle" class="pursuits-hero__audio" type="button" aria-label="Unmute guitar clip" aria-pressed="false">🔇</button>
       </div>
     </section>
+
+    <PursuitsNav active="overview" />
+    <div class="hero pursuits-live-anchor" aria-hidden="true"></div>
 
     <div id="calendar"><PursuitCalendar /></div>
 
@@ -92,6 +93,7 @@ import { SITE_TITLE } from '../../consts';
 <style>
   * { box-sizing:border-box; }
   .pursuits-page { min-height:100vh; padding-bottom:58px; }
+  .pursuits-live-anchor { display:none!important; width:0!important; height:0!important; min-height:0!important; margin:0!important; padding:0!important; }
 
   /* This component intentionally does NOT use the shared .hero class. */
   .pursuits-hero {
@@ -102,7 +104,7 @@ import { SITE_TITLE } from '../../consts';
     width:min(1500px,calc(100% - 40px));
     height:auto;
     min-height:0;
-    margin:24px auto 50px;
+    margin:24px auto 12px;
     padding:54px 62px;
     overflow:hidden;
     border:1px solid rgba(218,224,235,.96);
@@ -202,7 +204,7 @@ import { SITE_TITLE } from '../../consts';
       align-items:stretch;
       gap:28px;
       width:calc(100% - 20px);
-      margin:14px 10px 34px;
+      margin:14px 10px 10px;
       padding:34px 26px 26px;
       border-radius:26px;
     }
