@@ -5,7 +5,14 @@
 
   const grid = root.querySelector('[data-calendar-grid]');
   const filterActions = root.querySelector('.filter-actions');
+  const breakdown = root.querySelector('[data-calendar-breakdown]');
+  const weekdays = root.querySelector('.weekdays');
   if (!grid || !filterActions) return;
+
+  // The monthly summary belongs with the controls: filters -> summary -> calendar.
+  if (breakdown && weekdays && breakdown.nextElementSibling !== weekdays) {
+    weekdays.before(breakdown);
+  }
 
   const pursuitColors = {
     guitar: [184, 107, 36],
@@ -17,11 +24,105 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    /* Monthly breakdown now sits above the calendar grid. */
+    [data-pursuit-calendar] .calendar-breakdown {
+      border-top: 0 !important;
+      border-bottom: 1px solid #e7ebf1 !important;
+      background: linear-gradient(180deg,#fbfcfe,#f8fafc) !important;
+    }
+
+    /* Heat-map control should look like a control, not an unstyled browser button. */
+    [data-pursuit-calendar] [data-heat-toggle] {
+      min-height:29px;
+      padding:4px 8px;
+      border:1px solid #dfe4ec;
+      border-radius:8px;
+      background:#fff;
+      color:#656d7b;
+      font:inherit;
+      font-size:.64rem;
+      font-weight:850;
+      line-height:1;
+      cursor:pointer;
+      transition:background .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease;
+    }
+    [data-pursuit-calendar] [data-heat-toggle]:hover {
+      background:#f0f2ff;
+      border-color:#cbd2ff;
+      color:#303746;
+    }
     [data-pursuit-calendar] [data-heat-toggle][aria-pressed="true"] {
       background:#eef1ff;
       border-color:#aeb8ff;
       color:#3447d8;
+      box-shadow:inset 0 0 0 1px rgba(64,92,245,.08);
     }
+
+    /* A denser, more deliberate year overview: 12 equal mini-calendars. */
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-months {
+      grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+      gap:12px !important;
+      padding:14px !important;
+      align-items:stretch;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month {
+      padding:11px 12px 12px !important;
+      border-color:#e7eaf0 !important;
+      border-radius:14px !important;
+      background:rgba(251,252,254,.82) !important;
+      box-shadow:0 4px 14px rgba(15,23,42,.025);
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month h4 {
+      margin:0 0 8px !important;
+      font-size:.86rem !important;
+      letter-spacing:-.01em;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-weekdays,
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-days {
+      gap:3px !important;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-weekdays {
+      margin-bottom:3px !important;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-days {
+      grid-template-rows:repeat(6,30px);
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day {
+      aspect-ratio:auto !important;
+      height:30px;
+      border-color:#edf0f4 !important;
+      border-radius:5px !important;
+      background:rgba(255,255,255,.72) !important;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day--active {
+      background:#fff !important;
+      box-shadow:inset 0 0 0 1px rgba(64,92,245,.035);
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] a.year-day:hover {
+      border-color:#aeb8ff !important;
+      background:#f7f8ff !important;
+      box-shadow:0 0 0 2px rgba(64,92,245,.11) !important;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day-number {
+      top:4px !important;
+      left:5px !important;
+      font-size:.52rem !important;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day-marks {
+      left:4px !important;
+      right:4px !important;
+      bottom:4px !important;
+      gap:1px !important;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-mark {
+      height:2px !important;
+      opacity:.95;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day--future {
+      background:#f6f7f9 !important;
+      color:#c0c5ce !important;
+    }
+
     [data-pursuit-calendar].pursuit-heat-enabled .pursuit-heat-cell {
       background-image:
         linear-gradient(var(--pursuit-heat),var(--pursuit-heat)),
@@ -32,11 +133,61 @@
         linear-gradient(var(--pursuit-heat),var(--pursuit-heat)),
         linear-gradient(#fff,#fff) !important;
     }
+
+    html.dark [data-pursuit-calendar] .calendar-breakdown,
+    body.dark [data-pursuit-calendar] .calendar-breakdown {
+      background:#0f172a !important;
+      border-color:rgba(148,163,184,.16) !important;
+    }
+    html.dark [data-pursuit-calendar] [data-heat-toggle],
+    body.dark [data-pursuit-calendar] [data-heat-toggle] {
+      background:#111827;
+      color:#cbd5e1;
+      border-color:rgba(148,163,184,.2);
+    }
+    html.dark [data-pursuit-calendar] [data-heat-toggle][aria-pressed="true"],
+    body.dark [data-pursuit-calendar] [data-heat-toggle][aria-pressed="true"] {
+      background:#20284d;
+      color:#c7d2fe;
+      border-color:rgba(129,140,248,.42);
+    }
+    html.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month,
+    body.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month {
+      background:#0f172a !important;
+      border-color:rgba(148,163,184,.16) !important;
+    }
+    html.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day,
+    body.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day {
+      background:#111827 !important;
+      border-color:rgba(148,163,184,.12) !important;
+    }
     html.dark [data-pursuit-calendar].pursuit-heat-enabled .pursuit-heat-cell,
     body.dark [data-pursuit-calendar].pursuit-heat-enabled .pursuit-heat-cell {
       background-image:
         linear-gradient(var(--pursuit-heat),var(--pursuit-heat)),
         linear-gradient(#111827,#111827) !important;
+    }
+
+    @media(max-width:1150px) {
+      [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-months {
+        grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+      }
+    }
+    @media(max-width:820px) {
+      [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-months {
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      }
+    }
+    @media(max-width:620px) {
+      [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-months {
+        grid-template-columns:1fr !important;
+        padding:10px !important;
+      }
+      [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-days {
+        grid-template-rows:repeat(6,34px);
+      }
+      [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day { height:34px; }
+      [data-pursuit-calendar] [data-heat-toggle] { min-height:29px; }
     }
   `;
   document.head.append(style);
@@ -44,9 +195,9 @@
   const button = document.createElement('button');
   button.type = 'button';
   button.dataset.heatToggle = '';
-  button.textContent = 'Heat';
+  button.textContent = 'Heat map';
   button.title = 'Shade days by selected pursuit intensity';
-  button.setAttribute('aria-label', 'Toggle pursuit intensity heat shading');
+  button.setAttribute('aria-label', 'Toggle pursuit intensity heat map');
 
   const params = new URLSearchParams(window.location.search);
   let enabled = params.get('heat') === '1';
@@ -76,7 +227,21 @@
     return Math.min(100, total * 0.75);
   };
 
+  const normalizeYearCalendars = () => {
+    grid.querySelectorAll('.year-days').forEach((days) => {
+      days.querySelectorAll('.year-day--trailing').forEach((node) => node.remove());
+      const count = days.children.length;
+      for (let index = count; index < 42; index += 1) {
+        const blank = document.createElement('span');
+        blank.className = 'year-day year-day--blank year-day--trailing';
+        blank.setAttribute('aria-hidden', 'true');
+        days.append(blank);
+      }
+    });
+  };
+
   const applyHeat = () => {
+    normalizeYearCalendars();
     root.classList.toggle('pursuit-heat-enabled', enabled);
     button.setAttribute('aria-pressed', String(enabled));
 
