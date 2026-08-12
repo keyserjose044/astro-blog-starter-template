@@ -28,7 +28,7 @@ const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260808-2315';
 const albumsAssetVersion = '20260808-2315';
 const artAssetVersion = '20260808-2354';
-const pursuitsAssetVersion = '20260812-0905';
+const pursuitsAssetVersion = '20260812-0928';
 const navAssetVersion = '20260808-1655';
 const mobileUxAssetVersion = '20260808-2315';
 ---
@@ -125,6 +125,7 @@ const mobileUxAssetVersion = '20260808-2315';
 <script is:inline src={`${base}scripts/mobile-nav-drilldown.js?v=${navAssetVersion}`} defer></script>
 <script is:inline src={`${base}scripts/runtime-loading-polish.js?v=${mobileUxAssetVersion}`} defer></script>
 {isPursuitsPage ? <script is:inline src={`${base}scripts/pursuit-calendar-heat.js?v=${pursuitsAssetVersion}`} defer></script> : null}
+{isPursuitsPage ? <script is:inline src={`${base}scripts/pursuit-calendar-gap-highlight.js?v=${pursuitsAssetVersion}`} defer></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-final-polish.js?v=${booksAssetVersion}`}></script> : null}
 {isBooksPage ? <script is:inline type="module" src={`${base}scripts/books-atlas-insights.js?v=${booksAssetVersion}`}></script> : null}
