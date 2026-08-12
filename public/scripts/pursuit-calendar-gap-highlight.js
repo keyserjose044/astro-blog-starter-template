@@ -10,7 +10,6 @@
 
   let highlighted = false;
   let boundCard = null;
-  let suppressGridReset = false;
 
   const currentYear = () => {
     const fromSelect = Number(yearSelect?.value);
@@ -30,14 +29,12 @@
   };
 
   const clearHighlightedCells = () => {
-    suppressGridReset = true;
     grid.querySelectorAll('.longest-gap-day').forEach((cell) => {
       cell.classList.remove('longest-gap-day');
       cell.style.removeProperty('background');
       cell.style.removeProperty('border-color');
       cell.style.removeProperty('box-shadow');
     });
-    requestAnimationFrame(() => { suppressGridReset = false; });
   };
 
   const setCardState = (card, active) => {
@@ -87,7 +84,6 @@
     const startTime = gap.start.getTime();
     const endTime = gap.end.getTime();
 
-    suppressGridReset = true;
     grid.querySelectorAll('.year-day:not(.year-day--blank):not(.year-day--future)').forEach((cell) => {
       const date = dateForCell(cell);
       if (!date) return;
@@ -99,7 +95,6 @@
       cell.style.setProperty('border-color', 'rgba(220, 38, 38, 0.40)', 'important');
       cell.style.setProperty('box-shadow', 'inset 0 0 0 1px rgba(220, 38, 38, 0.05)', 'important');
     });
-    requestAnimationFrame(() => { suppressGridReset = false; });
 
     highlighted = true;
     setCardState(card, true);
@@ -134,19 +129,21 @@
   const summaryObserver = new MutationObserver(bindCard);
   summaryObserver.observe(summary, { childList: true, subtree: true });
 
-  const gridObserver = new MutationObserver(() => {
-    if (suppressGridReset) return;
-    if (highlighted) clearHighlight();
-  });
-  gridObserver.observe(grid, { childList: true, subtree: true });
-
+  // Do not clear merely because the Year heat-map script normalizes trailing
+  // calendar cells. That internal DOM maintenance was what made the red gap
+  // flash for a fraction of a second and disappear. We clear only when the
+  // user actually changes the calendar context.
   root.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     if (target.closest('[data-summary-gap]')) return;
-    if (target.closest('[data-pursuit-filter], [data-calendar-view-button], [data-calendar-prev], [data-calendar-next], [data-calendar-latest], [data-calendar-year], [data-filter-all], [data-filter-clear]')) {
+    if (target.closest('[data-pursuit-filter], [data-calendar-view-button], [data-calendar-prev], [data-calendar-next], [data-calendar-latest], [data-filter-all], [data-filter-clear]')) {
       if (highlighted) clearHighlight();
     }
+  });
+
+  yearSelect?.addEventListener('change', () => {
+    if (highlighted) clearHighlight();
   });
 
   bindCard();
