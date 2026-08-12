@@ -55,6 +55,39 @@ const statsExploreItems: NavChild[] = [
   },
 ];
 
+const pursuitExploreItems: NavChild[] = [
+  {
+    href: 'pursuits/',
+    icon: '🎯',
+    label: 'Pursuits Overview',
+    description: 'Compare practices, history, gaps, and how limited time is allocated',
+  },
+  {
+    href: 'pursuits/guitar/',
+    icon: '🎸',
+    label: 'Guitar',
+    description: 'Practice hours, repertoire, technique, and consistency',
+  },
+  {
+    href: 'pursuits/dance/',
+    icon: '💃',
+    label: 'Dance',
+    description: 'Classes, styles, practice history, and developing movement',
+  },
+  {
+    href: 'pursuits/running/',
+    icon: '🏃',
+    label: 'Running',
+    description: 'Mileage, streaks, interruptions, returns, and records',
+  },
+  {
+    href: 'pursuits/languages/',
+    icon: '🌍',
+    label: 'Languages',
+    description: 'Study history, changing priorities, and skill development',
+  },
+];
+
 const cultureItems: NavChild[] = [
   {
     href: 'books/',
@@ -111,12 +144,6 @@ const aboutItems: NavChild[] = [
     description: 'The project, system, philosophy, privacy, and origin story',
   },
   {
-    href: 'pursuits/',
-    icon: '🎯',
-    label: 'Pursuits',
-    description: 'Guitar, dance, running, languages, and future skills',
-  },
-  {
     href: 'timeline/',
     icon: '🕰️',
     label: 'Timeline',
@@ -136,10 +163,10 @@ const aboutItems: NavChild[] = [
   },
 ];
 
-const statsExploreActive = isWithin('stats', 'day');
+const statsExploreActive = isWithin('stats', 'day', 'pursuits');
 const cultureActive = isWithin('books', 'music/albums', 'music/composers', 'art');
 const buildActive = false;
-const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
+const aboutActive = isWithin('about', 'timeline', 'inspirations');
 ---
 
 <header class="site-header">
@@ -161,8 +188,19 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
           <span>Stats &amp; Explore</span>
           <span class="chevron" aria-hidden="true">⌄</span>
         </summary>
-        <div class="dropdown-panel">
+        <div class="dropdown-panel stats-explore-panel">
           {statsExploreItems.map((item) => (
+            <HeaderLink href={link(item.href)} class="dropdown-link">
+              <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
+              <span class="dropdown-copy">
+                <strong>{item.label}</strong>
+                <small>{item.description}</small>
+              </span>
+              <span class="dropdown-arrow" aria-hidden="true">→</span>
+            </HeaderLink>
+          ))}
+          <div class="dropdown-group-label">Pursuits</div>
+          {pursuitExploreItems.map((item) => (
             <HeaderLink href={link(item.href)} class="dropdown-link">
               <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
               <span class="dropdown-copy">
@@ -275,6 +313,13 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
             </summary>
             <div class="mobile-submenu">
               {statsExploreItems.map((item) => (
+                <HeaderLink href={link(item.href)} class="mobile-submenu-link">
+                  <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
+                  <span>{item.label}</span>
+                </HeaderLink>
+              ))}
+              <p class="mobile-submenu-label">Pursuits</p>
+              {pursuitExploreItems.map((item) => (
                 <HeaderLink href={link(item.href)} class="mobile-submenu-link">
                   <span class="dropdown-icon" aria-hidden="true">{item.icon}</span>
                   <span>{item.label}</span>
@@ -440,8 +485,10 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   .desktop-dropdown[open] > summary .chevron,.mobile-group[open] > summary .chevron { transform:rotate(180deg) translateY(1px); }
   .dropdown-panel { position:absolute; top:calc(100% - .12rem); left:50%; width:min(300px,82vw); padding:.45rem; border:1px solid rgba(15,23,42,.08); border-radius:.85rem; background:rgba(255,255,255,.985); box-shadow:0 18px 45px rgba(15,23,42,.14); opacity:0; visibility:hidden; pointer-events:none; transform:translate(-50%,.45rem); transition:opacity .14s ease-out,transform .14s ease-out,visibility .14s ease-out; z-index:70; }
   .desktop-dropdown[open] > .dropdown-panel { opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,0); }
+  .stats-explore-panel { width:min(340px,86vw); max-height:calc(100vh - 82px); overflow-y:auto; }
   .about-panel { left:auto; right:0; transform:translate(0,.45rem); }
   .desktop-dropdown[open] > .about-panel { transform:translate(0,0); }
+  .dropdown-group-label { margin:.38rem .5rem .2rem; padding:.52rem .2rem .25rem; border-top:1px solid rgba(148,163,184,.22); color:#7c8595; font-size:.64rem; font-weight:900; letter-spacing:.11em; text-transform:uppercase; }
   :global(a.dropdown-link) { position:relative; display:grid; grid-template-columns:1.65rem minmax(0,1fr) 1.15rem; gap:.58rem; align-items:center; width:100%; min-height:44px; padding:.62rem .65rem; border:1px solid transparent; border-radius:.65rem; color:#0f172a; text-decoration:none!important; cursor:pointer; transition:background .14s ease-out,border-color .14s ease-out,color .14s ease-out,transform .14s ease-out,box-shadow .14s ease-out; }
   :global(a.dropdown-link:hover),:global(a.dropdown-link:focus-visible) { color:#1d4ed8; background:#f5f8ff; border-color:rgba(37,99,235,.12); box-shadow:0 4px 12px rgba(37,99,235,.07); transform:translateX(3px); outline:none; }
   :global(a.dropdown-link.active) { color:#1d4ed8; background:#edf3ff; border-color:rgba(37,99,235,.14); }
@@ -478,6 +525,7 @@ const aboutActive = isWithin('about', 'pursuits', 'timeline', 'inspirations');
   .mobile-group > summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem .35rem; color:#0f172a; font-weight:650; list-style:none; cursor:pointer; }
   .mobile-group.section-active > summary { color:#1d4ed8; }
   .mobile-submenu { display:grid; gap:.12rem; padding:0 0 .65rem; }
+  .mobile-submenu-label { margin:.38rem .65rem .12rem; padding:.58rem .05rem .18rem; border-top:1px solid rgba(148,163,184,.18); color:#7c8595; font-size:.63rem; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
   :global(a.mobile-submenu-link) { display:grid; grid-template-columns:1.7rem minmax(0,1fr); gap:.55rem; align-items:center; padding:.68rem .7rem; border-radius:.6rem; color:#334155; text-decoration:none!important; transition:color .14s ease-out,background .14s ease-out,transform .12s ease-out; }
   :global(a.mobile-submenu-link:hover),:global(a.mobile-submenu-link:focus-visible),:global(a.mobile-submenu-link.active) { color:#1d4ed8; background:#f1f5ff; }
   :global(a.mobile-submenu-link:active) { transform:scale(.985); }
