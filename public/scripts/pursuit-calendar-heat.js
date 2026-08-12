@@ -7,6 +7,7 @@
   const filterActions = root.querySelector('.filter-actions');
   const breakdown = root.querySelector('[data-calendar-breakdown]');
   const weekdays = root.querySelector('.weekdays');
+  const summary = root.querySelector('.calendar-summary');
   if (!grid || !filterActions) return;
 
   // The monthly summary belongs with the controls: filters -> summary -> calendar.
@@ -19,6 +20,12 @@
     dance: [189, 55, 127],
     running: [35, 121, 87],
     languages: [64, 92, 245],
+  };
+  const pursuitLabels = {
+    guitar: 'Guitar',
+    dance: 'Dance',
+    running: 'Running',
+    languages: 'Languages',
   };
   const neutralColor = [64, 92, 245];
 
@@ -72,11 +79,49 @@
       border-radius:14px !important;
       background:rgba(251,252,254,.82) !important;
       box-shadow:0 4px 14px rgba(15,23,42,.025);
+      transition:background .15s ease,border-color .15s ease,opacity .15s ease;
     }
     [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month h4 {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      min-height:20px;
       margin:0 0 8px !important;
       font-size:.86rem !important;
       letter-spacing:-.01em;
+    }
+    [data-pursuit-calendar] .year-month-status {
+      flex:0 0 auto;
+      padding:2px 6px;
+      border:1px solid #e3e7ee;
+      border-radius:999px;
+      background:#fff;
+      color:#7a8290;
+      font-size:.51rem;
+      font-weight:850;
+      letter-spacing:0;
+      line-height:1.25;
+      white-space:nowrap;
+    }
+    [data-pursuit-calendar] .year-month-status[hidden] { display:none !important; }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty {
+      border-color:#e1e5eb !important;
+      background:#f6f7f9 !important;
+      box-shadow:none;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty h4 {
+      color:#5f6774;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty .year-month-status {
+      border-color:#d9dee6;
+      background:#eceff3;
+      color:#6f7784;
+    }
+    [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty .year-day:not(.year-day--blank) {
+      background:rgba(255,255,255,.48) !important;
+      border-color:#eceff3 !important;
+      color:#8d949f;
     }
     [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-weekdays,
     [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-days {
@@ -124,6 +169,13 @@
       color:#c0c5ce !important;
     }
 
+    /* Solo Year view gets one extra analytical summary: longest internal inactivity gap. */
+    [data-pursuit-calendar].has-gap-stat .calendar-summary {
+      grid-template-columns:repeat(4,minmax(90px,1fr));
+      min-width:min(100%,480px);
+    }
+    [data-pursuit-calendar] [data-summary-gap][hidden] { display:none !important; }
+
     [data-pursuit-calendar].pursuit-heat-enabled .pursuit-heat-cell {
       background-image:
         linear-gradient(var(--pursuit-heat),var(--pursuit-heat)),
@@ -157,6 +209,23 @@
       background:#0f172a !important;
       border-color:rgba(148,163,184,.16) !important;
     }
+    html.dark [data-pursuit-calendar] .year-month-status,
+    body.dark [data-pursuit-calendar] .year-month-status {
+      background:#111827;
+      border-color:rgba(148,163,184,.2);
+      color:#aeb7c5;
+    }
+    html.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty,
+    body.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty {
+      background:#0c1423 !important;
+      border-color:rgba(148,163,184,.11) !important;
+    }
+    html.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty .year-month-status,
+    body.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-month.year-month--empty .year-month-status {
+      background:#151e2e;
+      border-color:rgba(148,163,184,.14);
+      color:#8290a3;
+    }
     html.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day,
     body.dark [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day {
       background:#111827 !important;
@@ -189,6 +258,8 @@
       }
       [data-pursuit-calendar] .calendar-grid[data-view="year"] .year-day { height:34px; }
       [data-pursuit-calendar] [data-heat-toggle] { min-height:29px; }
+      [data-pursuit-calendar].has-gap-stat .calendar-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      [data-pursuit-calendar] .year-month-status { font-size:.56rem; }
     }
   `;
   document.head.append(style);
@@ -204,6 +275,20 @@
   let enabled = params.get('heat') === '1';
   button.setAttribute('aria-pressed', String(enabled));
   filterActions.append(button);
+
+  let gapCard = null;
+  let gapValue = null;
+  let gapLabel = null;
+  if (summary) {
+    gapCard = document.createElement('div');
+    gapCard.dataset.summaryGap = '';
+    gapCard.hidden = true;
+    gapValue = document.createElement('strong');
+    gapLabel = document.createElement('span');
+    gapLabel.textContent = 'longest gap';
+    gapCard.append(gapValue, gapLabel);
+    summary.append(gapCard);
+  }
 
   const isYearView = () => root.dataset.calendarView === 'year' || grid.dataset.view === 'year';
 
@@ -243,6 +328,100 @@
     });
   };
 
+  const decorateYearMonths = () => {
+    const selected = selectedPursuits();
+    const soloPursuit = selected.length === 1 ? selected[0] : null;
+
+    grid.querySelectorAll('.year-month').forEach((month) => {
+      const heading = month.querySelector('h4');
+      if (!heading) return;
+
+      let badge = heading.querySelector('.year-month-status');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'year-month-status';
+        heading.append(badge);
+      }
+
+      const realDays = Array.from(month.querySelectorAll('.year-day:not(.year-day--blank)'));
+      const pastOrPresentDays = realDays.filter((day) => !day.classList.contains('year-day--future'));
+      const hasFuture = realDays.some((day) => day.classList.contains('year-day--future'));
+      const activeDays = pastOrPresentDays.filter((day) => day.querySelector('.year-mark')).length;
+      const allFuture = realDays.length > 0 && pastOrPresentDays.length === 0;
+      const completelyPast = realDays.length > 0 && !hasFuture;
+      const emptyPastMonth = completelyPast && activeDays === 0;
+
+      month.classList.toggle('year-month--empty', emptyPastMonth);
+
+      let text = '';
+      if (!allFuture) {
+        if (activeDays > 0) text = `${activeDays} ${activeDays === 1 ? 'day' : 'days'}`;
+        else if (emptyPastMonth && soloPursuit) text = `No ${pursuitLabels[soloPursuit].toLowerCase()}`;
+        else if (emptyPastMonth) text = '0 active days';
+        else text = '0 days so far';
+      }
+
+      badge.hidden = !text;
+      if (text && badge.textContent !== text) badge.textContent = text;
+    });
+  };
+
+  const dateFromYearCell = (cell) => {
+    const anchor = cell.closest('a.year-day');
+    if (!anchor) return null;
+    try {
+      const date = new URL(anchor.href, window.location.href).searchParams.get('date');
+      if (!date) return null;
+      const parsed = new Date(`${date}T12:00:00`);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    } catch {
+      return null;
+    }
+  };
+
+  const formatShortDate = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  const updateLongestGap = () => {
+    if (!gapCard || !gapValue) return;
+    const selected = selectedPursuits();
+    const shouldShow = isYearView() && selected.length === 1;
+    gapCard.hidden = !shouldShow;
+    root.classList.toggle('has-gap-stat', shouldShow);
+    if (!shouldShow) return;
+
+    const activeDates = Array.from(grid.querySelectorAll('.year-day'))
+      .filter((cell) => cell.querySelector('.year-mark'))
+      .map(dateFromYearCell)
+      .filter(Boolean)
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    let longest = 0;
+    let gapStart = null;
+    let gapEnd = null;
+    for (let index = 1; index < activeDates.length; index += 1) {
+      const previousDate = activeDates[index - 1];
+      const currentDate = activeDates[index];
+      const diffDays = Math.round((currentDate.getTime() - previousDate.getTime()) / 86400000) - 1;
+      if (diffDays > longest) {
+        longest = diffDays;
+        gapStart = new Date(previousDate.getTime() + 86400000);
+        gapEnd = new Date(currentDate.getTime() - 86400000);
+      }
+    }
+
+    const value = activeDates.length >= 2 ? `${longest} d` : '—';
+    if (gapValue.textContent !== value) gapValue.textContent = value;
+
+    const pursuit = pursuitLabels[selected[0]];
+    if (longest > 0 && gapStart && gapEnd) {
+      gapCard.title = `${pursuit}: ${longest} consecutive inactive days, ${formatShortDate(gapStart)}–${formatShortDate(gapEnd)}.`;
+    } else if (activeDates.length >= 2) {
+      gapCard.title = `${pursuit}: no inactive day between recorded activity dates.`;
+    } else {
+      gapCard.title = `${pursuit}: not enough active dates in this year to calculate an internal gap.`;
+    }
+  };
+
   const applyHeat = () => {
     normalizeYearCalendars();
 
@@ -272,6 +451,9 @@
       cell.classList.add('pursuit-heat-cell');
       cell.style.setProperty('--pursuit-heat', `rgba(${r},${g},${b},${alpha.toFixed(3)})`);
     });
+
+    if (yearView) decorateYearMonths();
+    updateLongestGap();
   };
 
   const syncHeatUrl = () => {
