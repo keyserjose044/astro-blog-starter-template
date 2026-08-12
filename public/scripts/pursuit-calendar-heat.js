@@ -31,7 +31,7 @@
       background: linear-gradient(180deg,#fbfcfe,#f8fafc) !important;
     }
 
-    /* Heat-map control should look like a control, not an unstyled browser button. */
+    /* Heat-map control is only relevant in Month view; Year is always a heat map. */
     [data-pursuit-calendar] [data-heat-toggle] {
       min-height:29px;
       padding:4px 8px;
@@ -46,6 +46,7 @@
       cursor:pointer;
       transition:background .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease;
     }
+    [data-pursuit-calendar] [data-heat-toggle][hidden] { display:none !important; }
     [data-pursuit-calendar] [data-heat-toggle]:hover {
       background:#f0f2ff;
       border-color:#cbd2ff;
@@ -197,12 +198,14 @@
   button.dataset.heatToggle = '';
   button.textContent = 'Heat map';
   button.title = 'Shade days by selected pursuit intensity';
-  button.setAttribute('aria-label', 'Toggle pursuit intensity heat map');
+  button.setAttribute('aria-label', 'Toggle pursuit intensity heat map in Month view');
 
   const params = new URLSearchParams(window.location.search);
   let enabled = params.get('heat') === '1';
   button.setAttribute('aria-pressed', String(enabled));
   filterActions.append(button);
+
+  const isYearView = () => root.dataset.calendarView === 'year' || grid.dataset.view === 'year';
 
   const selectedPursuits = () => Array.from(root.querySelectorAll('[data-pursuit-filter]'))
     .filter((item) => item.getAttribute('aria-pressed') === 'true')
@@ -242,19 +245,30 @@
 
   const applyHeat = () => {
     normalizeYearCalendars();
-    root.classList.toggle('pursuit-heat-enabled', enabled);
+
+    const yearView = isYearView();
+    const effectiveEnabled = yearView || enabled;
+
+    // Year view is inherently the heat-map overview. Keep the manual toggle for Month only.
+    button.hidden = yearView;
     button.setAttribute('aria-pressed', String(enabled));
+    root.classList.toggle('pursuit-heat-enabled', effectiveEnabled);
 
     const [r, g, b] = currentColor();
     const cells = grid.querySelectorAll('.day:not(.day--outside):not(.day--future),.year-day:not(.year-day--blank):not(.year-day--future)');
     cells.forEach((cell) => {
       cell.classList.remove('pursuit-heat-cell');
       cell.style.removeProperty('--pursuit-heat');
-      if (!enabled) return;
+      if (!effectiveEnabled) return;
 
       const score = heatScore(cell);
       if (score <= 0) return;
-      const alpha = 0.018 + (score / 100) * 0.145;
+
+      // The annual overview needs activity to read instantly; Month heat remains more restrained.
+      const alpha = yearView
+        ? 0.07 + (score / 100) * 0.19
+        : 0.018 + (score / 100) * 0.145;
+
       cell.classList.add('pursuit-heat-cell');
       cell.style.setProperty('--pursuit-heat', `rgba(${r},${g},${b},${alpha.toFixed(3)})`);
     });
@@ -280,7 +294,10 @@
   });
 
   const gridObserver = new MutationObserver(scheduleApply);
-  gridObserver.observe(grid, { childList: true, subtree: true });
+  gridObserver.observe(grid, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-view'] });
+
+  const viewObserver = new MutationObserver(scheduleApply);
+  viewObserver.observe(root, { attributes: true, attributeFilter: ['data-calendar-view'] });
 
   root.querySelectorAll('[data-pursuit-filter]').forEach((filter) => {
     const observer = new MutationObserver(scheduleApply);
