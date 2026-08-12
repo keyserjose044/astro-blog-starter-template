@@ -28,7 +28,7 @@ const aboutAssetVersion = '20260801-1426';
 const booksAssetVersion = '20260808-2315';
 const albumsAssetVersion = '20260808-2315';
 const artAssetVersion = '20260808-2354';
-const pursuitsAssetVersion = '20260812-0849';
+const pursuitsAssetVersion = '20260812-0905';
 const navAssetVersion = '20260808-1655';
 const mobileUxAssetVersion = '20260808-2315';
 ---
@@ -53,6 +53,7 @@ const mobileUxAssetVersion = '20260808-2315';
 <link rel="stylesheet" href={`${base}styles/runtime-loading-polish.css?v=${mobileUxAssetVersion}`} />
 <link rel="stylesheet" href={`${base}styles/mobile-nav-scroll-priority.css?v=${mobileUxAssetVersion}`} />
 {isBooksPage || isAlbumsPage || isArtPage ? <link rel="stylesheet" href={`${base}styles/mobile-progressive-lists.css?v=${mobileUxAssetVersion}`} /> : null}
+{isPursuitsPage ? <link rel="stylesheet" href={`${base}styles/pursuit-calendar-gap.css?v=${pursuitsAssetVersion}`} /> : null}
 
 {isAboutPage ? <meta name="lifeloggerz-about-assets" content={aboutAssetVersion} /> : null}
 {isAboutPage ? <link rel="stylesheet" href={`${base}styles/about-adornment-personality.css?v=${aboutAssetVersion}`} /> : null}
