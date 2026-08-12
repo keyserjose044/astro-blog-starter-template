@@ -34,6 +34,7 @@ import { SITE_TITLE } from '../../consts';
         <div class="hero-media-caption">
           <span>Practice in motion</span>
           <strong>Guitar</strong>
+          <p class="hero-media-total">Lifetime practice · <b id="hero-guitar-lifetime">—</b></p>
         </div>
         <button id="hero-audio-toggle" class="hero-audio-toggle" type="button" aria-label="Unmute guitar clip" aria-pressed="false">🔇</button>
       </div>
@@ -56,8 +57,11 @@ import { SITE_TITLE } from '../../consts';
 </VideoBg>
 
 <script>
+  import { getDailyMeta, getYears } from '../../utils/dailyData';
+
   const video = document.querySelector<HTMLVideoElement>('#hero-guitar-video');
   const button = document.querySelector<HTMLButtonElement>('#hero-audio-toggle');
+  const lifetime = document.querySelector<HTMLElement>('#hero-guitar-lifetime');
 
   if (video && button) {
     button.addEventListener('click', () => {
@@ -68,6 +72,22 @@ import { SITE_TITLE } from '../../consts';
       button.setAttribute('aria-label', video.muted ? 'Unmute guitar clip' : 'Mute guitar clip');
     });
   }
+
+  if (lifetime) {
+    Promise.all([getDailyMeta()]).then(async ([meta]) => {
+      const records = await getYears(meta.availableYears);
+      const dataThrough = meta.dataThrough || records.at(-1)?.date || '9999-12-31';
+      const minutes = records.reduce((total, record) => {
+        if (record.date < '2023-09-27' || record.date > dataThrough) return total;
+        const value = record.hobbies.guitarMinutes;
+        return total + (typeof value === 'number' && Number.isFinite(value) ? value : 0);
+      }, 0);
+      const hours = minutes / 60;
+      lifetime.textContent = `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(hours)} hours`;
+    }).catch(() => {
+      lifetime.textContent = 'Archive connected';
+    });
+  }
 </script>
 
 <style>
@@ -76,13 +96,14 @@ import { SITE_TITLE } from '../../consts';
 
   .hero {
     display:grid;
-    grid-template-columns:minmax(0,1.18fr) minmax(330px,.72fr);
+    grid-template-columns:minmax(0,1.18fr) minmax(360px,.72fr);
+    grid-template-areas:'copy media';
     align-items:center;
-    gap:clamp(34px,5vw,76px);
+    gap:clamp(38px,5vw,76px);
     max-width:1380px;
-    min-height:500px;
+    min-height:0;
     margin:22px auto 48px;
-    padding:clamp(40px,5vw,70px);
+    padding:clamp(42px,4.5vw,62px) clamp(36px,5vw,70px);
     border:1px solid rgba(218,224,235,.96);
     border-radius:32px;
     background:
@@ -94,16 +115,18 @@ import { SITE_TITLE } from '../../consts';
     backdrop-filter:blur(10px);
   }
 
-  .hero-copy { min-width:0; }
+  .hero-copy { grid-area:copy; min-width:0; align-self:center; }
   .eyebrow { margin:0 0 6px; color:#405cf5; font-size:.72rem; font-weight:900; letter-spacing:.17em; text-transform:uppercase; }
-  .hero h1 { margin:0; color:#111827; font-size:clamp(4.3rem,10vw,8.6rem); line-height:.82; letter-spacing:-.075em; text-shadow:none; }
+  .hero h1 { margin:0; color:#111827; font-size:clamp(4.3rem,9vw,8rem); line-height:.82; letter-spacing:-.075em; text-shadow:none; }
   .hero-lede { max-width:760px; margin:28px 0 0; color:#252b38; font-size:clamp(1.08rem,2.1vw,1.48rem); line-height:1.52; }
   .hero-note { max-width:720px; margin:15px 0 0; color:#626978; font-size:1rem; line-height:1.62; }
 
   .hero-media {
+    grid-area:media;
     position:relative;
     justify-self:end;
-    width:min(100%,460px);
+    align-self:center;
+    width:min(100%,440px);
     aspect-ratio:1;
     overflow:hidden;
     border:1px solid rgba(255,255,255,.78);
@@ -112,10 +135,12 @@ import { SITE_TITLE } from '../../consts';
     box-shadow:0 24px 55px rgba(15,23,42,.18),0 0 0 1px rgba(15,23,42,.06);
   }
   .hero-media video { width:100%; height:100%; display:block; object-fit:cover; filter:saturate(.88) contrast(1.03); transform:scale(1.015); }
-  .hero-media-shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 52%,rgba(5,8,15,.72)); pointer-events:none; }
-  .hero-media-caption { position:absolute; left:24px; right:76px; bottom:22px; z-index:1; color:#fff; text-shadow:0 3px 18px rgba(0,0,0,.65); }
-  .hero-media-caption span { display:block; margin-bottom:3px; font-size:.66rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; opacity:.82; }
-  .hero-media-caption strong { display:block; font-size:clamp(1.8rem,3vw,2.8rem); line-height:.95; letter-spacing:-.045em; }
+  .hero-media-shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%,rgba(5,8,15,.78)); pointer-events:none; }
+  .hero-media-caption { position:absolute; left:24px; right:76px; bottom:21px; z-index:1; color:#fff; text-shadow:0 3px 18px rgba(0,0,0,.65); }
+  .hero-media-caption > span { display:block; margin-bottom:3px; font-size:.66rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; opacity:.82; }
+  .hero-media-caption > strong { display:block; font-size:clamp(1.8rem,3vw,2.8rem); line-height:.95; letter-spacing:-.045em; }
+  .hero-media-total { margin:8px 0 0; color:rgba(255,255,255,.88); font-size:.74rem; font-weight:700; line-height:1.35; text-shadow:0 2px 12px rgba(0,0,0,.72); }
+  .hero-media-total b { color:#fff; font-weight:900; }
   .hero-audio-toggle { position:absolute; z-index:2; right:18px; bottom:18px; display:grid; width:46px; height:46px; place-items:center; border:1px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(0,0,0,.52); color:#fff; font-size:1rem; cursor:pointer; backdrop-filter:blur(8px); transition:transform .18s ease,background .18s ease; }
   .hero-audio-toggle:hover { transform:scale(1.06); background:rgba(0,0,0,.72); }
   .hero-audio-toggle:focus-visible { outline:3px solid rgba(255,255,255,.8); outline-offset:3px; }
@@ -142,8 +167,8 @@ import { SITE_TITLE } from '../../consts';
   .growth-path i { width:24px; height:1px; background:#ccd3df; }
 
   @media (max-width:900px) {
-    .hero { grid-template-columns:1fr; min-height:0; }
-    .hero-media { justify-self:start; width:min(100%,560px); }
+    .hero { grid-template-columns:1fr; grid-template-areas:'copy' 'media'; min-height:0; }
+    .hero-media { justify-self:start; width:min(100%,520px); }
     .growth-section { align-items:flex-start; flex-direction:column; }
   }
 
