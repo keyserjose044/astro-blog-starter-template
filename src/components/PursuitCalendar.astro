@@ -4,7 +4,7 @@ const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const dayBase = `${base}day/`;
 ---
 
-<section class="calendar-section" data-pursuit-calendar data-day-base={dayBase} aria-labelledby="pursuit-calendar-title">
+<section class="calendar-section" data-pursuit-calendar data-day-base={dayBase} data-calendar-view="month" aria-labelledby="pursuit-calendar-title">
   <div class="calendar-heading">
     <div>
       <p class="calendar-eyebrow">Practice across time</p>
@@ -27,6 +27,10 @@ const dayBase = `${base}day/`;
       </div>
 
       <div class="calendar-period">
+        <div class="view-toggle" role="group" aria-label="Calendar view">
+          <button type="button" data-calendar-view-button="month" aria-pressed="true">Month</button>
+          <button type="button" data-calendar-view-button="year" aria-pressed="false">Year</button>
+        </div>
         <h3 data-calendar-label>Loading calendar…</h3>
         <label>Year<select data-calendar-year aria-label="Choose calendar year"></select></label>
       </div>
@@ -58,7 +62,7 @@ const dayBase = `${base}day/`;
     <div class="weekdays" aria-hidden="true">
       <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
     </div>
-    <div class="calendar-grid" data-calendar-grid role="grid" aria-label="Pursuit activity by day"></div>
+    <div class="calendar-grid" data-calendar-grid data-view="month" role="grid" aria-label="Pursuit activity by day"></div>
     <div class="calendar-footer">
       <p class="calendar-status" data-calendar-status aria-live="polite">Connecting to the daily Archive…</p>
       <p>Running time is estimated at 10 minutes per mile only for the combined-hour summary.</p>
@@ -71,6 +75,7 @@ const dayBase = `${base}day/`;
   import type { DailyMeta, DailyRecord } from '../utils/dailyData';
 
   type PursuitName = 'guitar' | 'dance' | 'running' | 'languages';
+  type CalendarView = 'month' | 'year';
   type PursuitEvent = { pursuit: PursuitName; label: string; detail: string; minutes: number };
 
   const root = document.querySelector<HTMLElement>('[data-pursuit-calendar]');
@@ -86,6 +91,7 @@ const dayBase = `${base}day/`;
     const next = root.querySelector<HTMLButtonElement>('[data-calendar-next]');
     const latest = root.querySelector<HTMLButtonElement>('[data-calendar-latest]');
     const yearSelect = root.querySelector<HTMLSelectElement>('[data-calendar-year]');
+    const viewButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-calendar-view-button]'));
     const filterButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-pursuit-filter]'));
     const soloButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-pursuit-solo]'));
     const filterAll = root.querySelector<HTMLButtonElement>('[data-filter-all]');
@@ -95,6 +101,7 @@ const dayBase = `${base}day/`;
     let meta: DailyMeta | null = null;
     let viewYear = new Date().getFullYear();
     let viewMonth = new Date().getMonth();
+    let viewMode: CalendarView = 'month';
     let requestToken = 0;
     const yearCache = new Map<number, Promise<DailyRecord[]>>();
 
@@ -126,17 +133,28 @@ const dayBase = `${base}day/`;
     const canMoveNext = () => {
       if (!meta?.dataThrough) return false;
       const through = parseIso(meta.dataThrough);
+      if (viewMode === 'year') return viewYear < through.getFullYear();
       return viewYear < through.getFullYear() || (viewYear === through.getFullYear() && viewMonth < through.getMonth());
     };
     const canMovePrevious = () => {
       if (!meta?.availableYears.length) return false;
       const firstYear = Math.min(...meta.availableYears);
+      if (viewMode === 'year') return viewYear > firstYear;
       return viewYear > firstYear || viewMonth > 0;
     };
     const syncControls = () => {
-      if (previous) previous.disabled = !canMovePrevious();
-      if (next) next.disabled = !canMoveNext();
+      if (previous) {
+        previous.disabled = !canMovePrevious();
+        previous.setAttribute('aria-label', viewMode === 'year' ? 'Previous year' : 'Previous month');
+      }
+      if (next) {
+        next.disabled = !canMoveNext();
+        next.setAttribute('aria-label', viewMode === 'year' ? 'Next year' : 'Next month');
+      }
       if (yearSelect) yearSelect.value = String(viewYear);
+      viewButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.calendarViewButton === viewMode)));
+      root.dataset.calendarView = viewMode;
+      if (grid) grid.dataset.view = viewMode;
     };
 
     const render = async () => {
@@ -150,60 +168,105 @@ const dayBase = `${base}day/`;
         const records = await loadYear(viewYear);
         if (token !== requestToken) return;
         const map = new Map(records.map((record) => [record.date, record]));
-        const monthStart = new Date(viewYear, viewMonth, 1, 12);
-        const daysInMonth = new Date(viewYear, viewMonth + 1, 0, 12).getDate();
-        const previousMonthDays = new Date(viewYear, viewMonth, 0, 12).getDate();
-        const startOffset = monthStart.getDay();
-        const cellCount = Math.ceil((startOffset + daysInMonth) / 7) * 7;
-        const monthRecords = records.filter((record) => Number(record.date.slice(5, 7)) - 1 === viewMonth);
         const visibleEventsFor = (record: DailyRecord) => eventsFor(record).filter((event) => selected.has(event.pursuit));
-        const monthEvents = monthRecords.flatMap(visibleEventsFor);
-        const activeDates = monthRecords.filter((record) => visibleEventsFor(record).length > 0).length;
-        const totalMinutes = monthEvents.reduce((total, event) => total + event.minutes, 0);
 
-        label.textContent = monthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        if (summaryDays) summaryDays.textContent = format(activeDates);
-        if (summaryHours) summaryHours.textContent = format(totalMinutes / 60, 1);
-        if (summaryTypes) summaryTypes.textContent = format(selected.size);
+        if (viewMode === 'year') {
+          const yearEvents = records.flatMap(visibleEventsFor);
+          const activeDates = records.filter((record) => visibleEventsFor(record).length > 0).length;
+          const totalMinutes = yearEvents.reduce((total, event) => total + event.minutes, 0);
+          label.textContent = String(viewYear);
+          if (summaryDays) summaryDays.textContent = format(activeDates);
+          if (summaryHours) summaryHours.textContent = format(totalMinutes / 60, 1);
+          if (summaryTypes) summaryTypes.textContent = format(selected.size);
 
-        const html: string[] = [];
-        for (let index = 0; index < cellCount; index += 1) {
-          const relativeDay = index - startOffset + 1;
-          let cellYear = viewYear;
-          let cellMonth = viewMonth;
-          let day = relativeDay;
-          let outside = false;
-          if (relativeDay < 1) {
-            outside = true;
-            day = previousMonthDays + relativeDay;
-            cellMonth -= 1;
-            if (cellMonth < 0) { cellMonth = 11; cellYear -= 1; }
-          } else if (relativeDay > daysInMonth) {
-            outside = true;
-            day = relativeDay - daysInMonth;
-            cellMonth += 1;
-            if (cellMonth > 11) { cellMonth = 0; cellYear += 1; }
+          const months: string[] = [];
+          for (let month = 0; month < 12; month += 1) {
+            const monthStart = new Date(viewYear, month, 1, 12);
+            const monthName = monthStart.toLocaleDateString('en-US', { month: 'long' });
+            const startOffset = monthStart.getDay();
+            const daysInMonth = new Date(viewYear, month + 1, 0, 12).getDate();
+            const cells: string[] = [];
+            for (let blank = 0; blank < startOffset; blank += 1) cells.push('<span class="year-day year-day--blank" aria-hidden="true"></span>');
+            for (let day = 1; day <= daysInMonth; day += 1) {
+              const dateKey = keyFor(viewYear, month, day);
+              const record = map.get(dateKey);
+              const events = record ? visibleEventsFor(record) : [];
+              const future = Boolean(meta.dataThrough && dateKey > meta.dataThrough);
+              const dayLabel = new Date(viewYear, month, day, 12).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+              const marks = events.map((event) => `<i class="year-mark year-mark--${event.pursuit}" style="--mark-fill:${intensityFor(event)}%"></i>`).join('');
+              const details = events.length ? ` · ${events.map((event) => event.detail).join(' · ')}` : '';
+              const content = `<span class="year-day-number">${day}</span><span class="year-day-marks">${marks}</span>`;
+              if (!future && record) {
+                cells.push(`<a class="year-day${events.length ? ' year-day--active' : ''}" role="gridcell" href="${dayBase}?date=${dateKey}" title="${dayLabel}${details}" aria-label="${dayLabel}${events.length ? `, ${events.length} visible pursuits` : ', no visible pursuits'}">${content}</a>`);
+              } else {
+                cells.push(`<span class="year-day${future ? ' year-day--future' : ''}" role="gridcell" aria-label="${dayLabel}${future ? ', future date' : ', no record'}">${content}</span>`);
+              }
+            }
+            months.push(`<section class="year-month" aria-label="${monthName} ${viewYear}"><h4>${monthName}</h4><div class="year-weekdays" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div><div class="year-days" role="grid">${cells.join('')}</div></section>`);
           }
-          const dateKey = keyFor(cellYear, cellMonth, day);
-          const record = map.get(dateKey);
-          const events = record ? visibleEventsFor(record) : [];
-          const future = Boolean(meta.dataThrough && dateKey > meta.dataThrough);
-          const dayLabel = new Date(cellYear, cellMonth, day, 12).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-          const chips = events.map((event) => `<span class="event event--${event.pursuit}" style="--event-fill:${intensityFor(event)}%" title="${event.detail}"><span>${event.label}</span></span>`).join('');
-          const content = `<span class="day-number">${day}</span><div class="day-events">${chips}</div>`;
-          if (!outside && !future && record) {
-            html.push(`<a class="day${events.length ? ' day--active' : ''}" role="gridcell" href="${dayBase}?date=${dateKey}" aria-label="${dayLabel}${events.length ? `, ${events.length} visible pursuits` : ', no visible pursuits'}">${content}</a>`);
+          grid.innerHTML = `<div class="year-months">${months.join('')}</div>`;
+          if (selected.size === 0) {
+            status.textContent = 'Select a pursuit to explore its history across the year.';
           } else {
-            html.push(`<article class="day${outside ? ' day--outside' : ''}${future ? ' day--future' : ''}" role="gridcell" aria-label="${dayLabel}${future ? ', future date' : ', outside current month'}">${content}</article>`);
+            status.textContent = yearEvents.length
+              ? `${format(yearEvents.length)} visible pursuit ${yearEvents.length === 1 ? 'entry' : 'entries'} across ${format(activeDates)} active ${activeDates === 1 ? 'day' : 'days'} in ${viewYear}.`
+              : `No activity for the selected pursuits was recorded in ${viewYear}.`;
           }
-        }
-        grid.innerHTML = html.join('');
-        if (selected.size === 0) {
-          status.textContent = 'Select a pursuit to explore its history.';
         } else {
-          status.textContent = monthEvents.length
-            ? `${format(monthEvents.length)} visible pursuit ${monthEvents.length === 1 ? 'entry' : 'entries'} across ${format(activeDates)} active ${activeDates === 1 ? 'day' : 'days'}.`
-            : 'No activity for the selected pursuits was recorded in this month.';
+          const monthStart = new Date(viewYear, viewMonth, 1, 12);
+          const daysInMonth = new Date(viewYear, viewMonth + 1, 0, 12).getDate();
+          const previousMonthDays = new Date(viewYear, viewMonth, 0, 12).getDate();
+          const startOffset = monthStart.getDay();
+          const cellCount = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+          const monthRecords = records.filter((record) => Number(record.date.slice(5, 7)) - 1 === viewMonth);
+          const monthEvents = monthRecords.flatMap(visibleEventsFor);
+          const activeDates = monthRecords.filter((record) => visibleEventsFor(record).length > 0).length;
+          const totalMinutes = monthEvents.reduce((total, event) => total + event.minutes, 0);
+
+          label.textContent = monthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+          if (summaryDays) summaryDays.textContent = format(activeDates);
+          if (summaryHours) summaryHours.textContent = format(totalMinutes / 60, 1);
+          if (summaryTypes) summaryTypes.textContent = format(selected.size);
+
+          const html: string[] = [];
+          for (let index = 0; index < cellCount; index += 1) {
+            const relativeDay = index - startOffset + 1;
+            let cellYear = viewYear;
+            let cellMonth = viewMonth;
+            let day = relativeDay;
+            let outside = false;
+            if (relativeDay < 1) {
+              outside = true;
+              day = previousMonthDays + relativeDay;
+              cellMonth -= 1;
+              if (cellMonth < 0) { cellMonth = 11; cellYear -= 1; }
+            } else if (relativeDay > daysInMonth) {
+              outside = true;
+              day = relativeDay - daysInMonth;
+              cellMonth += 1;
+              if (cellMonth > 11) { cellMonth = 0; cellYear += 1; }
+            }
+            const dateKey = keyFor(cellYear, cellMonth, day);
+            const record = map.get(dateKey);
+            const events = record ? visibleEventsFor(record) : [];
+            const future = Boolean(meta.dataThrough && dateKey > meta.dataThrough);
+            const dayLabel = new Date(cellYear, cellMonth, day, 12).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const chips = events.map((event) => `<span class="event event--${event.pursuit}" style="--event-fill:${intensityFor(event)}%" title="${event.detail}"><span>${event.label}</span></span>`).join('');
+            const content = `<span class="day-number">${day}</span><div class="day-events">${chips}</div>`;
+            if (!outside && !future && record) {
+              html.push(`<a class="day${events.length ? ' day--active' : ''}" role="gridcell" href="${dayBase}?date=${dateKey}" aria-label="${dayLabel}${events.length ? `, ${events.length} visible pursuits` : ', no visible pursuits'}">${content}</a>`);
+            } else {
+              html.push(`<article class="day${outside ? ' day--outside' : ''}${future ? ' day--future' : ''}" role="gridcell" aria-label="${dayLabel}${future ? ', future date' : ', outside current month'}">${content}</article>`);
+            }
+          }
+          grid.innerHTML = html.join('');
+          if (selected.size === 0) {
+            status.textContent = 'Select a pursuit to explore its history.';
+          } else {
+            status.textContent = monthEvents.length
+              ? `${format(monthEvents.length)} visible pursuit ${monthEvents.length === 1 ? 'entry' : 'entries'} across ${format(activeDates)} active ${activeDates === 1 ? 'day' : 'days'}.`
+              : 'No activity for the selected pursuits was recorded in this month.';
+          }
         }
       } catch (error) {
         if (token !== requestToken) return;
@@ -214,15 +277,19 @@ const dayBase = `${base}day/`;
       }
     };
 
-    const moveMonth = (amount: number) => {
-      viewMonth += amount;
-      if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
-      if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
+    const movePeriod = (amount: number) => {
+      if (viewMode === 'year') {
+        viewYear += amount;
+      } else {
+        viewMonth += amount;
+        if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
+        if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
+      }
       void render();
     };
 
-    previous?.addEventListener('click', () => { if (canMovePrevious()) moveMonth(-1); });
-    next?.addEventListener('click', () => { if (canMoveNext()) moveMonth(1); });
+    previous?.addEventListener('click', () => { if (canMovePrevious()) movePeriod(-1); });
+    next?.addEventListener('click', () => { if (canMoveNext()) movePeriod(1); });
     latest?.addEventListener('click', () => {
       if (!meta?.dataThrough) return;
       const through = parseIso(meta.dataThrough);
@@ -232,12 +299,18 @@ const dayBase = `${base}day/`;
     });
     yearSelect?.addEventListener('change', () => {
       viewYear = Number(yearSelect.value);
-      if (meta?.dataThrough) {
+      if (meta?.dataThrough && viewMode === 'month') {
         const through = parseIso(meta.dataThrough);
         if (viewYear === through.getFullYear() && viewMonth > through.getMonth()) viewMonth = through.getMonth();
       }
       void render();
     });
+    viewButtons.forEach((button) => button.addEventListener('click', () => {
+      const nextView = button.dataset.calendarViewButton as CalendarView;
+      if (nextView === viewMode) return;
+      viewMode = nextView;
+      void render();
+    }));
     filterButtons.forEach((button) => button.addEventListener('click', () => {
       setFilter(button, button.getAttribute('aria-pressed') !== 'true');
       void render();
@@ -276,7 +349,8 @@ const dayBase = `${base}day/`;
 </script>
 
 <style>
-  .calendar-section{max-width:1380px;margin:0 auto;padding:8px clamp(14px,3vw,48px) 54px}.calendar-heading{display:flex;align-items:end;justify-content:space-between;gap:28px;margin-bottom:18px}.calendar-eyebrow{margin:0 0 5px;color:#405cf5;font-size:.72rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.calendar-heading h2{margin:0;color:#111827;font-size:clamp(1.8rem,4vw,3.2rem);letter-spacing:-.045em}.calendar-intro{max-width:760px;margin:8px 0 0;color:#626978;line-height:1.65}.calendar-summary{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:9px;min-width:min(100%,360px)}.calendar-summary div{padding:13px;border:1px solid #e4e8ef;border-radius:15px;background:rgba(255,255,255,.9);text-align:center;box-shadow:0 8px 22px rgba(15,23,42,.05)}.calendar-summary strong{display:block;color:#111827;font-size:1.35rem}.calendar-summary span{display:block;margin-top:2px;color:#707786;font-size:.69rem}.calendar-shell{overflow:hidden;border:1px solid #dfe4ec;border-radius:24px;background:rgba(255,255,255,.92);box-shadow:0 18px 48px rgba(15,23,42,.09)}.calendar-toolbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #e5e9f0}.month-controls{display:flex;gap:7px}.month-controls button{min-height:36px;padding:7px 11px;border:1px solid #dfe4ec;border-radius:10px;background:#fff;color:#303746;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}.month-controls button:hover:not(:disabled){background:#f0f2ff;border-color:#cbd2ff}.month-controls button:disabled{cursor:not-allowed;opacity:.38}.calendar-period{display:flex;align-items:center;justify-content:center;gap:10px}.calendar-period h3{margin:0;color:#161b27;font-size:1.15rem;text-align:center}.calendar-period label{display:grid;gap:2px;color:#737b8a;font-size:.58rem;font-weight:850;letter-spacing:.05em;text-transform:uppercase}.calendar-period select{min-height:32px;padding:4px 8px;border:1px solid #dfe4ec;border-radius:9px;background:#fff;color:#303746;font:inherit;font-size:.74rem;font-weight:750}.calendar-filters{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:6px;color:#656d7b;font-size:.69rem}.filter-group{--filter-color:#405cf5;display:inline-flex}.filter-group--guitar{--filter-color:#b86b24}.filter-group--dance{--filter-color:#bd377f}.filter-group--running{--filter-color:#237957}.filter-group--languages{--filter-color:#405cf5}.filter-option,.filter-solo{border:1px solid #dfe4ec;background:#fff;color:#656d7b;font:inherit;font-weight:850;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease,opacity .15s ease}.filter-option{display:inline-flex;align-items:center;gap:5px;min-height:29px;padding:5px 7px;border-radius:999px 0 0 999px}.filter-option i{width:8px;height:8px;border-radius:50%;background:var(--filter-color)}.filter-option[aria-pressed="true"]{background:color-mix(in srgb,var(--filter-color) 10%,white);border-color:color-mix(in srgb,var(--filter-color) 38%,#dfe4ec);color:#303746}.filter-option[aria-pressed="false"]{opacity:.42}.filter-option:hover{opacity:1;background:color-mix(in srgb,var(--filter-color) 13%,white);border-color:color-mix(in srgb,var(--filter-color) 45%,#dfe4ec)}.filter-solo{min-height:29px;padding:5px 6px;border-left:0;border-radius:0 999px 999px 0;font-size:.55rem;letter-spacing:.02em;text-transform:uppercase}.filter-solo:hover{background:color-mix(in srgb,var(--filter-color) 12%,white);border-color:color-mix(in srgb,var(--filter-color) 45%,#dfe4ec);color:var(--filter-color)}.filter-actions{display:inline-flex;gap:4px;margin-left:2px}.filter-actions button{min-height:29px;padding:4px 7px;border:1px solid #dfe4ec;border-radius:8px;background:#fff;color:#656d7b;font:inherit;font-size:.64rem;font-weight:850;cursor:pointer}.filter-actions button:hover{background:#f0f2ff;border-color:#cbd2ff;color:#303746}.weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid #e7ebf1;background:#f8fafc}.weekdays span{padding:9px;color:#737b8a;font-size:.67rem;font-weight:850;letter-spacing:.08em;text-align:center;text-transform:uppercase}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:minmax(118px,1fr)}.calendar-grid :global(.day){display:block;min-width:0;min-height:118px;padding:8px;overflow:hidden;border-right:1px solid #e8ebf1;border-bottom:1px solid #e8ebf1;background:rgba(255,255,255,.82);color:#252b38;text-decoration:none}.calendar-grid :global(.day):nth-child(7n){border-right:0}.calendar-grid :global(.day):nth-last-child(-n+7){border-bottom:0}.calendar-grid :global(a.day:hover){position:relative;z-index:1;background:#f5f7ff;box-shadow:inset 0 0 0 2px rgba(64,92,245,.3)}.calendar-grid :global(.day--outside){background:#f8f9fb;color:#a1a7b2}.calendar-grid :global(.day--outside .day-events){opacity:.26;filter:saturate(.55)}.calendar-grid :global(.day--future){background:#fbfcfd;color:#b4bac4}.calendar-grid :global(.day--active){background:linear-gradient(145deg,#fff,#fafbff)}.calendar-grid :global(.day-number){display:block;margin-bottom:7px;font-size:.74rem;font-weight:850}.calendar-grid :global(.day-events){display:grid;gap:4px}.calendar-grid :global(.event){--event-color:#405cf5;--event-fill:50%;display:block;overflow:hidden;padding:4px 5px;border-radius:6px;background:linear-gradient(90deg,var(--event-color) 0 var(--event-fill),color-mix(in srgb,var(--event-color) 72%,white) var(--event-fill) 100%);color:#fff;font-size:.61rem;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 1px rgba(15,23,42,.28)}.calendar-grid :global(.event--guitar){--event-color:#b86b24}.calendar-grid :global(.event--dance){--event-color:#bd377f}.calendar-grid :global(.event--running){--event-color:#237957}.calendar-grid :global(.event--languages){--event-color:#405cf5}.calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:11px 16px;border-top:1px solid #e7ebf1;background:#f8fafc}.calendar-footer p{margin:0;color:#697180;font-size:.7rem}.calendar-status{font-weight:750}.calendar-error{grid-column:1/-1;display:grid;min-height:280px;place-items:center;margin:0;color:#991b1b;background:#fff1f2}
-  @media(max-width:900px){.calendar-heading{align-items:stretch;flex-direction:column}.calendar-summary{width:100%}.calendar-toolbar{grid-template-columns:1fr;justify-items:center}.month-controls{order:2}.calendar-period{order:1}.calendar-filters{order:3;justify-content:center}.calendar-grid{grid-auto-rows:minmax(96px,1fr)}.calendar-grid :global(.day){min-height:96px}.calendar-footer{align-items:flex-start;flex-direction:column}}@media(max-width:620px){.calendar-section{padding-inline:10px}.calendar-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.calendar-summary div{padding:10px 6px}.weekdays span{padding:7px 2px;font-size:.59rem}.calendar-grid{grid-auto-rows:minmax(72px,1fr)}.calendar-grid :global(.day){min-height:72px;padding:5px}.calendar-grid :global(.event){height:6px;padding:0;border-radius:999px;color:transparent;font-size:0;text-shadow:none}.calendar-grid :global(.day-number){margin-bottom:5px}.calendar-period{align-items:stretch;flex-direction:column}.calendar-period label{grid-template-columns:auto auto;align-items:center}.calendar-filters{gap:5px}.filter-option{padding:5px 6px}.filter-solo{padding:5px}.filter-actions{width:100%;justify-content:center;margin-left:0}}
-  :global(html.dark) .calendar-heading h2,:global(body.dark) .calendar-heading h2{color:#f8fafc}:global(html.dark) .calendar-shell,:global(body.dark) .calendar-shell,:global(html.dark) .calendar-summary div,:global(body.dark) .calendar-summary div{background:rgba(15,23,42,.92);border-color:rgba(148,163,184,.18)}:global(html.dark) .calendar-summary strong,:global(body.dark) .calendar-summary strong,:global(html.dark) .calendar-period h3,:global(body.dark) .calendar-period h3{color:#f8fafc}:global(html.dark) .calendar-toolbar,:global(body.dark) .calendar-toolbar,:global(html.dark) .calendar-footer,:global(body.dark) .calendar-footer,:global(html.dark) .weekdays,:global(body.dark) .weekdays{background:#0f172a;border-color:rgba(148,163,184,.16)}:global(html.dark) .month-controls button,:global(body.dark) .month-controls button,:global(html.dark) .calendar-period select,:global(body.dark) .calendar-period select,:global(html.dark) .filter-option,:global(body.dark) .filter-option,:global(html.dark) .filter-solo,:global(body.dark) .filter-solo,:global(html.dark) .filter-actions button,:global(body.dark) .filter-actions button{background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.2)}:global(html.dark) .filter-option[aria-pressed="true"],:global(body.dark) .filter-option[aria-pressed="true"]{background:color-mix(in srgb,var(--filter-color) 18%,#111827);border-color:color-mix(in srgb,var(--filter-color) 45%,#334155);color:#f8fafc}:global(html.dark) .filter-option:hover,:global(body.dark) .filter-option:hover,:global(html.dark) .filter-solo:hover,:global(body.dark) .filter-solo:hover{background:color-mix(in srgb,var(--filter-color) 20%,#111827);border-color:color-mix(in srgb,var(--filter-color) 48%,#334155);color:#f8fafc}:global(html.dark) .filter-actions button:hover,:global(body.dark) .filter-actions button:hover{background:#172033;border-color:rgba(129,140,248,.45);color:#f8fafc}:global(html.dark) .calendar-grid :global(.day),:global(body.dark) .calendar-grid :global(.day){background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.day--outside),:global(body.dark) .calendar-grid :global(.day--outside),:global(html.dark) .calendar-grid :global(.day--future),:global(body.dark) .calendar-grid :global(.day--future){background:#0f172a;color:#64748b}
+  .calendar-section{max-width:1380px;margin:0 auto;padding:8px clamp(14px,3vw,48px) 54px}.calendar-heading{display:flex;align-items:end;justify-content:space-between;gap:28px;margin-bottom:18px}.calendar-eyebrow{margin:0 0 5px;color:#405cf5;font-size:.72rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.calendar-heading h2{margin:0;color:#111827;font-size:clamp(1.8rem,4vw,3.2rem);letter-spacing:-.045em}.calendar-intro{max-width:760px;margin:8px 0 0;color:#626978;line-height:1.65}.calendar-summary{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:9px;min-width:min(100%,360px)}.calendar-summary div{padding:13px;border:1px solid #e4e8ef;border-radius:15px;background:rgba(255,255,255,.9);text-align:center;box-shadow:0 8px 22px rgba(15,23,42,.05)}.calendar-summary strong{display:block;color:#111827;font-size:1.35rem}.calendar-summary span{display:block;margin-top:2px;color:#707786;font-size:.69rem}.calendar-shell{overflow:hidden;border:1px solid #dfe4ec;border-radius:24px;background:rgba(255,255,255,.92);box-shadow:0 18px 48px rgba(15,23,42,.09)}.calendar-toolbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid #e5e9f0}.month-controls{display:flex;gap:7px}.month-controls button{min-height:36px;padding:7px 11px;border:1px solid #dfe4ec;border-radius:10px;background:#fff;color:#303746;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}.month-controls button:hover:not(:disabled){background:#f0f2ff;border-color:#cbd2ff}.month-controls button:disabled{cursor:not-allowed;opacity:.38}.calendar-period{display:flex;align-items:center;justify-content:center;gap:10px}.calendar-period h3{margin:0;color:#161b27;font-size:1.15rem;text-align:center;min-width:92px}.calendar-period label{display:grid;gap:2px;color:#737b8a;font-size:.58rem;font-weight:850;letter-spacing:.05em;text-transform:uppercase}.calendar-period select{min-height:32px;padding:4px 8px;border:1px solid #dfe4ec;border-radius:9px;background:#fff;color:#303746;font:inherit;font-size:.74rem;font-weight:750}.view-toggle{display:inline-flex;border:1px solid #dfe4ec;border-radius:9px;overflow:hidden;background:#fff}.view-toggle button{min-height:32px;padding:5px 8px;border:0;border-right:1px solid #dfe4ec;background:transparent;color:#727987;font:inherit;font-size:.64rem;font-weight:850;cursor:pointer}.view-toggle button:last-child{border-right:0}.view-toggle button[aria-pressed="true"]{background:#eef1ff;color:#3447d8}.view-toggle button:hover{background:#f4f5ff}.calendar-filters{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:6px;color:#656d7b;font-size:.69rem}.filter-group{--filter-color:#405cf5;display:inline-flex}.filter-group--guitar{--filter-color:#b86b24}.filter-group--dance{--filter-color:#bd377f}.filter-group--running{--filter-color:#237957}.filter-group--languages{--filter-color:#405cf5}.filter-option,.filter-solo{border:1px solid #dfe4ec;background:#fff;color:#656d7b;font:inherit;font-weight:850;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease,opacity .15s ease}.filter-option{display:inline-flex;align-items:center;gap:5px;min-height:29px;padding:5px 7px;border-radius:999px 0 0 999px}.filter-option i{width:8px;height:8px;border-radius:50%;background:var(--filter-color)}.filter-option[aria-pressed="true"]{background:color-mix(in srgb,var(--filter-color) 10%,white);border-color:color-mix(in srgb,var(--filter-color) 38%,#dfe4ec);color:#303746}.filter-option[aria-pressed="false"]{opacity:.42}.filter-option:hover{opacity:1;background:color-mix(in srgb,var(--filter-color) 13%,white);border-color:color-mix(in srgb,var(--filter-color) 45%,#dfe4ec)}.filter-solo{min-height:29px;padding:5px 6px;border-left:0;border-radius:0 999px 999px 0;font-size:.55rem;letter-spacing:.02em;text-transform:uppercase}.filter-solo:hover{background:color-mix(in srgb,var(--filter-color) 12%,white);border-color:color-mix(in srgb,var(--filter-color) 45%,#dfe4ec);color:var(--filter-color)}.filter-actions{display:inline-flex;gap:4px;margin-left:2px}.filter-actions button{min-height:29px;padding:4px 7px;border:1px solid #dfe4ec;border-radius:8px;background:#fff;color:#656d7b;font:inherit;font-size:.64rem;font-weight:850;cursor:pointer}.filter-actions button:hover{background:#f0f2ff;border-color:#cbd2ff;color:#303746}.weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid #e7ebf1;background:#f8fafc}.weekdays span{padding:9px;color:#737b8a;font-size:.67rem;font-weight:850;letter-spacing:.08em;text-align:center;text-transform:uppercase}.calendar-section[data-calendar-view="year"] .weekdays{display:none}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:minmax(118px,1fr)}.calendar-grid[data-view="year"]{display:block}.calendar-grid :global(.day){display:block;min-width:0;min-height:118px;padding:8px;overflow:hidden;border-right:1px solid #e8ebf1;border-bottom:1px solid #e8ebf1;background:rgba(255,255,255,.82);color:#252b38;text-decoration:none}.calendar-grid :global(.day):nth-child(7n){border-right:0}.calendar-grid :global(.day):nth-last-child(-n+7){border-bottom:0}.calendar-grid :global(a.day:hover){position:relative;z-index:1;background:#f5f7ff;box-shadow:inset 0 0 0 2px rgba(64,92,245,.3)}.calendar-grid :global(.day--outside){background:#f8f9fb;color:#a1a7b2}.calendar-grid :global(.day--outside .day-events){opacity:.26;filter:saturate(.55)}.calendar-grid :global(.day--future){background:#fbfcfd;color:#b4bac4}.calendar-grid :global(.day--active){background:linear-gradient(145deg,#fff,#fafbff)}.calendar-grid :global(.day-number){display:block;margin-bottom:7px;font-size:.74rem;font-weight:850}.calendar-grid :global(.day-events){display:grid;gap:4px}.calendar-grid :global(.event){--event-color:#405cf5;--event-fill:50%;display:block;overflow:hidden;padding:4px 5px;border-radius:6px;background:linear-gradient(90deg,var(--event-color) 0 var(--event-fill),color-mix(in srgb,var(--event-color) 72%,white) var(--event-fill) 100%);color:#fff;font-size:.61rem;font-weight:800;line-height:1.2;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 1px rgba(15,23,42,.28)}.calendar-grid :global(.event--guitar){--event-color:#b86b24}.calendar-grid :global(.event--dance){--event-color:#bd377f}.calendar-grid :global(.event--running){--event-color:#237957}.calendar-grid :global(.event--languages){--event-color:#405cf5}.calendar-grid :global(.year-months){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding:18px}.calendar-grid :global(.year-month){min-width:0;padding:12px;border:1px solid #e5e9f0;border-radius:15px;background:#fbfcfe}.calendar-grid :global(.year-month h4){margin:0 0 9px;color:#202633;font-size:.82rem;font-weight:900}.calendar-grid :global(.year-weekdays),.calendar-grid :global(.year-days){display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calendar-grid :global(.year-weekdays){margin-bottom:4px}.calendar-grid :global(.year-weekdays span){color:#8a919f;font-size:.5rem;font-weight:850;text-align:center}.calendar-grid :global(.year-day){position:relative;display:block;aspect-ratio:1;min-width:0;overflow:hidden;border:1px solid #e6e9ef;border-radius:6px;background:#fff;color:#454c5b;text-decoration:none}.calendar-grid :global(a.year-day:hover){z-index:1;border-color:#aeb8ff;box-shadow:0 0 0 2px rgba(64,92,245,.12)}.calendar-grid :global(.year-day--blank){visibility:hidden}.calendar-grid :global(.year-day--future){background:#f5f6f8;color:#b8bec8}.calendar-grid :global(.year-day--active){background:#fafbff}.calendar-grid :global(.year-day-number){position:absolute;top:2px;left:3px;font-size:.49rem;font-weight:850;line-height:1}.calendar-grid :global(.year-day-marks){position:absolute;left:3px;right:3px;bottom:3px;display:grid;gap:1px}.calendar-grid :global(.year-mark){--mark-fill:50%;display:block;width:var(--mark-fill);height:2px;border-radius:999px;background:#405cf5}.calendar-grid :global(.year-mark--guitar){background:#b86b24}.calendar-grid :global(.year-mark--dance){background:#bd377f}.calendar-grid :global(.year-mark--running){background:#237957}.calendar-grid :global(.year-mark--languages){background:#405cf5}.calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:11px 16px;border-top:1px solid #e7ebf1;background:#f8fafc}.calendar-footer p{margin:0;color:#697180;font-size:.7rem}.calendar-status{font-weight:750}.calendar-error{grid-column:1/-1;display:grid;min-height:280px;place-items:center;margin:0;color:#991b1b;background:#fff1f2}
+  @media(max-width:1150px){.calendar-grid :global(.year-months){grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:900px){.calendar-heading{align-items:stretch;flex-direction:column}.calendar-summary{width:100%}.calendar-toolbar{grid-template-columns:1fr;justify-items:center}.month-controls{order:2}.calendar-period{order:1}.calendar-filters{order:3;justify-content:center}.calendar-grid{grid-auto-rows:minmax(96px,1fr)}.calendar-grid :global(.day){min-height:96px}.calendar-grid :global(.year-months){grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}.calendar-footer{align-items:flex-start;flex-direction:column}}@media(max-width:620px){.calendar-section{padding-inline:10px}.calendar-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.calendar-summary div{padding:10px 6px}.weekdays span{padding:7px 2px;font-size:.59rem}.calendar-grid{grid-auto-rows:minmax(72px,1fr)}.calendar-grid :global(.day){min-height:72px;padding:5px}.calendar-grid :global(.event){height:6px;padding:0;border-radius:999px;color:transparent;font-size:0;text-shadow:none}.calendar-grid :global(.day-number){margin-bottom:5px}.calendar-period{align-items:stretch;flex-wrap:wrap}.calendar-period h3{order:-1;width:100%}.calendar-period label{grid-template-columns:auto auto;align-items:center}.calendar-filters{gap:5px}.filter-option{padding:5px 6px}.filter-solo{padding:5px}.filter-actions{width:100%;justify-content:center;margin-left:0}.calendar-grid :global(.year-months){grid-template-columns:1fr;padding:10px}.calendar-grid :global(.year-month){padding:10px}.calendar-grid :global(.year-day-number){font-size:.56rem}.calendar-grid :global(.year-mark){height:3px}}
+  :global(html.dark) .calendar-heading h2,:global(body.dark) .calendar-heading h2{color:#f8fafc}:global(html.dark) .calendar-shell,:global(body.dark) .calendar-shell,:global(html.dark) .calendar-summary div,:global(body.dark) .calendar-summary div{background:rgba(15,23,42,.92);border-color:rgba(148,163,184,.18)}:global(html.dark) .calendar-summary strong,:global(body.dark) .calendar-summary strong,:global(html.dark) .calendar-period h3,:global(body.dark) .calendar-period h3{color:#f8fafc}:global(html.dark) .calendar-toolbar,:global(body.dark) .calendar-toolbar,:global(html.dark) .calendar-footer,:global(body.dark) .calendar-footer,:global(html.dark) .weekdays,:global(body.dark) .weekdays{background:#0f172a;border-color:rgba(148,163,184,.16)}:global(html.dark) .month-controls button,:global(body.dark) .month-controls button,:global(html.dark) .calendar-period select,:global(body.dark) .calendar-period select,:global(html.dark) .view-toggle,:global(body.dark) .view-toggle,:global(html.dark) .filter-option,:global(body.dark) .filter-option,:global(html.dark) .filter-solo,:global(body.dark) .filter-solo,:global(html.dark) .filter-actions button,:global(body.dark) .filter-actions button{background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.2)}:global(html.dark) .view-toggle button,:global(body.dark) .view-toggle button{color:#aeb7c5;border-color:rgba(148,163,184,.2)}:global(html.dark) .view-toggle button[aria-pressed="true"],:global(body.dark) .view-toggle button[aria-pressed="true"]{background:#20284d;color:#c7d2fe}:global(html.dark) .view-toggle button:hover,:global(body.dark) .view-toggle button:hover{background:#172033}:global(html.dark) .filter-option[aria-pressed="true"],:global(body.dark) .filter-option[aria-pressed="true"]{background:color-mix(in srgb,var(--filter-color) 18%,#111827);border-color:color-mix(in srgb,var(--filter-color) 45%,#334155);color:#f8fafc}:global(html.dark) .filter-option:hover,:global(body.dark) .filter-option:hover,:global(html.dark) .filter-solo:hover,:global(body.dark) .filter-solo:hover{background:color-mix(in srgb,var(--filter-color) 20%,#111827);border-color:color-mix(in srgb,var(--filter-color) 48%,#334155);color:#f8fafc}:global(html.dark) .filter-actions button:hover,:global(body.dark) .filter-actions button:hover{background:#172033;border-color:rgba(129,140,248,.45);color:#f8fafc}:global(html.dark) .calendar-grid :global(.day),:global(body.dark) .calendar-grid :global(.day){background:#111827;color:#e2e8f0;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.day--outside),:global(body.dark) .calendar-grid :global(.day--outside),:global(html.dark) .calendar-grid :global(.day--future),:global(body.dark) .calendar-grid :global(.day--future){background:#0f172a;color:#64748b}:global(html.dark) .calendar-grid :global(.year-month),:global(body.dark) .calendar-grid :global(.year-month){background:#0f172a;border-color:rgba(148,163,184,.16)}:global(html.dark) .calendar-grid :global(.year-month h4),:global(body.dark) .calendar-grid :global(.year-month h4){color:#f1f5f9}:global(html.dark) .calendar-grid :global(.year-day),:global(body.dark) .calendar-grid :global(.year-day){background:#111827;color:#dbe3ee;border-color:rgba(148,163,184,.14)}:global(html.dark) .calendar-grid :global(.year-day--future),:global(body.dark) .calendar-grid :global(.year-day--future){background:#0b1220;color:#596579}
 </style>
