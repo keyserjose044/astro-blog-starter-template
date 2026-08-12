@@ -1,5 +1,6 @@
 ---
 import '../styles/pursuits-live-runtime.css';
+import '../styles/pursuits-live-overview-polish.css';
 
 type PursuitSection = 'overview' | 'guitar' | 'dance' | 'running' | 'languages';
 
@@ -46,7 +47,7 @@ const context: Partial<Record<Exclude<PursuitSection, 'overview' | 'guitar'>, Ar
           <p class="pursuits-live-eyebrow">Live archive pulse</p>
           <h2 id="pursuits-live-overview-title">What the practice history says now</h2>
         </div>
-        <p>All four pursuits use the same public-safe daily Archive that powers the Stats and Day Explorers. Totals, active days, and best months update from one source.</p>
+        <p>All four pursuits use the same public-safe daily Archive that powers the Stats and Day Explorers. Totals, practice days, and best months update from one source.</p>
       </div>
 
       <div class="pursuits-live-card-grid">
@@ -58,9 +59,10 @@ const context: Partial<Record<Exclude<PursuitSection, 'overview' | 'guitar'>, Ar
             </div>
             <p class="pursuits-live-card__value"><strong data-live-lifetime>—</strong><span>{pursuit.unit}</span></p>
             <div class="pursuits-live-spark" data-live-spark aria-label={`${pursuit.label} recent monthly trend`}></div>
+            <p class="pursuits-live-spark-label">{pursuit.key === 'dance' ? 'Since Jun 2026' : 'Last 12 months'}</p>
             <dl>
-              <div><dt>This year</dt><dd data-live-year>—</dd></div>
-              <div><dt>Active days</dt><dd data-live-active>—</dd></div>
+              <div><dt data-live-year-label>Year</dt><dd data-live-year>—</dd></div>
+              <div><dt>Days practiced</dt><dd data-live-active>—</dd></div>
               <div><dt>Best month</dt><dd data-live-best-month>—</dd></div>
               <div><dt>Last active</dt><dd data-live-last>—</dd></div>
             </dl>
@@ -136,4 +138,5 @@ const context: Partial<Record<Exclude<PursuitSection, 'overview' | 'guitar'>, Ar
 
 <script>
   import '../scripts/pursuitsLiveRuntime';
+  import '../scripts/pursuitsLiveOverviewPolish';
 </script>
