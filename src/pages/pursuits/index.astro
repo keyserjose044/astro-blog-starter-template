@@ -18,25 +18,25 @@ import { SITE_TITLE } from '../../consts';
   <main class="pursuits-page">
     <PursuitsNav active="overview" />
 
-    <section class="hero" aria-labelledby="pursuits-title">
-      <div class="hero-copy">
-        <p class="eyebrow">The practiced side of LifeLoggerz</p>
-        <h1 id="pursuits-title">Pursuits</h1>
-        <p class="hero-lede">Not everything meaningful is something I consumed. These are the skills, disciplines, and physical practices I have tried to build through repetition.</p>
-        <p class="hero-note">The pages preserve progress, resources, dead ends, turning points, and the allocation of limited time—not merely lifetime totals.</p>
+    <section class="hero pursuits-hero" aria-labelledby="pursuits-title">
+      <div class="pursuits-hero__copy">
+        <p class="pursuits-hero__eyebrow">The practiced side of LifeLoggerz</p>
+        <h1 id="pursuits-title" class="pursuits-hero__title">Pursuits</h1>
+        <p class="pursuits-hero__lede">Not everything meaningful is something I consumed. These are the skills, disciplines, and physical practices I have tried to build through repetition.</p>
+        <p class="pursuits-hero__note">The pages preserve progress, resources, dead ends, turning points, and the allocation of limited time—not merely lifetime totals.</p>
       </div>
 
-      <div class="hero-media" aria-label="Guitar practice clip">
+      <div class="pursuits-hero__media" aria-label="Guitar practice clip">
         <video id="hero-guitar-video" autoplay muted loop playsinline preload="metadata">
           <source src="/videos/guitar.mp4" type="video/mp4" />
         </video>
-        <div class="hero-media-shade" aria-hidden="true"></div>
-        <div class="hero-media-caption">
+        <div class="pursuits-hero__shade" aria-hidden="true"></div>
+        <div class="pursuits-hero__caption">
           <span>Practice in motion</span>
           <strong>Guitar</strong>
-          <p class="hero-media-total">Lifetime practice · <b id="hero-guitar-lifetime">—</b></p>
+          <p>Lifetime practice · <b id="hero-guitar-lifetime">—</b></p>
         </div>
-        <button id="hero-audio-toggle" class="hero-audio-toggle" type="button" aria-label="Unmute guitar clip" aria-pressed="false">🔇</button>
+        <button id="hero-audio-toggle" class="pursuits-hero__audio" type="button" aria-label="Unmute guitar clip" aria-pressed="false">🔇</button>
       </div>
     </section>
 
@@ -44,7 +44,7 @@ import { SITE_TITLE } from '../../consts';
 
     <section class="growth-section" aria-labelledby="growth-title">
       <div>
-        <p class="eyebrow">Expandable by design</p>
+        <p class="growth-eyebrow">Expandable by design</p>
         <h2 id="growth-title">The section can grow as life grows</h2>
         <p>Calligraphy, photography, cooking, strength training, or another serious practice can eventually join the same structure without crowding the main header. A new pursuit earns a page when there is enough history, learning, or material worth preserving.</p>
       </div>
@@ -74,7 +74,7 @@ import { SITE_TITLE } from '../../consts';
   }
 
   if (lifetime) {
-    Promise.all([getDailyMeta()]).then(async ([meta]) => {
+    getDailyMeta().then(async (meta) => {
       const records = await getYears(meta.availableYears);
       const dataThrough = meta.dataThrough || records.at(-1)?.date || '9999-12-31';
       const minutes = records.reduce((total, record) => {
@@ -82,8 +82,7 @@ import { SITE_TITLE } from '../../consts';
         const value = record.hobbies.guitarMinutes;
         return total + (typeof value === 'number' && Number.isFinite(value) ? value : 0);
       }, 0);
-      const hours = minutes / 60;
-      lifetime.textContent = `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(hours)} hours`;
+      lifetime.textContent = `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(minutes / 60)} hours`;
     }).catch(() => {
       lifetime.textContent = 'Archive connected';
     });
@@ -94,19 +93,21 @@ import { SITE_TITLE } from '../../consts';
   * { box-sizing:border-box; }
   .pursuits-page { min-height:100vh; padding-bottom:58px; }
 
-  .hero {
+  /* Desktop hero: deliberately namespaced so generic .hero rules elsewhere cannot distort it. */
+  .pursuits-page .pursuits-hero {
     display:grid;
-    grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr);
-    grid-template-areas:'copy media';
+    grid-template-columns:minmax(600px,1fr) 500px;
     align-items:center;
-    gap:clamp(46px,5vw,78px);
-    width:min(1380px,calc(100% - 32px));
-    margin:22px auto 48px;
-    padding:clamp(48px,4.3vw,64px) clamp(44px,5vw,72px);
+    gap:clamp(48px,4vw,72px);
+    width:min(1500px,calc(100% - 40px));
+    min-height:0;
+    margin:24px auto 50px;
+    padding:56px 64px;
+    overflow:hidden;
     border:1px solid rgba(218,224,235,.96);
     border-radius:32px;
     background:
-      radial-gradient(circle at 82% 18%,rgba(64,92,245,.11),transparent 34%),
+      radial-gradient(circle at 84% 20%,rgba(64,92,245,.11),transparent 34%),
       radial-gradient(circle at 10% 82%,rgba(195,66,143,.075),transparent 31%),
       linear-gradient(135deg,rgba(247,249,255,.97),rgba(255,255,255,.95));
     color:#141923;
@@ -114,26 +115,35 @@ import { SITE_TITLE } from '../../consts';
     backdrop-filter:blur(10px);
   }
 
-  .hero-copy { grid-area:copy; min-width:0; max-width:720px; align-self:center; }
-  .eyebrow { margin:0 0 9px; color:#405cf5; font-size:.72rem; font-weight:900; letter-spacing:.17em; text-transform:uppercase; }
-  .hero h1 {
+  .pursuits-hero__copy { min-width:0; max-width:760px; align-self:center; }
+  .pursuits-hero__eyebrow,
+  .growth-eyebrow { margin:0 0 10px; color:#405cf5; font-size:.72rem; font-weight:900; letter-spacing:.17em; text-transform:uppercase; }
+
+  .pursuits-page .pursuits-hero__title {
+    display:block;
+    width:max-content;
+    max-width:none;
     margin:0;
     color:#111827;
-    font-size:clamp(5.3rem,7.1vw,7.5rem);
+    font-size:clamp(5.5rem,7.2vw,8rem);
     line-height:.84;
     letter-spacing:-.075em;
-    white-space:nowrap;
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+    overflow-wrap:normal !important;
+    hyphens:none !important;
+    text-wrap:nowrap;
     text-shadow:none;
   }
-  .hero-lede { max-width:670px; margin:30px 0 0; color:#252b38; font-size:clamp(1.08rem,1.55vw,1.35rem); line-height:1.55; }
-  .hero-note { max-width:650px; margin:17px 0 0; color:#626978; font-size:.98rem; line-height:1.62; }
 
-  .hero-media {
-    grid-area:media;
+  .pursuits-hero__lede { max-width:720px; margin:30px 0 0; color:#252b38; font-size:clamp(1.08rem,1.55vw,1.34rem); line-height:1.55; }
+  .pursuits-hero__note { max-width:680px; margin:17px 0 0; color:#626978; font-size:.98rem; line-height:1.62; }
+
+  .pursuits-hero__media {
     position:relative;
     justify-self:end;
-    align-self:center;
-    width:min(100%,500px);
+    width:500px;
+    max-width:100%;
     aspect-ratio:1;
     overflow:hidden;
     border:1px solid rgba(255,255,255,.82);
@@ -141,16 +151,16 @@ import { SITE_TITLE } from '../../consts';
     background:#111827;
     box-shadow:0 24px 55px rgba(15,23,42,.18),0 0 0 1px rgba(15,23,42,.06);
   }
-  .hero-media video { width:100%; height:100%; display:block; object-fit:cover; filter:saturate(.9) contrast(1.03); transform:scale(1.012); }
-  .hero-media-shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 43%,rgba(5,8,15,.8)); pointer-events:none; }
-  .hero-media-caption { position:absolute; left:26px; right:82px; bottom:23px; z-index:1; color:#fff; text-shadow:0 3px 18px rgba(0,0,0,.65); }
-  .hero-media-caption > span { display:block; margin-bottom:4px; font-size:.67rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; opacity:.85; }
-  .hero-media-caption > strong { display:block; font-size:clamp(2rem,3vw,3rem); line-height:.94; letter-spacing:-.045em; }
-  .hero-media-total { margin:9px 0 0; color:rgba(255,255,255,.9); font-size:.75rem; font-weight:700; line-height:1.35; text-shadow:0 2px 12px rgba(0,0,0,.72); }
-  .hero-media-total b { color:#fff; font-weight:900; }
-  .hero-audio-toggle { position:absolute; z-index:2; right:18px; bottom:18px; display:grid; width:46px; height:46px; place-items:center; border:1px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(0,0,0,.52); color:#fff; font-size:1rem; cursor:pointer; backdrop-filter:blur(8px); transition:transform .18s ease,background .18s ease; }
-  .hero-audio-toggle:hover { transform:scale(1.06); background:rgba(0,0,0,.72); }
-  .hero-audio-toggle:focus-visible { outline:3px solid rgba(255,255,255,.8); outline-offset:3px; }
+  .pursuits-hero__media video { width:100%; height:100%; display:block; object-fit:cover; filter:saturate(.9) contrast(1.03); transform:scale(1.012); }
+  .pursuits-hero__shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 43%,rgba(5,8,15,.8)); pointer-events:none; }
+  .pursuits-hero__caption { position:absolute; left:26px; right:82px; bottom:23px; z-index:1; color:#fff; text-shadow:0 3px 18px rgba(0,0,0,.65); }
+  .pursuits-hero__caption > span { display:block; margin-bottom:4px; font-size:.67rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; opacity:.85; }
+  .pursuits-hero__caption > strong { display:block; font-size:clamp(2rem,3vw,3rem); line-height:.94; letter-spacing:-.045em; }
+  .pursuits-hero__caption > p { margin:9px 0 0; color:rgba(255,255,255,.9); font-size:.75rem; font-weight:700; line-height:1.35; text-shadow:0 2px 12px rgba(0,0,0,.72); }
+  .pursuits-hero__caption b { color:#fff; font-weight:900; }
+  .pursuits-hero__audio { position:absolute; z-index:2; right:18px; bottom:18px; display:grid; width:46px; height:46px; place-items:center; border:1px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(0,0,0,.52); color:#fff; font-size:1rem; cursor:pointer; backdrop-filter:blur(8px); transition:transform .18s ease,background .18s ease; }
+  .pursuits-hero__audio:hover { transform:scale(1.06); background:rgba(0,0,0,.72); }
+  .pursuits-hero__audio:focus-visible { outline:3px solid rgba(255,255,255,.8); outline-offset:3px; }
 
   .growth-section {
     display:flex;
@@ -173,80 +183,89 @@ import { SITE_TITLE } from '../../consts';
   .growth-path span.active { border-color:#405cf5; background:#405cf5; color:#fff; }
   .growth-path i { width:24px; height:1px; background:#ccd3df; }
 
-  /* Tablet: still two-column, but balanced and less oversized. */
-  @media (max-width:1180px) and (min-width:801px) {
-    .hero { grid-template-columns:minmax(0,1fr) minmax(350px,.82fr); gap:36px; padding:44px 42px; }
-    .hero h1 { font-size:clamp(4.7rem,7.6vw,6.1rem); }
-    .hero-lede { margin-top:25px; font-size:1.08rem; }
-    .hero-note { font-size:.92rem; }
-    .hero-media { width:min(100%,430px); }
+  /* Narrow desktop / tablet keeps the side-by-side idea but scales it sanely. */
+  @media (max-width:1320px) and (min-width:901px) {
+    .pursuits-page .pursuits-hero {
+      grid-template-columns:minmax(0,1fr) clamp(360px,38vw,450px);
+      gap:38px;
+      padding:46px 46px;
+    }
+    .pursuits-page .pursuits-hero__title { font-size:clamp(4.6rem,7vw,6.3rem); }
+    .pursuits-hero__lede { margin-top:25px; font-size:1.08rem; }
+    .pursuits-hero__note { font-size:.92rem; }
+    .pursuits-hero__media { width:100%; }
   }
 
-  /* Mobile gets its own composition: editorial text card followed by a wide video poster. */
-  @media (max-width:800px) {
-    .hero {
+  /* Mobile is intentionally a different composition: copy, then a wide visual card. */
+  @media (max-width:900px) {
+    .pursuits-page .pursuits-hero {
       display:flex;
       flex-direction:column;
       align-items:stretch;
-      gap:30px;
+      gap:28px;
       width:calc(100% - 20px);
       margin:14px 10px 34px;
       padding:34px 26px 26px;
       border-radius:26px;
     }
-    .hero-copy { max-width:none; }
-    .hero h1 { font-size:clamp(4.25rem,20vw,6.4rem); white-space:normal; line-height:.82; }
-    .hero-lede { max-width:none; margin-top:24px; font-size:1.05rem; line-height:1.52; }
-    .hero-note { max-width:none; margin-top:13px; font-size:.9rem; line-height:1.56; }
-    .hero-media {
+    .pursuits-hero__copy { max-width:none; }
+    .pursuits-page .pursuits-hero__title {
+      width:auto;
+      max-width:100%;
+      font-size:clamp(4.2rem,18vw,6.2rem);
+      white-space:normal !important;
+      line-height:.84;
+    }
+    .pursuits-hero__lede { max-width:none; margin-top:24px; font-size:1.05rem; line-height:1.52; }
+    .pursuits-hero__note { max-width:none; margin-top:13px; font-size:.9rem; line-height:1.56; }
+    .pursuits-hero__media {
       width:100%;
       max-width:none;
       aspect-ratio:4/3;
-      justify-self:auto;
       border-radius:22px;
       box-shadow:0 18px 40px rgba(15,23,42,.16),0 0 0 1px rgba(15,23,42,.06);
     }
-    .hero-media video { object-position:center 48%; }
-    .hero-media-caption { left:20px; right:72px; bottom:18px; }
-    .hero-media-caption > strong { font-size:2.1rem; }
-    .hero-media-total { margin-top:6px; font-size:.7rem; }
-    .hero-audio-toggle { right:14px; bottom:14px; width:42px; height:42px; }
+    .pursuits-hero__media video { object-position:center 48%; }
+    .pursuits-hero__caption { left:20px; right:72px; bottom:18px; }
+    .pursuits-hero__caption > strong { font-size:2.1rem; }
+    .pursuits-hero__caption > p { margin-top:6px; font-size:.7rem; }
+    .pursuits-hero__audio { right:14px; bottom:14px; width:42px; height:42px; }
     .growth-section { align-items:flex-start; flex-direction:column; margin-left:10px; margin-right:10px; }
   }
 
   @media (max-width:480px) {
     .pursuits-page { padding-bottom:38px; }
-    .hero { padding:30px 20px 20px; gap:25px; border-radius:22px; }
-    .eyebrow { font-size:.66rem; }
-    .hero h1 { font-size:clamp(3.8rem,20vw,5.1rem); }
-    .hero-lede { margin-top:20px; font-size:1rem; }
-    .hero-note { font-size:.86rem; }
-    .hero-media { aspect-ratio:1/1; border-radius:18px; }
-    .hero-media-caption { left:17px; bottom:16px; }
-    .hero-media-caption > strong { font-size:1.9rem; }
+    .pursuits-page .pursuits-hero { padding:30px 20px 20px; gap:24px; border-radius:22px; }
+    .pursuits-hero__eyebrow { font-size:.66rem; }
+    .pursuits-page .pursuits-hero__title { font-size:clamp(3.7rem,19vw,5rem); }
+    .pursuits-hero__lede { margin-top:20px; font-size:1rem; }
+    .pursuits-hero__note { font-size:.86rem; }
+    .pursuits-hero__media { aspect-ratio:1; border-radius:18px; }
+    .pursuits-hero__caption { left:17px; bottom:16px; }
+    .pursuits-hero__caption > strong { font-size:1.9rem; }
     .growth-section { padding:24px 20px; border-radius:22px; }
     .growth-path { width:100%; flex-wrap:wrap; }
   }
 
-  html.dark .hero, body.dark .hero, html[data-theme='dark'] .hero {
+  html.dark .pursuits-hero, body.dark .pursuits-hero, html[data-theme='dark'] .pursuits-hero {
     border-color:rgba(148,163,184,.18);
     background:
       radial-gradient(circle at 82% 18%,rgba(64,92,245,.14),transparent 34%),
       radial-gradient(circle at 10% 82%,rgba(195,66,143,.1),transparent 31%),
       linear-gradient(135deg,rgba(17,24,39,.96),rgba(15,23,42,.95));
   }
-  html.dark .hero h1, body.dark .hero h1, html[data-theme='dark'] .hero h1,
-  html.dark .hero-lede, body.dark .hero-lede, html[data-theme='dark'] .hero-lede,
+  html.dark .pursuits-hero__title, body.dark .pursuits-hero__title, html[data-theme='dark'] .pursuits-hero__title,
+  html.dark .pursuits-hero__lede, body.dark .pursuits-hero__lede, html[data-theme='dark'] .pursuits-hero__lede,
   html.dark .growth-section h2, body.dark .growth-section h2, html[data-theme='dark'] .growth-section h2 { color:#f8fafc; }
-  html.dark .hero-note, body.dark .hero-note, html[data-theme='dark'] .hero-note,
+  html.dark .pursuits-hero__note, body.dark .pursuits-hero__note, html[data-theme='dark'] .pursuits-hero__note,
   html.dark .growth-section p:last-child, body.dark .growth-section p:last-child, html[data-theme='dark'] .growth-section p:last-child { color:#aeb7c7; }
   html.dark .growth-section, body.dark .growth-section, html[data-theme='dark'] .growth-section { border-color:rgba(148,163,184,.18); background:linear-gradient(135deg,rgba(25,31,54,.95),rgba(17,24,39,.94)); }
   html.dark .growth-path span, body.dark .growth-path span, html[data-theme='dark'] .growth-path span { border-color:rgba(148,163,184,.22); background:#111827; color:#b6c0cf; }
   html.dark .growth-path span.active, body.dark .growth-path span.active, html[data-theme='dark'] .growth-path span.active { border-color:#405cf5; background:#405cf5; color:#fff; }
 
   @media (prefers-reduced-motion:reduce) {
-    .hero-media video { transform:none; }
-    .hero-audio-toggle { transition:none; }
-    .hero-audio-toggle:hover { transform:none; }
+    .pursuits-hero__media video { transform:none; }
+    .pursuits-hero__audio { transition:none; }
+    .pursuits-hero__audio:hover { transform:none; }
   }
 </style>
