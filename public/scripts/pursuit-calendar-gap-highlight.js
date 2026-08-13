@@ -40,6 +40,11 @@
   const setCardState = (card, active) => {
     card.classList.toggle('longest-gap-selected', active);
     card.setAttribute('aria-pressed', String(active));
+    card.setAttribute('aria-label', active
+      ? 'Longest inactivity gap highlighted. Activate to hide the highlight.'
+      : 'Highlight the longest inactivity gap on the year calendar');
+    const action = card.querySelector('.longest-gap-action');
+    if (action) action.textContent = active ? '✓ Gap highlighted · Hide' : 'Highlight gap →';
   };
 
   const clearHighlight = () => {
@@ -116,7 +121,15 @@
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
     card.setAttribute('aria-pressed', 'false');
-    card.setAttribute('aria-label', 'Highlight the longest inactivity gap on the year calendar');
+
+    let action = card.querySelector('.longest-gap-action');
+    if (!action) {
+      action = document.createElement('span');
+      action.className = 'longest-gap-action';
+      action.setAttribute('aria-hidden', 'true');
+      card.append(action);
+    }
+    setCardState(card, false);
 
     card.addEventListener('click', () => toggleHighlight(card));
     card.addEventListener('keydown', (event) => {
