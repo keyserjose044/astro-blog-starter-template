@@ -84,6 +84,10 @@ const structuredData = {
 };
 ---
 
+<style is:global>
+  .prose:has(> .lifeloggerz-story) > .title { display: none; }
+</style>
+
 <AboutLayout
   title="About LifeLoggerz"
   description="What LifeLoggerz is, why it exists, what I track, what I deliberately do not track, and what a long-term digital archive can become."
@@ -95,7 +99,7 @@ const structuredData = {
   <main class="about-split lifeloggerz-story">
     <section class="llz-story-hero" aria-labelledby="lifeloggerz-intro-title">
       <div class="llz-story-hero-copy">
-        <p class="about-eyebrow">The archive, system, and philosophy</p>
+        <p class="about-eyebrow">About LifeLoggerz · the archive, system, and philosophy</p>
         <h2 id="lifeloggerz-intro-title">A searchable record of a life in progress.</h2>
         <p class="about-lede">
           <strong>LifeLoggerz</strong> began as personal logging and grew into something harder to describe with one label:
@@ -156,11 +160,11 @@ const structuredData = {
       </div>
 
       <div class="llz-track-orbit" aria-label="Representative map of what LifeLoggerz preserves">
-        <div class="llz-track-core">
+        <article class="llz-track-core">
           <strong>150+</strong>
           <span>tracked variables</span>
           <small>plus diary entries, collections, dates, places, notes, images, and other context</small>
-        </div>
+        </article>
         {trackedAreas.map((area) => (
           <article class="llz-track-node">
             <span class="icon" aria-hidden="true">{area.icon}</span>
