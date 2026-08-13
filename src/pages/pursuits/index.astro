@@ -4,6 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import VideoBg from '../../components/VideoBg.astro';
 import PursuitsNav from '../../components/PursuitsNav.astro';
+import PursuitsLiveRuntime from '../../components/PursuitsLiveRuntime.astro';
 import PursuitCalendar from '../../components/PursuitCalendar.astro';
 import { SITE_TITLE } from '../../consts';
 ---
@@ -34,12 +35,15 @@ import { SITE_TITLE } from '../../consts';
           <strong>Guitar</strong>
           <p>Lifetime practice · <b id="hero-guitar-lifetime">—</b></p>
         </div>
-        <button id="hero-audio-toggle" class="pursuits-hero__audio" type="button" aria-label="Unmute guitar clip" aria-pressed="false">🔇</button>
+        <div class="pursuits-hero__controls" aria-label="Guitar clip controls">
+          <button id="hero-play-toggle" class="pursuits-hero__control" type="button" aria-label="Pause guitar clip" aria-pressed="false">⏸</button>
+          <button id="hero-audio-toggle" class="pursuits-hero__control" type="button" aria-label="Unmute guitar clip" aria-pressed="false">🔇</button>
+        </div>
       </div>
     </section>
 
     <PursuitsNav active="overview" />
-    <div class="hero pursuits-live-anchor" aria-hidden="true"></div>
+    <PursuitsLiveRuntime active="overview" />
 
     <div id="calendar"><PursuitCalendar /></div>
 
@@ -58,25 +62,47 @@ import { SITE_TITLE } from '../../consts';
 </VideoBg>
 
 <script>
-  import { getDailyMeta, getYears } from '../../utils/dailyData';
+  import { getPursuitsArchive } from '../../utils/pursuitsData';
 
   const video = document.querySelector<HTMLVideoElement>('#hero-guitar-video');
-  const button = document.querySelector<HTMLButtonElement>('#hero-audio-toggle');
+  const audioButton = document.querySelector<HTMLButtonElement>('#hero-audio-toggle');
+  const playButton = document.querySelector<HTMLButtonElement>('#hero-play-toggle');
   const lifetime = document.querySelector<HTMLElement>('#hero-guitar-lifetime');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  if (video && button) {
-    button.addEventListener('click', () => {
+  const syncPlaybackButton = () => {
+    if (!video || !playButton) return;
+    const paused = video.paused;
+    playButton.textContent = paused ? '▶' : '⏸';
+    playButton.setAttribute('aria-pressed', String(paused));
+    playButton.setAttribute('aria-label', paused ? 'Play guitar clip' : 'Pause guitar clip');
+  };
+
+  if (video && audioButton) {
+    audioButton.addEventListener('click', () => {
       video.muted = !video.muted;
-      if (!video.muted) video.play().catch(() => undefined);
-      button.textContent = video.muted ? '🔇' : '🔊';
-      button.setAttribute('aria-pressed', String(!video.muted));
-      button.setAttribute('aria-label', video.muted ? 'Unmute guitar clip' : 'Mute guitar clip');
+      if (!video.muted && video.paused) video.play().catch(() => undefined);
+      audioButton.textContent = video.muted ? '🔇' : '🔊';
+      audioButton.setAttribute('aria-pressed', String(!video.muted));
+      audioButton.setAttribute('aria-label', video.muted ? 'Unmute guitar clip' : 'Mute guitar clip');
+      syncPlaybackButton();
     });
   }
 
+  if (video && playButton) {
+    playButton.addEventListener('click', () => {
+      if (video.paused) video.play().catch(() => undefined);
+      else video.pause();
+      syncPlaybackButton();
+    });
+    video.addEventListener('play', syncPlaybackButton);
+    video.addEventListener('pause', syncPlaybackButton);
+    if (reducedMotion.matches) video.pause();
+    syncPlaybackButton();
+  }
+
   if (lifetime) {
-    getDailyMeta().then(async (meta) => {
-      const records = await getYears(meta.availableYears);
+    getPursuitsArchive().then(({ meta, records }) => {
       const dataThrough = meta.dataThrough || records.at(-1)?.date || '9999-12-31';
       const minutes = records.reduce((total, record) => {
         if (record.date < '2023-09-27' || record.date > dataThrough) return total;
@@ -93,7 +119,6 @@ import { SITE_TITLE } from '../../consts';
 <style>
   * { box-sizing:border-box; }
   .pursuits-page { min-height:100vh; padding-bottom:58px; }
-  .pursuits-live-anchor { display:none!important; width:0!important; height:0!important; min-height:0!important; margin:0!important; padding:0!important; }
 
   /* This component intentionally does NOT use the shared .hero class. */
   .pursuits-hero {
@@ -154,14 +179,15 @@ import { SITE_TITLE } from '../../consts';
   }
   .pursuits-hero__media video { width:100%; height:100%; display:block; object-fit:cover; filter:saturate(.9) contrast(1.03); transform:scale(1.012); }
   .pursuits-hero__shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 43%,rgba(5,8,15,.8)); pointer-events:none; }
-  .pursuits-hero__caption { position:absolute; left:26px; right:82px; bottom:23px; z-index:1; color:#fff; text-shadow:0 3px 18px rgba(0,0,0,.65); }
+  .pursuits-hero__caption { position:absolute; left:26px; right:136px; bottom:23px; z-index:1; color:#fff; text-shadow:0 3px 18px rgba(0,0,0,.65); }
   .pursuits-hero__caption > span { display:block; margin-bottom:4px; font-size:.67rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; opacity:.85; }
   .pursuits-hero__caption > strong { display:block; font-size:clamp(2rem,3vw,3rem); line-height:.94; letter-spacing:-.045em; }
   .pursuits-hero__caption > p { margin:9px 0 0; color:rgba(255,255,255,.9); font-size:.75rem; font-weight:700; line-height:1.35; text-shadow:0 2px 12px rgba(0,0,0,.72); }
   .pursuits-hero__caption b { color:#fff; font-weight:900; }
-  .pursuits-hero__audio { position:absolute; z-index:2; right:18px; bottom:18px; display:grid; width:46px; height:46px; place-items:center; border:1px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(0,0,0,.52); color:#fff; font-size:1rem; cursor:pointer; backdrop-filter:blur(8px); transition:transform .18s ease,background .18s ease; }
-  .pursuits-hero__audio:hover { transform:scale(1.06); background:rgba(0,0,0,.72); }
-  .pursuits-hero__audio:focus-visible { outline:3px solid rgba(255,255,255,.8); outline-offset:3px; }
+  .pursuits-hero__controls { position:absolute; z-index:2; right:18px; bottom:18px; display:flex; gap:8px; }
+  .pursuits-hero__control { display:grid; width:46px; height:46px; place-items:center; border:1px solid rgba(255,255,255,.55); border-radius:50%; background:rgba(0,0,0,.52); color:#fff; font-size:1rem; cursor:pointer; backdrop-filter:blur(8px); transition:transform .18s ease,background .18s ease; }
+  .pursuits-hero__control:hover { transform:scale(1.06); background:rgba(0,0,0,.72); }
+  .pursuits-hero__control:focus-visible { outline:3px solid rgba(255,255,255,.8); outline-offset:3px; }
 
   .growth-section {
     display:flex;
@@ -214,10 +240,11 @@ import { SITE_TITLE } from '../../consts';
     .pursuits-hero__note { max-width:none; margin-top:13px; font-size:.9rem; line-height:1.56; }
     .pursuits-hero__media { width:100%; max-width:none; aspect-ratio:4/3; border-radius:22px; box-shadow:0 18px 40px rgba(15,23,42,.16),0 0 0 1px rgba(15,23,42,.06); }
     .pursuits-hero__media video { object-position:center 48%; }
-    .pursuits-hero__caption { left:20px; right:72px; bottom:18px; }
+    .pursuits-hero__caption { left:20px; right:126px; bottom:18px; }
     .pursuits-hero__caption > strong { font-size:2.1rem; }
     .pursuits-hero__caption > p { margin-top:6px; font-size:.7rem; }
-    .pursuits-hero__audio { right:14px; bottom:14px; width:42px; height:42px; }
+    .pursuits-hero__controls { right:14px; bottom:14px; gap:6px; }
+    .pursuits-hero__control { width:42px; height:42px; }
     .growth-section { align-items:flex-start; flex-direction:column; margin-left:10px; margin-right:10px; }
   }
 
@@ -229,7 +256,7 @@ import { SITE_TITLE } from '../../consts';
     .pursuits-hero__lede { margin-top:20px; font-size:1rem; }
     .pursuits-hero__note { font-size:.86rem; }
     .pursuits-hero__media { aspect-ratio:1; border-radius:18px; }
-    .pursuits-hero__caption { left:17px; bottom:16px; }
+    .pursuits-hero__caption { left:17px; right:112px; bottom:16px; }
     .pursuits-hero__caption > strong { font-size:1.9rem; }
     .growth-section { padding:24px 20px; border-radius:22px; }
     .growth-path { width:100%; flex-wrap:wrap; }
@@ -253,7 +280,7 @@ import { SITE_TITLE } from '../../consts';
 
   @media (prefers-reduced-motion:reduce) {
     .pursuits-hero__media video { transform:none; }
-    .pursuits-hero__audio { transition:none; }
-    .pursuits-hero__audio:hover { transform:none; }
+    .pursuits-hero__control { transition:none; }
+    .pursuits-hero__control:hover { transform:none; }
   }
 </style>
