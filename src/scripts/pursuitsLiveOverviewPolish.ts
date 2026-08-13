@@ -1,4 +1,4 @@
-import { getDailyMeta, getYears } from '../utils/dailyData';
+import { getPursuitsArchive } from '../utils/pursuitsData';
 import type { DailyMeta, DailyRecord } from '../utils/dailyData';
 
 type PursuitKey = 'guitar' | 'dance' | 'running' | 'languages';
@@ -194,7 +194,7 @@ function initOverview(root: HTMLElement) {
 
   if (status) new MutationObserver(applyStatus).observe(status, { childList: true, characterData: true, subtree: true });
 
-  Promise.all([getDailyMeta(), getDailyMeta().then((meta) => getYears(meta.availableYears))]).then(([meta, records]) => {
+  getPursuitsArchive().then(({ meta, records }) => {
     const archiveYear = meta.dataThrough ? meta.dataThrough.slice(0, 4) : String(new Date().getFullYear());
     yearLabels.forEach((node) => { node.textContent = `${archiveYear} YTD`; });
 
@@ -220,7 +220,7 @@ function initOverview(root: HTMLElement) {
 }
 
 const initialize = () => {
-  document.querySelectorAll<HTMLElement>('[data-pursuits-teleport][data-active="overview"]').forEach(initOverview);
+  document.querySelectorAll<HTMLElement>('[data-pursuits-live][data-active="overview"]').forEach(initOverview);
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
