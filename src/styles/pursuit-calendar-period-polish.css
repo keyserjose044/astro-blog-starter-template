@@ -22,9 +22,11 @@
 [data-pursuit-calendar] .period-navigation > [data-calendar-next]{width:38px;padding:0;border-radius:11px;font-size:1.18rem;line-height:1}
 [data-pursuit-calendar] .period-trigger{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:146px;
-  padding:7px 13px!important;border-color:#d8deea!important;border-radius:11px!important;
-  color:#151b27!important;font-size:.92rem!important;font-weight:900!important;letter-spacing:-.015em;
-  box-shadow:0 3px 10px rgba(15,23,42,.035)
+  padding:7px 13px!important;border:1px solid #d8deea!important;border-radius:11px!important;
+  background:#fff!important;color:#151b27!important;color-scheme:light;appearance:none;
+  font:inherit;font-size:.92rem!important;font-weight:900!important;letter-spacing:-.015em;
+  box-shadow:0 3px 10px rgba(15,23,42,.035);
+  cursor:pointer;
 }
 [data-pursuit-calendar] .period-trigger:hover,
 [data-pursuit-calendar] .period-trigger[aria-expanded='true']{border-color:#aeb9ff!important;background:#f5f6ff!important;color:#263bc5!important}
@@ -76,7 +78,7 @@
 
 html.dark [data-pursuit-calendar] .period-trigger,
 body.dark [data-pursuit-calendar] .period-trigger,
-html[data-theme='dark'] [data-pursuit-calendar] .period-trigger,
+html[data-theme='dark'] [data-pursuit-calendar] .period-trigger{background:#111827!important;color:#dbe3ee!important;border-color:rgba(148,163,184,.22)!important;color-scheme:dark}
 html.dark [data-pursuit-calendar] .period-latest,
 body.dark [data-pursuit-calendar] .period-latest,
 html[data-theme='dark'] [data-pursuit-calendar] .period-latest,
