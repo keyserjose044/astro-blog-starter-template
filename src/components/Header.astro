@@ -4,10 +4,7 @@ import NavTooltipLink from './NavTooltipLink.astro';
 import DailyDataRuntime from './DailyDataRuntime.astro';
 import StatsSupportRuntime from './StatsSupportRuntime.astro';
 import StatsExplorerV2 from './StatsExplorerV2.astro';
-import PursuitsLiveRuntime from './PursuitsLiveRuntime.astro';
 import { SITE_TITLE } from '../consts';
-
-type PursuitSection = 'overview' | 'guitar' | 'dance' | 'running' | 'languages';
 
 type NavChild = {
   href: string;
@@ -37,8 +34,6 @@ const isWithin = (...routes: string[]) =>
 
 const isStatsPage = normalizedPath.endsWith('/stats');
 const isDayPage = normalizedPath.endsWith('/day');
-const pursuitMatch = normalizedPath.match(/\/pursuits(?:\/(guitar|dance|running|languages))?$/);
-const pursuitSection = pursuitMatch ? ((pursuitMatch[1] || 'overview') as PursuitSection) : null;
 
 const statsExploreItems: NavChild[] = [
   {
@@ -397,7 +392,6 @@ const aboutActive = isWithin('about', 'timeline', 'inspirations');
 {isStatsPage && <StatsSupportRuntime />}
 {isStatsPage && <StatsExplorerV2 />}
 {isDayPage && <DailyDataRuntime />}
-{pursuitSection && <PursuitsLiveRuntime active={pursuitSection} />}
 
 <script>
   const desktopDropdowns = Array.from(document.querySelectorAll<HTMLDetailsElement>('.desktop-dropdown'));
