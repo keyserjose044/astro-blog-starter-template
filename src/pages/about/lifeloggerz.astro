@@ -1,42 +1,73 @@
 ---
 import AboutLayout from '../../layouts/AboutLayout.astro';
 import '../../styles/about-split.css';
+import '../../styles/about-lifeloggerz-story.css';
 
 const proofStats = [
   { value: 'Jan. 1, 2023', label: 'Structured tracking since', note: 'A continuous, evolving daily record' },
-  { value: '150+', label: 'Variables tracked', note: 'From sleep and study to hobbies and blunders' },
+  { value: '150+', label: 'Variables tracked', note: 'The archive is much broader than one dashboard' },
   { value: '≈ 5 min', label: 'Essential daily logging', note: 'Diary writing is separate and takes longer' },
-  { value: '4+', label: 'Core tools', note: 'Sheets, Apps Script, Python, APIs, and whatever earns its place' },
+  { value: '4+', label: 'Core tools', note: 'Sheets, scripts, Python, APIs, and whatever earns its place' },
 ];
 
 const trackedAreas = [
-  { icon: '⏱️', title: 'Time & effort', text: 'Work, study, projects, practical tasks, and other blocks of time that show where effort actually went.' },
+  { icon: '⏱️', title: 'Time & effort', text: 'Work, study, projects, practical tasks, and other blocks that show where effort actually went.' },
   { icon: '🌙', title: 'Sleep & routines', text: 'Sleep, wake and bed timing, recurring routines, and the ordinary structure that shapes a day.' },
-  { icon: '🎯', title: 'Habits & pursuits', text: 'Exercise, guitar, languages, dance, reading, and skills or habits I return to over time.' },
-  { icon: '📚', title: 'Culture & collections', text: 'Books, audiobooks, albums, classical music, art, and the dates, notes, favorites, and context attached to them.' },
-  { icon: '🗺️', title: 'Places & experiences', text: 'Travel, outings, social time, notable events, milestones, and experiences that are better remembered with context.' },
-  { icon: '📝', title: 'Diary & qualitative context', text: 'Daily events, reflections, questions, mistakes, ideas, and small moments that would lose meaning if reduced to a number.' },
+  { icon: '🎯', title: 'Habits & pursuits', text: 'Exercise, guitar, languages, dance, reading, and practices that recur through different phases.' },
+  { icon: '📚', title: 'Culture & collections', text: 'Books, audiobooks, albums, classical music, art, favorites, dates, notes, and context.' },
+  { icon: '🗺️', title: 'Places & experiences', text: 'Travel, outings, social time, notable events, milestones, and experiences worth locating in time.' },
+  { icon: '📝', title: 'Diary & context', text: 'Events, reflections, questions, mistakes, ideas, and small moments that would lose meaning as numbers.' },
+];
+
+const trackingSamples = [
+  'sleep', 'wake time', 'work', 'study', 'projects', 'guitar', 'running', 'dance', 'languages',
+  'books', 'audiobooks', 'albums', 'art', 'travel', 'meals', 'diary', 'blunders', 'finances'
 ];
 
 const dayFlow = [
-  { label: 'Life happens', title: 'An ordinary day', text: 'Sleep, work, study, practice, errands, conversations, books, mistakes, and small events produce the raw material.' },
-  { label: 'A few minutes later', title: 'Record what matters', text: 'Structured fields capture repeatable facts while diary writing preserves context that would be flattened by a number.' },
-  { label: 'Across years', title: 'Join the archive', text: 'Dates, schemas, formulas, scripts, and source records turn isolated entries into a consistent history instead of loose fragments.' },
-  { label: 'Whenever useful', title: 'Explore it again', text: 'The same day can later reappear in Stats, Day Explorer, Pursuits, calendars, maps, timelines, search, or future analysis.' },
+  { label: 'Life happens', title: 'An ordinary day', text: 'Sleep, work, study, practice, errands, books, conversations, mistakes, and small events.' },
+  { label: 'A few minutes', title: 'Record what matters', text: 'Repeatable facts become structured fields. Written context stays written.' },
+  { label: 'Across years', title: 'Join the archive', text: 'Dates, schemas, formulas, scripts, and source records connect isolated days into history.' },
+  { label: 'Whenever useful', title: 'Explore it again', text: 'The same day can reappear in Stats, Day Explorer, Pursuits, maps, calendars, timelines, or search.' },
 ];
 
 const timeline = [
-  { year: '2022', title: 'The written record came first', text: 'Daily diary logging established the habit of preserving ordinary days before the structured data system became central.' },
-  { year: '2023', title: 'Structured tracking began', text: 'A daily spreadsheet started capturing recurring details in a form that could be counted, compared, filtered, and revisited.' },
-  { year: '2024–25', title: 'The system connected itself', text: 'Dashboards, formulas, scripts, APIs, automation, and experiments accumulated—until adding more data stopped automatically making the system better.' },
-  { year: 'Now', title: 'The private system turned outward', text: 'LifeLoggerz is becoming a public-safe archive, toolkit, set of explorers, and demonstration of what long-term computer logging can become.' },
+  {
+    year: '2022 → 2023',
+    title: 'Diary habit became structured tracking',
+    text: 'Daily writing came first. In 2023, recurring details moved into a sheet that could be counted, filtered, and compared.',
+    image: '/images_webp/rawdatapost/2023-raw-data-sheet.webp',
+    alt: 'Early 2023 LifeLoggerz raw data spreadsheet',
+  },
+  {
+    year: '2024',
+    title: 'The sheet started becoming a system',
+    text: 'More categories, graphs, formulas, and repeatable workflows made the archive useful beyond the day it was recorded.',
+    image: '/images_webp/rawdatapost/2024-raw-data-sheet.webp',
+    alt: '2024 LifeLoggerz raw data spreadsheet',
+  },
+  {
+    year: '2025',
+    title: 'Expansion met diminishing returns',
+    text: 'Automation and complexity grew, but so did a clearer rule: a field has to earn the attention required to maintain it.',
+    image: '/images_webp/rawdatapost/2025-raw-data-sheet.webp',
+    alt: '2025 LifeLoggerz raw data spreadsheet',
+  },
+  {
+    year: 'Now',
+    title: 'The private archive turns outward',
+    text: 'LifeLoggerz now exposes public-safe explorers, stories, templates, and interfaces without publishing the unrestricted archive beneath them.',
+    image: '/images_webp/daily_snapshot.webp',
+    alt: 'A modern LifeLoggerz daily snapshot interface',
+  },
 ];
 
-const digitalPossibilities = [
-  { icon: '🔎', title: 'Search', text: 'Find a date, phrase, person, habit, place, or period without rereading years of notebooks.' },
-  { icon: '↔️', title: 'Compare', text: 'Put days, months, years, pursuits, and phases beside one another instead of relying on memory to reconstruct them.' },
-  { icon: '📈', title: 'Visualize', text: 'Turn repeated entries into calendars, maps, distributions, records, timelines, and Data Stories.' },
-  { icon: '🤖', title: 'Ask', text: 'A structured, scrubbed archive can eventually be questioned with AI while the unrestricted private record remains private.' },
+const outsideCore = [
+  'Continuous biometric streams or wearables simply because they can collect data.',
+  'Calories, heart rate, and screen time as default daily targets.',
+  'Perfect minute-by-minute reconstruction of every day.',
+  'Data whose maintenance costs more attention than it returns.',
+  'Private information simply because it would make an interesting chart.',
 ];
 
 const structuredData = {
@@ -55,70 +86,94 @@ const structuredData = {
 
 <AboutLayout
   title="About LifeLoggerz"
-  description="What LifeLoggerz is, why it exists, what it preserves, and what I hope other people can take from it."
+  description="What LifeLoggerz is, why it exists, what I track, what I deliberately do not track, and what a long-term digital archive can become."
   pubDate="2026-08-08"
+  updatedDate="2026-08-12"
   wide={true}
   showViews={false}
-  heroImage="/images_webp/faq-movie.webp"
 >
-  <main class="about-split">
-    <section class="about-hero-copy" aria-labelledby="lifeloggerz-intro-title">
-      <p class="about-eyebrow">The archive, system, and philosophy</p>
-      <h2 id="lifeloggerz-intro-title">A searchable record of a life in progress</h2>
-      <p class="about-lede">
-        <strong>LifeLoggerz</strong> began as personal logging and grew into something harder to describe with one label:
-        part data system, part diary archive, part memory aid, part experimental laboratory, and now part public toolkit.
-      </p>
-      <p>
-        The purpose is not to turn life into a spreadsheet. It is to preserve more of what happened, make patterns easier to see,
-        reduce repeated work, and create an archive that becomes more useful as the years accumulate.
-      </p>
-      <div class="about-inline-actions">
-        <a class="about-button primary" href="/stats/">Explore the archive</a>
-        <a class="about-button" href="/templates/">Build your own</a>
-        <a class="about-button" href="/about/me/">Meet José</a>
+  <main class="about-split lifeloggerz-story">
+    <section class="llz-story-hero" aria-labelledby="lifeloggerz-intro-title">
+      <div class="llz-story-hero-copy">
+        <p class="about-eyebrow">The archive, system, and philosophy</p>
+        <h2 id="lifeloggerz-intro-title">A searchable record of a life in progress.</h2>
+        <p class="about-lede">
+          <strong>LifeLoggerz</strong> began as personal logging and grew into something harder to describe with one label:
+          part data system, part diary archive, part memory aid, part experimental laboratory, and now part public toolkit.
+        </p>
+        <p>
+          The purpose is not to turn life into a spreadsheet. It is to preserve more of what happened, make patterns easier to see,
+          reduce repeated work, and build an archive that becomes more useful as the years accumulate.
+        </p>
+        <div class="about-inline-actions">
+          <a class="about-button primary" href="/stats/">Explore the archive</a>
+          <a class="about-button" href="/templates/">Build your own</a>
+          <a class="about-button" href="/about/me/">Meet José</a>
+        </div>
+      </div>
+
+      <div class="llz-story-montage" aria-label="Examples of LifeLoggerz records and explorers">
+        <figure class="llz-story-shot llz-story-shot--sheet">
+          <img src="/images_webp/raw_data_sheet.webp" alt="LifeLoggerz raw data spreadsheet" loading="eager" />
+          <figcaption>Structured record</figcaption>
+        </figure>
+        <figure class="llz-story-shot llz-story-shot--diary">
+          <img src="/images_webp/day-summary-diary-log.webp" alt="LifeLoggerz diary log interface" loading="eager" />
+          <figcaption>Written context</figcaption>
+        </figure>
+        <figure class="llz-story-shot llz-story-shot--explorer">
+          <img src="/images_webp/dailyvis.webp" alt="LifeLoggerz daily visualization" loading="eager" />
+          <figcaption>Explore later</figcaption>
+        </figure>
       </div>
     </section>
 
-    <section class="about-proof-grid" aria-label="LifeLoggerz at a glance">
+    <section class="llz-proof-strip" aria-label="LifeLoggerz at a glance">
       {proofStats.map((stat) => (
-        <article class="about-proof">
+        <div class="llz-proof-item">
           <strong>{stat.value}</strong>
-          <h3>{stat.label}</h3>
-          <span>{stat.note}</span>
-        </article>
+          <span>{stat.label}</span>
+          <small>{stat.note}</small>
+        </div>
       ))}
     </section>
 
-    <section class="about-section about-love-panel" aria-labelledby="why-title">
-      <div class="about-section-head">
-        <p class="about-eyebrow">Why it exists</p>
-        <h2 id="why-title">Memory fades. A good archive can give ordinary life a second life.</h2>
-        <p>
-          Most days are made of small things that seem too ordinary to preserve until years have passed. LifeLoggerz gives those days enough structure to be found again—not so every minute can be optimized, but so patterns, memories, work, interests, and changes do not have to depend entirely on recollection.
-        </p>
-      </div>
+    <section class="about-section llz-why" aria-labelledby="why-title">
+      <p class="about-eyebrow">Why it exists</p>
+      <h2 id="why-title">Memory fades. Ordinary life deserves a second life.</h2>
+      <p>
+        Most days are made of small things that seem too ordinary to preserve until years have passed. LifeLoggerz gives those days enough structure to be found again—not so every minute can be optimized, but so memories, patterns, work, interests, mistakes, and changes do not have to depend entirely on recollection.
+      </p>
     </section>
 
-    <section class="about-section" id="what-i-track" aria-labelledby="track-title">
+    <section class="about-section llz-track-section" id="what-i-track" aria-labelledby="track-title">
       <div class="about-section-head">
-        <p class="about-eyebrow">What gets preserved</p>
-        <h2 id="track-title">Numbers where numbers help. Context where numbers fail.</h2>
+        <p class="about-eyebrow">What I track</p>
+        <h2 id="track-title">There is no single “LifeLoggerz metric.”</h2>
         <p>
-          This is a representative map rather than an exhaustive inventory. LifeLoggerz mixes structured variables with collections, dates, places, and written context so the archive can preserve both patterns and stories.
+          More than 150 variables and many non-numeric records have accumulated over time. The point is not the raw count; it is that different parts of life deserve different kinds of evidence.
         </p>
       </div>
 
-      <div class="about-card-grid">
+      <div class="llz-track-orbit" aria-label="Representative map of what LifeLoggerz preserves">
+        <div class="llz-track-core">
+          <strong>150+</strong>
+          <span>tracked variables</span>
+          <small>plus diary entries, collections, dates, places, notes, images, and other context</small>
+        </div>
         {trackedAreas.map((area) => (
-          <article class="about-card">
-            <span class="about-card-icon" aria-hidden="true">{area.icon}</span>
+          <article class="llz-track-node">
+            <span class="icon" aria-hidden="true">{area.icon}</span>
             <h3>{area.title}</h3>
             <p>{area.text}</p>
           </article>
         ))}
       </div>
 
+      <div class="llz-track-samples" aria-label="Examples of tracked subjects">
+        {trackingSamples.map((sample) => <span>{sample}</span>)}
+        <span class="more">and many more</span>
+      </div>
       <div class="about-link-row">
         <a class="about-link-chip" href="/faq/">See detailed tracking & privacy answers →</a>
       </div>
@@ -128,21 +183,18 @@ const structuredData = {
       <div class="about-section-head">
         <p class="about-eyebrow">One day through the system</p>
         <h2 id="day-flow-title">From ordinary life to something explorable</h2>
-        <p>
-          The website is only the visible end of the process. A normal day becomes useful later because the record moves through a few simple stages.
-        </p>
+        <p>The website is only the visible end of a simple chain. A normal day becomes useful later because it remains connected to its source.</p>
       </div>
 
-      <div class="about-system-flow">
+      <div class="llz-flow">
         {dayFlow.map((step) => (
-          <article class="about-system-step">
-            <span class="about-system-number">{step.label}</span>
+          <article class="llz-flow-step">
+            <span>{step.label}</span>
             <h3>{step.title}</h3>
             <p>{step.text}</p>
           </article>
         ))}
       </div>
-
       <div class="about-link-row">
         <a class="about-link-chip" href="/stats/">See the public explorers →</a>
       </div>
@@ -151,92 +203,144 @@ const structuredData = {
     <section class="about-section" aria-labelledby="origin-title">
       <div class="about-section-head">
         <p class="about-eyebrow">How it became this</p>
-        <h2 id="origin-title">Built one useful layer at a time</h2>
-        <p>
-          There was no master plan. Each layer survived because it solved a real problem; other ideas were simplified, automated, or abandoned when the maintenance stopped being worth it.
-        </p>
+        <h2 id="origin-title">You can see the system learning what it wants to be.</h2>
+        <p>There was no master plan. Each useful layer survived; other ideas were simplified, automated, or abandoned when the maintenance stopped being worth it.</p>
       </div>
 
-      <ol class="about-timeline">
+      <div class="llz-evolution" aria-label="Visual evolution of the LifeLoggerz system">
         {timeline.map((item) => (
-          <li>
-            <span class="about-timeline-dot" aria-hidden="true"></span>
-            <article class="about-timeline-card">
-              <p class="about-timeline-year">{item.year}</p>
+          <article class="llz-evolution-frame">
+            <div class="llz-evolution-image"><img src={item.image} alt={item.alt} loading="lazy" /></div>
+            <div class="llz-evolution-copy">
+              <span class="year">{item.year}</span>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
-            </article>
-          </li>
+            </div>
+          </article>
         ))}
-      </ol>
+      </div>
 
       <div class="about-link-row">
-        <a class="about-link-chip" href="/blog/rawdatapost2025/">See the Raw Data system evolve →</a>
+        <a class="about-link-chip" href="/blog/rawdatapost2025/">See the Raw Data system evolve in detail →</a>
         <a class="about-link-chip" href="/timeline/">Open the broader life timeline →</a>
       </div>
     </section>
 
-    <section class="about-section" aria-labelledby="computer-title">
-      <div class="about-section-head">
+    <section class="about-section llz-digital-lab" aria-labelledby="computer-title">
+      <div class="llz-digital-intro">
         <p class="about-eyebrow">Why computer logging?</p>
         <h2 id="computer-title">A paper journal remembers. A digital archive can also answer.</h2>
         <p>
-          Paper can preserve a life beautifully. Digital structure fits this project because years of records can also be retrieved, compared, visualized, filtered, and eventually questioned in ways a stack of notebooks cannot do as easily.
+          Paper can preserve a life beautifully. Digital structure fits this project because years of records can also be retrieved, compared, visualized, filtered, and eventually questioned. Try the four examples.
         </p>
       </div>
 
-      <div class="about-card-grid">
-        {digitalPossibilities.map((item) => (
-          <article class="about-card">
-            <span class="about-card-icon" aria-hidden="true">{item.icon}</span>
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </article>
-        ))}
+      <div class="llz-digital-demo" aria-label="Illustrations of what digital records make possible">
+        <input class="llz-digital-radio" type="radio" name="digital-demo" id="llz-search" checked />
+        <input class="llz-digital-radio" type="radio" name="digital-demo" id="llz-compare" />
+        <input class="llz-digital-radio" type="radio" name="digital-demo" id="llz-visualize" />
+        <input class="llz-digital-radio" type="radio" name="digital-demo" id="llz-ask" />
+
+        <div class="llz-digital-tabs" aria-label="Digital archive examples">
+          <label class="llz-digital-tab" for="llz-search">🔎 Search</label>
+          <label class="llz-digital-tab" for="llz-compare">↔ Compare</label>
+          <label class="llz-digital-tab" for="llz-visualize">📈 Visualize</label>
+          <label class="llz-digital-tab" for="llz-ask">🤖 Ask</label>
+        </div>
+
+        <div class="llz-digital-panels">
+          <div class="llz-demo-panel panel-search">
+            <p class="llz-demo-label">Example archive search</p>
+            <div class="llz-searchbar"><span aria-hidden="true">⌕</span><span>guitar</span></div>
+            <div class="llz-result-list">
+              <div class="llz-result"><strong>Practice history</strong><span>Sessions, hours, gaps, and changing intensity across years</span></div>
+              <div class="llz-result"><strong>Diary context</strong><span>Days where the instrument appears in the written record</span></div>
+              <div class="llz-result"><strong>Pursuits calendar</strong><span>See when practice happened instead of trying to remember</span></div>
+            </div>
+          </div>
+
+          <div class="llz-demo-panel panel-compare">
+            <p class="llz-demo-label">Example comparison</p>
+            <div class="llz-compare-grid">
+              <div class="llz-day-card"><small>One period</small><strong>Practice is frequent</strong><p>The archive can show sustained phases instead of reducing them to a lifetime total.</p></div>
+              <div class="llz-versus">VS</div>
+              <div class="llz-day-card"><small>Another period</small><strong>A gap appears</strong><p>Absence becomes visible too: what stopped, what returned, and what competed for time.</p></div>
+            </div>
+          </div>
+
+          <div class="llz-demo-panel panel-visualize">
+            <p class="llz-demo-label">Example visualization</p>
+            <div class="llz-mini-bars" aria-label="Illustrative bars showing activity changing across periods"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <p class="llz-mini-caption">The same repeated records can become calendars, timelines, maps, distributions, or data stories.</p>
+          </div>
+
+          <div class="llz-demo-panel panel-ask">
+            <p class="llz-demo-label">Example archive question</p>
+            <div class="llz-chat">
+              <div class="llz-chat-q">When did I stop running, and when did I return?</div>
+              <div class="llz-chat-a"><strong>Answer from the record</strong>An archive-aware assistant can point to the gap, dates, surrounding context, and supporting entries instead of guessing from memory.</div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="about-section about-philosophy" id="what-i-dont-track" aria-labelledby="philosophy-title">
-      <div>
-        <p class="about-eyebrow">Philosophy & boundaries</p>
-        <h2 id="philosophy-title">The archive serves the life, not the other way around.</h2>
-        <p>
-          More data is not automatically better. A record earns its place when it preserves something useful, reduces mental load, answers a question, or becomes valuable with time. If maintaining it creates more friction than clarity, it should be simplified, automated, or removed.
-        </p>
-        <p>
-          Missing and approximate data should be labeled honestly. Automation should remove repetition without hiding how the system works. Privacy matters more than publishing an interesting chart. And not everything meaningful needs to become a metric at all.
-        </p>
-        <p>
-          LifeLoggerz also exists because other people once shared their own systems and experiments publicly. If this project gives even one person a better place to start—whether they preserve more of their life, build a smaller system, or push one of these ideas further—that is enough reason to keep making the work visible.
-        </p>
+    <section class="about-section" id="what-i-dont-track" aria-labelledby="dont-track-title">
+      <div class="about-section-head">
+        <p class="about-eyebrow">What I don't track</p>
+        <h2 id="dont-track-title">The archive has edges on purpose.</h2>
+        <p>LifeLoggerz is expansive, but it is not a contest for maximum data density. Some categories sit inside the core; others remain occasional, secondary, or deliberately outside it.</p>
       </div>
-      <aside class="about-principles" aria-label="What LifeLoggerz deliberately does not prioritize">
-        <h3>What stays outside the core</h3>
-        <ul>
-          <li>Continuous biometric streams or wearables for their own sake.</li>
-          <li>Calories, heart rate, and screen time as default daily targets.</li>
-          <li>Perfect minute-by-minute reconstruction of every day.</li>
-          <li>Data whose maintenance costs more attention than it returns.</li>
-          <li>Private information simply because it would make an interesting chart.</li>
-        </ul>
-      </aside>
+
+      <div class="llz-boundary">
+        <div class="llz-boundary-side">
+          <p class="about-eyebrow">Inside the core</p>
+          <h3>Records that repeatedly earn their place</h3>
+          <p>These are useful because they preserve memory, expose patterns, support a pursuit, or gain meaning over time.</p>
+          <div class="llz-boundary-chips">
+            <span>time & effort</span><span>sleep & routines</span><span>pursuits</span><span>culture</span><span>places</span><span>diary context</span>
+          </div>
+        </div>
+        <div class="llz-boundary-divider" aria-hidden="true"></div>
+        <div class="llz-boundary-side">
+          <p class="about-eyebrow" style="color:#9f3030!important">Outside / secondary</p>
+          <h3>Measurable does not automatically mean worth maintaining</h3>
+          <ul class="llz-outside-list">
+            {outsideCore.map((item) => <li><b aria-hidden="true">×</b><span>{item}</span></li>)}
+          </ul>
+        </div>
+      </div>
     </section>
 
-    <aside class="about-statement" aria-label="LifeLoggerz guiding principle">
-      <blockquote>
-        “The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.”
-      </blockquote>
-    </aside>
+    <section class="about-section llz-manifesto" aria-labelledby="philosophy-title">
+      <p class="about-eyebrow">The philosophy</p>
+      <h2 id="philosophy-title">The archive serves the life. The life does not serve the archive.</h2>
+      <div class="llz-manifesto-grid">
+        <div class="llz-manifesto-copy">
+          <p>
+            More data is not automatically better. A record earns its place when it preserves something useful, reduces mental load, answers a question, or becomes valuable with time. If maintaining it creates more friction than clarity, it should be simplified, automated, or removed.
+          </p>
+          <p>
+            Missing and approximate data should be labeled honestly. Automation should remove repetition without hiding how the system works. Privacy matters more than publishing an interesting chart. Not everything meaningful needs to become a metric at all.
+          </p>
+          <p>
+            LifeLoggerz is public because other people once shared systems that gave me ideas. If this project gives someone else a better place to start, that is enough reason to keep making the work visible.
+          </p>
+        </div>
+        <aside class="llz-manifesto-rule">
+          <span>Guiding principle</span>
+          <blockquote>“The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.”</blockquote>
+        </aside>
+      </div>
+    </section>
 
-    <section class="about-section about-final-cta" aria-labelledby="start-title">
-      <p class="about-eyebrow">Three ways forward</p>
-      <h2 id="start-title">Explore it, borrow from it, or meet the person behind it.</h2>
-      <p>
-        Wander through the public archive, start with a much smaller system of your own, or see the life that generated all of this material in the first place.
-      </p>
+    <section class="about-section llz-final" aria-labelledby="start-title">
+      <p class="about-eyebrow">Start much smaller</p>
+      <h2 id="start-title">You do not need 150 variables. Start with one useful thing.</h2>
+      <p>Explore the archive, borrow a tool, or meet the person whose ordinary days generated all of this material.</p>
       <div class="about-inline-actions">
         <a class="about-button primary" href="/stats/">Explore the archive</a>
-        <a class="about-button" href="/templates/">Build your own</a>
+        <a class="about-button" href="/templates/">Use a template</a>
         <a class="about-button" href="/about/me/">Meet José</a>
       </div>
     </section>
