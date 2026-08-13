@@ -4,6 +4,7 @@ import Header from './Header.astro';
 import Footer from './Footer.astro';
 import VideoBg from './VideoBg.astro';
 import PursuitsNav from './PursuitsNav.astro';
+import PursuitsLiveRuntime from './PursuitsLiveRuntime.astro';
 import { SITE_TITLE } from '../consts';
 
 type PursuitSection = 'dance' | 'running' | 'languages';
@@ -93,6 +94,8 @@ const statusLabels: Record<RoadmapStatus, string> = {
       <article><span>Current focus</span><strong>{currentFocus}</strong></article>
       <article><span>Next milestone</span><strong>{nextMilestone}</strong></article>
     </section>
+
+    <PursuitsLiveRuntime active={active} />
 
     <section class="page-section" id="roadmap" aria-labelledby="roadmap-title">
       <div class="section-heading">
