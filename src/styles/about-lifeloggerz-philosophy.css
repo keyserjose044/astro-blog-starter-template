@@ -13,6 +13,11 @@
   cursor:pointer;
   transition:transform 160ms ease,border-color 160ms ease,box-shadow 160ms ease,opacity 160ms ease,background 160ms ease;
 }
+/* The original orbit used :nth-of-type() while the nodes were <article>s.
+   They are now <button>s, so those old selectors can hit different nodes and leave
+   stale left/right/top/bottom values behind. Reset every edge before positioning
+   by the stable data-track-group attribute below. */
+.llz-track-node[data-track-group]{left:auto;right:auto;top:auto;bottom:auto}
 .llz-track-node:hover{transform:translateY(-3px);border-color:#b9c6dd;box-shadow:0 16px 34px rgba(15,23,42,.11)}
 .llz-track-node:focus-visible{outline:3px solid #405cf5;outline-offset:4px}
 .llz-track-node[aria-pressed='true']{border-color:#405cf5;background:linear-gradient(145deg,#fff,#f2f4ff);box-shadow:0 18px 36px rgba(64,92,245,.14)}
