@@ -2,6 +2,7 @@
 import AboutLayout from '../../layouts/AboutLayout.astro';
 import '../../styles/about-split.css';
 import '../../styles/about-lifeloggerz-story.css';
+import '../../styles/about-lifeloggerz-philosophy.css';
 
 const proofStats = [
   { value: 'Jan. 1, 2023', label: 'Structured tracking since', note: 'A continuous, evolving daily record' },
@@ -11,17 +12,33 @@ const proofStats = [
 ];
 
 const trackedAreas = [
-  { icon: '⏱️', title: 'Time & effort', text: 'Work, study, projects, practical tasks, and other blocks that show where effort actually went.' },
-  { icon: '🌙', title: 'Sleep & routines', text: 'Sleep, wake and bed timing, recurring routines, and the ordinary structure that shapes a day.' },
-  { icon: '🎯', title: 'Habits & pursuits', text: 'Exercise, guitar, languages, dance, reading, and practices that recur through different phases.' },
-  { icon: '📚', title: 'Culture & collections', text: 'Books, audiobooks, albums, classical music, art, favorites, dates, notes, and context.' },
-  { icon: '🗺️', title: 'Places & experiences', text: 'Travel, outings, social time, notable events, milestones, and experiences worth locating in time.' },
-  { icon: '📝', title: 'Diary & context', text: 'Events, reflections, questions, mistakes, ideas, and small moments that would lose meaning as numbers.' },
+  { group: 'time', icon: '⏱️', title: 'Time & effort', text: 'Work, study, projects, practical tasks, and other blocks that show where effort actually went.' },
+  { group: 'routines', icon: '🌙', title: 'Sleep & routines', text: 'Sleep, wake and bed timing, recurring routines, and the ordinary structure that shapes a day.' },
+  { group: 'pursuits', icon: '🎯', title: 'Habits & pursuits', text: 'Exercise, guitar, languages, dance, reading, and practices that recur through different phases.' },
+  { group: 'culture', icon: '📚', title: 'Culture & collections', text: 'Books, audiobooks, albums, classical music, art, favorites, dates, notes, and context.' },
+  { group: 'places', icon: '🗺️', title: 'Places & experiences', text: 'Travel, outings, social time, notable events, milestones, and experiences worth locating in time.' },
+  { group: 'diary', icon: '📝', title: 'Diary & context', text: 'Events, reflections, questions, mistakes, ideas, and small moments that would lose meaning as numbers.' },
 ];
 
 const trackingSamples = [
-  'sleep', 'wake time', 'work', 'study', 'projects', 'guitar', 'running', 'dance', 'languages',
-  'books', 'audiobooks', 'albums', 'art', 'travel', 'meals', 'diary', 'blunders', 'finances'
+  { label: 'sleep', group: 'routines' },
+  { label: 'wake time', group: 'routines' },
+  { label: 'work', group: 'time' },
+  { label: 'study', group: 'time' },
+  { label: 'projects', group: 'time' },
+  { label: 'guitar', group: 'pursuits' },
+  { label: 'running', group: 'pursuits' },
+  { label: 'dance', group: 'pursuits' },
+  { label: 'languages', group: 'pursuits' },
+  { label: 'books', group: 'culture' },
+  { label: 'audiobooks', group: 'culture' },
+  { label: 'albums', group: 'culture' },
+  { label: 'art', group: 'culture' },
+  { label: 'travel', group: 'places' },
+  { label: 'meals', group: 'routines' },
+  { label: 'diary', group: 'diary' },
+  { label: 'blunders', group: 'diary' },
+  { label: 'finances', group: 'time' },
 ];
 
 const dayFlow = [
@@ -155,27 +172,28 @@ const structuredData = {
         <p class="about-eyebrow">What I track</p>
         <h2 id="track-title">There is no single “LifeLoggerz metric.”</h2>
         <p>
-          More than 150 variables and many non-numeric records have accumulated over time. The point is not the raw count; it is that different parts of life deserve different kinds of evidence.
+          More than 150 variables and many non-numeric records have accumulated over time. The point is not the raw count; it is that different parts of life deserve different kinds of evidence. Click a category to focus the examples below.
         </p>
       </div>
 
-      <div class="llz-track-orbit" aria-label="Representative map of what LifeLoggerz preserves">
-        <article class="llz-track-core">
+      <div class="llz-track-orbit" aria-label="Representative map of what LifeLoggerz preserves" data-track-orbit>
+        <article class="llz-track-core" data-track-core>
           <strong>150+</strong>
           <span>tracked variables</span>
           <small>plus diary entries, collections, dates, places, notes, images, and other context</small>
+          <span class="llz-track-focus" data-track-focus>Click a category to focus</span>
         </article>
         {trackedAreas.map((area) => (
-          <article class="llz-track-node">
+          <button class="llz-track-node" type="button" data-track-group={area.group} aria-pressed="false">
             <span class="icon" aria-hidden="true">{area.icon}</span>
             <h3>{area.title}</h3>
             <p>{area.text}</p>
-          </article>
+          </button>
         ))}
       </div>
 
-      <div class="llz-track-samples" aria-label="Examples of tracked subjects">
-        {trackingSamples.map((sample) => <span>{sample}</span>)}
+      <div class="llz-track-samples" aria-label="Examples of tracked subjects" data-track-samples>
+        {trackingSamples.map((sample) => <span data-track-group={sample.group}>{sample.label}</span>)}
         <span class="more">and many more</span>
       </div>
       <div class="about-link-row">
@@ -317,24 +335,65 @@ const structuredData = {
     </section>
 
     <section class="about-section llz-manifesto" aria-labelledby="philosophy-title">
-      <p class="about-eyebrow">The philosophy</p>
-      <h2 id="philosophy-title">The archive serves the life. The life does not serve the archive.</h2>
-      <div class="llz-manifesto-grid">
+      <div class="llz-manifesto-head">
+        <p class="about-eyebrow">The philosophy</p>
+        <span class="llz-principle-number">LifeLoggerz principle № 1</span>
+        <h2 id="philosophy-title">The archive serves the life. The life does not serve the archive.</h2>
+        <p class="llz-manifesto-lede">
+          The system can grow indefinitely; attention cannot. So every field, automation, chart, and public page has to justify the time it asks for.
+        </p>
+      </div>
+
+      <div class="llz-philosophy-layout">
         <div class="llz-manifesto-copy">
-          <p>
-            More data is not automatically better. A record earns its place when it preserves something useful, reduces mental load, answers a question, or becomes valuable with time. If maintaining it creates more friction than clarity, it should be simplified, automated, or removed.
-          </p>
-          <p>
-            Missing and approximate data should be labeled honestly. Automation should remove repetition without hiding how the system works. Privacy matters more than publishing an interesting chart. Not everything meaningful needs to become a metric at all.
-          </p>
-          <p>
-            LifeLoggerz is public because other people once shared systems that gave me ideas. If this project gives someone else a better place to start, that is enough reason to keep making the work visible.
-          </p>
+          <div>
+            <p>
+              More data is not automatically better. A record earns its place when it preserves something useful, reduces mental load, answers a question, or becomes more valuable with time.
+            </p>
+            <p>
+              Missing and approximate data should be labeled honestly. Automation should remove repetition without hiding how the system works. Privacy matters more than publishing an interesting chart. Not everything meaningful needs to become a metric at all.
+            </p>
+            <p>
+              LifeLoggerz is public because other people once shared systems that gave me ideas. If this project gives someone else a better place to start, that is enough reason to keep making the work visible.
+            </p>
+          </div>
+          <aside class="llz-manifesto-rule">
+            <span>Guiding principle</span>
+            <blockquote>“The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.”</blockquote>
+          </aside>
         </div>
-        <aside class="llz-manifesto-rule">
-          <span>Guiding principle</span>
-          <blockquote>“The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.”</blockquote>
-        </aside>
+
+        <div class="llz-decision-board" aria-label="How LifeLoggerz decides whether a record belongs in the system">
+          <p class="llz-decision-label">Before adding another metric</p>
+          <div class="llz-decision-question">
+            <span>Ask first</span>
+            <strong>Does this record earn its place?</strong>
+            <small>Preserve meaning without turning maintenance into the point of living.</small>
+          </div>
+          <div class="llz-decision-outcomes">
+            <article class="llz-decision-card keep">
+              <b>Keep it</b>
+              <strong>It preserves something useful</strong>
+              <p>Memory, context, patterns, a pursuit, or information that becomes more valuable over time.</p>
+            </article>
+            <article class="llz-decision-card automate">
+              <b>Automate it</b>
+              <strong>It matters, but repetition is the problem</strong>
+              <p>Let formulas, scripts, or APIs remove routine work without obscuring the source.</p>
+            </article>
+            <article class="llz-decision-card private">
+              <b>Keep it private</b>
+              <strong>Useful does not mean publishable</strong>
+              <p>The archive can retain value without turning private context into public entertainment.</p>
+            </article>
+            <article class="llz-decision-card remove">
+              <b>Simplify / remove</b>
+              <strong>Maintenance costs more than it returns</strong>
+              <p>If a field creates friction without clarity, reduce it, demote it, or let it disappear.</p>
+            </article>
+          </div>
+          <p class="llz-decision-foot">The goal is not maximum data density. It is a system that keeps returning attention to life.</p>
+        </div>
       </div>
     </section>
 
@@ -349,6 +408,47 @@ const structuredData = {
       </div>
     </section>
   </main>
+
+  <script is:inline>
+    (() => {
+      const orbit = document.querySelector('[data-track-orbit]');
+      const samples = document.querySelector('[data-track-samples]');
+      const core = document.querySelector('[data-track-core]');
+      const focus = document.querySelector('[data-track-focus]');
+      if (!orbit || !samples || !core || !focus) return;
+
+      const nodes = Array.from(orbit.querySelectorAll('.llz-track-node[data-track-group]'));
+      const sampleNodes = Array.from(samples.querySelectorAll('[data-track-group]'));
+
+      const clear = () => {
+        orbit.classList.remove('is-focused');
+        samples.classList.remove('is-focused');
+        core.classList.remove('is-focused');
+        nodes.forEach((node) => node.setAttribute('aria-pressed', 'false'));
+        sampleNodes.forEach((sample) => sample.classList.remove('is-active'));
+        focus.textContent = 'Click a category to focus';
+      };
+
+      nodes.forEach((node) => {
+        node.addEventListener('click', () => {
+          const group = node.getAttribute('data-track-group');
+          const alreadyActive = node.getAttribute('aria-pressed') === 'true';
+          clear();
+          if (alreadyActive || !group) return;
+
+          orbit.classList.add('is-focused');
+          samples.classList.add('is-focused');
+          core.classList.add('is-focused');
+          node.setAttribute('aria-pressed', 'true');
+          sampleNodes.forEach((sample) => {
+            sample.classList.toggle('is-active', sample.getAttribute('data-track-group') === group);
+          });
+          const title = node.querySelector('h3')?.textContent?.trim() || 'Selected category';
+          focus.textContent = `Focused: ${title}`;
+        });
+      });
+    })();
+  </script>
 
   <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
 </AboutLayout>
