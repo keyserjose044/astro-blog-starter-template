@@ -39,7 +39,7 @@ const context: Partial<Record<Exclude<PursuitSection, 'overview' | 'guitar'>, Ar
 };
 ---
 
-<div class:list={['pursuits-live-teleport', `pursuits-live-teleport--${active}`]} data-pursuits-live data-active={active}>
+<div class:list={['pursuits-live-teleport', `pursuits-live-teleport--${active}`]} data-pursuits-live data-pursuits-teleport data-active={active}>
   {active === 'overview' ? (
     <section class="pursuits-live-overview" aria-labelledby="pursuits-live-overview-title">
       <div class="pursuits-live-heading pursuits-live-heading--split">
