@@ -1,3 +1,4 @@
+import './pursuitCalendarPeriodPolish';
 import { getPursuitsArchive } from '../utils/pursuitsData';
 import type { DailyMeta, DailyRecord } from '../utils/dailyData';
 
