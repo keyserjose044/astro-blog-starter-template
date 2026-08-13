@@ -41,13 +41,6 @@ const trackingSamples = [
   { label: 'finances', group: 'time' },
 ];
 
-const dayFlow = [
-  { label: 'Life happens', title: 'An ordinary day', text: 'Sleep, work, study, practice, errands, books, conversations, mistakes, and small events.' },
-  { label: 'A few minutes', title: 'Record what matters', text: 'Repeatable facts become structured fields. Written context stays written.' },
-  { label: 'Across years', title: 'Join the archive', text: 'Dates, schemas, formulas, scripts, and source records connect isolated days into history.' },
-  { label: 'Whenever useful', title: 'Explore it again', text: 'The same day can reappear in Stats, Day Explorer, Pursuits, maps, calendars, timelines, or search.' },
-];
-
 const timeline = [
   {
     year: '2022 → 2023',
@@ -201,27 +194,6 @@ const structuredData = {
       </div>
     </section>
 
-    <section class="about-section" aria-labelledby="day-flow-title">
-      <div class="about-section-head">
-        <p class="about-eyebrow">One day through the system</p>
-        <h2 id="day-flow-title">From ordinary life to something explorable</h2>
-        <p>The website is only the visible end of a simple chain. A normal day becomes useful later because it remains connected to its source.</p>
-      </div>
-
-      <div class="llz-flow">
-        {dayFlow.map((step) => (
-          <article class="llz-flow-step">
-            <span>{step.label}</span>
-            <h3>{step.title}</h3>
-            <p>{step.text}</p>
-          </article>
-        ))}
-      </div>
-      <div class="about-link-row">
-        <a class="about-link-chip" href="/stats/">See the public explorers →</a>
-      </div>
-    </section>
-
     <section class="about-section" aria-labelledby="origin-title">
       <div class="about-section-head">
         <p class="about-eyebrow">How it became this</p>
@@ -340,23 +312,15 @@ const structuredData = {
         <span class="llz-principle-number">LifeLoggerz principle № 1</span>
         <h2 id="philosophy-title">The archive serves the life. The life does not serve the archive.</h2>
         <p class="llz-manifesto-lede">
-          The system can grow indefinitely; attention cannot. So every field, automation, chart, and public page has to justify the time it asks for.
+          The system can grow indefinitely; attention cannot. Every field, automation, chart, and public page has to justify the time it asks for.
         </p>
       </div>
 
       <div class="llz-philosophy-layout">
         <div class="llz-manifesto-copy">
-          <div>
-            <p>
-              More data is not automatically better. A record earns its place when it preserves something useful, reduces mental load, answers a question, or becomes more valuable with time.
-            </p>
-            <p>
-              Missing and approximate data should be labeled honestly. Automation should remove repetition without hiding how the system works. Privacy matters more than publishing an interesting chart. Not everything meaningful needs to become a metric at all.
-            </p>
-            <p>
-              LifeLoggerz is public because other people once shared systems that gave me ideas. If this project gives someone else a better place to start, that is enough reason to keep making the work visible.
-            </p>
-          </div>
+          <p>
+            Useful records stay. Repetitive work gets automated. Private context can remain private. Anything that costs more attention than it returns should be simplified or removed.
+          </p>
           <aside class="llz-manifesto-rule">
             <span>Guiding principle</span>
             <blockquote>“The purpose was never to spend my entire life maintaining a spreadsheet. It was to build systems that returned time and attention to me.”</blockquote>
@@ -400,11 +364,10 @@ const structuredData = {
     <section class="about-section llz-final" aria-labelledby="start-title">
       <p class="about-eyebrow">Start much smaller</p>
       <h2 id="start-title">You do not need 150 variables. Start with one useful thing.</h2>
-      <p>Explore the archive, borrow a tool, or meet the person whose ordinary days generated all of this material.</p>
+      <p>Borrow the system rather than copying the scale.</p>
       <div class="about-inline-actions">
-        <a class="about-button primary" href="/stats/">Explore the archive</a>
-        <a class="about-button" href="/templates/">Use a template</a>
-        <a class="about-button" href="/about/me/">Meet José</a>
+        <a class="about-button primary" href="/templates/">Use a template</a>
+        <a class="about-button" href="/stats/">Explore my archive</a>
       </div>
     </section>
   </main>
