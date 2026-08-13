@@ -103,3 +103,152 @@ html[data-theme='dark'] [data-pursuit-calendar] .period-picker__header{border-co
 html.dark [data-pursuit-calendar] .period-picker__month[aria-current='true'],
 body.dark [data-pursuit-calendar] .period-picker__month[aria-current='true'],
 html[data-theme='dark'] [data-pursuit-calendar] .period-picker__month[aria-current='true']{background:#405cf5;color:#fff;border-color:#405cf5}
+
+/* Final interaction clarity: keep the time controls together and make Month/Year
+   read as a first-class view switch rather than a tiny utility at the far edge. */
+@media(min-width:821px){
+  [data-pursuit-calendar][data-period-nav-ready='true'] .toolbar-main.period-toolbar-main{
+    grid-template-columns:minmax(24px,1fr) auto auto auto minmax(24px,1fr)!important;
+  }
+  [data-pursuit-calendar] .period-navigation{grid-column:2!important}
+  [data-pursuit-calendar] .period-latest{grid-column:3!important}
+  [data-pursuit-calendar] .period-toolbar-main > .view-toggle{grid-column:4!important;justify-self:start!important}
+}
+
+[data-pursuit-calendar] .period-toolbar-main > .view-toggle{
+  display:inline-grid!important;
+  grid-template-columns:auto minmax(58px,auto) minmax(58px,auto)!important;
+  align-items:center!important;
+  gap:3px!important;
+  padding:4px!important;
+  border:1px solid #cbd3ff!important;
+  border-radius:12px!important;
+  background:#f7f8ff!important;
+  box-shadow:0 4px 12px rgba(64,92,245,.08)!important;
+}
+[data-pursuit-calendar] .period-toolbar-main > .view-toggle::before{
+  content:'CALENDAR VIEW';
+  padding:0 7px 0 5px;
+  color:#69738a;
+  font-size:.52rem;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+[data-pursuit-calendar] .period-toolbar-main > .view-toggle > button{
+  min-width:58px!important;
+  min-height:36px!important;
+  padding:7px 10px!important;
+  border:1px solid transparent!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  color:#4f586a!important;
+  font-size:.72rem!important;
+  font-weight:900!important;
+  line-height:1!important;
+  cursor:pointer!important;
+}
+[data-pursuit-calendar] .period-toolbar-main > .view-toggle > button:hover{
+  border-color:#aeb8ff!important;
+  background:#f0f2ff!important;
+  color:#3045d8!important;
+}
+[data-pursuit-calendar] .period-toolbar-main > .view-toggle > button[aria-pressed='true']{
+  border-color:#405cf5!important;
+  background:#405cf5!important;
+  color:#fff!important;
+  box-shadow:0 4px 10px rgba(64,92,245,.22)!important;
+}
+
+/* The longest-gap summary should look neutral until selected; its red action
+   remains the obvious affordance. Keep that action centered inside narrow cards. */
+[data-pursuit-calendar] .calendar-summary [data-summary-gap]:not(.longest-gap-selected){
+  border-color:#e4e8ef!important;
+  background:rgba(255,255,255,.96)!important;
+  box-shadow:0 8px 22px rgba(15,23,42,.05)!important;
+}
+[data-pursuit-calendar] .calendar-summary [data-summary-gap] .longest-gap-action{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding-left:4px!important;
+  padding-right:4px!important;
+  justify-content:center!important;
+  text-align:center!important;
+  overflow:hidden;
+}
+
+@media(max-width:820px){
+  [data-pursuit-calendar][data-period-nav-ready='true'] .toolbar-main.period-toolbar-main{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-areas:'period period' 'latest view'!important;
+  }
+  [data-pursuit-calendar] .period-toolbar-main > .view-toggle{
+    grid-area:view!important;
+    grid-column:auto!important;
+    justify-self:start!important;
+  }
+}
+
+@media(max-width:620px){
+  [data-pursuit-calendar][data-period-nav-ready='true'] .toolbar-main.period-toolbar-main{
+    grid-template-columns:1fr!important;
+    grid-template-areas:'period' 'view' 'latest'!important;
+    gap:9px!important;
+  }
+  [data-pursuit-calendar] .period-toolbar-main > .view-toggle{
+    justify-self:center!important;
+    grid-template-columns:auto minmax(54px,auto) minmax(54px,auto)!important;
+  }
+  [data-pursuit-calendar] .period-toolbar-main > .view-toggle::before{
+    content:'VIEW';
+    padding-left:4px;
+    padding-right:5px;
+    font-size:.5rem;
+  }
+  [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button{
+    min-width:54px!important;
+    min-height:34px!important;
+    padding:6px 8px!important;
+    font-size:.69rem!important;
+  }
+  [data-pursuit-calendar] .period-latest{
+    grid-area:latest!important;
+    grid-column:auto!important;
+    justify-self:center!important;
+  }
+}
+
+html.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle,
+body.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle,
+html[data-theme='dark'] [data-pursuit-calendar] .period-toolbar-main > .view-toggle{
+  background:#111827!important;
+  border-color:rgba(129,140,248,.32)!important;
+}
+html.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle::before,
+body.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle::before,
+html[data-theme='dark'] [data-pursuit-calendar] .period-toolbar-main > .view-toggle::before{
+  color:#9ca9bd!important;
+}
+html.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button,
+body.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button,
+html[data-theme='dark'] [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button{
+  background:#172033!important;
+  color:#cbd5e1!important;
+}
+html.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button[aria-pressed='true'],
+body.dark [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button[aria-pressed='true'],
+html[data-theme='dark'] [data-pursuit-calendar] .period-toolbar-main > .view-toggle > button[aria-pressed='true']{
+  background:#5369ec!important;
+  border-color:#5369ec!important;
+  color:#fff!important;
+}
+html.dark [data-pursuit-calendar] .calendar-summary [data-summary-gap]:not(.longest-gap-selected),
+body.dark [data-pursuit-calendar] .calendar-summary [data-summary-gap]:not(.longest-gap-selected){
+  background:rgba(15,23,42,.92)!important;
+  border-color:rgba(148,163,184,.18)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.18)!important;
+}
