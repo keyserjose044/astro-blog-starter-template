@@ -4,6 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import VideoBg from '../../components/VideoBg.astro';
 import MusicNav from '../../components/MusicNav.astro';
+import PursuitsLiveRuntime from '../../components/PursuitsLiveRuntime.astro';
 import { SITE_TITLE } from '../../consts';
 import { fetchAllRaindrops } from '../../utils/raindrop';
 
@@ -359,6 +360,8 @@ const developingSkills = allNodes.filter((node) => node.status === 'developing')
       </div>
       <button class="audio-toggle" id="audio-toggle" type="button" aria-label="Unmute guitar video">🔇</button>
     </section>
+
+    <PursuitsLiveRuntime active="guitar" />
 
     <div class="content">
       <section class="section" aria-labelledby="paths-title">
