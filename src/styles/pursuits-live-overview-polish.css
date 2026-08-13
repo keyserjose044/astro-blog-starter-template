@@ -1,14 +1,8 @@
 /* Pursuits overview consolidation + Live Archive Pulse polish */
 
-/* The persistent Pursuits nav and Live Archive Pulse are now the two navigation systems.
-   Remove the duplicate hero link stack and the duplicate giant development-card gallery. */
+/* The persistent Pursuits nav and Live Archive Pulse are now the two navigation systems. */
 .pursuits-page .hero-map,
 .pursuits-page .pursuit-gallery{display:none!important}
-
-.pursuits-page .hero{grid-template-columns:minmax(0,1fr)!important;min-height:390px!important;padding-top:58px!important;padding-bottom:58px!important}
-.pursuits-page .hero-copy{max-width:930px}
-.pursuits-page .hero-lede{max-width:850px}
-.pursuits-page .hero-note{max-width:790px}
 
 .pursuits-live-overview .pursuits-live-heading--split{grid-template-columns:minmax(0,1.15fr) minmax(260px,.58fr);gap:clamp(1.3rem,3vw,3rem)}
 .pursuits-live-overview .pursuits-live-heading--split>p:last-child{max-width:31rem;justify-self:end;font-size:.9rem;line-height:1.58}
@@ -31,9 +25,22 @@
 .pursuits-live-overview .pursuits-live-status:not([data-state="live"])::before{background:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.10)}
 
 @media(max-width:760px){
-  .pursuits-page .hero{min-height:0!important;padding-top:42px!important;padding-bottom:42px!important}
   .pursuits-live-overview .pursuits-live-heading--split{grid-template-columns:1fr}
   .pursuits-live-overview .pursuits-live-heading--split>p:last-child{max-width:42rem;justify-self:start;font-size:.86rem}
+}
+
+/* On phones, event labels collapse to compact color marks. Make their tap behavior explicit. */
+@media(max-width:620px){
+  .pursuits-page .calendar-shell::before{
+    content:'Tap a day to open its Day Explorer details.';
+    display:block;
+    padding:10px 12px 0;
+    color:#78808e;
+    font-size:.66rem;
+    font-weight:720;
+    line-height:1.35;
+    text-align:center;
+  }
 }
 
 html.dark .pursuits-live-overview .pursuits-live-spark-label,
@@ -47,3 +54,9 @@ html[data-theme=dark] .pursuits-live-overview .pursuits-live-status{border-color
 html.dark .pursuits-live-overview .pursuits-live-card>a,
 body.dark .pursuits-live-overview .pursuits-live-card>a,
 html[data-theme=dark] .pursuits-live-overview .pursuits-live-card>a{border-color:color-mix(in srgb,var(--pursuit-accent) 36%,#334155);background:color-mix(in srgb,var(--pursuit-accent) 12%,#111827);color:color-mix(in srgb,var(--pursuit-accent) 72%,#fff)}
+
+@media(max-width:620px){
+  html.dark .pursuits-page .calendar-shell::before,
+  body.dark .pursuits-page .calendar-shell::before,
+  html[data-theme=dark] .pursuits-page .calendar-shell::before{color:#9aa5b5}
+}
