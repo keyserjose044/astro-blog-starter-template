@@ -1,0 +1,19 @@
+---
+const target = '/music/albums/';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={target} />
+    <title>Albums moved | LifeLoggerz</title>
+    <script is:inline define:vars={{ target }}>
+      window.location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p>Albums moved to <a href={target}>the LifeLoggerz Albums archive</a>.</p>
+  </body>
+</html>
