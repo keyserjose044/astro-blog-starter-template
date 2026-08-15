@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/BlogPost.astro';
 import DailyDataRuntime from '../components/DailyDataRuntime.astro';
+import DayExplorerTemporalRuntime from '../components/DayExplorerTemporalRuntime.astro';
 ---
 
 <Layout
@@ -56,6 +57,9 @@ import DailyDataRuntime from '../components/DailyDataRuntime.astro';
       </div>
       <output data-scrub-output>—</output>
       <input data-day-scrubber type="range" min="1" max="365" value="1" aria-label="Day of selected year" />
+      <div class="day-year-coverage" data-year-coverage aria-label="Archive coverage by month">
+        <span>Loading year coverage…</span>
+      </div>
     </section>
 
     <div class="day-error" data-day-error role="alert" hidden></div>
@@ -101,7 +105,7 @@ import DailyDataRuntime from '../components/DailyDataRuntime.astro';
           <p class="day-eyebrow">Selected-year context</p>
           <h2 id="standouts-heading">What stood out about this day?</h2>
         </div>
-        <p>Deterministic comparisons against the selected year—not generated commentary.</p>
+        <p>Deterministic comparisons against the recorded portion of the selected year—not generated commentary.</p>
       </div>
       <div class="day-highlight-grid" data-day-highlights aria-live="polite">
         <p>Loading what stood out…</p>
@@ -142,17 +146,25 @@ import DailyDataRuntime from '../components/DailyDataRuntime.astro';
       </article>
     </section>
 
-    <section class="day-section day-grid-two" aria-label="Temporal context">
-      <article class="day-panel" aria-labelledby="week-heading">
+    <section class="day-section day-grid-two day-temporal-grid" aria-label="Temporal context">
+      <article class="day-panel day-panel--week" aria-labelledby="week-heading">
         <div class="day-panel__heading">
           <div>
-            <p class="day-eyebrow">Seven-day neighborhood</p>
+            <p class="day-eyebrow">Horizontal time</p>
             <h2 id="week-heading">The days around it</h2>
           </div>
           <span>± 3 days</span>
         </div>
-        <p class="day-panel__note">Click any nearby day to move through the archive without losing context.</p>
-        <div class="day-week-strip" data-day-week aria-live="polite"></div>
+        <p class="day-panel__note">A miniature week: sleep, work, movement, active categories, and the day marker. Click any day to move through the archive.</p>
+        <div class="day-week-visual" data-day-week-visual aria-live="polite">
+          <p>Loading nearby days…</p>
+        </div>
+        <div class="day-week-legend" aria-label="Week signal legend">
+          <span><i data-signal="sleep"></i>Sleep</span>
+          <span><i data-signal="work"></i>Work</span>
+          <span><i data-signal="movement"></i>Movement</span>
+          <span><i data-signal="active"></i>Active</span>
+        </div>
       </article>
 
       <article class="day-panel day-panel--guide" aria-labelledby="guide-heading">
@@ -206,15 +218,23 @@ import DailyDataRuntime from '../components/DailyDataRuntime.astro';
       </div>
     </details>
 
-    <section class="day-section" aria-labelledby="same-date-heading">
-      <div class="day-section__heading">
+    <section class="day-section day-section--same-date" aria-labelledby="same-date-heading">
+      <div class="day-section__heading day-same-date-heading">
         <div>
-          <p class="day-eyebrow">Across the archive</p>
+          <p class="day-eyebrow">Vertical time</p>
           <h2 id="same-date-heading">The same date in other years</h2>
         </div>
-        <p>Keep the month and day fixed to see how the surrounding life changed from year to year.</p>
+        <p>Keep the month and day fixed. Choose one measure to see how this calendar date changed across the archive.</p>
       </div>
-      <div class="same-date-grid" data-same-date-grid aria-live="polite"></div>
+      <div class="same-date-toolbar" role="group" aria-label="Same-date comparison metric">
+        <button type="button" data-same-date-metric="sleep" aria-pressed="true">Sleep</button>
+        <button type="button" data-same-date-metric="work" aria-pressed="false">Work</button>
+        <button type="button" data-same-date-metric="movement" aria-pressed="false">Movement</button>
+        <button type="button" data-same-date-metric="diary" aria-pressed="false">Diary</button>
+      </div>
+      <div class="same-date-visual" data-same-date-visual aria-live="polite">
+        <p>Loading same-date records…</p>
+      </div>
     </section>
 
     <section class="day-callout">
@@ -231,4 +251,5 @@ import DailyDataRuntime from '../components/DailyDataRuntime.astro';
   </main>
 
   <DailyDataRuntime />
+  <DayExplorerTemporalRuntime />
 </Layout>
