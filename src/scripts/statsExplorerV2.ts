@@ -33,10 +33,10 @@ async function init(){
         <div class="sev2-custom" data-sev2-custom><label class="sev2-field">Start date<input type="date" data-sev2-start></label><label class="sev2-field">End date<input type="date" data-sev2-end></label></div>
         <div class="sev2-actions"><div data-sev2-chart-style><button class="sev2-button is-active" data-sev2-style="timeline">Timeline</button><button class="sev2-button" data-sev2-style="heatmap">Heatmap</button></div><button class="sev2-button sev2-reset" data-sev2-reset>Reset view</button></div>
       </div>
-      <div class="sev2-summary"><article><span>Selected total</span><strong data-sev2-total>—</strong></article><article><span>Average interval</span><strong data-sev2-average>—</strong></article><article><span>Peak interval</span><strong data-sev2-peak>—</strong></article><article><span>Active / measured</span><strong data-sev2-active>—</strong></article></div>
+      <div class="sev2-summary"><article><span data-sev2-primary-label>Selected total</span><strong data-sev2-total>—</strong></article><article><span>Average interval</span><strong data-sev2-average>—</strong></article><article><span>Peak interval</span><strong data-sev2-peak>—</strong></article><article><span data-sev2-active-label>Active / measured</span><strong data-sev2-active>—</strong></article></div>
       <div class="sev2-chart-panel"><div class="sev2-chart-head"><div><strong data-sev2-title>Archive chart</strong><span data-sev2-subtitle></span></div><span data-sev2-unit></span></div><div class="sev2-chart" data-sev2-chart></div></div>
-      <div class="sev2-insights"><article><span>Current active streak</span><strong data-sev2-current>—</strong></article><article><span>Longest active streak</span><strong data-sev2-longest>—</strong></article><article><span>Best 7-day window</span><strong data-sev2-best7>—</strong></article><article><span>Best 30-day window</span><strong data-sev2-best30>—</strong></article></div>
-      <div class="sev2-footer"><div class="sev2-series-legend" data-sev2-series></div><div class="sev2-legend"><span><i class="sev2-swatch" style="--swatch:#cbd5e1"></i>Before tracking</span><span><i class="sev2-swatch" style="--swatch:#e2e8f0"></i>Missing</span><span><i class="sev2-swatch" style="--swatch:#94a3b8"></i>Recorded zero</span><span><i class="sev2-swatch" style="--swatch:#f59e0b"></i>Partial day/period</span><span><i class="sev2-swatch" style="--swatch:#f1f5f9"></i>Future</span></div><div data-sev2-coverage></div><details class="sev2-details"><summary>How to read this graph</summary><p>Daily values are the source of truth. Weekly and monthly values are calculated from those days, cumulative is a running monthly total, recorded zero remains distinct from missing data, and dates before a metric began are not treated as zero.</p></details></div>`;
+      <div class="sev2-insights"><article><span data-sev2-current-label>Current active streak</span><strong data-sev2-current>—</strong></article><article><span data-sev2-longest-label>Longest active streak</span><strong data-sev2-longest>—</strong></article><article><span data-sev2-best7-label>Best 7-day window</span><strong data-sev2-best7>—</strong></article><article><span data-sev2-best30-label>Best 30-day window</span><strong data-sev2-best30>—</strong></article></div>
+      <div class="sev2-footer"><div class="sev2-series-legend" data-sev2-series></div><div class="sev2-legend"><span><i class="sev2-swatch" style="--swatch:#cbd5e1"></i>Before tracking</span><span><i class="sev2-swatch" style="--swatch:#e2e8f0"></i>Missing</span><span><i class="sev2-swatch" style="--swatch:#94a3b8"></i>Recorded zero</span><span><i class="sev2-swatch" style="--swatch:#f59e0b"></i>Partial day/period</span><span><i class="sev2-swatch" style="--swatch:#f1f5f9"></i>Future</span></div><div data-sev2-coverage></div><details class="sev2-details"><summary>How to read this graph</summary><p>Daily values are the source of truth. Weekly and monthly activity values are totaled, while average-based metrics such as sleep are averaged. Cumulative is a running total for activity metrics and a running average for average-based metrics. Recorded zero remains distinct from missing data, and dates before a metric began are not treated as zero.</p></details></div>`;
     old?.after(shell);
     if(!old)section.append(shell);
 
@@ -99,13 +99,23 @@ async function init(){
       });
       const selected=series.find(item=>item.selected)??series[0];
       const selectedMeasured=measured(selected.points);
-      const total=view==='cumulative'?[...selectedMeasured].reverse()[0]?.value??null:sum(selectedMeasured.map(point=>point.value));
+      const total=view==='cumulative'
+        ?[...selectedMeasured].reverse()[0]?.value??null
+        :metric.aggregate==='average'
+          ?average(selectedMeasured.map(point=>point.value))
+          :sum(selectedMeasured.map(point=>point.value));
       const mean=average(selectedMeasured.map(point=>point.value));
       const peak=selectedMeasured.reduce<Point|null>((winner,point)=>!winner||(point.value??-Infinity)>(winner.value??-Infinity)?point:winner,null);
+      setText(shell,'[data-sev2-primary-label]',metric.aggregate==='average'?(view==='cumulative'?'Running average':'Selected average'):'Selected total');
+      setText(shell,'[data-sev2-active-label]',metric.aggregate==='average'?'Measured intervals':'Active / measured');
+      setText(shell,'[data-sev2-current-label]',metric.aggregate==='average'?'Current recorded streak':'Current active streak');
+      setText(shell,'[data-sev2-longest-label]',metric.aggregate==='average'?'Longest recorded streak':'Longest active streak');
+      setText(shell,'[data-sev2-best7-label]',metric.aggregate==='average'?'Best 7-day average':'Best 7-day window');
+      setText(shell,'[data-sev2-best30-label]',metric.aggregate==='average'?'Best 30-day average':'Best 30-day window');
       setText(shell,'[data-sev2-total]',`${fmt(total,metric.digits)} ${metric.unit}`);
       setText(shell,'[data-sev2-average]',`${fmt(mean,metric.digits)} ${metric.unit}`);
       setText(shell,'[data-sev2-peak]',peak?`${peak.label} · ${fmt(peak.value,metric.digits)} ${metric.unit}`:'No data');
-      setText(shell,'[data-sev2-active]',`${selectedMeasured.filter(point=>(point.value??0)>0).length} / ${selectedMeasured.length}`);
+      setText(shell,'[data-sev2-active]',metric.aggregate==='average'?`${selectedMeasured.length}`:`${selectedMeasured.filter(point=>(point.value??0)>0).length} / ${selectedMeasured.length}`);
       setText(shell,'[data-sev2-title]',`${metric.icon} ${metric.label} · ${range==='year'||range==='ytd'?year:'selected range'}`);
       setText(shell,'[data-sev2-subtitle]',`${view[0].toUpperCase()+view.slice(1)} values · ${prettyDate(bounds.start)}–${prettyDate(bounds.end)}`);
       setText(shell,'[data-sev2-unit]',metric.unit);
@@ -113,7 +123,7 @@ async function init(){
 
       const daily=seriesFor(records,metric,'daily',bounds,meta);
       const streak=streaks(daily);
-      const best7=rollingBest(daily,7),best30=rollingBest(daily,30);
+      const best7=rollingBest(daily,7,metric),best30=rollingBest(daily,30,metric);
       setText(shell,'[data-sev2-current]',`${streak.current} day${streak.current===1?'':'s'}`);
       setText(shell,'[data-sev2-longest]',`${streak.longest} day${streak.longest===1?'':'s'}`);
       setText(shell,'[data-sev2-best7]',best7.value===null?'No data':`${fmt(best7.value,metric.digits)} ${metric.unit}${best7.start?` · ${shortDate(best7.start)}`:''}`);
