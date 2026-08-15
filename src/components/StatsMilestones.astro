@@ -1,0 +1,27 @@
+<section id="milestones" class="dashboard-section stats-milestones" aria-labelledby="milestones-heading">
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="eyebrow">Thresholds crossed over time</p>
+      <h2 id="milestones-heading">Milestones</h2>
+    </div>
+    <p>Instead of another total, this view asks when long-running pursuits crossed meaningful cumulative thresholds—and what comes next.</p>
+  </div>
+  <div class="stats-milestones__layout">
+    <div class="stats-milestones__panel">
+      <div class="stats-milestones__panel-head">
+        <div><span>Recent history</span><h3>Latest thresholds crossed</h3></div>
+        <small>Calculated from the public daily archive</small>
+      </div>
+      <div class="stats-milestones__timeline" data-milestone-timeline aria-live="polite">
+        <p class="stats-milestones__loading">Loading milestone history…</p>
+      </div>
+    </div>
+    <div class="stats-milestones__panel">
+      <div class="stats-milestones__panel-head">
+        <div><span>What is next</span><h3>Progress toward the next mark</h3></div>
+        <small>Updates with the archive</small>
+      </div>
+      <div class="stats-milestones__progress-grid" data-milestone-progress aria-live="polite"></div>
+    </div>
+  </div>
+</section>

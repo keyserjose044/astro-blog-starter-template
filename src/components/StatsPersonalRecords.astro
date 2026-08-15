@@ -1,0 +1,55 @@
+---
+const records = [
+  { key: 'running', explorer: 'running', icon: '🏃', label: 'Running', unit: 'miles', start: 'September 26, 2023', note: 'Distance logged, with running time estimated at 10 minutes per mile.' },
+  { key: 'diary', explorer: 'diary', icon: '📓', label: 'Diary', unit: 'words', start: 'March 16, 2022', note: 'A searchable written record of ordinary days, major moments, and everything between them.' },
+  { key: 'guitar', explorer: 'guitar', icon: '🎸', label: 'Guitar', unit: 'hours', start: 'September 27, 2023', note: 'Practice time ranging from ten-minute minimums to longer focused sessions.' },
+  { key: 'audiobooks', explorer: 'audiobook', icon: '📚', label: 'Audiobooks', unit: 'hours', start: 'February 10, 2023', note: 'Commutes, chores, walks, and exercise converted into reading time.' },
+  { key: 'sleep', explorer: 'sleep', icon: '😴', label: 'Sleep', unit: 'hours', start: 'January 1, 2023', note: 'Recorded sleep; month and year records use average nightly hours rather than totals.' },
+  { key: 'work', explorer: 'work', icon: '🧠', label: 'Work', unit: 'hours', start: 'May 10, 2023', note: 'Logged work hours drawn from the public-safe daily archive.' },
+  { key: 'dance', explorer: 'dance', icon: '💃', label: 'Dance', unit: 'hours', start: 'June 2, 2026', note: 'Cumbia, bachata, salsa, and other logged dance practice.' },
+  { key: 'treadmill', explorer: 'treadmill', icon: '🚶', label: 'Treadmill', unit: 'miles', start: 'December 2, 2022', note: 'Walking distance and time from the treadmill archive.' },
+  { key: 'language', explorer: 'language', icon: '🌍', label: 'Language study', unit: 'hours', start: 'February 8, 2023', note: 'German and other language-study time accumulated across the archive.' },
+  { key: 'movement', explorer: '', icon: '👟', label: 'Combined movement', unit: 'miles', start: 'December 2, 2022', note: 'Running and treadmill distance combined while preserving each component separately elsewhere.' },
+];
+---
+
+<section id="personal-records" class="dashboard-section snapshot-section" aria-labelledby="snapshot-heading">
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="eyebrow">Lifetime totals and personal bests</p>
+      <h2 id="snapshot-heading">Personal Records</h2>
+    </div>
+    <p>Ten cards combine lifetime totals with this year’s progress, the strongest day, best month, best year, and the date each record began.</p>
+  </div>
+
+  <div class="snapshot-grid snapshot-grid--personal-records">
+    {records.map((item) => (
+      <article class={`snapshot-card snapshot-card--${item.key} snapshot-card--personal-record`} data-dashboard-metric={item.key}>
+        <div class="snapshot-card__top">
+          <span class="snapshot-card__icon" aria-hidden="true">{item.icon}</span>
+          <div><p class="snapshot-card__kicker">Lifetime logged</p><h3>{item.label}</h3></div>
+        </div>
+        <p class="snapshot-card__value"><strong data-record-lifetime>—</strong><span>{item.unit}</span></p>
+        <p class="snapshot-card__note" data-record-note>{item.note}</p>
+        <dl class="snapshot-card__facts">
+          <div><dt>This year</dt><dd data-record-current>No data</dd></div>
+          <div><dt data-record-day-label>Best day</dt><dd data-record-day>No data</dd></div>
+          <div><dt>Best month</dt><dd data-record-month>No data</dd></div>
+          <div><dt>Best year</dt><dd data-record-year>No data</dd></div>
+          <div class="snapshot-card__fact--wide"><dt>Tracking since</dt><dd>{item.start}</dd></div>
+        </dl>
+        {item.explorer ? (
+          <button class="snapshot-card__link" type="button" data-open-metric={item.explorer}>
+            Explore {item.label.toLowerCase()} <span aria-hidden="true">→</span>
+          </button>
+        ) : (
+          <a class="snapshot-card__link" href="#graphs">Use the Running + Treadmill views <span aria-hidden="true">→</span></a>
+        )}
+      </article>
+    ))}
+  </div>
+
+  <p class="data-note" id="snapshot-note" role="status">
+    Loading lifetime totals and records from the public-safe archive.
+  </p>
+</section>

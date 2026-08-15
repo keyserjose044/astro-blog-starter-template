@@ -7,7 +7,6 @@ const RUN_MINUTES_PER_MILE = 10;
 
 const parseIso = (value: string) => new Date(`${value}T12:00:00`);
 const longDate = (value: string) => new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(parseIso(value));
-const shortDate = (value: string) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(parseIso(value));
 const format = (value: number | null, digits = 0) => value === null || !Number.isFinite(value)
   ? '—'
   : new Intl.NumberFormat('en-US', { maximumFractionDigits: digits }).format(value);
@@ -94,18 +93,12 @@ function niceScale(maximumValue: number) {
   const magnitude = 10 ** Math.floor(Math.log10(roughStep));
   const normalized = roughStep / magnitude;
   const niceNormalized = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-  const step = Math.max(1, niceNormalized * magnitude);
+  const step = Math.max(Number.EPSILON, niceNormalized * magnitude);
   const niceMaximum = Math.max(step, Math.ceil(maximum / step) * step);
   return { maximum: niceMaximum, step, intervals: Math.max(1, Math.round(niceMaximum / step)) };
 }
 
-function appendAxes(
-  chart: SVGSVGElement,
-  scale: { maximum: number; step: number; intervals: number },
-  margin: { left: number; right: number; top: number; bottom: number },
-  width: number,
-  height: number,
-) {
+function appendAxes(chart: SVGSVGElement, scale: { maximum: number; step: number; intervals: number }, margin: { left: number; right: number; top: number; bottom: number }, width: number, height: number) {
   const innerHeight = height - margin.top - margin.bottom;
   for (let index = 0; index <= scale.intervals; index += 1) {
     const value = scale.maximum - scale.step * index;
@@ -163,33 +156,9 @@ function monthly(records: DailyRecord[], value: (record: DailyRecord) => number 
   })).sort((first, second) => first.key.localeCompare(second.key));
 }
 
-function best<T>(items: T[], value: (item: T) => number | null) {
-  return items.reduce<T | null>((winner, item) => {
-    const candidate = value(item);
-    if (candidate === null) return winner;
-    if (!winner) return item;
-    const current = value(winner);
-    return current === null || candidate > current ? item : winner;
-  }, null);
-}
-
-function monthBest(records: DailyRecord[], value: (record: DailyRecord) => number | null, mode: 'sum' | 'average' = 'sum') {
-  return best(monthly(records, value, mode), (item) => item.value);
-}
-
-function yearBest(records: DailyRecord[], value: (record: DailyRecord) => number | null, mode: 'sum' | 'average' = 'sum') {
-  const groups = new Map<number, DailyRecord[]>();
-  records.forEach((record) => {
-    const year = Number(record.date.slice(0, 4));
-    if (!groups.has(year)) groups.set(year, []);
-    groups.get(year)!.push(record);
-  });
-  const values = Array.from(groups, ([year, list]) => ({ year, value: mode === 'average' ? average(list.map(value)) : sum(list.map(value)) }));
-  return best(values, (item) => item.value);
-}
-
 function mountPreview(dashboard: HTMLElement) {
-  if (dashboard.querySelector('.stats-daily-preview')) return dashboard.querySelector('.stats-daily-preview') as HTMLElement;
+  const existing = dashboard.querySelector<HTMLElement>('.stats-daily-preview');
+  if (existing) return existing;
   const hero = dashboard.querySelector('.stats-hero');
   if (!hero) return null;
   const section = document.createElement('section');
@@ -229,80 +198,6 @@ function updatePreview(preview: HTMLElement, record: DailyRecord) {
   });
   const link = preview.querySelector('a');
   if (link instanceof HTMLAnchorElement) link.href = `/day/?date=${record.date}`;
-}
-
-function parseDisplayedNumber(value: string | null) {
-  const match = String(value || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
-  return match ? Number(match[0]) : null;
-}
-
-function updateOriginalLifetime(records: DailyRecord[]) {
-  const currentYear = new Date().getFullYear();
-  const current = records.filter((record) => Number(record.date.slice(0, 4)) === currentYear);
-  const update = (key: string, lifetime: number, unit: string, value: (record: DailyRecord) => number | null, digits = 0) => {
-    const card = document.querySelector(`[data-dashboard-metric="${key}"]`);
-    if (!card) return;
-    setText(card, '[data-stat-value]', format(lifetime, digits));
-    setText(card, '[data-stat-unit]', unit);
-    setText(card, '[data-card-year]', `${format(sum(current.map(value)), digits)} ${unit}`);
-    const peak = monthBest(records, value);
-    setText(card, '[data-card-peak]', peak ? `${MONTHS[peak.month]} ${peak.year} · ${format(peak.value, digits)} ${unit}` : 'No data');
-  };
-  update('running', sum(records.map((record) => record.hobbies.runningMiles)), 'miles', (record) => record.hobbies.runningMiles, 1);
-  update('guitar', sum(records.map((record) => record.hobbies.guitarMinutes)) / 60, 'hours', (record) => record.hobbies.guitarMinutes === null ? null : record.hobbies.guitarMinutes / 60, 1);
-  update('audiobooks', sum(records.map((record) => record.audiobook.minutes)) / 60, 'hours', (record) => record.audiobook.minutes === null ? null : record.audiobook.minutes / 60, 1);
-
-  const diary = document.querySelector('[data-dashboard-metric="diary"] [data-stat-value]');
-  if (diary) {
-    const dailyTotal = sum(records.map((record) => record.diary.words));
-    const shown = parseDisplayedNumber(diary.textContent);
-    const key = 'lifeloggerz-diary-lifetime-bridge-v1';
-    let baseline: { snapshot: number; daily: number; last: number } | null = null;
-    try { baseline = JSON.parse(localStorage.getItem(key) || 'null'); } catch { baseline = null; }
-    if (!baseline || (shown !== null && shown !== baseline.snapshot && shown !== baseline.last)) baseline = { snapshot: shown ?? dailyTotal, daily: dailyTotal, last: shown ?? dailyTotal };
-    const estimate = Math.max(dailyTotal, baseline.snapshot + (dailyTotal - baseline.daily));
-    baseline.last = estimate;
-    diary.textContent = format(estimate);
-    try { localStorage.setItem(key, JSON.stringify(baseline)); } catch { /* browser storage is optional */ }
-    const card = diary.closest('[data-dashboard-metric="diary"]');
-    if (card) {
-      setText(card, '[data-card-year]', `${format(sum(current.map((record) => record.diary.words)))} words`);
-      const peak = monthBest(records, (record) => record.diary.words);
-      setText(card, '[data-card-peak]', peak ? `${MONTHS[peak.month]} ${peak.year} · ${format(peak.value)} words` : 'No data');
-    }
-  }
-}
-
-function insertLifetimeExtras(records: DailyRecord[]) {
-  const heading = document.querySelector('#snapshot-heading');
-  if (heading) heading.textContent = '8 long-term windows into the archive';
-  const description = document.querySelector('.snapshot-section .section-heading--split > p');
-  if (description) description.textContent = 'Each window is calculated from the same public-safe daily archive, with start dates shown so totals stay in context.';
-  const grid = document.querySelector('.snapshot-grid');
-  if (!(grid instanceof HTMLElement) || document.querySelector('.snapshot-grid--daily')) return;
-  const currentYear = new Date().getFullYear();
-  const current = records.filter((record) => Number(record.date.slice(0, 4)) === currentYear);
-  const items = [
-    { key: 'dance', icon: '💃', label: 'Dance', start: 'June 2, 2026', total: sum(records.map((record) => record.hobbies.danceMinutes)) / 60, unit: 'hours', value: (record: DailyRecord) => record.hobbies.danceMinutes === null ? null : record.hobbies.danceMinutes / 60, note: 'Cumbia, bachata, salsa, and other logged dance practice.' },
-    { key: 'work', icon: '🧠', label: 'Work', start: 'May 10, 2023', total: sum(records.map((record) => record.work.hours)), unit: 'hours', value: (record: DailyRecord) => record.work.hours, note: 'Logged work hours from the public-safe archive.' },
-    { key: 'language', icon: '🌍', label: 'Language study', start: 'February 8, 2023', total: sum(records.map((record) => record.hobbies.languageMinutes)) / 60, unit: 'hours', value: (record: DailyRecord) => record.hobbies.languageMinutes === null ? null : record.hobbies.languageMinutes / 60, note: 'German and other language-study time accumulated over the years.' },
-    { key: 'treadmill', icon: '🚶', label: 'Treadmill', start: 'December 2, 2022', total: sum(records.map((record) => record.hobbies.treadmillMiles)), unit: 'miles', value: (record: DailyRecord) => record.hobbies.treadmillMiles, note: `Walking time: ${format(sum(records.map((record) => record.hobbies.treadmillMinutes)) / 60, 1)} hours at the tracked 2 mph pace.` },
-  ];
-  const extra = document.createElement('div');
-  extra.className = 'snapshot-grid snapshot-grid--daily';
-  items.forEach((item) => {
-    const peak = monthBest(records, item.value);
-    const yearTotal = sum(current.map(item.value));
-    const card = document.createElement('article');
-    card.className = `snapshot-card snapshot-card--${item.key}`;
-    card.innerHTML = `<div class="snapshot-card__top"><span class="snapshot-card__icon" aria-hidden="true">${item.icon}</span><div><p class="snapshot-card__kicker">Lifetime logged</p><h3>${escapeHtml(item.label)}</h3></div></div><p class="snapshot-card__value"><strong>${format(item.total, 1)}</strong><span>${item.unit}</span></p><p class="snapshot-card__note">${escapeHtml(item.note)}</p><dl class="snapshot-card__facts"><div><dt>This year</dt><dd>${format(yearTotal, 1)} ${item.unit}</dd></div><div><dt>Best month</dt><dd>${peak ? `${MONTHS[peak.month]} ${peak.year} · ${format(peak.value, 1)} ${item.unit}` : 'No data'}</dd></div><div class="snapshot-card__fact--wide"><dt>Tracking since</dt><dd>${item.start}</dd></div></dl><button class="snapshot-card__link" type="button" data-open-metric="${item.key}">Explore ${escapeHtml(item.label.toLowerCase())} <span aria-hidden="true">→</span></button>`;
-    extra.append(card);
-  });
-  grid.after(extra);
-  const note = document.createElement('p');
-  note.className = 'stats-support-note';
-  note.textContent = 'These totals update from the nightly public-data refresh. Treadmill tracking began in December 2022, while the current public daily API begins in 2023.';
-  extra.after(note);
 }
 
 const HOBBIES = [
@@ -418,14 +313,7 @@ function mountHobby(records: DailyRecord[], meta: DailyMeta) {
   render();
 }
 
-type CorrelationMetric = {
-  key: string;
-  dailyLabel: string;
-  monthlyLabel: string;
-  unit: string;
-  monthlyMode: 'sum' | 'average';
-  value: (record: DailyRecord) => number | null;
-};
+type CorrelationMetric = { key: string; dailyLabel: string; monthlyLabel: string; unit: string; monthlyMode: 'sum' | 'average'; value: (record: DailyRecord) => number | null };
 const CORRELATIONS: CorrelationMetric[] = [
   { key: 'sleep', dailyLabel: 'Sleep hours', monthlyLabel: 'Average sleep hours', unit: 'hours', monthlyMode: 'average', value: (record) => record.sleep.hours },
   { key: 'work', dailyLabel: 'Work', monthlyLabel: 'Work', unit: 'hours', monthlyMode: 'sum', value: (record) => record.work.hours },
@@ -558,35 +446,6 @@ function mountCorrelation(records: DailyRecord[], meta: DailyMeta) {
   render();
 }
 
-function appendDailyRecords(records: DailyRecord[]) {
-  const section = document.querySelector('#records');
-  const grid = section?.querySelector('#records-grid');
-  if (!(section instanceof HTMLElement) || !(grid instanceof HTMLElement) || section.querySelector('.records-grid--daily')) return;
-  const heading = document.createElement('div');
-  heading.className = 'stats-records-heading';
-  heading.innerHTML = '<div><p class="eyebrow">From the daily archive</p><h3>More records beyond the original four</h3></div><p>Peak days, months, and years for sleep, work, dance, treadmill walking, language study, and combined movement.</p>';
-  const extra = document.createElement('div');
-  extra.className = 'records-grid records-grid--daily';
-  const items = [
-    { icon: '😴', label: 'Sleep', unit: 'hours', digits: 1, mode: 'average' as const, value: (record: DailyRecord) => record.sleep.hours, dayLabel: 'Longest night' },
-    { icon: '🧠', label: 'Work', unit: 'hours', digits: 1, mode: 'sum' as const, value: (record: DailyRecord) => record.work.hours, dayLabel: 'Longest day' },
-    { icon: '💃', label: 'Dance', unit: 'minutes', digits: 0, mode: 'sum' as const, value: (record: DailyRecord) => record.hobbies.danceMinutes, dayLabel: 'Longest session' },
-    { icon: '🚶', label: 'Treadmill', unit: 'miles', digits: 1, mode: 'sum' as const, value: (record: DailyRecord) => record.hobbies.treadmillMiles, dayLabel: 'Farthest walking day' },
-    { icon: '🌍', label: 'Language study', unit: 'minutes', digits: 0, mode: 'sum' as const, value: (record: DailyRecord) => record.hobbies.languageMinutes, dayLabel: 'Longest day' },
-    { icon: '👟', label: 'Combined movement', unit: 'miles', digits: 1, mode: 'sum' as const, value: (record: DailyRecord) => record.hobbies.totalDistanceMiles, dayLabel: 'Farthest day' },
-  ];
-  items.forEach((item) => {
-    const day = best(records, item.value);
-    const month = monthBest(records, item.value, item.mode);
-    const year = yearBest(records, item.value, item.mode);
-    const card = document.createElement('article');
-    card.className = 'record-card record-card--daily';
-    card.innerHTML = `<div class="record-card__heading"><span aria-hidden="true">${item.icon}</span><h3>${item.label}</h3></div><dl><div><dt>${item.dayLabel}</dt><dd>${day ? `${shortDate(day.date)} ${day.date.slice(0, 4)} · ${format(item.value(day), item.digits)} ${item.unit}` : 'No data'}</dd></div><div><dt>Best month</dt><dd>${month ? `${MONTHS[month.month]} ${month.year} · ${format(month.value, item.digits)} ${item.unit}` : 'No data'}</dd></div><div><dt>Best year</dt><dd>${year ? `${year.year} · ${format(year.value, item.digits)} ${item.unit}` : 'No data'}</dd></div></dl>`;
-    extra.append(card);
-  });
-  grid.after(heading, extra);
-}
-
 function bindArchiveLinks(dashboard: HTMLElement) {
   dashboard.addEventListener('click', (event) => {
     const button = (event.target as Element | null)?.closest<HTMLElement>('[data-open-metric]');
@@ -608,6 +467,8 @@ async function init() {
   const preview = mountPreview(dashboard);
   try {
     const meta = await getDailyMeta();
+    const archiveStatus = document.getElementById('archive-status');
+    if (archiveStatus) archiveStatus.textContent = meta.dataThrough ? 'Daily archive connected' : 'Archive connected';
     const latestDate = meta.latestCompleteDate || meta.dataThrough;
     if (latestDate && preview) {
       const year = Number(latestDate.slice(0, 4));
@@ -618,17 +479,16 @@ async function init() {
     }
     const load = async () => {
       const records = await getYears(meta.availableYears);
-      updateOriginalLifetime(records);
-      insertLifetimeExtras(records);
       mountHobby(records, meta);
       mountCorrelation(records, meta);
-      appendDailyRecords(records);
     };
     if ('requestIdleCallback' in window) {
       (window as Window & { requestIdleCallback: (callback: () => void) => number }).requestIdleCallback(() => void load());
     } else setTimeout(() => void load(), 120);
   } catch (error) {
     console.error('Stats support runtime failed', error);
+    const archiveStatus = document.getElementById('archive-status');
+    if (archiveStatus) archiveStatus.textContent = 'Archive unavailable';
     if (preview) setText(preview, '.stats-daily-preview__status', 'Archive unavailable');
   }
 }
