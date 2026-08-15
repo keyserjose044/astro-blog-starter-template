@@ -14,6 +14,7 @@ type DashboardMetric = {
 };
 
 const DAY_MS = 86_400_000;
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const METRICS: DashboardMetric[] = [
   { key: 'sleep', icon: '😴', label: 'Sleep', unit: 'hours/night', shortUnit: 'h', digits: 1, mode: 'average', value: (record) => record.sleep.hours },
@@ -45,6 +46,12 @@ function aggregate(records: DailyRecord[], metric: DashboardMetric) {
   if (!values.length) return null;
   const total = values.reduce((sum, value) => sum + value, 0);
   return metric.mode === 'average' ? total / values.length : total;
+}
+
+function dailyAverage(records: DailyRecord[], metric: DashboardMetric) {
+  const values = validValues(records, metric);
+  if (!values.length) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 function recordsBetween(records: DailyRecord[], start: string, end: string) {
@@ -110,7 +117,7 @@ function mountPatternsShell() {
         <p class="eyebrow">Change across the archive</p>
         <h2 id="patterns-heading">What is changing?</h2>
       </div>
-      <p>Recent windows and same-date year comparisons turn the archive from a collection of totals into a picture of direction.</p>
+      <p>Recent windows, year comparisons, and weekday rhythms turn the archive from a collection of totals into a picture of direction.</p>
     </div>
     <div class="stats-patterns__panel">
       <div class="stats-patterns__subhead">
@@ -125,6 +132,14 @@ function mountPatternsShell() {
         <small data-yoy-window>Loading comparison window…</small>
       </div>
       <div class="stats-patterns__table-wrap" data-yoy-table></div>
+    </div>
+    <div class="stats-patterns__panel stats-patterns__panel--weekdays">
+      <div class="stats-patterns__subhead">
+        <div><span>Weekly rhythm</span><h3>What does each weekday look like?</h3></div>
+        <label class="stats-patterns__metric-select">Metric<select data-weekday-metric>${METRICS.map((metric) => `<option value="${metric.key}">${metric.icon} ${escapeHtml(metric.label)}</option>`).join('')}</select></label>
+      </div>
+      <p class="stats-patterns__weekday-note" data-weekday-note>Loading weekday pattern…</p>
+      <div class="stats-patterns__weekday-grid" data-weekday-grid></div>
     </div>`;
   correlations.insertAdjacentElement('afterend', section);
   return section;
@@ -196,6 +211,63 @@ function renderYearScorecard(section: HTMLElement, records: DailyRecord[], meta:
     </table>`;
 }
 
+function weekdayValues(records: DailyRecord[], metric: DashboardMetric) {
+  return WEEKDAYS.map((label, day) => {
+    const matching = records.filter((record) => parseIso(record.date).getDay() === day);
+    return {
+      label,
+      value: dailyAverage(matching, metric),
+      measured: validValues(matching, metric).length,
+    };
+  });
+}
+
+function renderWeekdays(section: HTMLElement, records: DailyRecord[], metricKey: string) {
+  const metric = METRICS.find((item) => item.key === metricKey) ?? METRICS[0];
+  const grid = section.querySelector<HTMLElement>('[data-weekday-grid]');
+  const note = section.querySelector<HTMLElement>('[data-weekday-note]');
+  if (!grid || !metric) return;
+
+  const values = weekdayValues(records, metric);
+  const maximum = Math.max(0, ...values.map((item) => item.value ?? 0));
+  const best = values.reduce<(typeof values)[number] | null>((winner, item) => {
+    if (item.value === null) return winner;
+    return !winner || winner.value === null || item.value > winner.value ? item : winner;
+  }, null);
+
+  if (note) {
+    note.textContent = best
+      ? `${best.label} has the highest recorded daily average for ${metric.label.toLowerCase()} at ${formatNumber(best.value, metric.digits)} ${metric.unit}. Activity metrics are shown as average amount per calendar day, including recorded zero days.`
+      : `There is not enough measured ${metric.label.toLowerCase()} data for a weekday pattern yet.`;
+  }
+
+  grid.innerHTML = values.map((item) => {
+    const ratio = maximum > 0 && item.value !== null ? Math.max(0.04, item.value / maximum) : 0.04;
+    return `
+      <article class="stats-weekday-card${best?.label === item.label ? ' is-best' : ''}">
+        <span>${item.label}</span>
+        <div class="stats-weekday-card__bar"><i style="--weekday-ratio:${ratio}"></i></div>
+        <strong>${escapeHtml(formatNumber(item.value, metric.digits))} <small>${escapeHtml(metric.shortUnit)}</small></strong>
+        <em>${item.measured} measured day${item.measured === 1 ? '' : 's'}</em>
+      </article>`;
+  }).join('');
+}
+
+function bindWeekdayControls(section: HTMLElement, records: DailyRecord[]) {
+  const select = section.querySelector<HTMLSelectElement>('[data-weekday-metric]');
+  if (!select) return;
+  const initial = new URL(location.href).searchParams.get('weekdayMetric');
+  if (initial && METRICS.some((metric) => metric.key === initial)) select.value = initial;
+  const render = () => {
+    renderWeekdays(section, records, select.value);
+    const url = new URL(location.href);
+    url.searchParams.set('weekdayMetric', select.value);
+    history.replaceState({}, '', url);
+  };
+  select.addEventListener('change', render);
+  render();
+}
+
 async function init() {
   movePersonalRecordsBelowPatterns();
   const patterns = mountPatternsShell();
@@ -208,12 +280,15 @@ async function init() {
     const records = await getYears(meta.availableYears);
     renderRecentChanges(patterns, records, meta.dataThrough);
     renderYearScorecard(patterns, records, meta);
+    bindWeekdayControls(patterns, records);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'The pattern summary could not load.';
     const recent = patterns.querySelector<HTMLElement>('[data-recent-grid]');
     const years = patterns.querySelector<HTMLElement>('[data-yoy-table]');
+    const weekdays = patterns.querySelector<HTMLElement>('[data-weekday-grid]');
     if (recent) recent.innerHTML = `<p class="stats-patterns__error">${escapeHtml(message)}</p>`;
     if (years) years.innerHTML = '<p class="stats-patterns__error">The year comparison is temporarily unavailable.</p>';
+    if (weekdays) weekdays.innerHTML = '<p class="stats-patterns__error">The weekday comparison is temporarily unavailable.</p>';
   }
 }
 
