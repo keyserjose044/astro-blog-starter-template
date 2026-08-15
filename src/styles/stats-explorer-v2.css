@@ -3,7 +3,7 @@
 .stats-explorer-v2{overflow:hidden;border:1px solid rgba(15,23,42,.12);border-radius:28px;background:rgba(255,255,255,.92);box-shadow:0 22px 60px rgba(15,23,42,.09)}
 .sev2-toolbar{display:grid;gap:1rem;padding:1.25rem;border-bottom:1px solid rgba(15,23,42,.1);background:linear-gradient(120deg,rgba(235,242,255,.9),rgba(235,250,243,.82))}
 .sev2-label{display:block;margin-bottom:.42rem;color:#667085;font-size:.7rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
-.sev2-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem}
+.sev2-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem}
 .sev2-button,.sev2-field select,.sev2-field input{min-height:44px;padding:.58rem .72rem;border:1px solid rgba(15,23,42,.14);border-radius:14px;background:#fff;color:#475467;font:inherit;font-size:.82rem;font-weight:800}
 .sev2-button{cursor:pointer}.sev2-button.is-active{border-color:#111827;background:#111827;color:#fff;box-shadow:0 10px 24px rgba(15,23,42,.16)}
 .sev2-controls{display:grid;grid-template-columns:minmax(320px,1.2fr) repeat(4,minmax(145px,.55fr));gap:.75rem;align-items:end}
@@ -25,7 +25,7 @@
 .sev2-tooltip{position:fixed;z-index:300;max-width:min(310px,calc(100vw - 24px));padding:.55rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.72rem;background:rgba(15,23,42,.96);color:#fff;box-shadow:0 12px 32px rgba(15,23,42,.24);font-size:.78rem;font-weight:700;line-height:1.35;pointer-events:none;transform:translate(12px,-110%)}.sev2-tooltip[hidden]{display:none}
 .sev2-tracking-line{stroke:#e11d48;stroke-width:1.5;stroke-dasharray:5 5}.sev2-reference-line{stroke:#d97706;stroke-width:2;stroke-dasharray:8 6}
 .sev2-status{padding:.7rem 1.25rem;color:#64748b;font-size:.82rem}
-@media(max-width:1120px){.sev2-controls{grid-template-columns:1fr 1fr 1fr}.sev2-controls>div:first-child{grid-column:1/-1}.sev2-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1120px){.sev2-controls{grid-template-columns:1fr 1fr 1fr}.sev2-controls>div:first-child{grid-column:1/-1}.sev2-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.sev2-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sev2-controls,.sev2-summary,.sev2-insights{grid-template-columns:1fr 1fr}.sev2-controls>div:first-child{grid-column:1/-1}.sev2-chart-head{flex-direction:column}}
 @media(max-width:520px){.sev2-controls,.sev2-summary,.sev2-insights,.sev2-custom{grid-template-columns:1fr}.sev2-controls>div:first-child{grid-column:auto}.sev2-views{grid-template-columns:1fr 1fr}.sev2-chart-panel{margin-inline:.65rem}.sev2-summary,.sev2-insights,.sev2-toolbar{padding-inline:.8rem}}
 html.dark .stats-explorer-v2,html.dark .sev2-field select,html.dark .sev2-field input,html.dark .sev2-button,html.dark .sev2-chart-panel,body.dark .stats-explorer-v2,body.dark .sev2-field select,body.dark .sev2-field input,body.dark .sev2-button,body.dark .sev2-chart-panel{background:#111827;color:#f8fafc;border-color:rgba(148,163,184,.22)}
