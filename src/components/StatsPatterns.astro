@@ -1,0 +1,52 @@
+---
+const metrics = [
+  ['sleep', '😴', 'Sleep'],
+  ['guitar', '🎸', 'Guitar'],
+  ['audiobooks', '📚', 'Audiobooks'],
+  ['running', '🏃', 'Running'],
+  ['dance', '💃', 'Dance'],
+  ['language', '🌍', 'Language study'],
+  ['work', '🧠', 'Work'],
+  ['diary', '📓', 'Diary'],
+];
+---
+
+<section id="patterns" class="dashboard-section stats-patterns" aria-labelledby="patterns-heading">
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="eyebrow">Change across the archive</p>
+      <h2 id="patterns-heading">What is changing?</h2>
+    </div>
+    <p>Recent windows, year comparisons, and weekday rhythms turn the archive from a collection of totals into a picture of direction.</p>
+  </div>
+
+  <div class="stats-patterns__panel">
+    <div class="stats-patterns__subhead">
+      <div><span>Recent change</span><h3>Last 30 days vs. the 30 before</h3></div>
+      <small data-recent-window>Loading archive window…</small>
+    </div>
+    <div class="stats-patterns__change-grid" data-recent-grid aria-live="polite"></div>
+  </div>
+
+  <div class="stats-patterns__panel stats-patterns__panel--years">
+    <div class="stats-patterns__subhead">
+      <div><span>Year over year</span><h3>Same-date scorecard</h3></div>
+      <small data-yoy-window>Loading comparison window…</small>
+    </div>
+    <div class="stats-patterns__table-wrap" data-yoy-table aria-live="polite"></div>
+  </div>
+
+  <div class="stats-patterns__panel stats-patterns__panel--weekdays">
+    <div class="stats-patterns__subhead">
+      <div><span>Weekly rhythm</span><h3>What does each weekday look like?</h3></div>
+      <label class="stats-patterns__metric-select">
+        Metric
+        <select data-weekday-metric>
+          {metrics.map(([key, icon, label]) => <option value={key}>{icon} {label}</option>)}
+        </select>
+      </label>
+    </div>
+    <p class="stats-patterns__weekday-note" data-weekday-note>Loading weekday pattern…</p>
+    <div class="stats-patterns__weekday-grid" data-weekday-grid aria-live="polite"></div>
+  </div>
+</section>
