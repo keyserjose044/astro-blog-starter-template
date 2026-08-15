@@ -1,7 +1,6 @@
 ---
 import HeaderLink from './HeaderLink.astro';
 import NavTooltipLink from './NavTooltipLink.astro';
-import DailyDataRuntime from './DailyDataRuntime.astro';
 import { SITE_TITLE } from '../consts';
 
 type NavChild = {
@@ -29,8 +28,6 @@ const isWithin = (...routes: string[]) =>
     const target = `/${cleanRoute}`;
     return routePath === target || routePath.startsWith(`${target}/`);
   });
-
-const isDayPage = normalizedPath.endsWith('/day');
 
 const statsExploreItems: NavChild[] = [
   {
@@ -386,8 +383,6 @@ const aboutActive = isWithin('about', 'timeline', 'inspirations');
   </nav>
 </header>
 
-{isDayPage && <DailyDataRuntime />}
-
 <script>
   const desktopDropdowns = Array.from(document.querySelectorAll<HTMLDetailsElement>('.desktop-dropdown'));
 
@@ -521,7 +516,6 @@ const aboutActive = isWithin('about', 'timeline', 'inspirations');
   .mobile-footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem 1rem 1rem; border-top:1px solid rgba(15,23,42,.06); }
   .mobile-nav .social-row { display:flex; gap:.6rem; }
   .mobile-nav .contact-btn { padding:.42rem .9rem; text-align:center; }
-  :global(main.day-explorer) { width:100%!important; max-width:none!important; margin:0!important; padding:0!important; }
   @media(max-width:1180px){.site-header{padding-inline:.7rem}.desktop-nav{gap:.35rem}.desktop-links :global(.nav-tooltip-wrapper > a),.desktop-dropdown > summary{padding-inline:.38rem;font-size:.96rem}.right-rail{gap:.25rem}.contact-button a{padding-inline:.65rem;font-size:.9rem}}
   @media(max-width:1000px){.desktop-nav{display:none}.mobile-nav{display:flex}}
   @media(max-width:520px){.mobile-direct-links :global(a){padding-inline:.5rem;font-size:.92rem}}
