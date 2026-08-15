@@ -2,7 +2,8 @@
 #records { display: none !important; }
 
 .snapshot-grid.snapshot-grid--personal-records {
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 1rem;
   align-items: stretch;
 }
 
@@ -15,7 +16,7 @@
 }
 
 .snapshot-card--personal-record .snapshot-card__note {
-  min-height: 5.6em;
+  min-height: 4.8em;
 }
 
 .snapshot-card--personal-record .snapshot-card__facts {
@@ -27,7 +28,7 @@
 }
 
 .snapshot-card--personal-record .snapshot-card__facts dd {
-  font-size: .78rem;
+  font-size: .8rem;
 }
 
 .snapshot-card--sleep::before { background: linear-gradient(90deg, #0891b2, #60a5fa); }
@@ -49,15 +50,11 @@
   text-decoration: none;
 }
 
-@media (max-width: 1180px) {
-  .snapshot-grid.snapshot-grid--personal-records { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-}
-
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .snapshot-grid.snapshot-grid--personal-records { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 
-@media (max-width: 540px) {
+@media (max-width: 620px) {
   .snapshot-grid.snapshot-grid--personal-records { grid-template-columns: 1fr !important; }
   .snapshot-card--personal-record .snapshot-card__note { min-height: 0; }
 }
