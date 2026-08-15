@@ -99,10 +99,14 @@ async function init(){
       });
       const selected=series.find(item=>item.selected)??series[0];
       const selectedMeasured=measured(selected.points);
+      const selectedRaw=selectedMeasured
+        .flatMap(point=>point.records)
+        .map(metric.value)
+        .filter((value):value is number=>value!==null&&Number.isFinite(value));
       const total=view==='cumulative'
         ?[...selectedMeasured].reverse()[0]?.value??null
         :metric.aggregate==='average'
-          ?average(selectedMeasured.map(point=>point.value))
+          ?average(selectedRaw)
           :sum(selectedMeasured.map(point=>point.value));
       const mean=average(selectedMeasured.map(point=>point.value));
       const peak=selectedMeasured.reduce<Point|null>((winner,point)=>!winner||(point.value??-Infinity)>(winner.value??-Infinity)?point:winner,null);
