@@ -14,10 +14,6 @@ const compact = (value: number | null) => value === null || !Number.isFinite(val
   ? '—'
   : new Intl.NumberFormat('en-US', { notation: Math.abs(value) >= 1000 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(value);
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character] || character));
-const average = (values: Array<number | null>) => {
-  const valid = values.filter((value): value is number => value !== null && Number.isFinite(value));
-  return valid.length ? valid.reduce((total, value) => total + value, 0) / valid.length : null;
-};
 const dayOfYear = (date: Date) => Math.floor((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / DAY_MS);
 const yearDays = (year: number) => new Date(year, 1, 29).getMonth() === 1 ? 366 : 365;
 const fromDay = (year: number, day: number) => new Date(year, 0, day, 12);
@@ -37,6 +33,7 @@ function initDayExplorer() {
   const latestButton = root.querySelector<HTMLButtonElement>('[data-day-latest]');
   const currentButton = root.querySelector<HTMLButtonElement>('[data-day-current]');
   const randomButton = root.querySelector<HTMLButtonElement>('[data-day-random]');
+  const copyButton = root.querySelector<HTMLButtonElement>('[data-day-copy]');
   const status = root.querySelector<HTMLElement>('[data-day-status]');
   const error = root.querySelector<HTMLElement>('[data-day-error]');
   const liveRegion = root.querySelector<HTMLElement>('[data-day-live-region]');
@@ -46,6 +43,7 @@ function initDayExplorer() {
   let current: DailyRecord | null = null;
   let minDate = '2023-01-01';
   let requestToken = 0;
+  let copyResetTimer: number | undefined;
   const yearRequests = new Map<number, Promise<DailyRecord[]>>();
 
   const setText = (selector: string, value: string) => {
@@ -203,6 +201,10 @@ function initDayExplorer() {
     });
   }
 
+  const comparisonMetricIcons: Record<string, string> = {
+    Sleep: '😴', Work: '🧠', Guitar: '🎸', Movement: '👟', Diary: '📓', Audiobooks: '📚', Dance: '💃', Language: '🌍',
+  };
+
   function comparisonMetrics(record: DailyRecord) {
     return [
       { label: 'Sleep', value: record.sleep.hours, unit: 'hr', digits: 1, values: (list: DailyRecord[]) => list.map((item) => item.sleep.hours) },
@@ -218,31 +220,66 @@ function initDayExplorer() {
 
   async function renderComparison(record: DailyRecord, token: number) {
     const host = root.querySelector<HTMLElement>('[data-day-comparison]');
+    const highlightHost = root.querySelector<HTMLElement>('[data-day-highlights]');
     if (!host) return;
     host.textContent = 'Loading selected-year baseline…';
+    if (highlightHost) highlightHost.innerHTML = '<p>Loading what stood out…</p>';
     try {
       const year = Number(record.date.slice(0, 4));
       const records = await loadYear(year);
       if (token !== requestToken) return;
       setText('[data-baseline-year]', String(year));
-      host.replaceChildren();
-      comparisonMetrics(record).forEach((metric) => {
+
+      const comparisons = comparisonMetrics(record).map((metric) => {
         const valid = metric.values(records).filter((value): value is number => value !== null && Number.isFinite(value));
         const baseline = valid.length ? valid.reduce((total, value) => total + value, 0) / valid.length : null;
         const difference = metric.value === null || baseline === null ? null : metric.value - baseline;
         const percentile = metric.value === null || !valid.length ? null : valid.filter((value) => value <= metric.value!).length / valid.length * 100;
+        return { ...metric, baseline, difference, percentile, sampleSize: valid.length };
+      });
+
+      host.replaceChildren();
+      comparisons.forEach((metric) => {
         const row = document.createElement('div');
         row.className = 'day-comparison-row';
-        const comparison = difference === null
+        const comparison = metric.difference === null
           ? 'No comparison'
-          : Math.abs(difference) < .05
+          : Math.abs(metric.difference) < .05
             ? 'Near the year average'
-            : `${format(Math.abs(difference), metric.digits)} ${metric.unit} ${difference > 0 ? 'above' : 'below'} average`;
-        row.innerHTML = `<span>${metric.label}</span><strong>${metric.value === null ? '—' : `${format(metric.value, metric.digits)} ${metric.unit}`}</strong><small>${comparison}${percentile === null ? '' : ` · P${Math.round(percentile)}`}</small><div class="day-percentile" title="${percentile === null ? 'No percentile' : `${Math.round(percentile)}th percentile`}"><i style="--percentile:${percentile ?? 0}%"></i></div>`;
+            : `${format(Math.abs(metric.difference), metric.digits)} ${metric.unit} ${metric.difference > 0 ? 'above' : 'below'} average`;
+        row.innerHTML = `<span>${metric.label}</span><strong>${metric.value === null ? '—' : `${format(metric.value, metric.digits)} ${metric.unit}`}</strong><small>${comparison}${metric.percentile === null ? '' : ` · P${Math.round(metric.percentile)}`}</small><div class="day-percentile" title="${metric.percentile === null ? 'No percentile' : `${Math.round(metric.percentile)}th percentile`}"><i style="--percentile:${metric.percentile ?? 0}%"></i></div>`;
         host.append(row);
       });
+
+      if (highlightHost) {
+        const candidates = comparisons
+          .filter((metric) => metric.value !== null && metric.percentile !== null && metric.sampleSize >= 5)
+          .sort((first, second) => Math.abs(second.percentile! - 50) - Math.abs(first.percentile! - 50))
+          .slice(0, 3);
+        highlightHost.replaceChildren();
+        candidates.forEach((metric) => {
+          const percentile = Math.round(metric.percentile!);
+          const rank = percentile >= 85
+            ? `Top ${Math.max(1, 100 - percentile)}% of ${year} days`
+            : percentile <= 15
+              ? `Bottom ${Math.max(1, percentile)}% of ${year} days`
+              : `${percentile}th percentile in ${year}`;
+          const delta = metric.difference === null || Math.abs(metric.difference) < .05
+            ? 'Near the yearly average'
+            : `${format(Math.abs(metric.difference), metric.digits)} ${metric.unit} ${metric.difference > 0 ? 'above' : 'below'} the yearly average`;
+          const card = document.createElement('article');
+          card.className = 'day-highlight-card';
+          card.innerHTML = `<div class="day-highlight-card__top"><span aria-hidden="true">${comparisonMetricIcons[metric.label] || '•'}</span><strong>${metric.label}</strong></div><p><b>${format(metric.value, metric.digits)}</b><span>${metric.unit}</span></p><em>${rank}</em><small>${delta}</small>`;
+          highlightHost.append(card);
+        });
+        if (!candidates.length) {
+          highlightHost.innerHTML = '<p class="day-highlight-empty">Not enough comparable observations are available to call out unusual values for this date.</p>';
+        }
+      }
     } catch (caught) {
-      host.textContent = caught instanceof Error ? caught.message : 'Year comparison unavailable.';
+      const message = caught instanceof Error ? caught.message : 'Year comparison unavailable.';
+      host.textContent = message;
+      if (highlightHost) highlightHost.textContent = message;
     }
   }
 
@@ -375,13 +412,69 @@ function initDayExplorer() {
     const next = toIso(addDays(parseIso(current.date), amount));
     if (next >= minDate && next <= meta.dataThrough) void setDate(next);
   };
-  const randomDay = () => {
-    if (!meta?.dataThrough) return;
-    const start = parseIso(minDate).getTime();
-    const days = Math.floor((parseIso(meta.dataThrough).getTime() - start) / DAY_MS);
-    const date = new Date(start);
-    date.setDate(date.getDate() + Math.floor(Math.random() * (days + 1)));
-    void setDate(toIso(date));
+
+  const randomDay = async () => {
+    if (!meta?.availableYears.length) return;
+    const years = [...meta.availableYears];
+    const shuffled = years.sort(() => Math.random() - .5);
+    if (randomButton) randomButton.disabled = true;
+    setError();
+    setStatus('Finding an archived day…', 'loading');
+    try {
+      for (const year of shuffled) {
+        const records = (await loadYear(year)).filter((record) => record.date >= minDate && (!meta?.dataThrough || record.date <= meta.dataThrough));
+        if (!records.length) continue;
+        const record = records[Math.floor(Math.random() * records.length)];
+        await setDate(record.date);
+        return;
+      }
+      setError('No archived records were available for a random jump.');
+      setStatus('No archived day available', 'error');
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Could not choose a random archived day.';
+      setError(message);
+      setStatus('Random day unavailable', 'error');
+    } finally {
+      if (randomButton) randomButton.disabled = false;
+    }
+  };
+
+  const copyText = async (value: string) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+    const area = document.createElement('textarea');
+    area.value = value;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.append(area);
+    area.select();
+    const copied = document.execCommand('copy');
+    area.remove();
+    if (!copied) throw new Error('Copy unavailable in this browser.');
+  };
+
+  const copyCurrentDay = async () => {
+    if (!current || !copyButton) return;
+    const url = new URL(location.href);
+    url.searchParams.set('date', current.date);
+    try {
+      await copyText(url.toString());
+      window.clearTimeout(copyResetTimer);
+      copyButton.textContent = 'Copied ✓';
+      copyButton.dataset.state = 'copied';
+      announce(`Copied link to ${longDate(current.date)}.`);
+      copyResetTimer = window.setTimeout(() => {
+        copyButton.textContent = 'Copy this day';
+        delete copyButton.dataset.state;
+      }, 1800);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Could not copy this day.';
+      setError(message);
+      announce(message);
+    }
   };
 
   async function start() {
@@ -405,7 +498,8 @@ function initDayExplorer() {
       nextButton?.addEventListener('click', () => moveDay(1));
       latestButton?.addEventListener('click', () => meta?.latestCompleteDate && void setDate(meta.latestCompleteDate));
       currentButton?.addEventListener('click', () => meta?.dataThrough && void setDate(meta.dataThrough));
-      randomButton?.addEventListener('click', randomDay);
+      randomButton?.addEventListener('click', () => void randomDay());
+      copyButton?.addEventListener('click', () => void copyCurrentDay());
       yearSelect.addEventListener('change', () => {
         if (!current) return;
         const currentDate = parseIso(current.date);
@@ -424,7 +518,7 @@ function initDayExplorer() {
         if (event.key === 'ArrowLeft') { event.preventDefault(); moveDay(-1); }
         else if (event.key === 'ArrowRight') { event.preventDefault(); moveDay(1); }
         else if (event.key.toLowerCase() === 'l' && meta?.latestCompleteDate) void setDate(meta.latestCompleteDate);
-        else if (event.key.toLowerCase() === 'r') randomDay();
+        else if (event.key.toLowerCase() === 'r') void randomDay();
       });
 
       const requested = new URL(location.href).searchParams.get('date');
