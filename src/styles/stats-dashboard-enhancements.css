@@ -185,6 +185,106 @@
   font-weight: 700;
 }
 
+.stats-patterns__metric-select {
+  display: grid;
+  gap: .3rem;
+  color: #64748b;
+  font-size: .66rem;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.stats-patterns__metric-select select {
+  min-width: 180px;
+  min-height: 40px;
+  padding: .45rem .65rem;
+  border: 1px solid rgba(15, 23, 42, .14);
+  border-radius: .75rem;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 750;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.stats-patterns__weekday-note {
+  margin: 0;
+  padding: .9rem 1.2rem 0;
+  color: #64748b;
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.stats-patterns__weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: .55rem;
+  padding: .9rem 1.2rem 1.2rem;
+}
+
+.stats-weekday-card {
+  min-width: 0;
+  padding: .75rem;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: .9rem;
+  background: #f8fafc;
+}
+
+.stats-weekday-card > span {
+  display: block;
+  color: #64748b;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.stats-weekday-card__bar {
+  height: 62px;
+  display: flex;
+  align-items: flex-end;
+  margin: .55rem 0;
+  border-radius: .5rem;
+  background: rgba(226, 232, 240, .72);
+  overflow: hidden;
+}
+
+.stats-weekday-card__bar i {
+  display: block;
+  width: 100%;
+  height: calc(var(--weekday-ratio) * 100%);
+  min-height: 4px;
+  border-radius: .5rem .5rem 0 0;
+  background: linear-gradient(180deg, #60a5fa, #2563eb);
+}
+
+.stats-weekday-card.is-best {
+  border-color: rgba(37, 99, 235, .4);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, .08);
+}
+
+.stats-weekday-card strong {
+  display: block;
+  color: #0f172a;
+  font-size: .95rem;
+}
+
+.stats-weekday-card strong small {
+  color: #94a3b8;
+  font-size: .64rem;
+}
+
+.stats-weekday-card em {
+  display: block;
+  margin-top: .25rem;
+  color: #94a3b8;
+  font-size: .65rem;
+  font-style: normal;
+}
+
 .stats-patterns__error {
   margin: 0;
   padding: 1rem;
@@ -194,12 +294,16 @@
 
 @media (max-width: 980px) {
   .stats-patterns__change-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats-patterns__weekday-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (max-width: 620px) {
   .stats-patterns__subhead { align-items: flex-start; flex-direction: column; }
   .stats-patterns__subhead small { text-align: left; }
   .stats-patterns__change-grid { grid-template-columns: 1fr; }
+  .stats-patterns__metric-select,
+  .stats-patterns__metric-select select { width: 100%; }
+  .stats-patterns__weekday-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 html.dark .stats-patterns__panel,
@@ -218,17 +322,33 @@ html.dark .stats-patterns__subhead h3,
 html.dark .stats-change-card__value,
 html.dark .stats-yoy-table tbody th,
 html.dark .stats-yoy-table td,
+html.dark .stats-weekday-card strong,
 body.dark .stats-patterns__subhead h3,
 body.dark .stats-change-card__value,
 body.dark .stats-yoy-table tbody th,
-body.dark .stats-yoy-table td {
+body.dark .stats-yoy-table td,
+body.dark .stats-weekday-card strong {
   color: #f8fafc;
 }
 
 html.dark .stats-change-card,
-body.dark .stats-change-card {
+html.dark .stats-weekday-card,
+body.dark .stats-change-card,
+body.dark .stats-weekday-card {
   border-color: rgba(148, 163, 184, .2);
   background: #0f172a;
+}
+
+html.dark .stats-patterns__metric-select select,
+body.dark .stats-patterns__metric-select select {
+  border-color: rgba(148, 163, 184, .22);
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+html.dark .stats-weekday-card__bar,
+body.dark .stats-weekday-card__bar {
+  background: rgba(30, 41, 59, .95);
 }
 
 html.dark .stats-yoy-table th:first-child,

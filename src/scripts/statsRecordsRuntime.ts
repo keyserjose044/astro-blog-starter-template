@@ -3,6 +3,7 @@ import type { DailyRecord } from '../utils/dailyData';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const RUN_MINUTES_PER_MILE = 10;
+const LIFETIME_SUMMARY_URL = 'https://script.google.com/macros/s/AKfycbyPQznk53znPQ8TgGTcK9tuwq-Vw5deN1YRpbmTHb0OOKHwTu9b1XBJqQuGh7PXh6pKHA/exec';
 
 type AggregateMode = 'sum' | 'average';
 type PersonalMetric = {
@@ -25,6 +26,8 @@ type AggregateRecord = {
   month?: number;
   value: number | null;
 };
+
+type LifetimeSummary = Record<string, unknown>;
 
 const METRICS: PersonalMetric[] = [
   {
@@ -52,7 +55,7 @@ const METRICS: PersonalMetric[] = [
     note: () => 'Commutes, chores, walks, and exercise converted into reading time.',
   },
   {
-    key: 'sleep', icon: '😴', label: 'Sleep', start: 'January 1, 2023',
+    key: 'sleep', explorerKey: 'sleep', icon: '😴', label: 'Sleep', start: 'January 1, 2023',
     unit: 'hours', digits: 1, dayLabel: 'Longest night', aggregateMode: 'average',
     value: (record) => record.sleep.hours,
     note: () => 'Total recorded sleep; month and year records use average nightly hours rather than totals.',
@@ -136,23 +139,23 @@ function bestGroup(records: DailyRecord[], metric: PersonalMetric, mode: 'month'
   }, null);
 }
 
-function parseDisplayedNumber(value: string | null) {
-  const match = String(value || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
-  return match ? Number(match[0]) : null;
+function snapshotNumber(value: unknown) {
+  if (value === undefined || value === null) return null;
+  const match = String(value).replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const numeric = Number(match[0]);
+  return Number.isFinite(numeric) ? numeric : null;
 }
 
-function diaryLifetime(records: DailyRecord[], displayed: number | null) {
-  const dailyTotal = sum(validValues(records, (record) => record.diary.words));
-  const key = 'lifeloggerz-diary-lifetime-bridge-v1';
-  let baseline: { snapshot: number; daily: number; last: number } | null = null;
-  try { baseline = JSON.parse(localStorage.getItem(key) || 'null'); } catch { baseline = null; }
-  if (!baseline || (displayed !== null && displayed !== baseline.snapshot && displayed !== baseline.last)) {
-    baseline = { snapshot: displayed ?? dailyTotal, daily: dailyTotal, last: displayed ?? dailyTotal };
+async function getLifetimeSummary(): Promise<LifetimeSummary | null> {
+  try {
+    const response = await fetch(LIFETIME_SUMMARY_URL, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data && typeof data === 'object' ? data as LifetimeSummary : null;
+  } catch {
+    return null;
   }
-  const estimate = Math.max(dailyTotal, baseline.snapshot + (dailyTotal - baseline.daily));
-  baseline.last = estimate;
-  try { localStorage.setItem(key, JSON.stringify(baseline)); } catch { /* browser storage is optional */ }
-  return estimate;
 }
 
 function prepareSection() {
@@ -168,13 +171,6 @@ function prepareSection() {
   if (description) description.textContent = 'Ten cards combine lifetime totals with this year’s progress, the strongest day, best month, best year, and the date each record began.';
 }
 
-async function waitForLegacyLifetimePass() {
-  for (let attempt = 0; attempt < 160; attempt += 1) {
-    if (document.querySelector('.snapshot-grid--daily') || document.querySelector('.stats-support-note')) return;
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
-}
-
 function recordUnit(metric: PersonalMetric) {
   return metric.key === 'sleep' ? 'avg hours/night' : metric.unit;
 }
@@ -183,27 +179,27 @@ function actionMarkup(metric: PersonalMetric) {
   if (metric.explorerKey) {
     return `<button class="snapshot-card__link" type="button" data-open-metric="${metric.explorerKey}">Explore ${escapeHtml(metric.label.toLowerCase())} <span aria-hidden="true">→</span></button>`;
   }
-  if (metric.key === 'sleep') {
-    return '<a class="snapshot-card__link" href="#correlations">Compare sleep <span aria-hidden="true">→</span></a>';
-  }
   return '<a class="snapshot-card__link" href="#graphs">Use the Running + Treadmill views <span aria-hidden="true">→</span></a>';
 }
 
-function renderPersonalRecords(records: DailyRecord[]) {
+function renderPersonalRecords(records: DailyRecord[], lifetimeSummary: LifetimeSummary | null) {
   const section = document.querySelector<HTMLElement>('.snapshot-section');
   const grid = section?.querySelector<HTMLElement>('.snapshot-grid');
   if (!section || !grid) return;
 
-  const displayedDiary = parseDisplayedNumber(section.querySelector('[data-dashboard-metric="diary"] [data-stat-value]')?.textContent || null);
   const currentYear = new Date().getFullYear();
   const current = records.filter((record) => Number(record.date.slice(0, 4)) === currentYear);
+  const diarySummary = snapshotNumber(lifetimeSummary?.diaryWords);
 
   grid.className = 'snapshot-grid snapshot-grid--personal-records';
   grid.replaceChildren();
 
   METRICS.forEach((metric) => {
     const values = validValues(records, metric.value);
-    const lifetime = metric.key === 'diary' ? diaryLifetime(records, displayedDiary) : sum(values);
+    const dailyLifetime = sum(values);
+    const lifetime = metric.key === 'diary' && diarySummary !== null
+      ? Math.max(dailyLifetime, diarySummary)
+      : dailyLifetime;
     const thisYear = aggregateValue(current, metric);
     const day = bestDay(records, metric);
     const month = bestGroup(records, metric, 'month');
@@ -235,7 +231,9 @@ function renderPersonalRecords(records: DailyRecord[]) {
   section.querySelectorAll('.snapshot-grid--daily, .stats-support-note').forEach((node) => node.remove());
   const note = section.querySelector<HTMLElement>('#snapshot-note');
   if (note) {
-    note.textContent = 'All ten cards use the same public-safe daily archive. Diary and treadmill tracking began before the current public API coverage, so their earliest history still requires a future historical baseline.';
+    note.textContent = diarySummary !== null
+      ? 'Daily, monthly, and yearly records use the public-safe daily archive. Diary lifetime includes the earlier public lifetime summary; treadmill and combined movement still omit the December 2022 period that predates daily API coverage.'
+      : 'Daily, monthly, and yearly records use the public-safe daily archive. Diary, treadmill, and combined movement began before daily API coverage, so their earliest history is not included in the displayed lifetime total.';
     note.dataset.state = 'live';
   }
 }
@@ -244,10 +242,12 @@ async function init() {
   prepareSection();
   try {
     const meta = await getDailyMeta();
-    const records = await getYears(meta.availableYears);
-    await waitForLegacyLifetimePass();
+    const [records, lifetimeSummary] = await Promise.all([
+      getYears(meta.availableYears),
+      getLifetimeSummary(),
+    ]);
     prepareSection();
-    renderPersonalRecords(records);
+    renderPersonalRecords(records, lifetimeSummary);
   } catch (error) {
     console.error('Combined Personal Records failed', error);
   }

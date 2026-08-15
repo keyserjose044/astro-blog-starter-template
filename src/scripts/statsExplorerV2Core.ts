@@ -4,23 +4,34 @@ const NS = 'http://www.w3.org/2000/svg';
 const DAY_MS = 86400000;
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 export const YEAR_COLORS = ['#2563eb','#e11d48','#059669','#d97706','#7c3aed','#0891b2','#be123c','#4d7c0f'];
-export type MetricKey = 'guitar'|'audiobook'|'running'|'diary'|'dance'|'work'|'language'|'treadmill';
+export type MetricKey = 'sleep'|'guitar'|'audiobook'|'running'|'diary'|'dance'|'work'|'language'|'treadmill';
 export type ViewKey = 'daily'|'weekly'|'monthly'|'cumulative';
 export type RangeKey = 'year'|'ytd'|'30'|'90'|'lifetime'|'custom';
+export type AggregateMode = 'sum'|'average';
 type StateKey = 'before'|'missing'|'zero'|'recorded'|'partial'|'future';
-export type Metric = { key:MetricKey; label:string; icon:string; unit:string; digits:number; start:string; value:(record:DailyRecord)=>number|null };
+export type Metric = {
+  key: MetricKey;
+  label: string;
+  icon: string;
+  unit: string;
+  digits: number;
+  start: string;
+  aggregate: AggregateMode;
+  value: (record: DailyRecord) => number | null;
+};
 export type Point = { key:string; label:string; date:string|null; value:number|null; state:StateKey; records:DailyRecord[] };
 export type Series = { year:number|null; color:string; selected:boolean; dashed:boolean; points:Point[] };
 
 export const METRICS: Record<MetricKey,Metric> = {
-  guitar:{key:'guitar',label:'Guitar',icon:'🎸',unit:'hours',digits:1,start:'2023-09-27',value:r=>r.hobbies.guitarMinutes===null?null:r.hobbies.guitarMinutes/60},
-  audiobook:{key:'audiobook',label:'Audiobooks',icon:'📚',unit:'hours',digits:1,start:'2023-02-10',value:r=>r.audiobook.minutes===null?null:r.audiobook.minutes/60},
-  running:{key:'running',label:'Running',icon:'🏃',unit:'miles',digits:1,start:'2023-09-26',value:r=>r.hobbies.runningMiles},
-  diary:{key:'diary',label:'Diary',icon:'📓',unit:'words',digits:0,start:'2022-03-16',value:r=>r.diary.words},
-  dance:{key:'dance',label:'Dance',icon:'💃',unit:'hours',digits:1,start:'2026-06-02',value:r=>r.hobbies.danceMinutes===null?null:r.hobbies.danceMinutes/60},
-  work:{key:'work',label:'Work',icon:'🧠',unit:'hours',digits:1,start:'2023-05-10',value:r=>r.work.hours},
-  language:{key:'language',label:'Language study',icon:'🌍',unit:'hours',digits:1,start:'2023-02-08',value:r=>r.hobbies.languageMinutes===null?null:r.hobbies.languageMinutes/60},
-  treadmill:{key:'treadmill',label:'Treadmill',icon:'🚶',unit:'miles',digits:1,start:'2022-12-02',value:r=>r.hobbies.treadmillMiles},
+  sleep:{key:'sleep',label:'Sleep',icon:'😴',unit:'hours/night',digits:1,start:'2023-01-01',aggregate:'average',value:r=>r.sleep.hours},
+  guitar:{key:'guitar',label:'Guitar',icon:'🎸',unit:'hours',digits:1,start:'2023-09-27',aggregate:'sum',value:r=>r.hobbies.guitarMinutes===null?null:r.hobbies.guitarMinutes/60},
+  audiobook:{key:'audiobook',label:'Audiobooks',icon:'📚',unit:'hours',digits:1,start:'2023-02-10',aggregate:'sum',value:r=>r.audiobook.minutes===null?null:r.audiobook.minutes/60},
+  running:{key:'running',label:'Running',icon:'🏃',unit:'miles',digits:1,start:'2023-09-26',aggregate:'sum',value:r=>r.hobbies.runningMiles},
+  diary:{key:'diary',label:'Diary',icon:'📓',unit:'words',digits:0,start:'2022-03-16',aggregate:'sum',value:r=>r.diary.words},
+  dance:{key:'dance',label:'Dance',icon:'💃',unit:'hours',digits:1,start:'2026-06-02',aggregate:'sum',value:r=>r.hobbies.danceMinutes===null?null:r.hobbies.danceMinutes/60},
+  work:{key:'work',label:'Work',icon:'🧠',unit:'hours',digits:1,start:'2023-05-10',aggregate:'sum',value:r=>r.work.hours},
+  language:{key:'language',label:'Language study',icon:'🌍',unit:'hours',digits:1,start:'2023-02-08',aggregate:'sum',value:r=>r.hobbies.languageMinutes===null?null:r.hobbies.languageMinutes/60},
+  treadmill:{key:'treadmill',label:'Treadmill',icon:'🚶',unit:'miles',digits:1,start:'2022-12-02',aggregate:'sum',value:r=>r.hobbies.treadmillMiles},
 };
 
 const parseIso=(value:string)=>new Date(`${value}T12:00:00`);
@@ -29,6 +40,7 @@ const addDays=(date:Date,days:number)=>new Date(date.getTime()+days*DAY_MS);
 const clampDate=(value:string,min:string,max:string)=>value<min?min:value>max?max:value;
 export const sum=(values:Array<number|null>)=>values.reduce((total,value)=>total+(value??0),0);
 export const average=(values:Array<number|null>)=>{const valid=values.filter((value):value is number=>value!==null&&Number.isFinite(value));return valid.length?sum(valid)/valid.length:null;};
+export const aggregateValues=(values:Array<number|null>,mode:AggregateMode)=>mode==='average'?average(values):sum(values);
 export const fmt=(value:number|null,digits=0)=>value===null||!Number.isFinite(value)?'—':new Intl.NumberFormat('en-US',{maximumFractionDigits:digits}).format(value);
 const compact=(value:number)=>{const abs=Math.abs(value);if(abs>=1000000)return `${fmt(value/1000000,Number.isInteger(value/1000000)?0:1)}m`;if(abs>=1000)return `${fmt(value/1000,Number.isInteger(value/1000)?0:1)}k`;return fmt(value,Number.isInteger(value)?0:1);};
 export const prettyDate=(value:string)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(parseIso(value));
@@ -53,14 +65,26 @@ function pointState(date:string,record:DailyRecord|undefined,metric:Metric,dataT
 
 function dailyPoints(records:DailyRecord[],metric:Metric,start:string,end:string,dataThrough:string){const map=new Map(records.map(record=>[record.date,record]));const output:Point[]=[];for(let date=parseIso(start);date<=parseIso(end);date=addDays(date,1)){const key=iso(date);output.push(pointState(key,map.get(key),metric,dataThrough));}return output;}
 function isoWeek(date:Date){const current=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const day=current.getUTCDay()||7;current.setUTCDate(current.getUTCDate()+4-day);const yearStart=new Date(Date.UTC(current.getUTCFullYear(),0,1));return Math.ceil((((current.getTime()-yearStart.getTime())/DAY_MS)+1)/7);}
-function aggregate(points:Point[],view:'weekly'|'monthly'){const groups=new Map<string,Point[]>();points.forEach(point=>{if(!point.date)return;const date=parseIso(point.date);const key=view==='monthly'?point.date.slice(0,7):`${date.getFullYear()}-W${String(isoWeek(date)).padStart(2,'0')}`;if(!groups.has(key))groups.set(key,[]);groups.get(key)!.push(point);});return Array.from(groups,([key,list])=>{const measured=list.filter(point=>point.value!==null&&['recorded','zero','partial'].includes(point.state));let state:StateKey='missing';if(list.every(point=>point.state==='before'))state='before';else if(list.every(point=>point.state==='future'))state='future';else if(measured.length){state=list.some(point=>point.state==='partial'||point.state==='future')?'partial':sum(measured.map(point=>point.value))===0?'zero':'recorded';}const first=list[0]?.date||null;const date=first?parseIso(first):new Date();const label=view==='monthly'?`${MONTHS[date.getMonth()]} ${date.getFullYear()}`:`Week ${Number(key.slice(-2))}`;return{key,label,date:first,value:measured.length?sum(measured.map(point=>point.value)):null,state,records:list.flatMap(point=>point.records)};}).sort((a,b)=>a.key.localeCompare(b.key));}
-function cumulative(points:Point[]){let running=0;return points.map(point=>{if(point.value!==null)running+=point.value;return{...point,value:point.value===null&&running===0?null:running};});}
+function aggregate(points:Point[],view:'weekly'|'monthly',metric:Metric){const groups=new Map<string,Point[]>();points.forEach(point=>{if(!point.date)return;const date=parseIso(point.date);const key=view==='monthly'?point.date.slice(0,7):`${date.getFullYear()}-W${String(isoWeek(date)).padStart(2,'0')}`;if(!groups.has(key))groups.set(key,[]);groups.get(key)!.push(point);});return Array.from(groups,([key,list])=>{const measured=list.filter(point=>point.value!==null&&['recorded','zero','partial'].includes(point.state));const value=measured.length?aggregateValues(measured.map(point=>point.value),metric.aggregate):null;let state:StateKey='missing';if(list.every(point=>point.state==='before'))state='before';else if(list.every(point=>point.state==='future'))state='future';else if(measured.length){state=list.some(point=>point.state==='partial'||point.state==='future')?'partial':value===0?'zero':'recorded';}const first=list[0]?.date||null;const date=first?parseIso(first):new Date();const label=view==='monthly'?`${MONTHS[date.getMonth()]} ${date.getFullYear()}`:`Week ${Number(key.slice(-2))}`;return{key,label,date:first,value,state,records:list.flatMap(point=>point.records)};}).sort((a,b)=>a.key.localeCompare(b.key));}
+function cumulative(points:Point[],metric:Metric){
+  if(metric.aggregate==='average'){
+    let runningTotal=0;
+    let runningCount=0;
+    return points.map(point=>{
+      const values=point.records.map(metric.value).filter((value):value is number=>value!==null&&Number.isFinite(value));
+      values.forEach(value=>{runningTotal+=value;runningCount+=1;});
+      return{...point,value:runningCount?runningTotal/runningCount:null};
+    });
+  }
+  let running=0;
+  return points.map(point=>{if(point.value!==null)running+=point.value;return{...point,value:point.value===null&&running===0?null:running};});
+}
 
 export function calendarBounds(year:number,range:RangeKey,metric:Metric,meta:DailyMeta,customStart:string,customEnd:string){const first=meta.availableYears.length?`${Math.min(...meta.availableYears)}-01-01`:metric.start;const last=meta.dataThrough||iso(new Date());if(range==='30')return{start:iso(addDays(parseIso(last),-29)),end:last};if(range==='90')return{start:iso(addDays(parseIso(last),-89)),end:last};if(range==='lifetime')return{start:metric.start<first?metric.start:first,end:last};if(range==='custom')return{start:clampDate(customStart||first,first,last),end:clampDate(customEnd||last,first,last)};const start=`${year}-01-01`;if(range==='ytd'){const throughYear=Number(last.slice(0,4));const end=year===throughYear?last:`${year}-${last.slice(5)}`;return{start,end:clampDate(end,start,`${year}-12-31`) };}return{start,end:`${year}-12-31`};}
-export function seriesFor(records:DailyRecord[],metric:Metric,view:ViewKey,bounds:{start:string;end:string},meta:DailyMeta){const daily=dailyPoints(records,metric,bounds.start,bounds.end,meta.dataThrough||bounds.end);if(view==='daily')return daily;if(view==='weekly')return aggregate(daily,'weekly');const monthly=aggregate(daily,'monthly');return view==='cumulative'?cumulative(monthly):monthly;}
+export function seriesFor(records:DailyRecord[],metric:Metric,view:ViewKey,bounds:{start:string;end:string},meta:DailyMeta){const daily=dailyPoints(records,metric,bounds.start,bounds.end,meta.dataThrough||bounds.end);if(view==='daily')return daily;if(view==='weekly')return aggregate(daily,'weekly',metric);const monthly=aggregate(daily,'monthly',metric);return view==='cumulative'?cumulative(monthly,metric):monthly;}
 export function measured(points:Point[]){return points.filter(point=>point.value!==null&&['recorded','zero','partial'].includes(point.state));}
 
-export function rollingBest(points:Point[],window:number){let bestValue:number|null=null;let bestStart:string|null=null;for(let i=0;i<=points.length-window;i+=1){const slice=points.slice(i,i+window);const values=slice.map(point=>point.value);if(!values.some(value=>value!==null))continue;const value=sum(values);if(bestValue===null||value>bestValue){bestValue=value;bestStart=slice[0]?.date||null;}}return{value:bestValue,start:bestStart};}
+export function rollingBest(points:Point[],window:number,metric:Metric){let bestValue:number|null=null;let bestStart:string|null=null;for(let i=0;i<=points.length-window;i+=1){const slice=points.slice(i,i+window);const values=slice.map(point=>point.value).filter((value):value is number=>value!==null&&Number.isFinite(value));if(!values.length)continue;const value=metric.aggregate==='average'?average(values):sum(values);if(value!==null&&(bestValue===null||value>bestValue)){bestValue=value;bestStart=slice[0]?.date||null;}}return{value:bestValue,start:bestStart};}
 export function streaks(points:Point[]){let longest=0,current=0,run=0;points.forEach(point=>{if((point.value??0)>0&&['recorded','partial'].includes(point.state)){run+=1;longest=Math.max(longest,run);}else run=0;});for(let i=points.length-1;i>=0;i-=1){const point=points[i];if(point.state==='future')continue;if((point.value??0)>0&&['recorded','partial'].includes(point.state))current+=1;else break;}return{current,longest};}
 
 function stateColor(state:StateKey,value:number|null,maximum:number){if(state==='before')return'#cbd5e1';if(state==='missing')return'#e2e8f0';if(state==='zero')return'#94a3b8';if(state==='partial')return'#f59e0b';if(state==='future')return'#f1f5f9';const ratio=maximum>0?(value??0)/maximum:0;return ratio>.75?'#1d4ed8':ratio>.45?'#3b82f6':ratio>.2?'#60a5fa':'#93c5fd';}
