@@ -2,8 +2,6 @@
 import HeaderLink from './HeaderLink.astro';
 import NavTooltipLink from './NavTooltipLink.astro';
 import DailyDataRuntime from './DailyDataRuntime.astro';
-import StatsSupportRuntime from './StatsSupportRuntime.astro';
-import StatsExplorerV2 from './StatsExplorerV2.astro';
 import { SITE_TITLE } from '../consts';
 
 type NavChild = {
@@ -32,7 +30,6 @@ const isWithin = (...routes: string[]) =>
     return routePath === target || routePath.startsWith(`${target}/`);
   });
 
-const isStatsPage = normalizedPath.endsWith('/stats');
 const isDayPage = normalizedPath.endsWith('/day');
 
 const statsExploreItems: NavChild[] = [
@@ -389,8 +386,6 @@ const aboutActive = isWithin('about', 'timeline', 'inspirations');
   </nav>
 </header>
 
-{isStatsPage && <StatsSupportRuntime />}
-{isStatsPage && <StatsExplorerV2 />}
 {isDayPage && <DailyDataRuntime />}
 
 <script>
