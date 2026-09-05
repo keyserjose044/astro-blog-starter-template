@@ -72,9 +72,51 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       document.dispatchEvent(new CustomEvent('lifeloggerz:pulse-mounted'));
     };
 
+    const setupGuideSwipeCue = () => {
+      const grid = document.querySelector('main.home-main .guide-grid');
+      const heading = document.querySelector('main.home-main .featured-heading');
+      if (!(grid instanceof HTMLElement) || !(heading instanceof HTMLElement)) return;
+      if (grid.dataset.swipeCueReady === 'true') return;
+
+      let frame = 0;
+      const sync = () => {
+        frame = 0;
+        const cards = Array.from(grid.querySelectorAll('.guide-card'))
+          .filter((card) => card instanceof HTMLElement)
+          .sort((a, b) => a.offsetLeft - b.offsetLeft);
+        if (!cards.length) return;
+
+        const center = grid.scrollLeft + grid.clientWidth / 2;
+        let activeIndex = 0;
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        cards.forEach((card, index) => {
+          const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+          const distance = Math.abs(cardCenter - center);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            activeIndex = index;
+          }
+        });
+
+        heading.dataset.swipeIndex = String(activeIndex + 1);
+      };
+
+      const scheduleSync = () => {
+        if (frame) return;
+        frame = window.requestAnimationFrame(sync);
+      };
+
+      grid.dataset.swipeCueReady = 'true';
+      grid.addEventListener('scroll', scheduleSync, { passive: true });
+      window.addEventListener('resize', scheduleSync, { passive: true });
+      window.requestAnimationFrame(sync);
+    };
+
     const startPageEnhancements = () => {
       playBackgrounds();
       mountLiveArchivePulse();
+      setupGuideSwipeCue();
     };
 
     if (document.readyState === 'loading') {
@@ -114,7 +156,7 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
   /* Homepage-specific responsive composition. */
   @media (min-width: 901px) {
     .page-with-video-bg main.home-main {
-      padding-top: 1.15rem;
+      padding-top: 1rem;
     }
 
     .page-with-video-bg main.home-main .hero {
@@ -123,43 +165,44 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       max-width: 1180px;
       flex-direction: column;
       align-items: center;
-      margin: 0 auto clamp(1rem, 1.8vw, 1.45rem);
+      margin: 0 auto clamp(0.95rem, 1.55vw, 1.25rem);
       text-align: center;
     }
 
     .page-with-video-bg main.home-main .hero > .eyebrow {
-      margin-bottom: 0.34rem;
+      margin-bottom: 0.3rem;
     }
 
     .page-with-video-bg main.home-main .hero-title {
       max-width: 100%;
-      font-size: clamp(4.45rem, 5.6vw, 5.8rem);
+      font-size: clamp(4.25rem, 5.35vw, 5.55rem);
+      letter-spacing: -0.072em;
       line-height: 0.88;
     }
 
     .page-with-video-bg main.home-main .hero-lower {
       display: block;
       width: 100%;
-      margin-top: 0.58rem;
+      margin-top: 0.5rem;
     }
 
     .page-with-video-bg main.home-main .hero-lede {
-      max-width: 46ch;
+      max-width: 50ch;
       margin: 0 auto;
-      font-size: clamp(1.9rem, 2.45vw, 2.45rem);
+      font-size: clamp(1.82rem, 2.28vw, 2.28rem);
       line-height: 1.02;
     }
 
     .page-with-video-bg main.home-main .hero-aside {
-      max-width: 1040px;
-      margin: 0.5rem auto 0;
+      max-width: 1060px;
+      margin: 0.42rem auto 0;
     }
 
     .page-with-video-bg main.home-main .hero-subcopy {
-      max-width: 88ch;
-      margin: 0 auto 0.62rem;
-      font-size: clamp(0.94rem, 1vw, 1rem);
-      line-height: 1.42;
+      max-width: 92ch;
+      margin: 0 auto 0.58rem;
+      font-size: clamp(0.92rem, 0.98vw, 0.98rem);
+      line-height: 1.4;
     }
 
     .page-with-video-bg main.home-main .hero-actions {
@@ -167,26 +210,40 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .hero-actions .button {
-      min-height: 40px;
-      padding: 0.54rem 0.92rem;
-      font-size: 0.9rem;
+      min-height: 39px;
+      padding: 0.52rem 0.9rem;
+      font-size: 0.88rem;
+    }
+
+    .page-with-video-bg main.home-main .featured-section {
+      max-width: 1160px;
+      margin-inline: auto;
     }
 
     .page-with-video-bg main.home-main .featured-heading {
-      margin-bottom: 0.68rem;
+      margin-bottom: 0.62rem;
     }
 
     .page-with-video-bg main.home-main .featured-intro {
-      margin-top: 0.42rem;
+      margin-top: 0.38rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-grid {
+      gap: 1rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-card {
+      border-color: rgba(180, 190, 205, 0.72);
+      box-shadow: 0 15px 34px rgba(15, 18, 25, 0.09);
     }
 
     .page-with-video-bg main.home-main .guide-media {
-      height: clamp(150px, 12vw, 178px);
+      height: clamp(148px, 11.7vw, 174px);
     }
 
     .page-with-video-bg main.home-main .guide-copy {
-      min-height: 142px;
-      padding: 0.9rem 1rem 0.95rem;
+      min-height: 138px;
+      padding: 0.86rem 0.96rem 0.9rem;
     }
 
     .page-with-video-bg main.home-main .guide-description--desktop {
@@ -194,59 +251,76 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .guide-copy .card-link {
-      padding-top: 0.52rem;
+      padding-top: 0.48rem;
     }
   }
 
   @media (max-width: 700px) {
     .page-with-video-bg main.home-main {
-      width: min(calc(100% - 2rem), 430px);
+      width: 100%;
       max-width: 430px;
-      margin-inline: auto;
+      margin-inline: auto !important;
+      padding-right: 1rem;
+      padding-left: 1rem;
     }
 
     .page-with-video-bg main.home-main .featured-section {
       position: relative;
+      width: 100%;
       margin-bottom: 2.35rem;
     }
 
     .page-with-video-bg main.home-main .featured-heading {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      align-items: start;
-      gap: 0.45rem;
-      margin-bottom: 0.75rem;
+      position: relative;
+      display: block;
+      margin-bottom: 0.68rem;
+    }
+
+    .page-with-video-bg main.home-main .featured-heading > div > .eyebrow {
+      min-height: 1.4rem;
+      padding-right: 7.2rem;
     }
 
     .page-with-video-bg main.home-main .featured-heading::after {
+      position: absolute;
+      top: -0.05rem;
+      right: 0;
       display: inline-flex;
-      flex: 0 0 auto;
       align-items: center;
-      justify-self: end;
-      gap: 0.38rem;
       margin: 0;
-      padding: 0.36rem 0.55rem;
+      padding: 0.34rem 0.52rem;
       border: 1px solid rgba(15, 76, 255, 0.18);
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.84);
+      background: rgba(255, 255, 255, 0.88);
       color: #0f4cff;
       content: 'Swipe →  ●  ○  ○';
-      font-size: 0.62rem;
+      font-size: 0.61rem;
       font-weight: 800;
       letter-spacing: 0.02em;
       line-height: 1;
       white-space: nowrap;
       box-shadow: 0 6px 16px rgba(15, 18, 25, 0.06);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .page-with-video-bg main.home-main .featured-heading[data-swipe-index='2']::after {
+      content: 'Swipe →  ○  ●  ○';
+    }
+
+    .page-with-video-bg main.home-main .featured-heading[data-swipe-index='3']::after {
+      content: 'Swipe →  ○  ○  ●';
     }
 
     .page-with-video-bg main.home-main .guide-grid {
       display: flex;
+      width: 100%;
       grid-template-columns: none;
       gap: 0.8rem;
       overflow-x: auto;
       overflow-y: hidden;
-      padding: 0.1rem 0 0.65rem;
-      scroll-padding-inline: 0;
+      padding: 0.1rem 0.12rem 0.65rem;
+      scroll-padding-inline: 0.12rem;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
@@ -345,18 +419,24 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
 
   @media (max-width: 360px) {
     .page-with-video-bg main.home-main {
-      width: calc(100% - 1.6rem);
-      margin-inline: auto;
+      width: 100%;
+      max-width: 430px;
+      margin-inline: auto !important;
+      padding-right: 0.8rem;
+      padding-left: 0.8rem;
     }
 
     .page-with-video-bg main.home-main .guide-card {
       flex-basis: calc(100% - 1rem);
     }
 
+    .page-with-video-bg main.home-main .featured-heading > div > .eyebrow {
+      padding-right: 6.8rem;
+    }
+
     .page-with-video-bg main.home-main .featured-heading::after {
-      padding-inline: 0.45rem;
-      content: 'Swipe →  ● ○ ○';
-      font-size: 0.58rem;
+      padding-inline: 0.44rem;
+      font-size: 0.57rem;
     }
   }
 </style>
