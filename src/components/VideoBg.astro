@@ -109,3 +109,147 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     display: none;
   }
 </style>
+
+<style is:global>
+  /*
+   * Homepage composition pass.
+   * Desktop gets an editorial two-column opening; phones get generous gutters
+   * and large swipeable guide cards instead of squeezed horizontal rows.
+   */
+  @media (min-width: 901px) {
+    .page-with-video-bg main.home-main .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      grid-template-rows: auto 1fr;
+      column-gap: clamp(3rem, 6vw, 6.5rem);
+      align-items: start;
+      margin-bottom: clamp(3rem, 5vw, 4.5rem);
+    }
+
+    .page-with-video-bg main.home-main .hero > .eyebrow {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .page-with-video-bg main.home-main .hero-title {
+      grid-column: 1;
+      grid-row: 2;
+      max-width: 100%;
+      font-size: clamp(4.7rem, 6.7vw, 6.8rem);
+    }
+
+    .page-with-video-bg main.home-main .hero-lower {
+      display: block;
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+      margin-top: 0;
+    }
+
+    .page-with-video-bg main.home-main .hero-lede {
+      max-width: 16ch;
+      margin: 0;
+      font-size: clamp(2.25rem, 3.25vw, 3.15rem);
+      line-height: 1.01;
+    }
+
+    .page-with-video-bg main.home-main .hero-aside {
+      max-width: 40rem;
+      margin-top: 1.4rem;
+    }
+
+    .page-with-video-bg main.home-main .hero-subcopy {
+      max-width: 48ch;
+      margin-bottom: 1.15rem;
+      font-size: clamp(1rem, 1.15vw, 1.1rem);
+      line-height: 1.58;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .page-with-video-bg main.home-main {
+      width: min(calc(100% - 2rem), 430px);
+      max-width: 430px;
+    }
+
+    .page-with-video-bg main.home-main .featured-section {
+      margin-bottom: 2.35rem;
+    }
+
+    .page-with-video-bg main.home-main .featured-heading {
+      margin-bottom: 0.85rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-grid {
+      display: flex;
+      grid-template-columns: none;
+      gap: 0.8rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0.1rem 0 0.75rem;
+      scroll-padding-inline: 0;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .page-with-video-bg main.home-main .guide-grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page-with-video-bg main.home-main .guide-card {
+      display: flex;
+      flex: 0 0 calc(100% - 1.35rem);
+      flex-direction: column;
+      grid-template-columns: none;
+      overflow: hidden;
+      border-radius: 18px;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      box-shadow: 0 12px 28px rgba(15, 18, 25, 0.09);
+    }
+
+    .page-with-video-bg main.home-main .guide-media {
+      width: 100%;
+      height: clamp(142px, 39vw, 170px);
+      min-height: 0;
+      border-right: 0;
+      border-bottom: 1px solid rgba(var(--gray-light), 0.92);
+    }
+
+    .page-with-video-bg main.home-main .guide-copy {
+      min-height: 150px;
+      padding: 0.9rem 0.95rem 0.95rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-copy h3 {
+      margin: 0.34rem 0 0.28rem;
+      font-size: 1.12rem;
+      line-height: 1.12;
+    }
+
+    .page-with-video-bg main.home-main .guide-description--mobile {
+      font-size: 0.83rem;
+      line-height: 1.4;
+    }
+
+    .page-with-video-bg main.home-main .guide-copy .card-eyebrow {
+      font-size: 0.62rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-copy .card-link {
+      padding-top: 0.65rem;
+      font-size: 0.78rem;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .page-with-video-bg main.home-main {
+      width: calc(100% - 1.6rem);
+    }
+
+    .page-with-video-bg main.home-main .guide-card {
+      flex-basis: calc(100% - 1rem);
+    }
+  }
+</style>
