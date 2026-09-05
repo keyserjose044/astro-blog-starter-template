@@ -111,58 +111,55 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
 </style>
 
 <style is:global>
-  /*
-   * Homepage composition pass.
-   * Desktop gets an editorial two-column opening; phones get generous gutters
-   * and large swipeable guide cards instead of squeezed horizontal rows.
-   */
+  /* Homepage-specific responsive composition. */
   @media (min-width: 901px) {
     .page-with-video-bg main.home-main .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-      grid-template-rows: auto 1fr;
-      column-gap: clamp(3rem, 6vw, 6.5rem);
-      align-items: start;
-      margin-bottom: clamp(3rem, 5vw, 4.5rem);
+      display: flex;
+      width: 100%;
+      max-width: 1180px;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 auto clamp(1.8rem, 3vw, 2.5rem);
+      text-align: center;
     }
 
     .page-with-video-bg main.home-main .hero > .eyebrow {
-      grid-column: 1;
-      grid-row: 1;
+      margin-bottom: 0.55rem;
     }
 
     .page-with-video-bg main.home-main .hero-title {
-      grid-column: 1;
-      grid-row: 2;
       max-width: 100%;
-      font-size: clamp(4.7rem, 6.7vw, 6.8rem);
+      font-size: clamp(5rem, 7vw, 7rem);
+      line-height: 0.9;
     }
 
     .page-with-video-bg main.home-main .hero-lower {
       display: block;
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      align-self: center;
-      margin-top: 0;
+      width: 100%;
+      margin-top: 1rem;
     }
 
     .page-with-video-bg main.home-main .hero-lede {
-      max-width: 16ch;
-      margin: 0;
-      font-size: clamp(2.25rem, 3.25vw, 3.15rem);
+      max-width: 30ch;
+      margin: 0 auto;
+      font-size: clamp(2.2rem, 3.25vw, 3.2rem);
       line-height: 1.01;
     }
 
     .page-with-video-bg main.home-main .hero-aside {
-      max-width: 40rem;
-      margin-top: 1.4rem;
+      max-width: 900px;
+      margin: 0.95rem auto 0;
     }
 
     .page-with-video-bg main.home-main .hero-subcopy {
-      max-width: 48ch;
-      margin-bottom: 1.15rem;
-      font-size: clamp(1rem, 1.15vw, 1.1rem);
-      line-height: 1.58;
+      max-width: 72ch;
+      margin: 0 auto 1rem;
+      font-size: clamp(1rem, 1.12vw, 1.08rem);
+      line-height: 1.55;
+    }
+
+    .page-with-video-bg main.home-main .hero-actions {
+      justify-content: center;
     }
   }
 
@@ -173,11 +170,33 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .featured-section {
+      position: relative;
       margin-bottom: 2.35rem;
     }
 
     .page-with-video-bg main.home-main .featured-heading {
-      margin-bottom: 0.85rem;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+    }
+
+    .page-with-video-bg main.home-main .featured-heading::after {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 0.38rem;
+      margin-bottom: 0.08rem;
+      padding: 0.36rem 0.55rem;
+      border: 1px solid rgba(15, 76, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.84);
+      color: #0f4cff;
+      content: 'Swipe →  ●  ○  ○';
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(15, 18, 25, 0.06);
     }
 
     .page-with-video-bg main.home-main .guide-grid {
@@ -186,7 +205,7 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       gap: 0.8rem;
       overflow-x: auto;
       overflow-y: hidden;
-      padding: 0.1rem 0 0.75rem;
+      padding: 0.1rem 0 0.65rem;
       scroll-padding-inline: 0;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
@@ -198,6 +217,7 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .guide-card {
+      position: relative;
       display: flex;
       flex: 0 0 calc(100% - 1.35rem);
       flex-direction: column;
@@ -209,7 +229,34 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       box-shadow: 0 12px 28px rgba(15, 18, 25, 0.09);
     }
 
+    /* Put the visually strongest Daily Snapshot first on phones. */
+    .page-with-video-bg main.home-main .guide-card:nth-child(2) { order: 1; }
+    .page-with-video-bg main.home-main .guide-card:nth-child(1) { order: 2; }
+    .page-with-video-bg main.home-main .guide-card:nth-child(3) { order: 3; }
+
+    .page-with-video-bg main.home-main .guide-copy .card-eyebrow {
+      font-size: 0;
+    }
+
+    .page-with-video-bg main.home-main .guide-copy .card-eyebrow::after {
+      font-size: 0.62rem;
+      letter-spacing: 0.075em;
+    }
+
+    .page-with-video-bg main.home-main .guide-card:nth-child(2) .card-eyebrow::after {
+      content: '01 · DAILY SNAPSHOT';
+    }
+
+    .page-with-video-bg main.home-main .guide-card:nth-child(1) .card-eyebrow::after {
+      content: '02 · RAW DATA';
+    }
+
+    .page-with-video-bg main.home-main .guide-card:nth-child(3) .card-eyebrow::after {
+      content: '03 · TEMPLATE';
+    }
+
     .page-with-video-bg main.home-main .guide-media {
+      position: relative;
       width: 100%;
       height: clamp(142px, 39vw, 170px);
       min-height: 0;
@@ -217,29 +264,42 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       border-bottom: 1px solid rgba(var(--gray-light), 0.92);
     }
 
+    .page-with-video-bg main.home-main .guide-media::after {
+      position: absolute;
+      right: 0.65rem;
+      bottom: 0.6rem;
+      padding: 0.38rem 0.55rem;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 999px;
+      background: rgba(15, 18, 25, 0.76);
+      color: #fff;
+      content: 'Tap to open ↗';
+      font-size: 0.64rem;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 0 5px 14px rgba(15, 18, 25, 0.16);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
     .page-with-video-bg main.home-main .guide-copy {
-      min-height: 150px;
-      padding: 0.9rem 0.95rem 0.95rem;
+      min-height: 108px;
+      padding: 0.78rem 0.88rem 0.82rem;
     }
 
     .page-with-video-bg main.home-main .guide-copy h3 {
-      margin: 0.34rem 0 0.28rem;
-      font-size: 1.12rem;
+      margin: 0.3rem 0 0.24rem;
+      font-size: 1.08rem;
       line-height: 1.12;
     }
 
     .page-with-video-bg main.home-main .guide-description--mobile {
-      font-size: 0.83rem;
-      line-height: 1.4;
-    }
-
-    .page-with-video-bg main.home-main .guide-copy .card-eyebrow {
-      font-size: 0.62rem;
+      font-size: 0.81rem;
+      line-height: 1.36;
     }
 
     .page-with-video-bg main.home-main .guide-copy .card-link {
-      padding-top: 0.65rem;
-      font-size: 0.78rem;
+      display: none;
     }
   }
 
@@ -250,6 +310,12 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
 
     .page-with-video-bg main.home-main .guide-card {
       flex-basis: calc(100% - 1rem);
+    }
+
+    .page-with-video-bg main.home-main .featured-heading::after {
+      padding-inline: 0.45rem;
+      content: 'Swipe →  ● ○ ○';
+      font-size: 0.58rem;
     }
   }
 </style>
