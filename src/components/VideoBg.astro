@@ -255,6 +255,31 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
   }
 
+  /* Let large monitors use their canvas instead of concentrating the whole opening in the middle. */
+  @media (min-width: 1280px) {
+    .page-with-video-bg main.home-main {
+      width: min(1440px, calc(100% - 4rem));
+      max-width: 1440px;
+    }
+
+    .page-with-video-bg main.home-main .hero {
+      max-width: 1320px;
+    }
+
+    .page-with-video-bg main.home-main .featured-section {
+      width: 100%;
+      max-width: 1400px;
+    }
+
+    .page-with-video-bg main.home-main .guide-grid {
+      gap: 1.25rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-media {
+      height: clamp(154px, 10.5vw, 188px);
+    }
+  }
+
   @media (max-width: 700px) {
     .page-with-video-bg main.home-main {
       width: 100%;
@@ -271,22 +296,47 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .featured-heading {
-      position: relative;
-      display: block;
-      margin-bottom: 0.68rem;
+      display: grid;
+      grid-template-columns: auto auto;
+      justify-content: center;
+      align-items: center;
+      column-gap: 0.6rem;
+      row-gap: 0.22rem;
+      margin-bottom: 0.62rem;
+      text-align: center;
+    }
+
+    .page-with-video-bg main.home-main .featured-heading > div {
+      display: contents;
     }
 
     .page-with-video-bg main.home-main .featured-heading > div > .eyebrow {
-      min-height: 1.4rem;
-      padding-right: 7.2rem;
+      grid-column: 1;
+      grid-row: 1;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    .page-with-video-bg main.home-main .featured-heading > div > h2 {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      text-align: center;
+    }
+
+    .page-with-video-bg main.home-main .featured-heading > div > .featured-intro {
+      grid-column: 1 / -1;
+      text-align: center;
     }
 
     .page-with-video-bg main.home-main .featured-heading::after {
-      position: absolute;
-      top: -0.05rem;
-      right: 0;
+      position: static;
+      grid-column: 2;
+      grid-row: 1;
       display: inline-flex;
       align-items: center;
+      justify-self: center;
       margin: 0;
       padding: 0.34rem 0.52rem;
       border: 1px solid rgba(15, 76, 255, 0.18);
@@ -310,6 +360,10 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
 
     .page-with-video-bg main.home-main .featured-heading[data-swipe-index='3']::after {
       content: 'Swipe →  ○  ○  ●';
+    }
+
+    .page-with-video-bg main.home-main .featured-heading > .see-all {
+      display: none;
     }
 
     .page-with-video-bg main.home-main .guide-grid {
@@ -343,7 +397,7 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       box-shadow: 0 12px 28px rgba(15, 18, 25, 0.09);
     }
 
-    /* Put the visually strongest Daily Snapshot first on phones. */
+    /* Lead with the outcome, then reveal the system, then offer the starting point. */
     .page-with-video-bg main.home-main .guide-card:nth-child(2) { order: 1; }
     .page-with-video-bg main.home-main .guide-card:nth-child(1) { order: 2; }
     .page-with-video-bg main.home-main .guide-card:nth-child(3) { order: 3; }
@@ -358,15 +412,15 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .guide-card:nth-child(2) .card-eyebrow::after {
-      content: '01 · DAILY SNAPSHOT';
+      content: '01 · SEE THE RESULT';
     }
 
     .page-with-video-bg main.home-main .guide-card:nth-child(1) .card-eyebrow::after {
-      content: '02 · RAW DATA';
+      content: '02 · SEE THE SYSTEM';
     }
 
     .page-with-video-bg main.home-main .guide-card:nth-child(3) .card-eyebrow::after {
-      content: '03 · TEMPLATE';
+      content: '03 · START YOUR OWN';
     }
 
     .page-with-video-bg main.home-main .guide-media {
@@ -408,8 +462,24 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
     }
 
     .page-with-video-bg main.home-main .guide-description--mobile {
-      font-size: 0.81rem;
+      font-size: 0;
       line-height: 1.36;
+    }
+
+    .page-with-video-bg main.home-main .guide-description--mobile::after {
+      font-size: 0.81rem;
+    }
+
+    .page-with-video-bg main.home-main .guide-card:nth-child(2) .guide-description--mobile::after {
+      content: 'See what one logged day becomes.';
+    }
+
+    .page-with-video-bg main.home-main .guide-card:nth-child(1) .guide-description--mobile::after {
+      content: 'See the raw sheet that feeds the archive.';
+    }
+
+    .page-with-video-bg main.home-main .guide-card:nth-child(3) .guide-description--mobile::after {
+      content: 'Copy the system and begin your own.';
     }
 
     .page-with-video-bg main.home-main .guide-copy .card-link {
@@ -430,8 +500,8 @@ const isHome = normalizedPath === '/' || normalizedPath === normalizedBase;
       flex-basis: calc(100% - 1rem);
     }
 
-    .page-with-video-bg main.home-main .featured-heading > div > .eyebrow {
-      padding-right: 6.8rem;
+    .page-with-video-bg main.home-main .featured-heading {
+      column-gap: 0.45rem;
     }
 
     .page-with-video-bg main.home-main .featured-heading::after {
